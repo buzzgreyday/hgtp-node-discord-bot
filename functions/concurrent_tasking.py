@@ -27,16 +27,24 @@ class Request:
 
 
 async def request_node_data(subscriber, port):
+    cluster_data = []
+
     if port is not None:
         try:
             node_data = await Request(f"http://{subscriber['ip']}:{port}/{info.node}").json()
         except Exception:
             node_data = {"state": "Offline", "session": None, "clusterSession": None, "version": None, "host": subscriber["ip"], "publicPort": port, "p2pPort": None, "id": None}
+            logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE OFFLINE")
+
         for k, v in node_data.items():
             if (k == "state") and (v != "Offline"):
-                cluster_data = await Request(f"http://{subscriber['ip']}:{port}/{info.cluster}").json()
+                try:
+                    cluster_data = await Request(f"http://{subscriber['ip']}:{port}/{info.cluster}").json()
+                    # cluster_data is a list of dictionaries
+                except Exception:
+                    pass
         # After this, check historic data
-        return node_data
+        return node_data, cluster_data
 
 
 async def subscriber_node_data(dask_client, ip, subscriber_dataframe):
