@@ -57,6 +57,7 @@ async def examine_node_cluster(cluster_data):
 
 
 async def do_check(subscriber, port):
+    historic_node_dataframe = await data_handling.nodes(info.latest_node_data)
     node_data, cluster_data = await request_node_data(subscriber, port)
     await examine_node_cluster(cluster_data)
     return node_data, cluster_data
@@ -82,7 +83,6 @@ async def subscriber_node_data(dask_client, ip, subscriber_dataframe):
 async def init(dask_client):
     subscriber_futures = []
     request_futures = []
-    historic_node_dataframe = await data_handling.nodes(info.latest_node_data)
     subscriber_dataframe = await data_handling.read_all_subscribers()
     ips = await dask_client.compute(subscriber_dataframe["ip"])
     # use set() to remove duplicates
