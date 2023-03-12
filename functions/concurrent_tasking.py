@@ -51,8 +51,14 @@ async def request_node_data(subscriber, port):
         return node_data, cluster_data
 
 
+async def examine_node_cluster(cluster_data):
+    if not cluster_data:
+        print("NOT EMPTY")
+
+
 async def do_check(subscriber, port):
     node_data, cluster_data = await request_node_data(subscriber, port)
+    await examine_node_cluster(cluster_data)
     return node_data, cluster_data
 
 
