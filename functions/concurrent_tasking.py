@@ -4,19 +4,14 @@ import asyncio
 
 import aiohttp
 
-from functions import read, request
+from functions import read, request, process
 import info
-
-
-async def examine_node_cluster(cluster_data):
-    if not cluster_data:
-        print("NOT EMPTY")
 
 
 async def do_check(subscriber, port):
     historic_node_dataframe = await read.history(info.latest_node_data)
     node_data, cluster_data = await request.node_data(subscriber, port)
-    await examine_node_cluster(cluster_data)
+    await process.node_cluster(cluster_data)
     return node_data, cluster_data
 
 
