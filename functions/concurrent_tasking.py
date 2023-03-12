@@ -27,6 +27,7 @@ class Request:
 
 
 async def request_node_data(subscriber, port):
+    cluster_data = []
 
     if port is not None:
         try:
@@ -42,10 +43,17 @@ async def request_node_data(subscriber, port):
                     # cluster_data is a list of dictionaries
                 except Exception:
                     pass
+            # Else cluster_data from history
+
         # Marry data
 
         # After this, check historic data
-        return node_data
+        return node_data, cluster_data
+
+
+async def run(subscriber, port):
+    node_data, cluster_data = await request_node_data(subscriber, port)
+    return node_data, cluster_data
 
 
 async def subscriber_node_data(dask_client, ip, subscriber_dataframe):
@@ -80,10 +88,10 @@ async def init(dask_client):
             if k == "public_l0":
                 for port in v:
                     # create_task() here and append to futures
-                    request_futures.append(asyncio.create_task(request_node_data(subscriber, port)))
+                    request_futures.append(asyncio.create_task(run(subscriber, port)))
             elif k == "public_l1":
                 for port in v:
                     # create_task() here and append to futures
-                    request_futures.append(asyncio.create_task(request_node_data(subscriber, port)))
+                    request_futures.append(asyncio.create_task(run(subscriber, port)))
         # return list of futures to main() and run there
     return request_futures
