@@ -7,7 +7,7 @@ from functions.data_structure import Columns, Dtypes
 import info
 
 
-async def nodes(file):
+async def history(file):
     if not os.path.exists(file):
         logging.warning(f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE DATA NOT FOUND, RETURN BLANK DATAFRAME WITH COLUMNS")
         return pd.DataFrame(columns=Columns.historic_node_data)
@@ -19,6 +19,6 @@ async def nodes(file):
         return pd.DataFrame()
 
 
-async def read_all_subscribers():
+async def subscribers():
     logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - READING SUBSCRIBER DATA AND RETURNING DATAFRAME")
     return dd.read_csv(info.subscriber_data, dtype=Dtypes.subscribers)
