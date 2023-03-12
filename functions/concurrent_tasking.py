@@ -1,11 +1,45 @@
 import logging
 from datetime import datetime
 import asyncio
+
+import aiohttp
+
 from functions import data_handling
 import info
 
 
-async def subscriber_node_data(dask_client, ip, subscriber_dataframe, historic_node_dataframe):
+class Request:
+    def __init__(self, url):
+        self.url = url
+
+    async def json(self):
+        timeout = aiohttp.ClientTimeout(total=info.aiohttp_timeout)
+        async with aiohttp.ClientSession() as session:
+            async with session.get(self.url, timeout=timeout) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST SUCCEEDED")
+                else:
+                    logging.critical(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST FAILED")
+            del resp
+            await session.close()
+        return data
+
+
+async def request_node_data(subscriber, port):
+    if port is not None:
+        try:
+            node_data = await Request(f"http://{subscriber['ip']}:{port}/{info.node}").json()
+        except Exception:
+            node_data = {"state": "Offline", "session": None, "clusterSession": None, "version": None, "host": subscriber["ip"], "publicPort": port, "p2pPort": None, "id": None}
+        for k, v in node_data.items():
+            if (k == "state") and (v != "Offline"):
+                cluster_data = await Request(f"http://{subscriber['ip']}:{port}/{info.cluster}").json()
+
+        return node_data
+
+
+async def subscriber_node_data(dask_client, ip, subscriber_dataframe):
     ip = ip
     name = await dask_client.compute(subscriber_dataframe.name[subscriber_dataframe.ip == ip])
     contact = await dask_client.compute(subscriber_dataframe.contact[subscriber_dataframe.ip == ip])
@@ -23,23 +57,24 @@ async def subscriber_node_data(dask_client, ip, subscriber_dataframe, historic_n
 
 
 async def init(dask_client):
-    futures = []
-    historic_node_dataframe = await data_handling.nodes(dask_client, info.latest_node_data)
+    subscriber_futures = []
+    request_futures = []
+    historic_node_dataframe = await data_handling.nodes(info.latest_node_data)
     subscriber_dataframe = await data_handling.read_all_subscribers()
     ips = await dask_client.compute(subscriber_dataframe["ip"])
     # use set() to remove duplicates
     for i, ip in enumerate(list(set(ips.values))):
-        futures.append(asyncio.create_task(subscriber_node_data(dask_client, ip, subscriber_dataframe, historic_node_dataframe)))
-    for _ in futures:
+        subscriber_futures.append(asyncio.create_task(subscriber_node_data(dask_client, ip, subscriber_dataframe)))
+    for _ in subscriber_futures:
         subscriber = await _
         for k, v in subscriber.items():
             if k == "public_l0":
                 for port in v:
                     # create_task() here and append to futures
-                    print(subscriber["name"], port)
+                    request_futures.append(asyncio.create_task(request_node_data(subscriber, port)))
             elif k == "public_l1":
                 for port in v:
                     # create_task() here and append to futures
-                    print(subscriber["name"], port)
-        # run tasks here
-        # then return list of futures to main() and run there
+                    request_futures.append(asyncio.create_task(request_node_data(subscriber, port)))
+        # return list of futures to main() and run there
+    return request_futures

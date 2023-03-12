@@ -7,7 +7,7 @@ from functions.data_structure import Columns, Dtypes
 import info
 
 
-async def nodes(dask_client, file):
+async def nodes(file):
     if not os.path.exists(file):
         logging.warning(f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE DATA NOT FOUND, RETURN BLANK DATAFRAME WITH COLUMNS")
         return pd.DataFrame(columns=Columns.historic_node_data)

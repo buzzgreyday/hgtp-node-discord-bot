@@ -32,7 +32,10 @@ if __name__ == "__main__":
                 logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - DASK CLIENT RUNNING")
                 timer_start = time.perf_counter()
                 await aesthetics.set_active_presence(bot)
-                await concurrent_tasking.init(dask_client)
+                futures = await concurrent_tasking.init(dask_client)
+                for _ in futures:
+                    result = await _
+                    print(result)
                 timer_stop = time.perf_counter()
                 print(timer_stop-timer_start)
                 exit(0)
