@@ -2,8 +2,6 @@ import logging
 from datetime import datetime
 import asyncio
 
-import aiohttp
-
 from functions import read, request, process
 import info
 

@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 import pandas as pd
 import dask.dataframe as dd
-from functions.data_structure import Columns, Dtypes
+from functions.format import Columns, Dtypes
 import info
 
 
