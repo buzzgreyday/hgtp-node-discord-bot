@@ -42,3 +42,4 @@ async def init(dask_client):
                     # create_task() here and append to futures
                     print(subscriber["name"], port)
         # run tasks here
+        # then return list of futures to main() and run there
