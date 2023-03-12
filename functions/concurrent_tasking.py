@@ -35,7 +35,7 @@ async def request_node_data(subscriber, port):
         for k, v in node_data.items():
             if (k == "state") and (v != "Offline"):
                 cluster_data = await Request(f"http://{subscriber['ip']}:{port}/{info.cluster}").json()
-
+        # After this, check historic data
         return node_data
 
 
