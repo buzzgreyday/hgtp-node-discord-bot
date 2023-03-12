@@ -51,7 +51,7 @@ async def request_node_data(subscriber, port):
         return node_data, cluster_data
 
 
-async def run(subscriber, port):
+async def do_check(subscriber, port):
     node_data, cluster_data = await request_node_data(subscriber, port)
     return node_data, cluster_data
 
@@ -88,10 +88,10 @@ async def init(dask_client):
             if k == "public_l0":
                 for port in v:
                     # create_task() here and append to futures
-                    request_futures.append(asyncio.create_task(run(subscriber, port)))
+                    request_futures.append(asyncio.create_task(do_check(subscriber, port)))
             elif k == "public_l1":
                 for port in v:
                     # create_task() here and append to futures
-                    request_futures.append(asyncio.create_task(run(subscriber, port)))
+                    request_futures.append(asyncio.create_task(do_check(subscriber, port)))
         # return list of futures to main() and run there
     return request_futures
