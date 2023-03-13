@@ -1,3 +1,4 @@
-async def node_cluster(cluster_data):
-    if not cluster_data:
-        print("NOT EMPTY")
+async def node_cluster(node_data, cluster_data):
+    if cluster_data:
+        node_data["connections"] = len(cluster_data)
+        print(node_data)

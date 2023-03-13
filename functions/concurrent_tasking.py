@@ -9,7 +9,7 @@ import info
 async def do_check(subscriber, port):
     historic_node_dataframe = await read.history(info.latest_node_data)
     node_data, cluster_data = await request.node_data(subscriber, port)
-    await process.node_cluster(cluster_data)
+    await process.node_cluster(node_data, cluster_data)
     return node_data, cluster_data
 
 
