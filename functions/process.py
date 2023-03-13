@@ -8,7 +8,6 @@ async def online_node_cluster(dask_client, node_data, cluster_data):
     node_data["nodeClusterName"] = None
     node_data["nodeClusterIp"] = pair_ip
     node_data["nodeClusterPublicPort"] = pair_port
-    # IF ONLINE
     load_balancers = await read.load_balancers()
     lb_ids = await dask_client.compute(load_balancers["id"].values)
     for d in cluster_data:
