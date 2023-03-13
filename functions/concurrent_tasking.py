@@ -6,9 +6,10 @@ from functions import read, request, process
 import info
 
 
-async def do_check(dask_client, subscriber, port, load_balancers, historic_node_dataframe):
+async def do_check(dask_client, subscriber, port):
+    historic_node_dataframe = await read.history(info.latest_node_data)
     node_data, cluster_data = await request.node_data(subscriber, port)
-    await process.node_cluster(dask_client, node_data, cluster_data, load_balancers)
+    await process.node_cluster(dask_client, node_data, cluster_data)
     # REQUEST FROM HISTORIC DATA
     return node_data, cluster_data
 
@@ -34,8 +35,6 @@ async def init(dask_client):
     subscriber_futures = []
     request_futures = []
     subscriber_dataframe = await read.subscribers()
-    historic_node_dataframe = await read.history(info.latest_node_data)
-    load_balancers = await read.load_balancers()
     ips = await dask_client.compute(subscriber_dataframe["ip"])
     # use set() to remove duplicates
     for i, ip in enumerate(list(set(ips.values))):
@@ -46,10 +45,10 @@ async def init(dask_client):
             if k == "public_l0":
                 for port in v:
                     # create_task() here and append to futures
-                    request_futures.append(asyncio.create_task(do_check(dask_client, subscriber, port, load_balancers, historic_node_dataframe)))
+                    request_futures.append(asyncio.create_task(do_check(dask_client, subscriber, port)))
             elif k == "public_l1":
                 for port in v:
                     # create_task() here and append to futures
-                    request_futures.append(asyncio.create_task(do_check(dask_client, subscriber, port, load_balancers, historic_node_dataframe)))
+                    request_futures.append(asyncio.create_task(do_check(dask_client, subscriber, port)))
         # return list of futures to main() and run there
     return request_futures

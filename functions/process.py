@@ -1,7 +1,7 @@
 from functions import format, read
 
 
-async def node_cluster(dask_client, node_data, cluster_data, load_balancers):
+async def node_cluster(dask_client, node_data, cluster_data):
     pair_ip = None
     pair_port = None
     node_data["nodeClusterPairs"] = len(cluster_data)
@@ -9,6 +9,7 @@ async def node_cluster(dask_client, node_data, cluster_data, load_balancers):
     node_data["nodeClusterIp"] = pair_ip
     node_data["nodeClusterPublicPort"] = pair_port
     if cluster_data:
+        load_balancers = await read.load_balancers()
         lb_ids = await dask_client.compute(load_balancers["id"].values)
         for d in cluster_data:
             for k, v in d.items():
@@ -21,6 +22,4 @@ async def node_cluster(dask_client, node_data, cluster_data, load_balancers):
                 if k == "publicPort":
                     pair_port = str(v)
                     node_data["nodeClusterPublicPort"] = pair_port
-        lb_ids.clear()
-        del lb_ids
 
