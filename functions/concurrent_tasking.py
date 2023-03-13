@@ -9,8 +9,8 @@ import info
 async def do_check(dask_client, subscriber, port):
     historic_node_dataframe = await read.history(info.latest_node_data)
     node_data, cluster_data = await request.node_data(subscriber, port)
-    if cluster_data:
-        await process.online_node_cluster(dask_client, node_data, cluster_data)
+    await process.node_cluster(dask_client, node_data, cluster_data)
+    # REQUEST FROM HISTORIC DATA
     return node_data, cluster_data
 
 
