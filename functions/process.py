@@ -23,5 +23,3 @@ async def node_cluster(dask_client, node_data, cluster_data):
                     node_data["nodeClusterName"] = node_cluster_name.values[0]
                     node_data["nodeClusterIp"] = pair_ip
                     node_data["nodeClusterPublicPort"] = pair_port
-
-        pass
