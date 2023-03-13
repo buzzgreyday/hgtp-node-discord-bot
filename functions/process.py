@@ -4,7 +4,7 @@ from functions import format, read
 async def online_node_cluster(dask_client, node_data, cluster_data):
     pair_ip = None
     pair_port = None
-    node_data["nodePairs"] = len(cluster_data)
+    node_data["nodClusterPairs"] = len(cluster_data)
     node_data["nodeClusterName"] = None
     node_data["nodeClusterIp"] = pair_ip
     node_data["nodeClusterPublicPort"] = pair_port
