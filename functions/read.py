@@ -22,3 +22,8 @@ async def history(file):
 async def subscribers():
     logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - READING SUBSCRIBER DATA AND RETURNING DATAFRAME")
     return dd.read_csv(info.subscriber_data, dtype=Dtypes.subscribers)
+
+
+async def load_balancers():
+    logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - READING LOAD BALANCER DATA AND RETURNING DATAFRAME")
+    return dd.read_csv(info.load_balancers_data, dtype=Dtypes.load_balancers)

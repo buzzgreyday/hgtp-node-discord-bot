@@ -47,6 +47,12 @@ class Columns:
                    'node_id'
                    ]
 
+    load_balancers = {
+        'name',
+        'url',
+        'id'
+    }
+
 
 class Dtypes:
     historic_node_data = {
@@ -96,4 +102,10 @@ class Dtypes:
         'public_l0': 'str',
         'public_l1': 'str',
         'node_id': 'str'
+    }
+
+    load_balancers = {
+        'name': 'str',
+        'url': 'str',
+        'id': 'str'
     }

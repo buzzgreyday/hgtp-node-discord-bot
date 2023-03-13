@@ -6,10 +6,10 @@ from functions import read, request, process
 import info
 
 
-async def do_check(subscriber, port):
+async def do_check(dask_client, subscriber, port):
     historic_node_dataframe = await read.history(info.latest_node_data)
     node_data, cluster_data = await request.node_data(subscriber, port)
-    await process.node_cluster(node_data, cluster_data)
+    await process.node_cluster(dask_client, node_data, cluster_data)
     return node_data, cluster_data
 
 
@@ -44,10 +44,10 @@ async def init(dask_client):
             if k == "public_l0":
                 for port in v:
                     # create_task() here and append to futures
-                    request_futures.append(asyncio.create_task(do_check(subscriber, port)))
+                    request_futures.append(asyncio.create_task(do_check(dask_client, subscriber, port)))
             elif k == "public_l1":
                 for port in v:
                     # create_task() here and append to futures
-                    request_futures.append(asyncio.create_task(do_check(subscriber, port)))
+                    request_futures.append(asyncio.create_task(do_check(dask_client, subscriber, port)))
         # return list of futures to main() and run there
     return request_futures
