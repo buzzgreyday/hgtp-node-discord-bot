@@ -3,19 +3,18 @@ from datetime import datetime
 import asyncio
 
 from functions import read, request, process
-import info
+import configuration
 
 
-async def do_check(dask_client, subscriber, port):
-    historic_node_dataframe = await read.history(info.latest_node_data)
+async def do_check(dask_client, subscriber, layer, port, historic_node_dataframe, load_balancers):
     node_data, cluster_data = await request.node_data(subscriber, port)
-    await process.node_cluster(dask_client, node_data, cluster_data)
+    node_data = await process.node_cluster(dask_client, layer, node_data, cluster_data, load_balancers)
+    await process.historic_node_data(dask_client, node_data, historic_node_dataframe)
     # REQUEST FROM HISTORIC DATA
     return node_data, cluster_data
 
 
 async def subscriber_node_data(dask_client, ip, subscriber_dataframe):
-    ip = ip
     name = await dask_client.compute(subscriber_dataframe.name[subscriber_dataframe.ip == ip])
     contact = await dask_client.compute(subscriber_dataframe.contact[subscriber_dataframe.ip == ip])
     public_l0 = tuple(await dask_client.compute(subscriber_dataframe.public_l0[subscriber_dataframe.ip == ip]))
@@ -34,6 +33,8 @@ async def subscriber_node_data(dask_client, ip, subscriber_dataframe):
 async def init(dask_client):
     subscriber_futures = []
     request_futures = []
+    load_balancers = await read.load_balancers()
+    historic_node_dataframe = await read.history()
     subscriber_dataframe = await read.subscribers()
     ips = await dask_client.compute(subscriber_dataframe["ip"])
     # use set() to remove duplicates
@@ -45,10 +46,12 @@ async def init(dask_client):
             if k == "public_l0":
                 for port in v:
                     # create_task() here and append to futures
-                    request_futures.append(asyncio.create_task(do_check(dask_client, subscriber, port)))
+                    layer = 0
+                    request_futures.append(asyncio.create_task(do_check(dask_client, subscriber, layer, port, historic_node_dataframe, load_balancers)))
             elif k == "public_l1":
                 for port in v:
                     # create_task() here and append to futures
-                    request_futures.append(asyncio.create_task(do_check(dask_client, subscriber, port)))
+                    layer = 1
+                    request_futures.append(asyncio.create_task(do_check(dask_client, subscriber, layer, port, historic_node_dataframe, load_balancers)))
         # return list of futures to main() and run there
     return request_futures

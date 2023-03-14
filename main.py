@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 from dask.distributed import Client
 import distributed
-from info import logging_dir
+from configuration import logging_dir
 from functions import aesthetics, concurrent_tasking
 import nextcord
 from nextcord.ext import commands
