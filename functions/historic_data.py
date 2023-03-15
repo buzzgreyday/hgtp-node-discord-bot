@@ -10,7 +10,6 @@ async def node_data(dask_client, node_data, history_dataframe):
             port = v
     historic_node_dataframe = await dask_client.compute(history_dataframe[(history_dataframe["node ip"] == ip) & (history_dataframe["node port"] == port)])
     del ip, port, k, v
-    print(historic_node_dataframe)
     return historic_node_dataframe
 
 
