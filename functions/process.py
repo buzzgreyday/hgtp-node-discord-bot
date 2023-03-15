@@ -11,7 +11,7 @@ async def do_checks(dask_client, subscriber, layer, port, history_dataframe, loa
         node_data, cluster_data = await request.node_data(subscriber, port)
         node_data = await latest_data.merge_cluster_data(dask_client, layer, node_data, cluster_data, load_balancers)
         historic_node_dataframe = await historic_data.node_data(dask_client, node_data, history_dataframe)
-        await historic_data.merge_history_data(node_data, historic_node_dataframe)
+        former_node_dataframe = await historic_data.former_data(node_data, historic_node_dataframe)
         # REQUEST FROM HISTORIC DATA
     except UnboundLocalError:
         pass
