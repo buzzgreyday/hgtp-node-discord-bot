@@ -22,5 +22,12 @@ async def former_data(node_data, historic_node_data):
     if not former_node_data.empty:
         former_cluster_names = list(set(former_node_data["cluster name"]))
         for cluster_name in former_cluster_names:
-            former_tessellation_version = former_node_data["node version"][former_node_data["cluster name"] == cluster_name].values[0]
-            former_connectivity = former_node_data["connectivity"][former_node_data["cluster name"] == cluster_name].values[0]
+            former_node_id = former_node_data["node id"][former_node_data["cluster name"] == cluster_name].values[0]
+            former_node_connectivity = former_node_data["connectivity"][former_node_data["cluster name"] == cluster_name].values[0]
+            former_node_wallet = former_node_data["node wallet"][former_node_data["cluster name"] == cluster_name].values[0]
+            former_node_tessellation_version = former_node_data["node version"][former_node_data["cluster name"] == cluster_name].values[0]
+            former_node_cluster_association_time = former_node_data["association time"][former_node_data["cluster name"] == cluster_name].values[0]
+            former_node_cluster_dissociation_time = former_node_data["dissociation time"][former_node_data["cluster name"] == cluster_name].values[0]
+            former_node_total_disk_space = former_node_data["node total disk space"][former_node_data["cluster name"] == cluster_name].values[0]
+            former_node_free_disk_space = former_node_data["node free disk space"][former_node_data["cluster name"] == cluster_name].values[0]
+
