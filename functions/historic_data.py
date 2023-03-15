@@ -15,7 +15,11 @@ async def node_data(dask_client, node_data, history_dataframe):
 
 
 async def merge_history_data(node_data, historic_node_data):
-    former_cluster_names = list(set(historic_node_data["cluster name"].values))
-    for cluster_name in former_cluster_names:
-        former_tessellation_version = historic_node_data["node version"][historic_node_data["cluster name"] == cluster_name].values[0]
-        former_connectivity = historic_node_data["connectivity"][historic_node_data["cluster name"] == cluster_name].values[0]
+    former_node_data = historic_node_data[historic_node_data["index timestamp"] == historic_node_data["index timestamp"].max()]
+    if not former_node_data.empty:
+        former_cluster_names = list(set(former_node_data["cluster name"]))
+        print(former_cluster_names)
+        for cluster_name in former_cluster_names:
+            former_tessellation_version = former_node_data["node version"][former_node_data["cluster name"] == cluster_name].values[0]
+            former_connectivity = former_node_data["connectivity"][former_node_data["cluster name"] == cluster_name].values[0]
+            print(cluster_name, former_tessellation_version, former_connectivity)
