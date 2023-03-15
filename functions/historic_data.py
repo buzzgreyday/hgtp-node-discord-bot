@@ -14,6 +14,10 @@ async def node_data(dask_client, node_data, history_dataframe):
 
 
 async def former_data(node_data, historic_node_data):
+    # STD/OFFLINE VALUES
+    former_tessellation_version = 0
+    former_connectivity = None
+
     former_node_data = historic_node_data[historic_node_data["index timestamp"] == historic_node_data["index timestamp"].max()]
     if not former_node_data.empty:
         former_cluster_names = list(set(former_node_data["cluster name"]))

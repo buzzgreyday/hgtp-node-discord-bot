@@ -3,7 +3,6 @@ from datetime import datetime
 import asyncio
 
 from functions import read, request, latest_data, historic_data
-import configuration
 
 
 async def do_checks(dask_client, subscriber, layer, port, history_dataframe, load_balancers):
@@ -49,12 +48,10 @@ async def init(dask_client):
         for k, v in subscriber.items():
             if k == "public_l0":
                 for port in v:
-                    # create_task() here and append to futures
                     layer = 0
                     request_futures.append(asyncio.create_task(do_checks(dask_client, subscriber, layer, port, history_dataframe, load_balancers)))
             elif k == "public_l1":
                 for port in v:
-                    # create_task() here and append to futures
                     layer = 1
                     request_futures.append(asyncio.create_task(do_checks(dask_client, subscriber, layer, port, history_dataframe, load_balancers)))
         # return list of futures to main() and run there
