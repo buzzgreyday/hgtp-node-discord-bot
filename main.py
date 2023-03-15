@@ -4,7 +4,7 @@ from datetime import datetime
 from dask.distributed import Client
 import distributed
 from configuration import logging_dir
-from functions import aesthetics, concurrent_tasking
+from functions import aesthetics, process
 import nextcord
 from nextcord.ext import commands
 from os import getenv, path, makedirs
@@ -32,7 +32,7 @@ if __name__ == "__main__":
                 logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - DASK CLIENT RUNNING")
                 timer_start = time.perf_counter()
                 await aesthetics.set_active_presence(bot)
-                futures = await concurrent_tasking.init(dask_client)
+                futures = await process.init(dask_client)
                 for _ in futures:
                     node_data, cluster_data = await _
                     # dictionary
