@@ -26,28 +26,49 @@ class Request:
 
 
 async def node_cluster_data(subscriber, port, configuration):
+    node_data = []
     cluster_data = []
-
     if port is not None:
-        try:
-            print(f"http://{subscriber['ip']}:{port}/{configuration['request']['url']['endings']['node']}")
-            node_data = await Request(f"http://{subscriber['ip']}:{port}/{configuration['request']['url']['endings']['node']}").json(configuration)
-        except (TimeoutError, aiohttp.ClientConnectorError, aiohttp.ClientOSError, aiohttp.ServerDisconnectedError) as e:
-            node_data = {"state": "Offline", "session": None, "clusterSession": None, "version": None, "host": subscriber["ip"], "publicPort": port, "p2pPort": None, "id": None}
-            logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE OFFLINE")
+        retry_count = 0
+        run_again = True
+        while run_again:
+            try:
+                node_data = await Request(f"http://{subscriber['ip']}:{port}/{configuration['request']['url']['endings']['node']}").json(configuration)
+                if node_data == 503:
+                    run_again = False
+                elif node_data is not None:
+                    run_again = False
+                elif retry_count >= 5:
+                    node_data = {"state": "Offline", "session": None, "clusterSession": None, "version": None, "host": subscriber["ip"], "publicPort": port, "p2pPort": None, "id": None}
+            except (TimeoutError, aiohttp.ClientConnectorError, aiohttp.ClientOSError, aiohttp.ServerDisconnectedError) as e:
+                retry_count += 1
+                await asyncio.sleep(3)
+                logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE @ {subscriber['ip']}:{port} UNREACHABLE")
 
-        for k, v in node_data.items():
-            if (k == "state") and (v != "Offline"):
-                try:
-                    cluster_data = await Request(f"http://{subscriber['ip']}:{port}/{configuration['ending']['cluster']}").json(configuration)
-                    # cluster_data is a list of dictionaries
-                except Exception:
-                    pass
-            # Else cluster_data from history
+        retry_count = 0
+        run_again = True
+        while run_again:
+            for k, v in node_data.items():
+                if (k == "state") and (v != "Offline"):
+                    try:
+                        cluster_data = await Request(f"http://{subscriber['ip']}:{port}/{configuration['ending']['cluster']}").json(configuration)
+                        if cluster_data == 503:
 
-        # Marry data
+                            run_again = False
+                        elif cluster_data is not None:
+                            run_again = False
+                        elif retry_count >= 5:
+                            cluster_data = []
+                        # cluster_data is a list of dictionaries
+                    except (TimeoutError, aiohttp.ClientConnectorError, aiohttp.ClientOSError, aiohttp.ServerDisconnectedError):
+                        retry_count += 1
+                        await asyncio.sleep(3)
+                        logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE CLUSTER @ {subscriber['ip']}:{port} UNREACHABLE")
+                # Else cluster_data from history
 
-        # After this, check historic data
+            # Marry data
+
+            # After this, check historic data
         return node_data, cluster_data
 
 
@@ -59,10 +80,11 @@ async def validator_data(configuration):
     while run_again:
         try:
             for url in configuration['request']['url']['validator info'][f'testnet']['url']:
+                print(url)
                 while retry_count < 5:
-                    validator_testnet_data = await Request(url).json(configuration)
-                    if validator_testnet_data == 502:
-                        continue
+                    validator_testnet_data = await Request(str(url)).json(configuration)
+                    if validator_testnet_data == 503:
+                        break
                     elif validator_testnet_data is not None:
                         run_again = False
                         break
@@ -77,10 +99,11 @@ async def validator_data(configuration):
     while run_again:
         try:
             for url in configuration['request']['url']['validator info'][f'mainnet']['url']:
+                print(url)
                 while retry_count < 5:
                     validator_mainnet_data = await Request(url).json(configuration)
-                    if validator_mainnet_data == 502:
-                        continue
+                    if validator_mainnet_data == 503:
+                        break
                     elif validator_mainnet_data is not None:
                         run_again = False
                         break
