@@ -37,5 +37,5 @@ async def former_data(node_data, historic_node_data):
             former_node_cluster_dissociation_time.append(former_node_data["dissociation time"][former_node_data["cluster name"] == cluster_name].values[0])
             former_node_total_disk_space.append(former_node_data["node total disk space"][former_node_data["cluster name"] == cluster_name].values[0])
             former_node_free_disk_space.append(former_node_data["node free disk space"][former_node_data["cluster name"] == cluster_name].values[0])
-    if node_data["state"] == "Offline":
-        node_data["id"] = former_node_id
+        if node_data["state"] == "Offline":
+            node_data["id"] = former_node_id
