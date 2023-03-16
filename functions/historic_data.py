@@ -45,4 +45,6 @@ async def former_data(node_data, historic_node_data):
             node_data["freeDiskSpace"] = former_node_free_disk_space
         node_data["formerClusterNames"] = former_cluster_names
         node_data["formerClusterConnectivity"] = former_node_cluster_connectivity
+        node_data["formerClusterAssociationTime"] = former_node_cluster_association_time
+        node_data["formerClusterDissociationTime"] = former_node_cluster_dissociation_time
     return node_data
