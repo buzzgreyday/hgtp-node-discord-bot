@@ -38,7 +38,7 @@ async def node_cluster_data(subscriber, port, configuration):
                 print(f"http://{str(subscriber['ip'])}:{str(port)}/{str(configuration['request']['url']['endings']['node'])}")
                 node_data = await Request(f"http://{subscriber['ip']}:{port}/{configuration['request']['url']['endings']['node']}").json(configuration)
                 print(node_data)
-                if retry_count >= 5:
+                if retry_count >= configuration['request']['max retry count']:
                     node_data = {"state": "Offline", "session": None, "clusterSession": None, "version": None, "host": subscriber["ip"], "publicPort": port, "p2pPort": None, "id": None}
                     run_again = False
                     break
@@ -50,14 +50,14 @@ async def node_cluster_data(subscriber, port, configuration):
                     break
                 else:
                     retry_count += 1
-                    await asyncio.sleep(3)
+                    await asyncio.sleep(configuration['request']['retry sleep'])
             except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientConnectorError, aiohttp.client_exceptions.ClientOSError, aiohttp.client_exceptions.ServerDisconnectedError) as e:
-                if retry_count >= 5:
+                if retry_count >= configuration['request']['max retry count']:
                     node_data = {"state": "Offline", "session": None, "clusterSession": None, "version": None, "host": subscriber["ip"], "publicPort": port, "p2pPort": None, "id": None}
                     run_again = False
                     break
                 retry_count += 1
-                await asyncio.sleep(3)
+                await asyncio.sleep(configuration['request']['retry sleep'])
                 logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE @ {subscriber['ip']}:{port} UNREACHABLE")
             except aiohttp.client_exceptions.InvalidURL:
                 node_data = {"state": "Offline", "session": None, "clusterSession": None, "version": None,"host": subscriber["ip"], "publicPort": port, "p2pPort": None, "id": None}
@@ -70,7 +70,7 @@ async def node_cluster_data(subscriber, port, configuration):
                 while run_again:
                     try:
                         cluster_data = await Request(f"http://{str(subscriber['ip'])}:{str(port)}/{str(configuration['request']['url']['endings']['cluster'])}").json(configuration)
-                        if retry_count >= 5:
+                        if retry_count >= configuration['request']['max retry count']:
                             run_again = False
                             break
                         elif cluster_data == 503:
@@ -81,15 +81,15 @@ async def node_cluster_data(subscriber, port, configuration):
                             break
                         else:
                             retry_count += 1
-                            await asyncio.sleep(3)
+                            await asyncio.sleep(configuration['request']['retry sleep'])
 
                         # cluster_data is a list of dictionaries
                     except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientConnectorError, aiohttp.client_exceptions.ClientOSError, aiohttp.client_exceptions.ServerDisconnectedError):
-                        if retry_count >= 5:
+                        if retry_count >= configuration['request']['max retry count']:
                             run_again = False
                             break
                         retry_count += 1
-                        await asyncio.sleep(3)
+                        await asyncio.sleep(configuration['request']['retry sleep'])
                         logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE CLUSTER @ {subscriber['ip']}:{port} UNREACHABLE")
                     except aiohttp.client_exceptions.InvalidURL:
                         node_data = {"state": "Offline", "session": None, "clusterSession": None, "version": None,
@@ -113,7 +113,7 @@ async def validator_data(configuration):
         try:
             for url in configuration['request']['url']['validator info'][f'testnet']['url']:
                 print(url)
-                while retry_count < 5:
+                while retry_count < configuration['request']['max retry count']:
                     validator_testnet_data = await Request(str(url)).json(configuration)
                     if validator_testnet_data == 503:
                         break
@@ -121,19 +121,19 @@ async def validator_data(configuration):
                         run_again = False
                         break
                     else:
-                        await asyncio.sleep(3)
+                        await asyncio.sleep(configuration['request']['retry sleep'])
                         retry_count += 1
         except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientConnectorError, aiohttp.client_exceptions.ClientOSError, aiohttp.client_exceptions.ServerDisconnectedError) as e:
-            if retry_count >= 5:
+            if retry_count >= configuration['request']['max retry count']:
                 run_again = False
                 break
-            await asyncio.sleep(3)
+            await asyncio.sleep(configuration['request']['retry sleep'])
     run_again = True
     retry_count = 0
     while run_again:
         try:
             for url in configuration['request']['url']['validator info'][f'mainnet']['url']:
-                while retry_count < 5:
+                while retry_count < configuration['request']['max retry count']:
                     validator_mainnet_data = await Request(str(url)).json(configuration)
                     if validator_mainnet_data == 503:
                         break
@@ -141,14 +141,14 @@ async def validator_data(configuration):
                         run_again = False
                         break
                     else:
-                        await asyncio.sleep(3)
+                        await asyncio.sleep(configuration['request']['retry sleep'])
                         print(retry_count)
                         retry_count += 1
         except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientConnectorError, aiohttp.client_exceptions.ClientOSError, aiohttp.client_exceptions.ServerDisconnectedError) as e:
-            if retry_count >= 5:
+            if retry_count >= configuration['request']['max retry count']:
                 run_again = False
                 break
-            await asyncio.sleep(3)
+            await asyncio.sleep(configuration['request']['retry sleep'])
     return validator_mainnet_data, validator_testnet_data
 
 

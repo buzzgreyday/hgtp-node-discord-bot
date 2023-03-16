@@ -8,6 +8,8 @@ source ids:
 
 request:
   timeout: 6
+  max retry count: 5
+  retry sleep: 1
   url:
     endings:
       node: "node/info"
