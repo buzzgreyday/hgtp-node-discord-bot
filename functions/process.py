@@ -12,7 +12,6 @@ async def do_checks(dask_client, subscriber, layer, port, history_dataframe, con
         historic_node_dataframe = await historic_cluster_data.get_node_data(dask_client, node_data, history_dataframe)
         node_data = await historic_cluster_data.merge(node_data, historic_node_dataframe)
         # JUST SEE IF ID IS IN THE RETURNED DATA, DO NOT CHECK FOR CLUSTER NAME
-        node_data = await request.validator_data(node_data)
         # REQUEST FROM HISTORIC DATA
     except UnboundLocalError:
         pass
@@ -41,13 +40,13 @@ async def init(dask_client, configuration):
     # load_balancers = await read.load_balancers()
     history_dataframe = await read.history(configuration)
     subscriber_dataframe = await read.subscribers(configuration)
+    validator_data = await request.validator_data(configuration)
     ips = await dask_client.compute(subscriber_dataframe["ip"])
     # use set() to remove duplicates
     for i, ip in enumerate(list(set(ips.values))):
         subscriber_futures.append(asyncio.create_task(subscriber_node_data(dask_client, ip, subscriber_dataframe)))
     for _ in subscriber_futures:
         subscriber = await _
-        print(subscriber)
         for k, v in subscriber.items():
             if k == "public_l0":
                 for port in v:
