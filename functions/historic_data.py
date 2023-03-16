@@ -43,8 +43,8 @@ async def former_data(node_data, historic_node_data):
             node_data["id"] = former_node_id
             node_data["nodeWalletAddress"] = former_node_wallet
             node_data["version"] = former_node_tessellation_version
-            node_data["totalDiskSpace"] = former_node_total_disk_space
-            node_data["freeDiskSpace"] = former_node_free_disk_space
+            node_data["diskSpaceTotal"] = former_node_total_disk_space
+            node_data["diskSpaceFree"] = former_node_free_disk_space
         node_data["formerClusterNames"] = former_cluster_names
         node_data["formerClusterConnectivity"] = former_node_cluster_connectivity
         node_data["formerClusterAssociationTime"] = former_node_cluster_association_time
