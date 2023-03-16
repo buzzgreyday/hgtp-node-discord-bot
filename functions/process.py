@@ -7,7 +7,7 @@ from functions import read, request, latest_data, historic_data
 
 async def do_checks(dask_client, subscriber, layer, port, history_dataframe, configuration):
     try:
-        node_data, cluster_data = await request.node_data(subscriber, port, configuration)
+        node_data, cluster_data = await request.node_cluster_data(subscriber, port, configuration)
         node_data = await latest_data.merge_cluster_data(dask_client, layer, node_data, cluster_data, configuration)
         historic_node_dataframe = await historic_data.node_data(dask_client, node_data, history_dataframe)
         node_data = await historic_data.former_data(node_data, historic_node_dataframe)

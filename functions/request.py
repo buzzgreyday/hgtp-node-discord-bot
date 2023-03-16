@@ -21,7 +21,7 @@ class Request:
         return data
 
 
-async def node_data(subscriber, port, configuration):
+async def node_cluster_data(subscriber, port, configuration):
     cluster_data = []
 
     if port is not None:
