@@ -37,7 +37,6 @@ async def subscriber_node_data(dask_client, ip, subscriber_dataframe):
 async def init(dask_client, configuration):
     subscriber_futures = []
     request_futures = []
-    # load_balancers = await read.load_balancers()
     history_dataframe = await read.history(configuration)
     subscriber_dataframe = await read.subscribers(configuration)
     validator_data = await request.validator_data(configuration)
