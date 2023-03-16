@@ -1,0 +1,48 @@
+general:
+  name: "Hgtp Node Spidr"
+  version: "5-dev-alpha"
+
+source ids:
+  mainnet: "ec3e25065181aa5bda7fd9ca22a13e2a59688ac0762b5a61022fd42b0943d1d468b86a517222479456d0770d50c99cbd517045a9ba3a4ee1968534e30a785e69"
+  testnet: "7e88d70fa4cbd694edf2c77234206caa76b8d669163098a83a2fbdb8bf9c648c7e0c034499928b42065665426e2e221dc2c999e1c38c72e488cc6e2a98894fe7"
+
+request:
+  timeout: 6
+  url:
+    endings:
+      node: "node/info"
+      cluster: "cluster/info"
+    load balancer:
+      mainnet:
+        url: [
+          "https://l0-lb-mainnet.constellationnetwork.io"
+        ]
+        format: "json"
+        location: ""
+      testnet:
+        url: [
+          "https://l0-lb-testnet.constellationnetwork.io"
+        ]
+        format: "json"
+        location: ""
+    validator info:
+      mainnet:
+        url: [
+          "https://jzzo6vdhy2.execute-api.us-east-2.amazonaws.com/mainnet/validator-nodes",
+          "https://l088pympe9.execute-api.us-east-1.amazonaws.com/mainnet/validator-nodes"
+        ]
+        format: "json"
+        location: "data"
+      testnet:
+        url: [
+          "https://jzzo6vdhy2.execute-api.us-east-2.amazonaws.com/testnet/validator-nodes",
+          "https://l088pympe9.execute-api.us-east-1.amazonaws.com/testnet/validator-nodes"
+        ]
+        format: "json"
+        location: "data"
+
+file locations:
+  subscribers: "data/subscribers.csv"
+  history: "data/node data"
+  archived history: "/data/archived/node data"
+  log: "data/logs/bot.log"

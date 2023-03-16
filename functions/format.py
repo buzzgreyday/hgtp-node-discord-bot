@@ -43,8 +43,7 @@ class Columns:
                    'contact',
                    'ip',
                    'public_l0',
-                   'public_l1',
-                   'node_id'
+                   'public_l1'
                    ]
 
     load_balancers = {
@@ -100,8 +99,7 @@ class Dtypes:
         'ip': 'str',
         # must be str because it can be empty
         'public_l0': 'str',
-        'public_l1': 'str',
-        'node_id': 'str'
+        'public_l1': 'str'
     }
 
     load_balancers = {

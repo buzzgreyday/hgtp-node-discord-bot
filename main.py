@@ -3,16 +3,25 @@ import time
 from datetime import datetime
 from dask.distributed import Client
 import distributed
-from configuration import logging_dir
 from functions import aesthetics, process
 import nextcord
 from nextcord.ext import commands
 from os import getenv, path, makedirs
-discord_token = getenv("HGTP_SPIDR_DISCORD_TOKEN")
-if not path.exists(logging_dir):
-    makedirs(logging_dir)
+import yaml
 
-logging.basicConfig(filename=f'{logging_dir}/bot.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+"""LOAD DISCORD SERVER TOKEN FROM ENVIRONMENT"""
+discord_token = getenv("HGTP_SPIDR_DISCORD_TOKEN")
+
+"""LOAD CONFIGURATION"""
+with open('data/configuration.yaml', 'r') as file:
+    configuration = yaml.safe_load(file)
+
+"""CREATE NON-EXISTENT FOLDER STRUCTURE"""
+if not path.exists(configuration["file locations"]["log"]):
+    makedirs(configuration["file locations"]["log"])
+
+"""DEFINE LOGGING LEVEL AND LOCATION"""
+logging.basicConfig(filename=configuration["file locations"]["log"], filemode='w', format='%(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 if __name__ == "__main__":
 
@@ -32,7 +41,7 @@ if __name__ == "__main__":
                 logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - DASK CLIENT RUNNING")
                 timer_start = time.perf_counter()
                 await aesthetics.set_active_presence(bot)
-                futures = await process.init(dask_client)
+                futures = await process.init(dask_client, configuration)
                 for _ in futures:
                     node_data, cluster_data = await _
                     # dictionary

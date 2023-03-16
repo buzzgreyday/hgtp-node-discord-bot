@@ -1,18 +1,20 @@
-async def merge_cluster_data(dask_client, layer, node_data, cluster_data, load_balancers):
+async def merge_cluster_data(dask_client, layer, node_data, cluster_data, configuration):
     pair_ip = None
     pair_port = None
+    lb_ids = []
     node_data["nodeLayer"] = layer
     node_data["nodeClusterPairs"] = len(cluster_data)
     node_data["nodeClusterName"] = None
     node_data["nodeClusterIp"] = pair_ip
     node_data["nodeClusterPublicPort"] = pair_port
     if cluster_data:
-        lb_ids = await dask_client.compute(load_balancers["id"].values)
+        lb_ids.extend(v for k, v in configuration["source ids"].items())
         for d in cluster_data:
             for k, v in d.items():
                 if (k == "id") and (str(v) in lb_ids):
-                    node_cluster_name = await dask_client.compute(load_balancers["name"][load_balancers["id"] == str(v)])
-                    node_data["nodeClusterName"] = node_cluster_name.values[0]
+                    for node_cluster_name, node_id in configuration["source ids"].items():
+                        if node_id == str(v):
+                            node_data["nodeClusterName"] = node_cluster_name
                     del node_cluster_name, lb_ids
                 if k == "ip":
                     pair_ip = str(v)
