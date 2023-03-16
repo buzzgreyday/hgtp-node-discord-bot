@@ -8,7 +8,7 @@ source ids:
 
 request:
   timeout: 6
-  max retry count: 5
+  max retry count: 3
   retry sleep: 1
   url:
     endings:
