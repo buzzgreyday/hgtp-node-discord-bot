@@ -45,3 +45,7 @@ async def node_cluster_data(subscriber, port, configuration):
 
         # After this, check historic data
         return node_data, cluster_data
+
+
+async def validator_data(node_data):
+    return node_data
