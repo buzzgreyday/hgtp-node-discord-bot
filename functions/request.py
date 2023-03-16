@@ -12,7 +12,6 @@ class Request:
         timeout = aiohttp.ClientTimeout(total=configuration["request"]["timeout"])
         async with aiohttp.ClientSession() as session:
             async with session.get(self.url, timeout=timeout) as resp:
-                print(resp)
                 if resp.status == 200:
                     data = await resp.json()
                     logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST SUCCEEDED")
