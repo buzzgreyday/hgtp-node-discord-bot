@@ -26,6 +26,7 @@ async def node_data(subscriber, port, configuration):
 
     if port is not None:
         try:
+            print(f"http://{subscriber['ip']}:{port}/{configuration['ending']['node']}")
             node_data = await Request(f"http://{subscriber['ip']}:{port}/{configuration['ending']['node']}").json(configuration)
         except Exception:
             node_data = {"state": "Offline", "session": None, "clusterSession": None, "version": None, "host": subscriber["ip"], "publicPort": port, "p2pPort": None, "id": None}

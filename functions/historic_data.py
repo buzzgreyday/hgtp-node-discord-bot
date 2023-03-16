@@ -15,14 +15,14 @@ async def node_data(dask_client, node_data, history_dataframe):
 
 async def former_data(node_data, historic_node_data):
     # STD/OFFLINE VALUES
-    former_node_id = []
-    former_node_connectivity = []
-    former_node_wallet = []
-    former_node_tessellation_version = []
+    former_node_id = None
+    former_node_cluster_connectivity = []
+    former_node_wallet = None
+    former_node_tessellation_version = None
     former_node_cluster_association_time = []
     former_node_cluster_dissociation_time = []
-    former_node_total_disk_space = []
-    former_node_free_disk_space = []
+    former_node_total_disk_space = None
+    former_node_free_disk_space = None
 
     former_node_data = historic_node_data[historic_node_data["index timestamp"] == historic_node_data["index timestamp"].max()]
     if not former_node_data.empty:
@@ -30,12 +30,19 @@ async def former_data(node_data, historic_node_data):
         for cluster_name in former_cluster_names:
             former_node_id = former_node_data["node id"][former_node_data["cluster name"] == cluster_name].values[0]
             # former_cluster_name.append(former_node_data["cluster name"][former_node_data["cluster name"] == cluster_name].values[0])
-            former_node_connectivity.append(former_node_data["connectivity"][former_node_data["cluster name"] == cluster_name].values[0])
-            former_node_wallet.append(former_node_data["node wallet"][former_node_data["cluster name"] == cluster_name].values[0])
-            former_node_tessellation_version.append(former_node_data["node version"][former_node_data["cluster name"] == cluster_name].values[0])
+            former_node_cluster_connectivity.append(former_node_data["connectivity"][former_node_data["cluster name"] == cluster_name].values[0])
+            former_node_wallet = former_node_data["node wallet"][former_node_data["cluster name"] == cluster_name].values[0]
+            former_node_tessellation_version = former_node_data["node version"][former_node_data["cluster name"] == cluster_name].values[0]
             former_node_cluster_association_time.append(former_node_data["association time"][former_node_data["cluster name"] == cluster_name].values[0])
             former_node_cluster_dissociation_time.append(former_node_data["dissociation time"][former_node_data["cluster name"] == cluster_name].values[0])
-            former_node_total_disk_space.append(former_node_data["node total disk space"][former_node_data["cluster name"] == cluster_name].values[0])
-            former_node_free_disk_space.append(former_node_data["node free disk space"][former_node_data["cluster name"] == cluster_name].values[0])
+            former_node_total_disk_space = former_node_data["node total disk space"][former_node_data["cluster name"] == cluster_name].values[0]
+            former_node_free_disk_space = former_node_data["node free disk space"][former_node_data["cluster name"] == cluster_name].values[0]
         if node_data["state"] == "Offline":
             node_data["id"] = former_node_id
+            node_data["nodeWalletAddress"] = former_node_wallet
+            node_data["version"] = former_node_tessellation_version
+            node_data["totalDiskSpace"] = former_node_total_disk_space
+            node_data["freeDiskSpace"] = former_node_free_disk_space
+        node_data["formerClusterNames"] = former_cluster_names
+        node_data["formerClusterConnectivity"] = former_node_cluster_connectivity
+    return node_data
