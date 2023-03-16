@@ -2,15 +2,15 @@ import logging
 from datetime import datetime
 import asyncio
 
-from functions import read, request, latest_data, historic_data
+from functions import read, request, latest_cluster_data, historic_cluster_data
 
 
 async def do_checks(dask_client, subscriber, layer, port, history_dataframe, configuration):
     try:
         node_data, cluster_data = await request.node_cluster_data(subscriber, port, configuration)
-        node_data = await latest_data.merge_node_cluster_data(layer, node_data, cluster_data, configuration)
-        historic_node_dataframe = await historic_data.get_node_data(dask_client, node_data, history_dataframe)
-        node_data = await historic_data.merge(node_data, historic_node_dataframe)
+        node_data = await latest_cluster_data.merge(layer, node_data, cluster_data, configuration)
+        historic_node_dataframe = await historic_cluster_data.get_node_data(dask_client, node_data, history_dataframe)
+        node_data = await historic_cluster_data.merge(node_data, historic_node_dataframe)
         # REQUEST FROM HISTORIC DATA
     except UnboundLocalError:
         pass

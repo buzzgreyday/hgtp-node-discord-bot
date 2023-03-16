@@ -1,4 +1,4 @@
-async def merge_node_cluster_data(layer, node_data, cluster_data, configuration):
+async def merge(layer, node_data, cluster_data, configuration):
     pair_ip = None
     pair_port = None
     lb_ids = []
