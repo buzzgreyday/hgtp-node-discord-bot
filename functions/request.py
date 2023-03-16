@@ -51,7 +51,8 @@ async def node_cluster_data(subscriber, port, configuration):
                 else:
                     retry_count += 1
                     await asyncio.sleep(configuration['request']['retry sleep'])
-            except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientConnectorError, aiohttp.client_exceptions.ClientOSError, aiohttp.client_exceptions.ServerDisconnectedError) as e:
+            except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientOSError, aiohttp.client_exceptions.ServerDisconnectedError) as e:
+                print(repr(e))
                 if retry_count >= configuration['request']['max retry count']:
                     node_data = {"state": "Offline", "session": None, "clusterSession": None, "version": None, "host": subscriber["ip"], "publicPort": port, "p2pPort": None, "id": None}
                     run_again = False
@@ -61,6 +62,9 @@ async def node_cluster_data(subscriber, port, configuration):
                 logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE @ {subscriber['ip']}:{port} UNREACHABLE")
             except aiohttp.client_exceptions.InvalidURL:
                 node_data = {"state": "Offline", "session": None, "clusterSession": None, "version": None, "host": subscriber["ip"], "publicPort": port, "p2pPort": None, "id": None}
+                run_again = False
+                break
+            except aiohttp.client_exceptions.ClientConnectorError:
                 run_again = False
                 break
         retry_count = 0
@@ -84,7 +88,8 @@ async def node_cluster_data(subscriber, port, configuration):
                             await asyncio.sleep(configuration['request']['retry sleep'])
 
                         # cluster_data is a list of dictionaries
-                    except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientConnectorError, aiohttp.client_exceptions.ClientOSError, aiohttp.client_exceptions.ServerDisconnectedError):
+                    except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientConnectorError, aiohttp.client_exceptions.ClientOSError, aiohttp.client_exceptions.ServerDisconnectedError) as e:
+                        print(repr(e))
                         if retry_count >= configuration['request']['max retry count']:
                             run_again = False
                             break
@@ -94,6 +99,9 @@ async def node_cluster_data(subscriber, port, configuration):
                     except aiohttp.client_exceptions.InvalidURL:
                         node_data = {"state": "Offline", "session": None, "clusterSession": None, "version": None,
                                      "host": subscriber["ip"], "publicPort": port, "p2pPort": None, "id": None}
+                        run_again = False
+                        break
+                    except aiohttp.client_exceptions.ClientConnectorError:
                         run_again = False
                         break
             # Else cluster_data from history
