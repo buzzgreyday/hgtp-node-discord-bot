@@ -30,12 +30,13 @@ async def get_preliminaries(configuration):
     return cluster_data, validator_data, latest_tessellation_version
 
 
-async def do_checks(dask_client, subscriber, layer, port, latest_tessellation_version, history_dataframe, configuration):
+async def do_checks(dask_client, subscriber, layer, port, latest_tessellation_version, all_supported_clusters_data, history_dataframe, configuration):
     try:
         node_data, cluster_data = await request.node_cluster_data(subscriber, port, configuration)
         node_data = await latest_cluster_data.merge(layer, latest_tessellation_version, node_data, cluster_data, configuration)
         historic_node_dataframe = await historic_cluster_data.get_node_data(dask_client, node_data, history_dataframe)
         node_data = await historic_cluster_data.merge(node_data, historic_node_dataframe)
+        await latest_cluster_data.check(node_data, all_supported_clusters_data)
         # JUST SEE IF ID IS IN THE RETURNED DATA, DO NOT CHECK FOR CLUSTER NAME
         # REQUEST FROM HISTORIC DATA
     except UnboundLocalError:
@@ -59,7 +60,7 @@ async def subscriber_node_data(dask_client, ip, subscriber_dataframe):
     return subscriber
 
 
-async def init(dask_client, latest_tessellation_version, configuration):
+async def init(dask_client, latest_tessellation_version, all_supported_cluster_data, configuration):
     subscriber_futures = []
     request_futures = []
     history_dataframe = await read.history(configuration)
@@ -74,10 +75,10 @@ async def init(dask_client, latest_tessellation_version, configuration):
             if k == "public_l0":
                 for port in v:
                     layer = 0
-                    request_futures.append(asyncio.create_task(do_checks(dask_client, subscriber, layer, port, latest_tessellation_version, history_dataframe, configuration)))
+                    request_futures.append(asyncio.create_task(do_checks(dask_client, subscriber, layer, port, latest_tessellation_version, all_supported_cluster_data, history_dataframe, configuration)))
             elif k == "public_l1":
                 for port in v:
                     layer = 1
-                    request_futures.append(asyncio.create_task(do_checks(dask_client, subscriber, layer, port, latest_tessellation_version, history_dataframe, configuration)))
+                    request_futures.append(asyncio.create_task(do_checks(dask_client, subscriber, layer, port, latest_tessellation_version, all_supported_cluster_data, history_dataframe, configuration)))
         # return list of futures to main() and run there
     return request_futures

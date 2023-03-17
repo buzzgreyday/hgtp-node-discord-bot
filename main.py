@@ -44,12 +44,13 @@ if __name__ == "__main__":
                 logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - DASK CLIENT RUNNING")
                 timer_start = time.perf_counter()
                 await aesthetics.set_active_presence(bot)
-                futures = await process.init(dask_client, latest_tessellation_version, configuration)
+                futures = await process.init(dask_client, latest_tessellation_version, cluster_data, configuration)
                 for _ in futures:
                     try:
                         node_data = await _
                     # dictionary
                     except Exception as e:
+                        logging.critical(repr(e.with_traceback()))
                         exit(1)
                     # list of dict (cluster_data)
                 timer_stop = time.perf_counter()

@@ -16,3 +16,21 @@ async def merge(layer, latest_tessellation_version, node_data, cluster_data, con
         cluster_data.clear()
         del lb_ids, cluster_data, k, v, d
     return node_data
+
+
+async def check(node_data, all_supported_clusters_data):
+    """DECIDE WHAT TO CHECK"""
+    clusters = []
+    for k, v in node_data.items():
+        if k == "clusterNames":
+            clusters.extend(v)
+        if k == "formerClusterNames":
+            clusters.extend(v)
+        clusters = list(set(clusters))
+    for cluster_name in clusters:
+        for layer_dictionaries in all_supported_clusters_data:
+            for i, choose_layer in enumerate(layer_dictionaries):
+                print(f"layer {node_data['layer']}", choose_layer)
+                if f"layer {node_data['layer']}" == choose_layer:
+                    print("ok")
+
