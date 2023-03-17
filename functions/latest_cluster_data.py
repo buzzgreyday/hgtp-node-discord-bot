@@ -29,10 +29,7 @@ async def check(node_data, all_supported_clusters_data):
         clusters = list(set(clusters))
         clusters = [item.lower() for item in clusters]
     for dictionary in all_supported_clusters_data:
-        print(dictionary["layer"], f"layer {node_data['layer']}")
-        print(dictionary["cluster name"], clusters)
         if (f"layer {node_data['layer']}" == dictionary["layer"]) and (dictionary["cluster name"] in clusters):
-            print("ok")
-
-        """for item in dictionary["data"]:
-            print(item["id"])"""
+            for item in dictionary["data"]:
+                if node_data["id"] == item["id"]:
+                    print(item["id"])
