@@ -34,7 +34,7 @@ async def check(node_data, all_supported_clusters_data):
             for cluster_data in dictionary["data"]:
                 if cluster_data["state"] == "online":
                     node_data["clusterState"].append("online")
-                elif cluster_data["clusterState"] == "offline":
+                elif cluster_data["state"] == "offline":
                     node_data["clusterState"].append("offline")
                 """if node_data["id"] == cluster_data["id"]:
                     print(cluster_data["id"])"""
