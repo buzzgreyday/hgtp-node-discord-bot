@@ -34,6 +34,8 @@ if __name__ == "__main__":
                                        processes=True, silence_logs=logging.CRITICAL)
 
     async def main():
+        list_of_cluster_snapshots_to_request = []
+        list_of_existing_cluster_snapshots = []
         await bot.wait_until_ready()
         async with Client(cluster) as dask_client:
             while not bot.is_closed():
@@ -45,10 +47,15 @@ if __name__ == "__main__":
                 for _ in futures:
                     try:
                         node_data, cluster_data = await _
+                        for k, v in node_data.items():
+                            if (k == "clusterName") and (v in list(configuration["source ids"].keys())):
+                                print(v)
+                                list_of_cluster_snapshots_to_request.append(v)
+
+
                     # dictionary
                         print(node_data)
                     except Exception as e:
-                        print(repr(e))
                         exit(1)
                     # list of dict (cluster_data)
                 timer_stop = time.perf_counter()

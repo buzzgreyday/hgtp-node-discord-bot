@@ -42,8 +42,8 @@ async def merge(node_data, historic_node_data):
             node_data["version"] = former_node_tessellation_version
             node_data["diskSpaceTotal"] = former_node_total_disk_space
             node_data["diskSpaceFree"] = former_node_free_disk_space
-        node_data["formerClusterNames"] = former_cluster_names
-        node_data["formerClusterConnectivity"] = former_node_cluster_connectivity
-        node_data["formerClusterAssociationTime"] = former_node_cluster_association_time
-        node_data["formerClusterDissociationTime"] = former_node_cluster_dissociation_time
+    node_data["formerClusterNames"] = former_cluster_names
+    node_data["formerClusterConnectivity"] = former_node_cluster_connectivity
+    node_data["formerClusterAssociationTime"] = former_node_cluster_association_time
+    node_data["formerClusterDissociationTime"] = former_node_cluster_dissociation_time
     return node_data
