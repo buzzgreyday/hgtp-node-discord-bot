@@ -154,3 +154,30 @@ async def validator_data(configuration):
     return validator_mainnet_data, validator_testnet_data
 
 
+async def latest_project_version_github(url, configuration):
+    data = None
+    run_again = True
+    retry_count = 0
+    while run_again:
+        try:
+            data = await Request(url).json(configuration)
+            if retry_count >= configuration['request']['max retry count']:
+                run_again = False
+                break
+            elif data is not None:
+                run_again = False
+                break
+            else:
+                retry_count += 1
+                await asyncio.sleep(configuration['request']['retry sleep'])
+            # cluster_data is a list of dictionaries
+        except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientOSError,
+                aiohttp.client_exceptions.ServerDisconnectedError) as e:
+            if retry_count >= configuration['request']['max retry count']:
+                run_again = False
+                break
+            retry_count += 1
+            await asyncio.sleep(configuration['request']['retry sleep'])
+            logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - GITHUB URL {url} UNREACHABLE")
+    return data["tag_name"][1:]
+

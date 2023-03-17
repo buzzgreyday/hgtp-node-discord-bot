@@ -13,7 +13,7 @@ async def get_node_data(dask_client, node_data, history_dataframe):
     return historic_node_dataframe
 
 
-async def merge(node_data, historic_node_data, layer):
+async def merge(node_data, historic_node_data):
     # STD/OFFLINE VALUES
     former_node_id = None
     former_node_cluster_connectivity = []

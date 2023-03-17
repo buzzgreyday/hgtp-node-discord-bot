@@ -42,6 +42,10 @@ request:
         ]
         format: "json"
         location: "data"
+    github:
+      api url: "https://api.github.com/repos"
+      tessellation:
+        latest release: "/constellation-labs/tessellation/releases/latest"
 
 file locations:
   subscribers: "data/subscribers.csv"
