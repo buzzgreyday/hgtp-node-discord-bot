@@ -21,6 +21,7 @@ async def merge(layer, latest_tessellation_version, node_data, cluster_data, con
 async def check(node_data, all_supported_clusters_data):
     """DECIDE WHAT TO CHECK"""
     clusters = []
+    node_data["clusterState"] = []
     for k, v in node_data.items():
         if k == "clusterNames":
             clusters.extend(v)
@@ -30,6 +31,10 @@ async def check(node_data, all_supported_clusters_data):
         clusters = [item.lower() for item in clusters]
     for dictionary in all_supported_clusters_data:
         if (f"layer {node_data['layer']}" == dictionary["layer"]) and (dictionary["cluster name"] in clusters):
-            for item in dictionary["data"]:
-                if node_data["id"] == item["id"]:
-                    print(item["id"])
+            if dictionary["data"] is not None:
+                node_data["clusterState"].append("Online")
+                for item in dictionary["data"]:
+                    if node_data["id"] == item["id"]:
+                        print(item["id"])
+            else:
+                node_data["clusterState"].append("Offline")

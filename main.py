@@ -48,6 +48,7 @@ if __name__ == "__main__":
                 for _ in futures:
                     try:
                         node_data = await _
+                        print(node_data)
                     # dictionary
                     except Exception as e:
                         logging.critical(repr(e.with_traceback()))
