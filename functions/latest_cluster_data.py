@@ -4,10 +4,10 @@ async def merge(layer, latest_tessellation_version, node_data, cluster_data, con
     lb_ids = []
     node_data["latestVersion"] = latest_tessellation_version
     node_data["nodeLayer"] = layer
-    node_data["nodeClusterPairs"] = len(cluster_data)
-    node_data["nodeClusterName"] = None
-    node_data["nodeClusterIp"] = pair_ip
-    node_data["nodeClusterPublicPort"] = pair_port
+    node_data["clusterPairs"] = len(cluster_data)
+    node_data["clusterName"] = None
+    node_data["clusterIp"] = pair_ip
+    node_data["clusterPublicPort"] = pair_port
     if cluster_data:
         lb_ids.extend(v for k, v in configuration["source ids"].items())
         for d in cluster_data:
