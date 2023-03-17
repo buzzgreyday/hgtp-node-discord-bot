@@ -15,18 +15,32 @@ request:
       node: "node/info"
       cluster: "cluster/info"
     load balancer:
-      mainnet:
-        url: [
-          "https://l0-lb-mainnet.constellationnetwork.io"
-        ]
-        format: "json"
-        location: ""
-      testnet:
-        url: [
-          "https://l0-lb-testnet.constellationnetwork.io"
-        ]
-        format: "json"
-        location: ""
+      layer 0:
+        mainnet:
+          url: [
+            "https://l0-lb-mainnet.constellationnetwork.io"
+          ]
+          format: "json"
+          location: ""
+        testnet:
+          url: [
+            "https://l0-lb-testnet.constellationnetwork.io"
+          ]
+          format: "json"
+          location: ""
+      layer 1:
+        mainnet:
+          url: [
+            "https://l1-lb-mainnet.constellationnetwork.io"
+          ]
+          format: "json"
+          location: ""
+        testnet:
+          url: [
+            "https://l1-lb-testnet.constellationnetwork.io"
+          ]
+          format: "json"
+          location: ""
     validator info:
       mainnet:
         url: [

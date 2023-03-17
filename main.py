@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import time
 from datetime import datetime
@@ -34,6 +35,8 @@ if __name__ == "__main__":
                                        processes=True, silence_logs=logging.CRITICAL)
 
     async def main():
+        cluster_data, validator_data, latest_tessellation_version = await process.get_prerequisites(configuration)
+        print(cluster_data[0:].keys(), latest_tessellation_version)
         await bot.wait_until_ready()
         async with Client(cluster) as dask_client:
             while not bot.is_closed():
@@ -41,10 +44,10 @@ if __name__ == "__main__":
                 logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - DASK CLIENT RUNNING")
                 timer_start = time.perf_counter()
                 await aesthetics.set_active_presence(bot)
-                futures = await process.init(dask_client, configuration)
+                futures = await process.init(dask_client, latest_tessellation_version, configuration)
                 for _ in futures:
                     try:
-                        node_data, cluster_data = await _
+                        node_data = await _
                     # dictionary
                     except Exception as e:
                         exit(1)
