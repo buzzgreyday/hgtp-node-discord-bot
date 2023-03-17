@@ -8,7 +8,7 @@ from functions import read, request, latest_cluster_data, historic_cluster_data
 async def do_checks(dask_client, subscriber, layer, port, tessellation_version, history_dataframe, configuration):
     try:
         node_data, cluster_data = await request.node_cluster_data(subscriber, port, configuration)
-        node_data = await latest_cluster_data.merge(layer, node_data, cluster_data, configuration)
+        node_data = await latest_cluster_data.merge(layer, tessellation_version, node_data, cluster_data, configuration)
         historic_node_dataframe = await historic_cluster_data.get_node_data(dask_client, node_data, history_dataframe)
         node_data = await historic_cluster_data.merge(node_data, historic_node_dataframe)
         # JUST SEE IF ID IS IN THE RETURNED DATA, DO NOT CHECK FOR CLUSTER NAME

@@ -1,7 +1,8 @@
-async def merge(layer, node_data, cluster_data, configuration):
+async def merge(layer, latest_tessellation_version, node_data, cluster_data, configuration):
     pair_ip = None
     pair_port = None
     lb_ids = []
+    node_data["latestVersion"] = latest_tessellation_version
     node_data["nodeLayer"] = layer
     node_data["nodeClusterPairs"] = len(cluster_data)
     node_data["nodeClusterName"] = None
