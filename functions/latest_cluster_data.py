@@ -27,15 +27,12 @@ async def check(node_data, all_supported_clusters_data):
         if k == "formerClusterNames":
             clusters.extend(v)
         clusters = list(set(clusters))
+        clusters = [item.lower() for item in clusters]
     for dictionary in all_supported_clusters_data:
+        print(dictionary["layer"], f"layer {node_data['layer']}")
+        print(dictionary["cluster name"], clusters)
+        if (f"layer {node_data['layer']}" == dictionary["layer"]) and (dictionary["cluster name"] in clusters):
+            print("ok")
 
-        for item in dictionary["data"]:
-            print(item["id"])
-        """if f"layer {node_data['layer']}" in cluster_layer:
-            print("name in cluster_layer_dictionary")
-            for cluster_layer_dictionary in cluster_layer_list_of_dictionaries:
-                print(cluster_layer_dictionary)
-                for cluster_name, cluster_name_dictionary in cluster_layer_dictionary.items():
-                    print(cluster_name, cluster_name_dictionary.keys())"""
-
-
+        """for item in dictionary["data"]:
+            print(item["id"])"""
