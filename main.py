@@ -53,6 +53,8 @@ if __name__ == "__main__":
                         logging.critical(repr(e.with_traceback()))
                         exit(1)
                     # list of dict (cluster_data)
+
+                print(node_data)
                 timer_stop = time.perf_counter()
                 print(timer_stop-timer_start)
                 exit(0)
