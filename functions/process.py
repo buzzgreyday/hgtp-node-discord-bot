@@ -14,6 +14,10 @@ async def get_clusters(cluster_layer, cluster_names, configuration):
                 "cluster name": cluster_name,
                 "data": list(await request.Request(f"{lb_url}/{configuration['request']['url']['endings']['cluster']}").json(configuration))
             }
+            if data["data"] is not None:
+                data["state"] = "online"
+            else:
+                data["state"] = "offline"
         cluster_data.append(data)
         del lb_url
     return cluster_data
@@ -29,7 +33,7 @@ async def get_preliminaries(configuration):
     for task in tasks:
         cluster_data.extend(await task)
     for dictionary in cluster_data:
-        print(dictionary["layer"], dictionary["cluster name"])
+        print(dictionary["layer"], dictionary["cluster name"], dictionary["state"])
     return cluster_data, validator_data, latest_tessellation_version
 
 

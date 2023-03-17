@@ -31,10 +31,6 @@ async def check(node_data, all_supported_clusters_data):
         clusters = [item.lower() for item in clusters]
     for dictionary in all_supported_clusters_data:
         if (f"layer {node_data['layer']}" == dictionary["layer"]) and (dictionary["cluster name"] in clusters):
-            if dictionary["data"] is not None:
-                node_data["clusterState"].append("Online")
-                for item in dictionary["data"]:
-                    if node_data["id"] == item["id"]:
-                        print(item["id"])
-            else:
-                node_data["clusterState"].append("Offline")
+            for item in dictionary["data"]:
+                if node_data["id"] == item["id"]:
+                    print(item["id"])
