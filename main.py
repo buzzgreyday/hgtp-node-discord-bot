@@ -48,13 +48,12 @@ if __name__ == "__main__":
                 for _ in futures:
                     try:
                         node_data = await _
+                        print(node_data)
                     # dictionary
                     except Exception as e:
                         logging.critical(repr(e.with_traceback()))
                         exit(1)
                     # list of dict (cluster_data)
-
-                print(node_data)
                 timer_stop = time.perf_counter()
                 print(timer_stop-timer_start)
                 exit(0)
