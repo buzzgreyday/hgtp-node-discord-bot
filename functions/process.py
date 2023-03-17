@@ -5,7 +5,7 @@ import asyncio
 from functions import read, request, latest_cluster_data, historic_cluster_data
 
 
-async def clusters(cluster_layer, cluster_names, configuration):
+async def get_clusters(cluster_layer, cluster_names, configuration):
     data = {}
     cluster_data = {}
     for cluster_name, cluster_info in cluster_names.items():
@@ -23,7 +23,7 @@ async def get_preliminaries(configuration):
     validator_data = await request.validator_data(configuration)
     latest_tessellation_version = await request.latest_project_version_github(f"{configuration['request']['url']['github']['api url']}{configuration['request']['url']['github']['tessellation']['latest release']}", configuration)
     for cluster_layer, cluster_names in list(configuration["request"]["url"]["load balancer"].items()):
-        tasks.append(asyncio.create_task(clusters(cluster_layer, cluster_names, configuration)))
+        tasks.append(asyncio.create_task(get_clusters(cluster_layer, cluster_names, configuration)))
     for task in tasks:
         cluster_data.append(await task)
 
