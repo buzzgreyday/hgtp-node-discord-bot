@@ -5,28 +5,31 @@ from functions import read, request, latest_cluster_data, historic_cluster_data
 
 
 async def get_clusters(cluster_layer, cluster_names, configuration):
-    data = {}
-    cluster_data = {}
+    cluster_data = []
     for cluster_name, cluster_info in cluster_names.items():
         for lb_url in cluster_info["url"]:
             print(f"{lb_url}/{configuration['request']['url']['endings']['cluster']}")
-            data[cluster_name] = await request.Request(f"{lb_url}/{configuration['request']['url']['endings']['cluster']}").json(configuration)
-        cluster_data[cluster_layer] = data
+            data = {
+                "layer": cluster_layer,
+                "cluster name": cluster_name,
+                "data": list(await request.Request(f"{lb_url}/{configuration['request']['url']['endings']['cluster']}").json(configuration))
+            }
+        cluster_data.append(data)
         del lb_url
     return cluster_data
 
 
 async def get_preliminaries(configuration):
     tasks = []
-    rewarded_addresses_data = []
     cluster_data = []
     validator_data = await request.validator_data(configuration)
     latest_tessellation_version = await request.latest_project_version_github(f"{configuration['request']['url']['github']['api url']}{configuration['request']['url']['github']['tessellation']['latest release']}", configuration)
     for cluster_layer, cluster_names in list(configuration["request"]["url"]["load balancer"].items()):
         tasks.append(asyncio.create_task(get_clusters(cluster_layer, cluster_names, configuration)))
     for task in tasks:
-        cluster_data.append(await task)
-
+        cluster_data.extend(await task)
+    for dictionary in cluster_data:
+        print(dictionary["layer"], dictionary["cluster name"])
     return cluster_data, validator_data, latest_tessellation_version
 
 
