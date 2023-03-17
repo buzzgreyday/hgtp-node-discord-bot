@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 import asyncio
 
-from functions import read, request, latest_cluster_data, historic_cluster_data
+from functions import read, request, latest_cluster_data, historic_cluster_data, cluster
 
 
 async def do_checks(dask_client, subscriber, layer, port, latest_tessellation_version, history_dataframe, configuration):
@@ -11,6 +11,7 @@ async def do_checks(dask_client, subscriber, layer, port, latest_tessellation_ve
         node_data = await latest_cluster_data.merge(layer, latest_tessellation_version, node_data, cluster_data, configuration)
         historic_node_dataframe = await historic_cluster_data.get_node_data(dask_client, node_data, history_dataframe)
         node_data = await historic_cluster_data.merge(node_data, historic_node_dataframe)
+        await cluster.check(node_data, configuration)
         # JUST SEE IF ID IS IN THE RETURNED DATA, DO NOT CHECK FOR CLUSTER NAME
         # REQUEST FROM HISTORIC DATA
     except UnboundLocalError:
