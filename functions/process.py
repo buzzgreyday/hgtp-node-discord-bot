@@ -1,7 +1,6 @@
 import logging
 from datetime import datetime
 import asyncio
-
 from functions import read, request, latest_cluster_data, historic_cluster_data
 
 
@@ -19,6 +18,7 @@ async def get_clusters(cluster_layer, cluster_names, configuration):
 
 async def get_preliminaries(configuration):
     tasks = []
+    rewarded_addresses_data = []
     cluster_data = []
     validator_data = await request.validator_data(configuration)
     latest_tessellation_version = await request.latest_project_version_github(f"{configuration['request']['url']['github']['api url']}{configuration['request']['url']['github']['tessellation']['latest release']}", configuration)

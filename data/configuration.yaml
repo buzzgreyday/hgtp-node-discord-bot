@@ -56,6 +56,13 @@ request:
         ]
         format: "json"
         location: "data"
+    block explorer:
+      url endings:
+        snapshots: "/global-snapshots"
+        latest snapshots: "/global-snapshots/latest"
+      layer 0:
+        mainnet: "https://be-mainnet.constellationnetwork.io"
+        testnet: "https://be-testnet.constellationnetwork.io"
     github:
       api url: "https://api.github.com/repos"
       tessellation:
