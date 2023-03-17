@@ -43,9 +43,13 @@ if __name__ == "__main__":
                 await aesthetics.set_active_presence(bot)
                 futures = await process.init(dask_client, configuration)
                 for _ in futures:
-                    node_data, cluster_data = await _
+                    try:
+                        node_data, cluster_data = await _
                     # dictionary
-                    print(node_data)
+                        print(node_data)
+                    except Exception as e:
+                        print(repr(e))
+                        exit(1)
                     # list of dict (cluster_data)
                 timer_stop = time.perf_counter()
                 print(timer_stop-timer_start)
