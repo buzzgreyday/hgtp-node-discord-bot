@@ -24,9 +24,9 @@ async def merge(node_data, historic_node_data):
     former_node_total_disk_space = None
     former_node_free_disk_space = None
     former_node_data = historic_node_data[historic_node_data["index timestamp"] == historic_node_data["index timestamp"].max()]
+    former_cluster_names = list(set(former_node_data["cluster name"]))
     """IF HISTORIC DATA EXISTS"""
     if not former_node_data.empty:
-        former_cluster_names = list(set(former_node_data["cluster name"]))
         for cluster_name in former_cluster_names:
             former_node_id = former_node_data["node id"][former_node_data["cluster name"] == cluster_name].values[0]
             former_node_cluster_connectivity.append(former_node_data["connectivity"][former_node_data["cluster name"] == cluster_name].values[0])
