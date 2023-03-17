@@ -5,7 +5,7 @@ import asyncio
 from functions import read, request, latest_cluster_data, historic_cluster_data
 
 
-async def do_checks(dask_client, subscriber, layer, port, history_dataframe, configuration):
+async def do_checks(dask_client, subscriber, layer, port, tessellation_version, history_dataframe, configuration):
     try:
         node_data, cluster_data = await request.node_cluster_data(subscriber, port, configuration)
         node_data = await latest_cluster_data.merge(layer, node_data, cluster_data, configuration)
@@ -13,9 +13,9 @@ async def do_checks(dask_client, subscriber, layer, port, history_dataframe, con
         node_data = await historic_cluster_data.merge(node_data, historic_node_dataframe)
         # JUST SEE IF ID IS IN THE RETURNED DATA, DO NOT CHECK FOR CLUSTER NAME
         # REQUEST FROM HISTORIC DATA
+        return node_data, cluster_data
     except UnboundLocalError:
         pass
-    return node_data, cluster_data
 
 
 async def subscriber_node_data(dask_client, ip, subscriber_dataframe):
@@ -41,7 +41,6 @@ async def init(dask_client, configuration):
     subscriber_dataframe = await read.subscribers(configuration)
     validator_data = await request.validator_data(configuration)
     tessellation_version = await request.latest_project_version_github(f"{configuration['request']['url']['github']['api url']}{configuration['request']['url']['github']['tessellation']['latest release']}", configuration)
-    print(tessellation_version)
     ips = await dask_client.compute(subscriber_dataframe["ip"])
     # use set() to remove duplicates
     for i, ip in enumerate(list(set(ips.values))):
@@ -52,10 +51,10 @@ async def init(dask_client, configuration):
             if k == "public_l0":
                 for port in v:
                     layer = 0
-                    request_futures.append(asyncio.create_task(do_checks(dask_client, subscriber, layer, port, history_dataframe, configuration)))
+                    request_futures.append(asyncio.create_task(do_checks(dask_client, subscriber, layer, port, tessellation_version, history_dataframe, configuration)))
             elif k == "public_l1":
                 for port in v:
                     layer = 1
-                    request_futures.append(asyncio.create_task(do_checks(dask_client, subscriber, layer, port, history_dataframe, configuration)))
+                    request_futures.append(asyncio.create_task(do_checks(dask_client, subscriber, layer, port, tessellation_version, history_dataframe, configuration)))
         # return list of futures to main() and run there
     return request_futures
