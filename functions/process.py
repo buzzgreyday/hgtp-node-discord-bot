@@ -17,7 +17,7 @@ async def clusters(cluster_layer, cluster_names, configuration):
     return cluster_data
 
 
-async def get_prerequisites(configuration):
+async def get_preliminaries(configuration):
     tasks = []
     cluster_data = []
     validator_data = await request.validator_data(configuration)
