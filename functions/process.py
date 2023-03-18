@@ -8,7 +8,7 @@ async def get_clusters(cluster_layer, cluster_names, configuration):
     cluster_data = []
     for cluster_name, cluster_info in cluster_names.items():
         for lb_url in cluster_info["url"]:
-            response = list(await request.Request(f"{lb_url}/{configuration['request']['url']['endings']['cluster info']}").json(configuration))
+            response = list(await request.Request(f"{lb_url}/{configuration['request']['url']['url endings']['cluster info']}").json(configuration))
             if response is not None:
                 state = "online"
             else:
