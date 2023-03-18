@@ -12,9 +12,6 @@ async def merge(layer, latest_tessellation_version, node_data, cluster_data, con
                     for node_cluster_name, node_id in configuration["source ids"].items():
                         if node_id == str(v):
                             node_data["clusterNames"].append(node_cluster_name)
-                    del node_cluster_name, lb_ids
-        cluster_data.clear()
-        del lb_ids, cluster_data, k, v, d
     return node_data
 
 
@@ -43,5 +40,5 @@ async def check(node_data, all_supported_clusters_data):
                                 print(cluster_data["id"])"""
     node_data["clusterState"] = cluster_state
     node_data["formerClusterState"] = former_cluster_state
-
+    print(node_data)
     return node_data
