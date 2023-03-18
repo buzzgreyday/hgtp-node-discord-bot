@@ -27,15 +27,15 @@ async def merge(node_data, historic_node_data):
     former_cluster_names = list(set(cluster_name.lower() if cluster_name != "None" else None for cluster_name in former_node_data["cluster name"]))
     """IF HISTORIC DATA EXISTS"""
     if not former_node_data.empty:
+        former_node_id = str(former_node_data["node id"].values[0])
+        former_node_wallet = str(former_node_data["node wallet"].values[0])
+        former_node_tessellation_version = str(former_node_data["node version"].values[0])
+        former_node_total_disk_space = float(former_node_data["node total disk space"])
+        former_node_free_disk_space = float(former_node_data["node free disk space"])
         for cluster_name in former_cluster_names:
-            former_node_id = str(former_node_data["node id"][former_node_data["cluster name"] == cluster_name])
-            former_node_cluster_connectivity = list(former_node_data["connectivity"][former_node_data["cluster name"] == cluster_name])
-            former_node_wallet = str(former_node_data["node wallet"][former_node_data["cluster name"] == cluster_name])
-            former_node_tessellation_version = str(former_node_data["node version"][former_node_data["cluster name"] == cluster_name])
-            former_node_cluster_association_time = list(former_node_data["association time"][former_node_data["cluster name"] == cluster_name])
-            former_node_cluster_dissociation_time = list(former_node_data["dissociation time"][former_node_data["cluster name"] == cluster_name])
-            former_node_total_disk_space = former_node_data["node total disk space"][former_node_data["cluster name"] == cluster_name]
-            former_node_free_disk_space = former_node_data["node free disk space"][former_node_data["cluster name"] == cluster_name]
+            former_node_cluster_connectivity.extend(former_node_data["connectivity"][former_node_data["cluster name"] == cluster_name])
+            former_node_cluster_association_time.extend(former_node_data["association time"][former_node_data["cluster name"] == cluster_name])
+            former_node_cluster_dissociation_time.extend(former_node_data["dissociation time"][former_node_data["cluster name"] == cluster_name])
         if node_data["state"] == "Offline":
             # IF OFFLINE, THEN THESE DOESN'T EXIST, THEY DO WHEN ONLINE
             node_data["id"] = former_node_id

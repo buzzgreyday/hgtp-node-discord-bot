@@ -44,6 +44,7 @@ async def do_checks(dask_client, subscriber, layer, port, latest_tessellation_ve
         historic_node_dataframe = await historic_cluster_data.get_node_data(dask_client, node_data, history_dataframe)
         node_data = await historic_cluster_data.merge(node_data, historic_node_dataframe)
         node_data = await latest_cluster_data.check(node_data, all_supported_clusters_data)
+        print(node_data)
         # JUST SEE IF ID IS IN THE RETURNED DATA, DO NOT CHECK FOR CLUSTER NAME
         # REQUEST FROM HISTORIC DATA
     except UnboundLocalError:
