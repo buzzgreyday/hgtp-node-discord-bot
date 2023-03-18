@@ -5,7 +5,7 @@ from functions import read, request, latest_cluster_data, historic_cluster_data,
 
 
 async def get_clusters(cluster_layer, cluster_names, configuration):
-    cluster_data = []
+    all_clusters_data = []
     for cluster_name, cluster_info in cluster_names.items():
         for lb_url in cluster_info["url"]:
             response = list(await request.Request(f"{lb_url}/{configuration['request']['url']['url endings']['cluster info']}").json(configuration))
@@ -20,9 +20,9 @@ async def get_clusters(cluster_layer, cluster_names, configuration):
                 "state": state
             }
             print(data["layer"], data["cluster name"], data["state"])
-        cluster_data.append(data)
+        all_clusters_data.append(data)
         del lb_url
-    return cluster_data
+    return all_clusters_data
 
 
 async def get_preliminaries(configuration):
