@@ -34,7 +34,7 @@ async def node_cluster_data(subscriber, port, configuration):
         run_again = True
         while run_again:
             try:
-                node_data = await Request(f"http://{subscriber['ip']}:{port}/{configuration['request']['url']['endings']['node']}").json(configuration)
+                node_data = await Request(f"http://{subscriber['ip']}:{port}/{configuration['request']['url']['endings']['node info']}").json(configuration)
                 if retry_count >= configuration['request']['max retry count']:
                     node_data = {"state": "Offline", "session": None, "clusterSession": None, "version": None, "host": subscriber["ip"], "publicPort": port, "p2pPort": None, "id": None}
                     run_again = False
@@ -69,7 +69,7 @@ async def node_cluster_data(subscriber, port, configuration):
             if (k == "state") and (v != "Offline"):
                 while run_again:
                     try:
-                        cluster_data = await Request(f"http://{str(subscriber['ip'])}:{str(port)}/{str(configuration['request']['url']['endings']['cluster'])}").json(configuration)
+                        cluster_data = await Request(f"http://{str(subscriber['ip'])}:{str(port)}/{str(configuration['request']['url']['endings']['cluster info'])}").json(configuration)
                         if retry_count >= configuration['request']['max retry count']:
                             run_again = False
                             break
@@ -114,7 +114,7 @@ async def validator_data(configuration):
     retry_count = 0
     while run_again:
         try:
-            for url in configuration['request']['url']['validator info'][f'testnet']['url']:
+            for url in configuration['request']['url']['validator info']['testnet']['url']:
                 while retry_count < configuration['request']['max retry count']:
                     validator_testnet_data = await Request(str(url)).json(configuration)
                     if validator_testnet_data == 503:
@@ -134,7 +134,7 @@ async def validator_data(configuration):
     retry_count = 0
     while run_again:
         try:
-            for url in configuration['request']['url']['validator info'][f'mainnet']['url']:
+            for url in configuration['request']['url']['validator info']['mainnet']['url']:
                 while retry_count < configuration['request']['max retry count']:
                     validator_mainnet_data = await Request(str(url)).json(configuration)
                     if validator_mainnet_data == 503:

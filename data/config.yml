@@ -12,8 +12,8 @@ request:
   retry sleep: 1
   url:
     endings:
-      node: "node/info"
-      cluster: "cluster/info"
+      node info: "node/info"
+      cluster info: "cluster/info"
     load balancer:
       layer 0:
         mainnet:
