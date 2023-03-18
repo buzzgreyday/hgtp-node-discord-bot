@@ -11,7 +11,7 @@ request:
   max retry count: 3
   retry sleep: 1
   url:
-    endings:
+    url endings:
       node info: "node/info"
       cluster info: "cluster/info"
     load balancer:
@@ -52,9 +52,10 @@ request:
         mainnet: "https://be-mainnet.constellationnetwork.io"
         testnet: "https://be-testnet.constellationnetwork.io"
     github:
-      api url: "https://api.github.com/repos"
-      tessellation:
-        latest release: "/constellation-labs/tessellation/releases/latest"
+      api repo url: "https://api.github.com/repos"
+      url endings:
+        tessellation:
+          latest release: "constellation-labs/tessellation/releases/latest"
 
 file settings:
   locations:

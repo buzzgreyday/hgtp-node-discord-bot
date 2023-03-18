@@ -8,7 +8,7 @@ async def get_clusters(cluster_layer, cluster_names, configuration):
     cluster_data = []
     for cluster_name, cluster_info in cluster_names.items():
         for lb_url in cluster_info["url"]:
-            response = list(await request.Request(f"{lb_url}/{configuration['request']['url']['endings']['cluster']}").json(configuration))
+            response = list(await request.Request(f"{lb_url}/{configuration['request']['url']['endings']['cluster info']}").json(configuration))
             if response is not None:
                 state = "online"
             else:
@@ -29,7 +29,7 @@ async def get_preliminaries(configuration):
     tasks = []
     cluster_data = []
     validator_data = await request.validator_data(configuration)
-    latest_tessellation_version = await request.latest_project_version_github(f"{configuration['request']['url']['github']['api url']}{configuration['request']['url']['github']['tessellation']['latest release']}", configuration)
+    latest_tessellation_version = await request.latest_project_version_github(f"{configuration['request']['url']['github']['api repo url']}/{configuration['request']['url']['github']['url endings']['tessellation']['latest release']}", configuration)
     for cluster_layer, cluster_names in list(configuration["request"]["url"]["load balancer"].items()):
         tasks.append(asyncio.create_task(get_clusters(cluster_layer, cluster_names, configuration)))
     for task in tasks:
