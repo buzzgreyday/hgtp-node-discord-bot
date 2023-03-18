@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import sys
 import time
 from datetime import datetime
 from dask.distributed import Client
@@ -51,7 +52,7 @@ if __name__ == "__main__":
                         # print(node_data)
                     # dictionary
                     except Exception as e:
-                        logging.critical(repr(e.with_traceback()))
+                        logging.critical(repr(e.with_traceback(sys.exc_info())))
                         exit(1)
                     # list of dict (cluster_data)
                 timer_stop = time.perf_counter()

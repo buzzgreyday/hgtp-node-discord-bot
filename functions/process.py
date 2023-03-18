@@ -20,8 +20,6 @@ async def get_clusters(cluster_layer, cluster_names, configuration):
                 "state": state
             }
             print(data["layer"], data["cluster name"], data["state"])
-            response.clear()
-            del response
         all_clusters_data.append(data)
         del lb_url
     return all_clusters_data
