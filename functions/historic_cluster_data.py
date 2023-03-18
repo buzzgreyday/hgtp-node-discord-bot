@@ -33,9 +33,9 @@ async def merge(node_data, historic_node_data):
         former_node_total_disk_space = float(former_node_data["node total disk space"])
         former_node_free_disk_space = float(former_node_data["node free disk space"])
         for cluster_name in former_cluster_names:
-            former_node_cluster_connectivity.extend(former_node_data["connectivity"][former_node_data["cluster name"] == cluster_name])
-            former_node_cluster_association_time.extend(former_node_data["association time"][former_node_data["cluster name"] == cluster_name])
-            former_node_cluster_dissociation_time.extend(former_node_data["dissociation time"][former_node_data["cluster name"] == cluster_name])
+            former_node_cluster_connectivity.append(former_node_data["connectivity"][former_node_data["cluster name"] == cluster_name])
+            former_node_cluster_association_time.append(former_node_data["association time"][former_node_data["cluster name"] == cluster_name])
+            former_node_cluster_dissociation_time.append(former_node_data["dissociation time"][former_node_data["cluster name"] == cluster_name])
         if node_data["state"] == "Offline":
             # IF OFFLINE, THEN THESE DOESN'T EXIST, THEY DO WHEN ONLINE
             node_data["id"] = former_node_id
