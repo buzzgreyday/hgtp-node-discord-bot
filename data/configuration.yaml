@@ -56,11 +56,12 @@ request:
       tessellation:
         latest release: "/constellation-labs/tessellation/releases/latest"
 
-file locations:
-  subscribers: "data/subscribers.csv"
-  history: "data/node data"
-  archived history: "/data/archived/node data"
-  log: "data/logs/bot.log"
+file settings:
+  locations:
+    subscribers: "data/subscribers.csv"
+    history: "data/node data"
+    archived history: "/data/archived/node data"
+    log: "data/logs/bot.log"
   dtypes:
     history:
       {
