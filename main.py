@@ -14,15 +14,15 @@ import yaml
 discord_token = getenv("HGTP_SPIDR_DISCORD_TOKEN")
 
 """LOAD CONFIGURATION"""
-with open('data/configuration.yaml', 'r') as file:
+with open('data/config.yml', 'r') as file:
     configuration = yaml.safe_load(file)
 
 """CREATE NON-EXISTENT FOLDER STRUCTURE"""
-if not path.exists(configuration["file locations"]["log"]):
-    makedirs(configuration["file locations"]["log"])
+if not path.exists(configuration["file settings"]["locations"]["log"]):
+    makedirs(configuration["file settings"]["locations"]["log"])
 
 """DEFINE LOGGING LEVEL AND LOCATION"""
-logging.basicConfig(filename=configuration["file locations"]["log"], filemode='w', format='%(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.basicConfig(filename=configuration["file settings"]["locations"]["log"], filemode='w', format='%(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 if __name__ == "__main__":
 
