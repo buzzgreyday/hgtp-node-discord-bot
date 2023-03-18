@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     async def main():
         # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
-        cluster_data, validator_data, latest_tessellation_version = await process.get_preliminaries(configuration)
+        all_supported_clusters_data, validator_data, latest_tessellation_version = await process.get_preliminaries(configuration)
         await bot.wait_until_ready()
         async with Client(cluster) as dask_client:
             while not bot.is_closed():
@@ -44,7 +44,7 @@ if __name__ == "__main__":
                 logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - DASK CLIENT RUNNING")
                 timer_start = time.perf_counter()
                 await aesthetics.set_active_presence(bot)
-                futures = await process.init(dask_client, latest_tessellation_version, cluster_data, configuration)
+                futures = await process.init(dask_client, latest_tessellation_version, all_supported_clusters_data, configuration)
                 for _ in futures:
                     try:
                         node_data = await _
