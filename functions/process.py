@@ -8,16 +8,18 @@ async def get_clusters(cluster_layer, cluster_names, configuration):
     cluster_data = []
     for cluster_name, cluster_info in cluster_names.items():
         for lb_url in cluster_info["url"]:
-            print(f"{lb_url}/{configuration['request']['url']['endings']['cluster']}")
+            response = list(await request.Request(f"{lb_url}/{configuration['request']['url']['endings']['cluster']}").json(configuration))
+            if response is not None:
+                state = "online"
+            else:
+                state = "offline"
             data = {
                 "layer": cluster_layer,
                 "cluster name": cluster_name,
-                "data": list(await request.Request(f"{lb_url}/{configuration['request']['url']['endings']['cluster']}").json(configuration))
+                "data": response,
+                "state": state
             }
-            if data["data"] is not None:
-                data["state"] = "online"
-            else:
-                data["state"] = "offline"
+            print(data["cluster name"], data["state"])
         cluster_data.append(data)
         del lb_url
     return cluster_data
@@ -32,8 +34,6 @@ async def get_preliminaries(configuration):
         tasks.append(asyncio.create_task(get_clusters(cluster_layer, cluster_names, configuration)))
     for task in tasks:
         cluster_data.extend(await task)
-    for dictionary in cluster_data:
-        print(dictionary["layer"], dictionary["cluster name"], dictionary["state"])
     return cluster_data, validator_data, latest_tessellation_version
 
 
@@ -44,7 +44,6 @@ async def do_checks(dask_client, subscriber, layer, port, latest_tessellation_ve
         historic_node_dataframe = await historic_cluster_data.get_node_data(dask_client, node_data, history_dataframe)
         node_data = await historic_cluster_data.merge(node_data, historic_node_dataframe)
         node_data = await latest_cluster_data.check(node_data, all_supported_clusters_data)
-        print(node_data)
         # JUST SEE IF ID IS IN THE RETURNED DATA, DO NOT CHECK FOR CLUSTER NAME
         # REQUEST FROM HISTORIC DATA
     except UnboundLocalError:

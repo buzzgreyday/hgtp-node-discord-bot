@@ -20,30 +20,34 @@ async def merge(layer, latest_tessellation_version, node_data, cluster_data, con
 
 async def check(node_data, all_supported_clusters_data):
     """DECIDE WHAT TO CHECK"""
-    node_data["clusterState"] = []
-    node_data["formerClusterState"] = []
+    cluster_state = []
+    former_cluster_state = []
     for k, v in node_data.items():
         if k == "clusterNames":
             for cluster_name in v:
-                for dictionary in all_supported_clusters_data:
-                    if (f"layer {node_data['layer']}" == dictionary["layer"]) and (str(dictionary["cluster name"]).lower() == str(cluster_name).lower()):
-                        for cluster_data in dictionary["data"]:
-                            if cluster_data["state"] == "online":
-                                node_data["clusterState"].append("online")
-                            elif cluster_data["state"] == "offline":
-                                node_data["clusterState"].append("offline")
+                for all_latest_cluster_data in all_supported_clusters_data:
+                    if (f"layer {node_data['layer']}" == all_latest_cluster_data["layer"]) and (all_latest_cluster_data["cluster name"] == cluster_name):
+                        node_data["clusterState"].append(str(all_latest_cluster_data["state"]))
+                        for cluster_data in all_latest_cluster_data["data"]:
+                            if "online" == cluster_data["state"]:
+                                cluster_state.append("online")
+                            elif "offline" == cluster_data["state"]:
+                                cluster_state.append("offline")
                             """if node_data["id"] == cluster_data["id"]:
                                 print(cluster_data["id"])"""
         if k == "formerClusterNames":
             for former_cluster_name in v:
-                for dictionary in all_supported_clusters_data:
-                    if (f"layer {node_data['layer']}" == dictionary["layer"]) and (str(dictionary["cluster name"]).lower() == str(former_cluster_name).lower()):
-                        for cluster_data in dictionary["data"]:
-                            if cluster_data["state"] == "online":
-                                node_data["formerClusterState"].append("online")
-                            elif cluster_data["state"] == "offline":
-                                node_data["formerClusterState"].append("offline")
+                for all_former_cluster_data in all_supported_clusters_data:
+                    if (f"layer {node_data['layer']}" == all_former_cluster_data["layer"]) and (all_former_cluster_data["cluster name"] == former_cluster_name):
+                        node_data["formerClusterState"].append(str(all_former_cluster_data["state"]))
+                        for cluster_data in all_former_cluster_data["data"]:
+                            if "online" == cluster_data["state"]:
+                                former_cluster_state.append("online")
+                            elif "offline" == cluster_data["state"]:
+                                former_cluster_state.append("offline")
                             """if node_data["id"] == cluster_data["id"]:
                                 print(cluster_data["id"])"""
+    node_data["clusterState"] = cluster_state
+    node_data["formerClusterState"] = former_cluster_state
 
     return node_data
