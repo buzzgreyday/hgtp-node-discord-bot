@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 import asyncio
-from functions import read, request, latest_cluster_data, historic_cluster_data, cluster_data
+from functions import read, request, latest_data, historic_data, clusters_data
 
 
 async def get_clusters(cluster_layer, cluster_names, configuration):
@@ -37,19 +37,20 @@ async def get_preliminaries(configuration):
     return cluster_data, validator_data, latest_tessellation_version
 
 
-async def do_checks(dask_client, subscriber, layer, port, latest_tessellation_version, all_supported_clusters_data, history_dataframe, configuration):
+async def do_checks(dask_client, subscriber: dict, layer: int, port: int, latest_tessellation_version: str, all_supported_clusters_data: list[dict], history_dataframe, configuration: dict) -> dict:
     try:
-        node_data, node_cluster_data = await request.node_cluster_data(subscriber, port, configuration)
-        node_data = await latest_cluster_data.merge(layer, latest_tessellation_version, node_data, node_cluster_data, configuration)
-        historic_node_dataframe = await historic_cluster_data.get_node_data(dask_client, node_data, history_dataframe)
-        node_data = await historic_cluster_data.merge(node_data, historic_node_dataframe)
-        node_data = await cluster_data.merge(node_data, all_supported_clusters_data)
+        node_data, node_cluster_data = await latest_data.request_node_data(subscriber, port, configuration)
+        node_data = await latest_data.merge_node_data(layer, latest_tessellation_version, node_data, node_cluster_data, configuration)
+        historic_node_dataframe = await historic_data.isolate_node_data(dask_client, node_data, history_dataframe)
+        node_data = await historic_data.merge_node_data(node_data, historic_node_dataframe)
+        node_data = await clusters_data.merge_node_data(node_data, all_supported_clusters_data)
         print(node_data)
         # JUST SEE IF ID IS IN THE RETURNED DATA, DO NOT CHECK FOR CLUSTER NAME
         # REQUEST FROM HISTORIC DATA
     except UnboundLocalError:
         pass
-    return node_data
+    finally:
+        return node_data
 
 
 async def subscriber_node_data(dask_client, ip, subscriber_dataframe):
@@ -60,11 +61,7 @@ async def subscriber_node_data(dask_client, ip, subscriber_dataframe):
     subscriber = {"name": name.values[0], "contact": contact.values[0], "ip": ip, "public_l0": public_l0,
                   "public_l1": public_l1}
     logging.info(f'{datetime.utcnow().strftime("%H:%M:%S")} - CREATED SUBSCRIBER DICTIONARY FOR {name.values[0].upper()} {ip}, PORTS: L0{public_l0} L1{public_l1}')
-    public_l0 = list(public_l0)
-    public_l1 = list(public_l1)
-    public_l0.clear()
-    public_l1.clear()
-    del ip, name, contact, public_l0, public_l1
+
     return subscriber
 
 

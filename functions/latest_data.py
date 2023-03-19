@@ -1,4 +1,12 @@
-async def merge(layer, latest_tessellation_version, node_data, node_cluster_data, configuration):
+from functions import request
+
+
+async def request_node_data(subscriber: dict, port: int, configuration: dict) -> tuple[dict, dict]:
+    node_data, node_cluster_data = await request.node_cluster_data(subscriber, port, configuration)
+    return node_data, node_cluster_data
+
+
+async def merge_node_data(layer: int, latest_tessellation_version: str, node_data: dict, node_cluster_data: dict, configuration: dict) -> dict:
     lb_ids = []
     node_data["latestVersion"] = latest_tessellation_version
     node_data["layer"] = layer

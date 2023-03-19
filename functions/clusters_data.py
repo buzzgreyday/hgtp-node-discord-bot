@@ -1,4 +1,4 @@
-async def merge(node_data, all_supported_clusters_data):
+async def merge_node_data(node_data, all_supported_clusters_data):
     """DECIDE WHAT TO CHECK"""
     cluster_state = []
     former_cluster_state = []

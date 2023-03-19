@@ -26,7 +26,7 @@ class Request:
             await session.close()
 
 
-async def node_cluster_data(subscriber, port, configuration):
+async def node_cluster_data(subscriber: dict, port: int, configuration: dict) -> tuple[dict, dict]:
     node_data = []
     cluster_data = []
     if port is not None:
