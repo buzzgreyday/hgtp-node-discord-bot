@@ -107,6 +107,27 @@ async def node_cluster_data(subscriber: dict, port: int, configuration: dict) ->
         return node_data, cluster_data
 
 
+async def supported_clusters(cluster_layer, cluster_names, configuration):
+    all_clusters_data = []
+    for cluster_name, cluster_info in cluster_names.items():
+        for lb_url in cluster_info["url"]:
+            response = list(await Request(f"{lb_url}/{configuration['request']['url']['url endings']['cluster info']}").json(configuration))
+            if response is not None:
+                state = "online"
+            else:
+                state = "offline"
+            data = {
+                "layer": cluster_layer,
+                "cluster name": cluster_name,
+                "data": response,
+                "state": state
+            }
+            print(data["layer"], data["cluster name"], data["state"])
+        all_clusters_data.append(data)
+        del lb_url
+    return all_clusters_data
+
+
 async def validator_data(configuration):
     validator_mainnet_data = None
     validator_testnet_data = None
@@ -154,13 +175,13 @@ async def validator_data(configuration):
     return validator_mainnet_data, validator_testnet_data
 
 
-async def latest_project_version_github(url, configuration):
+async def latest_project_version_github(configuration):
     data = None
     run_again = True
     retry_count = 0
     while run_again:
         try:
-            data = await Request(url).json(configuration)
+            data = await Request(f"{configuration['request']['url']['github']['api repo url']}/{configuration['request']['url']['github']['url endings']['tessellation']['latest release']}").json(configuration)
             if retry_count >= configuration['request']['max retry count']:
                 run_again = False
                 break
@@ -178,6 +199,6 @@ async def latest_project_version_github(url, configuration):
                 break
             retry_count += 1
             await asyncio.sleep(configuration['request']['retry sleep'])
-            logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - GITHUB URL {url} UNREACHABLE")
+            logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - GITHUB URL UNREACHABLE")
     return data["tag_name"][1:]
 

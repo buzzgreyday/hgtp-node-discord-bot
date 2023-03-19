@@ -4,34 +4,13 @@ import asyncio
 from functions import read, request, latest_data, historic_data, clusters_data
 
 
-async def request_supported_clusters(cluster_layer, cluster_names, configuration):
-    all_clusters_data = []
-    for cluster_name, cluster_info in cluster_names.items():
-        for lb_url in cluster_info["url"]:
-            response = list(await request.Request(f"{lb_url}/{configuration['request']['url']['url endings']['cluster info']}").json(configuration))
-            if response is not None:
-                state = "online"
-            else:
-                state = "offline"
-            data = {
-                "layer": cluster_layer,
-                "cluster name": cluster_name,
-                "data": response,
-                "state": state
-            }
-            print(data["layer"], data["cluster name"], data["state"])
-        all_clusters_data.append(data)
-        del lb_url
-    return all_clusters_data
-
-
 async def request_preliminaries(configuration):
     tasks = []
     cluster_data = []
     validator_data = await request.validator_data(configuration)
-    latest_tessellation_version = await request.latest_project_version_github(f"{configuration['request']['url']['github']['api repo url']}/{configuration['request']['url']['github']['url endings']['tessellation']['latest release']}", configuration)
+    latest_tessellation_version = await request.latest_project_version_github(configuration)
     for cluster_layer, cluster_names in list(configuration["request"]["url"]["load balancer"].items()):
-        tasks.append(asyncio.create_task(request_supported_clusters(cluster_layer, cluster_names, configuration)))
+        tasks.append(asyncio.create_task(request.supported_clusters(cluster_layer, cluster_names, configuration)))
     for task in tasks:
         cluster_data.extend(await task)
     return cluster_data, validator_data, latest_tessellation_version
