@@ -51,7 +51,7 @@ async def create_per_subscriber_future(dask_client, subscriber: dict, layer: int
     return node_data
 
 
-async def subscriber_node_data(dask_client, ip, subscriber_dataframe):
+async def registered_subscriber_node_data(dask_client, ip: str, subscriber_dataframe) -> dict:
     name = await dask_client.compute(subscriber_dataframe.name[subscriber_dataframe.ip == ip])
     contact = await dask_client.compute(subscriber_dataframe.contact[subscriber_dataframe.ip == ip])
     public_l0 = tuple(await dask_client.compute(subscriber_dataframe.public_l0[subscriber_dataframe.ip == ip]))
@@ -71,7 +71,7 @@ async def init(dask_client, latest_tessellation_version, all_supported_cluster_d
     ips = await dask_client.compute(subscriber_dataframe["ip"])
     # use set() to remove duplicates
     for ip in list(set(ips.values)):
-        subscriber_futures.append(asyncio.create_task(subscriber_node_data(dask_client, ip, subscriber_dataframe)))
+        subscriber_futures.append(asyncio.create_task(registered_subscriber_node_data(dask_client, ip, subscriber_dataframe)))
     for _ in subscriber_futures:
         subscriber = await _
         for k, v in subscriber.items():
