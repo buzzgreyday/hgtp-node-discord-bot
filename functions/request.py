@@ -124,7 +124,7 @@ async def supported_clusters(cluster_layer, cluster_names, configuration):
 
 
 async def validator_data(configuration):
-    async def safe_request(validator_urls):
+    async def safe_request(validator_urls: list) -> list[dict]:
         validator_network_data = None
         run_again = True
         retry_count = 0
