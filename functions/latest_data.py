@@ -3,6 +3,7 @@ from functions import request
 
 async def request_node_data(subscriber: dict, port: int, configuration: dict) -> tuple[dict, dict]:
     node_data, node_cluster_data = await request.node_cluster_data(subscriber, port, configuration)
+    # ADD EVERY KEY MISSING HERE
     return node_data, node_cluster_data
 
 
