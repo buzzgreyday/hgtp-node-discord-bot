@@ -1,6 +1,7 @@
 general:
   name: "Hgtp Node Spidr"
   version: "5-dev-alpha"
+  public release: False
 
 source ids:
   mainnet: "ec3e25065181aa5bda7fd9ca22a13e2a59688ac0762b5a61022fd42b0943d1d468b86a517222479456d0770d50c99cbd517045a9ba3a4ee1968534e30a785e69"
