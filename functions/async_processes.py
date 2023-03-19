@@ -11,12 +11,12 @@ async def preliminary_data(configuration):
     cluster_data = []
     validator_data = await request.validator_data(configuration)
     latest_tessellation_version = await request.latest_project_version_github(configuration)
-    for cluster_layer, cluster_names in list(configuration["request"]["url"]["load balancer"].items()):
+    for cluster_layer, cluster_names in list(configuration["request"]["url"]["clusters"]["load balancer"].items()):
         tasks.append(asyncio.create_task(request.supported_clusters(cluster_layer, cluster_names, configuration)))
     for task in tasks:
         cluster_data.extend(await task)
     timer_stop = time.perf_counter()
-    print(timer_stop - timer_start)
+    print("PRELIMINARIES TOOK:", timer_stop - timer_start)
     return cluster_data, validator_data, latest_tessellation_version
 
 

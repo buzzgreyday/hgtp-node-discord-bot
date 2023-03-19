@@ -12,28 +12,29 @@ request:
   max retry count: 3
   retry sleep: 1
   url:
-    url endings:
-      node info: "node/info"
-      cluster info: "cluster/info"
-    load balancer:
-      layer 0:
-        mainnet:
-          url: [
-            "https://l0-lb-mainnet.constellationnetwork.io"
-          ]
-        testnet:
-          url: [
-            "https://l0-lb-testnet.constellationnetwork.io"
-          ]
-      layer 1:
-        mainnet:
-          url: [
-            "https://l1-lb-mainnet.constellationnetwork.io"
-          ]
-        testnet:
-          url: [
-            "https://l1-lb-testnet.constellationnetwork.io"
-          ]
+    clusters:
+      url endings:
+        node info: "node/info"
+        cluster info: "cluster/info"
+      load balancer:
+        layer 0:
+          mainnet:
+            url: [
+              "https://l0-lb-mainnet.constellationnetwork.io"
+            ]
+          testnet:
+            url: [
+              "https://l0-lb-testnet.constellationnetwork.io"
+            ]
+        layer 1:
+          mainnet:
+            url: [
+              "https://l1-lb-mainnet.constellationnetwork.io"
+            ]
+          testnet:
+            url: [
+              "https://l1-lb-testnet.constellationnetwork.io"
+            ]
     validator info:
       mainnet:
         url: [
