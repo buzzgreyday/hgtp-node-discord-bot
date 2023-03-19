@@ -52,25 +52,27 @@ async def create_per_subscriber_future(dask_client, subscriber: dict, layer: int
 
 
 async def registered_subscriber_node_data(dask_client, ip: str, subscriber_dataframe) -> dict:
-    name = await dask_client.compute(subscriber_dataframe.name[subscriber_dataframe.ip == ip])
-    contact = await dask_client.compute(subscriber_dataframe.contact[subscriber_dataframe.ip == ip])
-    public_l0 = tuple(await dask_client.compute(subscriber_dataframe.public_l0[subscriber_dataframe.ip == ip]))
-    public_l1 = tuple(await dask_client.compute(subscriber_dataframe.public_l1[subscriber_dataframe.ip == ip]))
-    subscriber = {"name": name.values[0], "contact": contact.values[0], "ip": ip, "public_l0": public_l0,
-                  "public_l1": public_l1}
-    logging.info(f'{datetime.utcnow().strftime("%H:%M:%S")} - CREATED SUBSCRIBER DICTIONARY FOR {name.values[0].upper()} {ip}, PORTS: L0{public_l0} L1{public_l1}')
+    # name = await dask_client.compute(subscriber_dataframe.name[subscriber_dataframe.ip == ip])
+    # contact = await dask_client.compute(subscriber_dataframe.contact[subscriber_dataframe.ip == ip])
+    # public_l0 = tuple(await dask_client.compute(subscriber_dataframe.public_l0[subscriber_dataframe.ip == ip]))
+    # public_l1 = tuple(await dask_client.compute(subscriber_dataframe.public_l1[subscriber_dataframe.ip == ip]))
+    subscriber = {"name": str(await dask_client.compute(subscriber_dataframe.name[subscriber_dataframe.ip == ip])),
+                  "contact": str(await dask_client.compute(subscriber_dataframe.contact[subscriber_dataframe.ip == ip])),
+                  "ip": ip,
+                  "public_l0": tuple(await dask_client.compute(subscriber_dataframe.public_l0[subscriber_dataframe.ip == ip])),
+                  "public_l1": tuple(await dask_client.compute(subscriber_dataframe.public_l1[subscriber_dataframe.ip == ip]))}
 
     return subscriber
 
 
-async def init(dask_client, latest_tessellation_version, all_supported_cluster_data, configuration):
+async def init(dask_client, latest_tessellation_version: str, all_supported_cluster_data: list[dict], configuration: dict) -> list:
     subscriber_futures = []
     request_futures = []
     history_dataframe = await read.history(configuration)
     subscriber_dataframe = await read.subscribers(configuration)
-    ips = await dask_client.compute(subscriber_dataframe["ip"])
+    # ips = await dask_client.compute(subscriber_dataframe["ip"].values)
     # use set() to remove duplicates
-    for ip in list(set(ips.values)):
+    for ip in list(set(await dask_client.compute(subscriber_dataframe["ip"].values))):
         subscriber_futures.append(asyncio.create_task(registered_subscriber_node_data(dask_client, ip, subscriber_dataframe)))
     for _ in subscriber_futures:
         subscriber = await _
