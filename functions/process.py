@@ -71,8 +71,7 @@ async def init(dask_client, latest_tessellation_version, all_supported_cluster_d
     ips = await dask_client.compute(subscriber_dataframe["ip"])
     # use set() to remove duplicates
     for i, ip in enumerate(list(set(ips.values))):
-        # subscriber_futures.append(asyncio.create_task(subscriber_node_data(dask_client, ip, subscriber_dataframe)))
-        subscriber_futures.append(asyncio.create_task(Subscriber(dask_client, ip, subscriber_dataframe).name))
+        subscriber_futures.append(asyncio.create_task(subscriber_node_data(dask_client, ip, subscriber_dataframe)))
     for _ in subscriber_futures:
         subscriber = await _
         for k, v in subscriber.items():
