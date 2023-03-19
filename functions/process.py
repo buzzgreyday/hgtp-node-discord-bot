@@ -44,6 +44,7 @@ async def create_per_subscriber_future(dask_client, subscriber: dict, layer: int
     historic_node_dataframe = await historic_data.isolate_former_node_data(historic_node_dataframe)
     node_data = await historic_data.merge_node_data(node_data, historic_node_dataframe)
     node_data = await clusters_data.merge_node_data(node_data, all_supported_clusters_data)
+    """REMEMBER TO CHECK DATE/TIME FOR LAST NOTICE"""
     print(node_data)
     # JUST SEE IF ID IS IN THE RETURNED DATA, DO NOT CHECK FOR CLUSTER NAME
     # REQUEST FROM HISTORIC DATA
