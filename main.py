@@ -46,9 +46,9 @@ if __name__ == "__main__":
                 timer_start = time.perf_counter()
                 await extras.set_active_presence(bot)
                 futures = await async_processes.init(dask_client, latest_tessellation_version, all_supported_clusters_data, configuration)
-                for _ in futures:
+                for async_process in futures:
                     try:
-                        node_data = await _
+                        node_data = await async_process
                         # print(node_data)
                     # dictionary
                     except Exception as e:
