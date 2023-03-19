@@ -20,7 +20,7 @@ async def merge_node_data(node_data, all_supported_clusters_data):
                 for all_former_cluster_data in all_supported_clusters_data:
                     if (f"layer {node_data['layer']}" == all_former_cluster_data["layer"]) and (all_former_cluster_data["cluster name"] == former_cluster_name):
                         former_cluster_state.append(str(all_former_cluster_data["state"]))
-                        former_cluster_pair_count.append(len(all_latest_cluster_data["data"]))
+                        former_cluster_pair_count.append(len(all_former_cluster_data["data"]))
                         for cluster_data in all_former_cluster_data["data"]:
                             pass
                             """if node_data["id"] == cluster_data["id"]:
@@ -29,4 +29,5 @@ async def merge_node_data(node_data, all_supported_clusters_data):
     node_data["formerClusterState"] = former_cluster_state
     node_data["clusterPairCount"] = cluster_pair_count
     node_data["formerClusterPairCount"] = former_cluster_pair_count
+
     return node_data

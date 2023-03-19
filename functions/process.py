@@ -38,19 +38,16 @@ async def get_preliminaries(configuration):
 
 
 async def do_checks(dask_client, subscriber: dict, layer: int, port: int, latest_tessellation_version: str, all_supported_clusters_data: list[dict], history_dataframe, configuration: dict) -> dict:
-    try:
-        node_data, node_cluster_data = await latest_data.request_node_data(subscriber, port, configuration)
-        node_data = await latest_data.merge_node_data(layer, latest_tessellation_version, node_data, node_cluster_data, configuration)
-        historic_node_dataframe = await historic_data.isolate_node_data(dask_client, node_data, history_dataframe)
-        node_data = await historic_data.merge_node_data(node_data, historic_node_dataframe)
-        node_data = await clusters_data.merge_node_data(node_data, all_supported_clusters_data)
-        print(node_data)
-        # JUST SEE IF ID IS IN THE RETURNED DATA, DO NOT CHECK FOR CLUSTER NAME
-        # REQUEST FROM HISTORIC DATA
-    except UnboundLocalError:
-        pass
-    finally:
-        return node_data
+    node_data, node_cluster_data = await latest_data.request_node_data(subscriber, port, configuration)
+    node_data = await latest_data.merge_node_data(layer, latest_tessellation_version, node_data, node_cluster_data, configuration)
+    historic_node_dataframe = await historic_data.isolate_node_data(dask_client, node_data, history_dataframe)
+    node_data = await historic_data.merge_node_data(node_data, historic_node_dataframe)
+    node_data = await clusters_data.merge_node_data(node_data, all_supported_clusters_data)
+    print(node_data)
+    # JUST SEE IF ID IS IN THE RETURNED DATA, DO NOT CHECK FOR CLUSTER NAME
+    # REQUEST FROM HISTORIC DATA
+
+    return node_data
 
 
 async def subscriber_node_data(dask_client, ip, subscriber_dataframe):

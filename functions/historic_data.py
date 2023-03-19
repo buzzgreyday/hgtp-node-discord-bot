@@ -23,7 +23,8 @@ async def merge_node_data(node_data: dict, historic_node_dataframe) -> dict:
     former_node_cluster_association_time = []
     former_node_cluster_dissociation_time = []
     former_node_data = historic_node_dataframe[historic_node_dataframe["index timestamp"] == historic_node_dataframe["index timestamp"].max()]
-    former_cluster_names = list(set(cluster_name.lower() if cluster_name != "None" else None for cluster_name in former_node_data["cluster name"]))
+    former_cluster_names = list(set(cluster_name.lower() for cluster_name in former_node_data["cluster name"]))
+    print(former_cluster_names)
     """IF HISTORIC DATA EXISTS"""
     if not former_node_data.empty:
         former_node_id = str(former_node_data["node id"].values[0])
