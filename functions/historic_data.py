@@ -18,11 +18,6 @@ async def isolate_former_node_data(historic_node_dataframe):
 
 async def merge_node_data(node_data: dict, historic_node_dataframe) -> dict:
     # STD/OFFLINE VALUES
-    former_node_id = None
-    former_node_wallet = None
-    former_node_tessellation_version = None
-    former_node_total_disk_space = None
-    former_node_free_disk_space = None
     former_node_cluster_connectivity = []
     former_node_cluster_association_time = []
     former_node_cluster_dissociation_time = []

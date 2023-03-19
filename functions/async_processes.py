@@ -4,7 +4,7 @@ import asyncio
 from functions import read, request, latest_data, historic_data, clusters_data
 
 
-async def request_preliminaries(configuration):
+async def preliminary_data(configuration):
     tasks = []
     cluster_data = []
     validator_data = await request.validator_data(configuration)
