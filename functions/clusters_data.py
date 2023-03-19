@@ -24,8 +24,11 @@ async def merge_node_data(node_data,  validator_mainnet_data, validator_testnet_
     cluster_pair_count = []
     former_cluster_state = []
     former_cluster_pair_count = []
-    node_data["nodeWalletAddress"] = None
     located = False
+    # YOU NEED THIS VALUE DECLARED SO SIZE DOESN'T CHANGE DURING ITERATION
+    # YOU MIGHT WANT TO DECLARE ALL VALUES FIRST TIME THE DICT IS CREATED
+    if "nodeWalletAddress" not in node_data:
+        node_data["nodeWalletAddress"] = None
     for k, v in node_data.items():
         if k == "clusterNames":
             for cluster_name in v:
