@@ -1,4 +1,4 @@
-async def merge_node_data(node_data, all_supported_clusters_data):
+async def merge_node_data(node_data,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data):
     """DECIDE WHAT TO CHECK"""
     cluster_state = []
     cluster_pair_count = []
@@ -11,6 +11,13 @@ async def merge_node_data(node_data, all_supported_clusters_data):
                     if (f"layer {node_data['layer']}" == all_latest_cluster_data["layer"]) and (all_latest_cluster_data["cluster name"] == cluster_name):
                         cluster_state.append(str(all_latest_cluster_data["state"]))
                         cluster_pair_count.append(len(all_latest_cluster_data["data"]))
+                        for network in [validator_mainnet_data, validator_testnet_data]:
+                            for validator in network:
+                                for node_ip, node_id in zip(validator["ip"].split(), validator["id"].split()):
+                                    if node_ip == str(node_data["host"]):
+                                        print(f"{node_ip} FOUND IN VALIDATOR DATA")
+                                    elif node_id == str(node_data["id"]):
+                                        print(f"{node_id} FOUND IN VALIDATOR DATA")
                         for cluster_data in all_latest_cluster_data["data"]:
                             pass
                             """if node_data["id"] == cluster_data["id"]:

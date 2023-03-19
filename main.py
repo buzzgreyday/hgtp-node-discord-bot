@@ -2,6 +2,7 @@ import asyncio
 import logging
 import sys
 import time
+import traceback
 from datetime import datetime
 from dask.distributed import Client
 import distributed
@@ -35,9 +36,9 @@ if __name__ == "__main__":
     cluster = distributed.LocalCluster(asynchronous=True, n_workers=1, threads_per_worker=2, memory_limit='4GB',
                                        processes=True, silence_logs=logging.CRITICAL)
 
-    async def main():
+    async def main() -> None:
         # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
-        all_supported_clusters_data, validator_data, latest_tessellation_version = await async_processes.preliminary_data(configuration)
+        all_supported_clusters_data,  validator_mainnet_data, validator_testnet_data, latest_tessellation_version = await async_processes.preliminary_data(configuration)
         await bot.wait_until_ready()
         async with Client(cluster) as dask_client:
             while not bot.is_closed():
@@ -45,16 +46,13 @@ if __name__ == "__main__":
                 logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - DASK CLIENT RUNNING")
                 timer_start = time.perf_counter()
                 await extras.set_active_presence(bot)
-                futures = await async_processes.init(dask_client, latest_tessellation_version, all_supported_clusters_data, configuration)
+                futures = await async_processes.init(dask_client, latest_tessellation_version,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data, configuration)
                 for async_process in futures:
                     try:
                         node_data = await async_process
-                        # print(node_data)
-                    # dictionary
                     except Exception as e:
                         logging.critical(repr(e.with_traceback(sys.exc_info())))
                         exit(1)
-                    # list of dict (cluster_data)
                 timer_stop = time.perf_counter()
                 print(timer_stop-timer_start)
                 exit(0)
