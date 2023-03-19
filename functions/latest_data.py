@@ -10,7 +10,7 @@ async def merge_node_data(layer: int, latest_tessellation_version: str, node_dat
     lb_ids = []
     node_data["latestVersion"] = latest_tessellation_version
     node_data["layer"] = layer
-    node_data["clusterPairs"] = [len(node_cluster_data)]
+    node_data["nodePairCount"] = [len(node_cluster_data)]
     node_data["clusterNames"] = []
     if node_cluster_data:
         lb_ids.extend(v for k, v in configuration["source ids"].items())
