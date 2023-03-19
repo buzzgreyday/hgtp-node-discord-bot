@@ -123,7 +123,7 @@ async def supported_clusters(cluster_layer, cluster_names, configuration):
     return all_clusters_data
 
 
-async def validator_data(configuration):
+async def validator_data(configuration: dict) -> tuple[list[dict]]:
     async def safe_request(validator_urls: list) -> list[dict]:
         validator_network_data = None
         run_again = True
@@ -151,8 +151,6 @@ async def validator_data(configuration):
 
     validator_testnet_data = await safe_request(configuration['request']['url']['validator info']['testnet']['url'])
     validator_mainnet_data = await safe_request(configuration['request']['url']['validator info']['mainnet']['url'])
-    print(validator_mainnet_data)
-    print(validator_testnet_data)
 
     return validator_mainnet_data, validator_testnet_data
 
