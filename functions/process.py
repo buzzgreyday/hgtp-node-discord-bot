@@ -4,7 +4,7 @@ import asyncio
 from functions import read, request, latest_data, historic_data, clusters_data
 
 
-async def get_clusters(cluster_layer, cluster_names, configuration):
+async def request_supported_clusters(cluster_layer, cluster_names, configuration):
     all_clusters_data = []
     for cluster_name, cluster_info in cluster_names.items():
         for lb_url in cluster_info["url"]:
@@ -25,19 +25,19 @@ async def get_clusters(cluster_layer, cluster_names, configuration):
     return all_clusters_data
 
 
-async def get_preliminaries(configuration):
+async def request_preliminaries(configuration):
     tasks = []
     cluster_data = []
     validator_data = await request.validator_data(configuration)
     latest_tessellation_version = await request.latest_project_version_github(f"{configuration['request']['url']['github']['api repo url']}/{configuration['request']['url']['github']['url endings']['tessellation']['latest release']}", configuration)
     for cluster_layer, cluster_names in list(configuration["request"]["url"]["load balancer"].items()):
-        tasks.append(asyncio.create_task(get_clusters(cluster_layer, cluster_names, configuration)))
+        tasks.append(asyncio.create_task(request_supported_clusters(cluster_layer, cluster_names, configuration)))
     for task in tasks:
         cluster_data.extend(await task)
     return cluster_data, validator_data, latest_tessellation_version
 
 
-async def do_checks(dask_client, subscriber: dict, layer: int, port: int, latest_tessellation_version: str, all_supported_clusters_data: list[dict], history_dataframe, configuration: dict) -> dict:
+async def create_per_subscriber_future(dask_client, subscriber: dict, layer: int, port: int, latest_tessellation_version: str, all_supported_clusters_data: list[dict], history_dataframe, configuration: dict) -> dict:
     node_data, node_cluster_data = await latest_data.request_node_data(subscriber, port, configuration)
     node_data = await latest_data.merge_node_data(layer, latest_tessellation_version, node_data, node_cluster_data, configuration)
     historic_node_dataframe = await historic_data.isolate_node_data(dask_client, node_data, history_dataframe)
@@ -71,17 +71,18 @@ async def init(dask_client, latest_tessellation_version, all_supported_cluster_d
     ips = await dask_client.compute(subscriber_dataframe["ip"])
     # use set() to remove duplicates
     for i, ip in enumerate(list(set(ips.values))):
-        subscriber_futures.append(asyncio.create_task(subscriber_node_data(dask_client, ip, subscriber_dataframe)))
+        # subscriber_futures.append(asyncio.create_task(subscriber_node_data(dask_client, ip, subscriber_dataframe)))
+        subscriber_futures.append(asyncio.create_task(Subscriber(dask_client, ip, subscriber_dataframe).name))
     for _ in subscriber_futures:
         subscriber = await _
         for k, v in subscriber.items():
             if k == "public_l0":
                 for port in v:
                     layer = 0
-                    request_futures.append(asyncio.create_task(do_checks(dask_client, subscriber, layer, port, latest_tessellation_version, all_supported_cluster_data, history_dataframe, configuration)))
+                    request_futures.append(asyncio.create_task(create_per_subscriber_future(dask_client, subscriber, layer, port, latest_tessellation_version, all_supported_cluster_data, history_dataframe, configuration)))
             elif k == "public_l1":
                 for port in v:
                     layer = 1
-                    request_futures.append(asyncio.create_task(do_checks(dask_client, subscriber, layer, port, latest_tessellation_version, all_supported_cluster_data, history_dataframe, configuration)))
+                    request_futures.append(asyncio.create_task(create_per_subscriber_future(dask_client, subscriber, layer, port, latest_tessellation_version, all_supported_cluster_data, history_dataframe, configuration)))
         # return list of futures to main() and run there
     return request_futures

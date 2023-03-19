@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
     async def main():
         # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
-        all_supported_clusters_data, validator_data, latest_tessellation_version = await process.get_preliminaries(configuration)
+        all_supported_clusters_data, validator_data, latest_tessellation_version = await process.request_preliminaries(configuration)
         await bot.wait_until_ready()
         async with Client(cluster) as dask_client:
             while not bot.is_closed():
