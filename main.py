@@ -44,7 +44,7 @@ if __name__ == "__main__":
                 await dask_client.wait_for_workers(n_workers=1)
                 logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - DASK CLIENT RUNNING")
                 timer_start = time.perf_counter()
-                await aesthetics.set_active_presence(bot)
+                await extras.set_active_presence(bot)
                 futures = await process.init(dask_client, latest_tessellation_version, all_supported_clusters_data, configuration)
                 for _ in futures:
                     try:
