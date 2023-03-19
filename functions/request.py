@@ -147,10 +147,12 @@ async def validator_data(configuration):
                     break
                 await asyncio.sleep(configuration['request']['retry sleep'])
 
-        return validator_network_data
+        return validator_network_data["data"]
 
     validator_testnet_data = await safe_request(configuration['request']['url']['validator info']['testnet']['url'])
     validator_mainnet_data = await safe_request(configuration['request']['url']['validator info']['mainnet']['url'])
+    print(validator_mainnet_data)
+    print(validator_testnet_data)
 
     return validator_mainnet_data, validator_testnet_data
 
