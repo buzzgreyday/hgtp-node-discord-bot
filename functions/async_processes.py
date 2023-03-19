@@ -1,10 +1,12 @@
 import logging
+import time
 from datetime import datetime
 import asyncio
 from functions import read, request, latest_data, historic_data, clusters_data
 
 
 async def preliminary_data(configuration):
+    timer_start = time.perf_counter()
     tasks = []
     cluster_data = []
     validator_data = await request.validator_data(configuration)
@@ -13,6 +15,8 @@ async def preliminary_data(configuration):
         tasks.append(asyncio.create_task(request.supported_clusters(cluster_layer, cluster_names, configuration)))
     for task in tasks:
         cluster_data.extend(await task)
+    timer_stop = time.perf_counter()
+    print(timer_stop - timer_start)
     return cluster_data, validator_data, latest_tessellation_version
 
 
