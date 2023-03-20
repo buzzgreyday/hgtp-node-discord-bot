@@ -10,12 +10,15 @@ async def request_node_data(subscriber: dict, port: int, node_data: dict, config
 async def request_wallet_data(node_data, configuration):
     be_name = 'mainnet'
     request_url = f"{configuration['request']['url']['block explorer']['layer 0']['mainnet']}/addresses/{node_data['nodeWalletAddress']}/balance"
-    for be_layer, be_names in list(configuration["request"]["url"]["block explorer"].items()):
+    for be_layer, be_names in configuration["request"]["url"]["block explorer"].items():
+        print(be_layer, be_names.keys(), node_data["clusterNames"])
         if node_data['clusterNames'] in be_names.keys():
+            print("CLUSTER NAME IN BALANCER NAMES")
             for be_name, be_url in be_names.items():
                 if be_name == node_data['clusterNames']:
                     request_url = f"{be_url}/addresses/{node_data['nodeWalletAddress']}/balance"
                     wallet_data = await request.Request(request_url).json(configuration)
+                    print(node_data["clusterNames"], wallet_data)
 
 
 async def merge_node_data(layer: int, latest_tessellation_version: str, node_data: dict, node_cluster_data: dict, configuration: dict) -> dict:
@@ -25,7 +28,6 @@ async def merge_node_data(layer: int, latest_tessellation_version: str, node_dat
     node_data["nodePairCount"] = len(node_cluster_data)
     if node_cluster_data:
         lb_ids.extend(v for v in configuration["source ids"].values())
-        print(node_cluster_data)
         for d in node_cluster_data:
             for k, v in d.items():
                 if (k == "id") and (str(v) in lb_ids):
