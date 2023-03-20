@@ -17,7 +17,7 @@ class Request:
                     data = await resp.json()
                     logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST SUCCEEDED")
                     return data
-                if resp.status == 503:
+                elif resp.status == 503:
                     logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST FAILED: SERVICE UNAVAILABLE")
                     return 503
                 else:
@@ -79,23 +79,21 @@ async def node_cluster_data(subscriber: dict, port: int, node_data: dict, config
     return node_data, cluster_data
 
 
-async def supported_clusters(cluster_layer, cluster_names, configuration):
+async def supported_clusters(cluster_layer: int, cluster_names: dict, configuration: dict) -> list[dict]:
     all_clusters_data = []
     for cluster_name, cluster_info in cluster_names.items():
         for lb_url in cluster_info["url"]:
             response = list(await Request(f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['cluster info']}").json(configuration))
             if response is not None:
-                state = "online"
+                cluster_state = "online"
             else:
-                state = "offline"
-            data = {
+                cluster_state = "offline"
+            all_clusters_data.append({
                 "layer": cluster_layer,
                 "cluster name": cluster_name,
                 "data": response,
-                "state": state
-            }
-            print(data["layer"], data["cluster name"], data["state"])
-        all_clusters_data.append(data)
+                "state": cluster_state
+            })
         del lb_url
     return all_clusters_data
 

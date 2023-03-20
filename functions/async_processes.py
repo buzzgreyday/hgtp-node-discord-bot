@@ -1,6 +1,4 @@
-import logging
 import time
-from datetime import datetime
 import asyncio
 from functions import read, request, latest_data, historic_data, clusters_data, new_data
 

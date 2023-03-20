@@ -9,11 +9,9 @@ async def merge_node_data(node_data,  validator_mainnet_data, validator_testnet_
             for validator in network:
                 for node_ip, node_id in zip(validator["ip"].split(), validator["id"].split()):
                     if node_ip == str(node_data["host"]):
-                        print(f"FOUND IP {node_ip}")
                         node_data = await set_variables(node_data)
                         return True, node_data
                     elif node_id == str(node_data["id"]):
-                        print(f"FOUND ID {node_id}")
                         node_data = await set_variables(node_data)
                         return True, node_data
 
