@@ -2,7 +2,7 @@ import logging
 import time
 from datetime import datetime
 import asyncio
-from functions import read, request, latest_data, historic_data, clusters_data
+from functions import read, request, latest_data, historic_data, clusters_data, new_data
 
 
 async def preliminary_data(configuration):
@@ -21,7 +21,8 @@ async def preliminary_data(configuration):
 
 
 async def create_per_subscriber_future(dask_client, subscriber: dict, layer: int, port: int, latest_tessellation_version: str,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data: list[dict], history_dataframe, configuration: dict) -> dict:
-    node_data, node_cluster_data = await latest_data.request_node_data(subscriber, port, configuration)
+    node_data = await new_data.create(subscriber, port)
+    node_data, node_cluster_data = await latest_data.request_node_data(subscriber, port, node_data, configuration)
     node_data = await latest_data.merge_node_data(layer, latest_tessellation_version, node_data, node_cluster_data, configuration)
     historic_node_dataframe = await historic_data.isolate_node_data(dask_client, node_data, history_dataframe)
     historic_node_dataframe = await historic_data.isolate_former_node_data(historic_node_dataframe)
@@ -35,8 +36,8 @@ async def create_per_subscriber_future(dask_client, subscriber: dict, layer: int
 
 
 async def registered_subscriber_node_data(dask_client, ip: str, subscriber_dataframe) -> dict:
-    subscriber = {"name": str(await dask_client.compute(subscriber_dataframe.name[subscriber_dataframe.ip == ip])),
-                  "contact": str(await dask_client.compute(subscriber_dataframe.contact[subscriber_dataframe.ip == ip])),
+    subscriber = {"name": await dask_client.compute(subscriber_dataframe.name[subscriber_dataframe.ip == ip]),
+                  "contact": await dask_client.compute(subscriber_dataframe.contact[subscriber_dataframe.ip == ip]),
                   "ip": ip,
                   "public_l0": tuple(await dask_client.compute(subscriber_dataframe.public_l0[subscriber_dataframe.ip == ip])),
                   "public_l1": tuple(await dask_client.compute(subscriber_dataframe.public_l1[subscriber_dataframe.ip == ip]))}

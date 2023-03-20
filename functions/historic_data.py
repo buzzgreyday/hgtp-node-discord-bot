@@ -17,33 +17,17 @@ async def isolate_former_node_data(historic_node_dataframe):
 
 
 async def merge_node_data(node_data: dict, historic_node_dataframe) -> dict:
-    # STD/OFFLINE VALUES
-    former_node_cluster_connectivity = []
-    former_node_cluster_association_time = []
-    former_node_cluster_dissociation_time = []
-    former_cluster_names = list(set(cluster_name.lower() for cluster_name in historic_node_dataframe["cluster name"]))
-    print(former_cluster_names)
     """IF HISTORIC DATA EXISTS"""
     if not historic_node_dataframe.empty:
-        former_node_id = str(historic_node_dataframe["node id"].values[0])
-        former_node_wallet = str(historic_node_dataframe["node wallet"].values[0])
-        former_node_tessellation_version = str(historic_node_dataframe["node version"].values[0])
-        former_node_total_disk_space = float(historic_node_dataframe["node total disk space"])
-        former_node_free_disk_space = float(historic_node_dataframe["node free disk space"])
-        for cluster_name in former_cluster_names:
-            former_node_cluster_connectivity.extend(historic_node_dataframe["connectivity"][historic_node_dataframe["cluster name"] == cluster_name].values)
-            former_node_cluster_association_time.extend(historic_node_dataframe["association time"][historic_node_dataframe["cluster name"] == cluster_name].values)
-            former_node_cluster_dissociation_time.extend(historic_node_dataframe["dissociation time"][historic_node_dataframe["cluster name"] == cluster_name].values)
+        node_data["formerClusterNames"] = historic_node_dataframe["cluster name"].values[0]
+        node_data["formerClusterConnectivity"] = historic_node_dataframe["connectivity"][historic_node_dataframe["cluster name"] == node_data["formerClusterNames"]].values[0]
+        node_data["formerClusterAssociationTime"] = historic_node_dataframe["association time"][historic_node_dataframe["cluster name"] == node_data["formerClusterNames"]].values[0]
+        node_data["formerClusterDissociationTime"] = historic_node_dataframe["dissociation time"][historic_node_dataframe["cluster name"] == node_data["formerClusterNames"]].values[0]
         if node_data["state"] == "Offline":
-            # IF OFFLINE, THEN THESE DOESN'T EXIST, THEY DO WHEN ONLINE
-            node_data["id"] = former_node_id
-            node_data["nodeWalletAddress"] = former_node_wallet
-            node_data["version"] = former_node_tessellation_version
-            node_data["diskSpaceTotal"] = former_node_total_disk_space
-            node_data["diskSpaceFree"] = former_node_free_disk_space
-    node_data["formerClusterNames"] = former_cluster_names
-    node_data["formerClusterConnectivity"] = former_node_cluster_connectivity
-    node_data["formerClusterAssociationTime"] = former_node_cluster_association_time
-    node_data["formerClusterDissociationTime"] = former_node_cluster_dissociation_time
+            node_data["id"] = str(historic_node_dataframe["node id"].values[0])
+            node_data["nodeWalletAddress"] = str(historic_node_dataframe["node wallet"].values[0])
+            node_data["version"] = str(historic_node_dataframe["node version"].values[0])
+            node_data["diskSpaceTotal"] = float(historic_node_dataframe["node total disk space"])
+            node_data["diskSpaceFree"] = float(historic_node_dataframe["node free disk space"])
 
     return node_data

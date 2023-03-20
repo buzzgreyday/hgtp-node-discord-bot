@@ -26,76 +26,57 @@ class Request:
             await session.close()
 
 
-async def node_cluster_data(subscriber: dict, port: int, configuration: dict) -> tuple[dict, dict]:
+async def node_cluster_data(subscriber: dict, port: int, node_data: dict, configuration: dict) -> tuple[dict, dict]:
+    async def api_request_type(request_url: str) -> str:
+        if ("node" and "info") in request_url.split("/"):
+            return "info"
+        elif ("cluster" and "info") in request_url.split("/"):
+            return "cluster"
+        elif ("node" and "metrics") in request_url.split("/"):
+            return "metrics"
 
-    node_data = []
-    cluster_data = []
-    if port is not None:
+    async def request_node_data(request_url: str) -> dict:
+        data = {}
         retry_count = 0
         run_again = True
         while run_again:
             try:
-                node_data = await Request(f"http://{subscriber['ip']}:{port}/{configuration['request']['url']['clusters']['url endings']['node info']}").json(configuration)
+                data = await Request(request_url).json(configuration)
                 if retry_count >= configuration['request']['max retry count']:
-                    node_data = {"state": "Offline", "session": None, "clusterSession": None, "version": None, "host": subscriber["ip"], "publicPort": port, "p2pPort": None, "id": None}
-                    run_again = False
+                    if await api_request_type(request_url) == "info":
+                        data = {"state": "Offline"}
                     break
-                elif node_data == 503:
-                    run_again = False
+                elif data == 503:
                     break
-                elif node_data is not None:
-                    run_again = False
+                elif data is not None:
                     break
                 else:
                     retry_count += 1
                     await asyncio.sleep(configuration['request']['retry sleep'])
             except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientOSError, aiohttp.client_exceptions.ServerDisconnectedError) as e:
                 if retry_count >= configuration['request']['max retry count']:
-                    node_data = {"state": "Offline", "session": None, "clusterSession": None, "version": None, "host": subscriber["ip"], "publicPort": port, "p2pPort": None, "id": None}
+                    if await api_request_type(request_url) == "info":
+                        data = {"state": "Offline"}
                     break
                 retry_count += 1
                 await asyncio.sleep(configuration['request']['retry sleep'])
                 logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE @ {subscriber['ip']}:{port} UNREACHABLE - TRIED {retry_count}/{configuration['request']['max retry count']}")
             except aiohttp.client_exceptions.InvalidURL:
-                node_data = {"state": "Offline", "session": None, "clusterSession": None, "version": None, "host": subscriber["ip"], "publicPort": port, "p2pPort": None, "id": None}
+                if await api_request_type(request_url):
+                    data = {"state": "Offline"}
                 break
             except aiohttp.client_exceptions.ClientConnectorError:
                 break
-        retry_count = 0
-        run_again = True
+        return data
+    cluster_data = []
+    if port is not None:
+        response = await request_node_data(f"http://{subscriber['ip']}:{port}/{configuration['request']['url']['clusters']['url endings']['node info']}")
+        node_data.update(response)
         for k, v in node_data.items():
             if (k == "state") and (v != "Offline"):
-                while run_again:
-                    try:
-                        cluster_data = await Request(f"http://{str(subscriber['ip'])}:{str(port)}/{str(configuration['request']['url']['clusters']['url endings']['cluster info'])}").json(configuration)
-                        if retry_count >= configuration['request']['max retry count']:
-                            run_again = False
-                            break
-                        elif cluster_data == 503:
-                            run_again = False
-                            break
-                        elif cluster_data is not None:
-                            run_again = False
-                            break
-                        else:
-                            retry_count += 1
-                            await asyncio.sleep(configuration['request']['retry sleep'])
+                cluster_data = await request_node_data(f"http://{str(subscriber['ip'])}:{str(port)}/{str(configuration['request']['url']['clusters']['url endings']['cluster info'])}")
 
-                        # cluster_data is a list of dictionaries
-                    except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientOSError, aiohttp.client_exceptions.ServerDisconnectedError) as e:
-                        if retry_count >= configuration['request']['max retry count']:
-                            run_again = False
-                            break
-                        retry_count += 1
-                        await asyncio.sleep(configuration['request']['retry sleep'])
-                        logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE CLUSTER @ {subscriber['ip']}:{port} UNREACHABLE")
-                    except aiohttp.client_exceptions.InvalidURL:
-                        run_again = False
-                        break
-                    except aiohttp.client_exceptions.ClientConnectorError:
-                        run_again = False
-                        break
-        return node_data, cluster_data
+    return node_data, cluster_data
 
 
 async def supported_clusters(cluster_layer, cluster_names, configuration):

@@ -1,0 +1,26 @@
+async def create(subscriber: dict, port: int):
+    return {
+        "name": subscriber["name"].values[0],
+        "contact": subscriber["contact"].values[0],
+        "host": subscriber["ip"],
+        "publicPort": port,
+        "p2pPort": None,
+        "id": None,
+        "state": None,
+        "version": None,
+        "session": None,
+        "clusterSession": None,
+        "latestVersion": None,
+        "layer": None,
+        "nodePairCount": None,
+        "clusterNames": None,
+        "formerClusterNames": None,
+        "formerConnectivity": None,
+        "formerClusterAssociationTime": None,
+        "formerClusterDissociationTime": None,
+        "nodeWalletAddress": None,
+        "clusterState": None,
+        "formerClusterState": None,
+        "clusterPairCount": None,
+        "formerClusterPairCount": None
+    }
