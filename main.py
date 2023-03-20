@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import sys
 import time
@@ -9,6 +10,9 @@ import nextcord
 from nextcord.ext import commands
 from os import getenv, path, makedirs
 import yaml
+import uvloop
+
+asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 """LOAD DISCORD SERVER TOKEN FROM ENVIRONMENT"""
 discord_token = getenv("HGTP_SPIDR_DISCORD_TOKEN")
