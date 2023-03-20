@@ -20,6 +20,7 @@ async def isolate_former_node_data(historic_node_dataframe):
 
 
 async def merge_node_data(node_data: dict, historic_node_dataframe) -> dict:
+
     """IF HISTORIC DATA EXISTS"""
     if not historic_node_dataframe.empty:
         node_data["formerClusterNames"] = str(historic_node_dataframe["cluster name"].values[0]).lower()
