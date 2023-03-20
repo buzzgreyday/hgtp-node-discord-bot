@@ -88,14 +88,14 @@ async def supported_clusters(cluster_layer: int, cluster_names: dict, configurat
                 cluster_state = "online"
             else:
                 cluster_state = "offline"
-            all_clusters_data.append({
+            data = {
                 "layer": cluster_layer,
                 "cluster name": cluster_name,
                 "data": response,
                 "state": cluster_state
-            })
+            }
         del lb_url
-    return all_clusters_data
+    return data
 
 
 async def validator_data(configuration: dict) -> tuple[list[dict], list[dict]]:
