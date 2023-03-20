@@ -16,7 +16,6 @@ async def request_wallet_data(node_data, configuration):
                 if be_name == node_data['clusterNames']:
                     request_url = f"{be_url}/addresses/{node_data['nodeWalletAddress']}/balance"
                     wallet_data = await request.Request(request_url).json(configuration)
-                    print(be_name, wallet_data)
 
 
 async def merge_node_data(layer: int, latest_tessellation_version: str, node_data: dict, node_cluster_data: dict, configuration: dict) -> dict:

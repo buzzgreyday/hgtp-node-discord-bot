@@ -150,7 +150,7 @@ async def supported_clusters(cluster_layer: int, cluster_names: dict, configurat
     return data
 
 
-async def validator_data(configuration: dict) -> tuple[list[dict], list[dict]]:
+async def validator_data(configuration: dict):
     async def safe_request(validator_urls: list) -> list[dict]:
         validator_network_data = None
         run_again = True
@@ -173,9 +173,7 @@ async def validator_data(configuration: dict) -> tuple[list[dict], list[dict]]:
                 if retry_count >= configuration['request']['max retry count']:
                     break
                 await asyncio.sleep(configuration['request']['retry sleep'])
-
         return validator_network_data["data"]
-
     validator_testnet_data = await safe_request(configuration['request']['url']['validator info']['testnet']['url'])
     validator_mainnet_data = await safe_request(configuration['request']['url']['validator info']['mainnet']['url'])
 
