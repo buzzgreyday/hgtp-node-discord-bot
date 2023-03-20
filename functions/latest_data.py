@@ -7,6 +7,21 @@ async def request_node_data(subscriber: dict, port: int, node_data: dict, config
     return node_data, node_cluster_data
 
 
+async def request_wallet_data(node_data, configuration):
+    node_cluster_name = 'mainnet'
+    request_url = f"{configuration['request']['url']['block explorer']['layer 0']['mainnet']}/addresses/{node_data['nodeWalletAddress']}/balance"
+    for layer in configuration['request']['url']['block explorer']:
+        print(layer)
+        for node_cluster_name in configuration['request']['url']['block explorer'][layer]:
+            print(node_cluster_name, node_data['clusterNames'], node_data['formerClusterNames'])
+            if str(node_cluster_name) == (str(node_data['clusterNames']) or str(node_data['FormerClusterNames']).lower()):
+                request_url = f"{configuration['request']['url']['block explorer'][layer][node_cluster_name]}/addresses/{node_data['nodeWalletAddress']}/balance"
+
+    if (node_data["nodeWalletAddress"] != "None") | (node_data["nodeWalletAddress"] != "Unavailable"):
+        wallet_data = await request.Request(request_url).json(configuration)
+        print(node_cluster_name, wallet_data)
+
+
 async def merge_node_data(layer: int, latest_tessellation_version: str, node_data: dict, node_cluster_data: dict, configuration: dict) -> dict:
     lb_ids = []
     node_data["latestVersion"] = latest_tessellation_version

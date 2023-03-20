@@ -1,3 +1,6 @@
+import functions.latest_data
+
+
 async def isolate_node_data(dask_client, node_data: dict, history_dataframe):
     # ISOLATE LAYER AND NODE IN HISTORIC DATA
     ip = None
@@ -19,7 +22,7 @@ async def isolate_former_node_data(historic_node_dataframe):
 async def merge_node_data(node_data: dict, historic_node_dataframe) -> dict:
     """IF HISTORIC DATA EXISTS"""
     if not historic_node_dataframe.empty:
-        node_data["formerClusterNames"] = historic_node_dataframe["cluster name"].values[0]
+        node_data["formerClusterNames"] = str(historic_node_dataframe["cluster name"].values[0]).lower()
         node_data["formerClusterConnectivity"] = historic_node_dataframe["connectivity"][historic_node_dataframe["cluster name"] == node_data["formerClusterNames"]].values[0]
         node_data["formerClusterAssociationTime"] = historic_node_dataframe["association time"][historic_node_dataframe["cluster name"] == node_data["formerClusterNames"]].values[0]
         node_data["formerClusterDissociationTime"] = historic_node_dataframe["dissociation time"][historic_node_dataframe["cluster name"] == node_data["formerClusterNames"]].values[0]
@@ -29,5 +32,4 @@ async def merge_node_data(node_data: dict, historic_node_dataframe) -> dict:
             node_data["version"] = str(historic_node_dataframe["node version"].values[0])
             node_data["diskSpaceTotal"] = float(historic_node_dataframe["node total disk space"])
             node_data["diskSpaceFree"] = float(historic_node_dataframe["node free disk space"])
-
     return node_data
