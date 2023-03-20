@@ -9,28 +9,6 @@ class Request:
     def __init__(self, url):
         self.url = url
 
-
-    async def dictionary_from_text(self, text):
-        strings = ('process_uptime_seconds{application=',
-                   'system_cpu_count{application=',
-                   'system_load_average_1m{application=',
-                   'disk_free_bytes{application=',
-                   'disk_total_bytes{application=')
-        for line in text.split('\n'):
-            if not line.startswith('#'):
-                for i, item in enumerate(strings):
-                    idx = text.find(item)
-                    line_start = text[idx:].split('\n')
-                    value = line_start[0].split(' ')[1]
-                    results.append(value)
-                    del (value, line_start, idx)
-                    if i >= len(strings):
-                        break
-                    else:
-                        pass
-                del strings
-                break
-
     async def json(self, configuration):
         timeout = aiohttp.ClientTimeout(total=configuration["request"]["timeout"])
         async with aiohttp.ClientSession() as session:
@@ -47,15 +25,34 @@ class Request:
             del resp
             await session.close()
 
-    async def text(self, configuration):
+    async def text(self, strings: list | tuple, configuration: dict):
+        async def find_in_text(text, strings: list | tuple):
+            results = []
+
+            for line in text.split('\n'):
+                if not line.startswith('#'):
+                    for i, item in enumerate(strings):
+                        idx = text.find(item)
+                        line_start = text[idx:].split('\n')
+                        value = line_start[0].split(' ')[1]
+                        results.append(value)
+                        del (value, line_start, idx)
+                        if i >= len(strings):
+                            break
+                        else:
+                            pass
+                    break
+            return results
+
         timeout = aiohttp.ClientTimeout(total=configuration["request"]["timeout"])
         async with aiohttp.ClientSession() as session:
             async with session.get(self.url, timeout=timeout) as resp:
                 if resp.status == 200:
-                    data = await resp.text()
+                    text = await resp.text()
                     logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST SUCCEEDED")
-                    data = await Request.dictionary_from_text(data)
-                    return data
+                    strings = await find_in_text(text, strings)
+                    del text
+                    return strings
                 elif resp.status == 503:
                     logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST FAILED: SERVICE UNAVAILABLE")
                     return 503
@@ -83,8 +80,19 @@ async def node_cluster_data(subscriber: dict, port: int, node_data: dict, config
                 if await api_request_type(request_url) == ("info" or "clusters"):
                     data = await Request(request_url).json(configuration)
                 else:
-                    print(request_url)
-                    data = await Request(request_url).text(configuration)
+                    strings = ('process_uptime_seconds{application=',
+                               'system_cpu_count{application=',
+                               'system_load_average_1m{application=',
+                               'disk_free_bytes{application=',
+                               'disk_total_bytes{application=')
+                    strings = await Request(request_url).text(strings, configuration)
+                    data = {
+                        "clusterAssociationTime": strings[0],
+                        "cpuCount": strings[1],
+                        "1mSystemLoadAverage": strings[2],
+                        "diskSpaceFree": strings[3],
+                        "diskSpaceTotal": strings[4]
+                    }
                 if retry_count >= configuration['request']['max retry count']:
                     if await api_request_type(request_url) == "info":
                         data = {"state": "Offline"}
@@ -119,7 +127,7 @@ async def node_cluster_data(subscriber: dict, port: int, node_data: dict, config
             if (k == "state") and (v != "Offline"):
                 cluster_data = await safe_request(f"http://{str(subscriber['ip'])}:{str(port)}/{str(configuration['request']['url']['clusters']['url endings']['cluster info'])}")
                 metrics_data = await safe_request(f"http://{str(subscriber['ip'])}:{str(port)}/{str(configuration['request']['url']['clusters']['url endings']['metrics info'])}")
-                print(metrics_data)
+                node_data.update(metrics_data)
     return node_data, cluster_data
 
 
