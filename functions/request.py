@@ -35,7 +35,7 @@ async def node_cluster_data(subscriber: dict, port: int, node_data: dict, config
         elif ("node" and "metrics") in request_url.split("/"):
             return "metrics"
 
-    async def request_node_data(request_url: str) -> dict:
+    async def safe_request(request_url: str) -> dict:
         data = {}
         retry_count = 0
         run_again = True
@@ -70,11 +70,11 @@ async def node_cluster_data(subscriber: dict, port: int, node_data: dict, config
         return data
     cluster_data = []
     if port is not None:
-        response = await request_node_data(f"http://{subscriber['ip']}:{port}/{configuration['request']['url']['clusters']['url endings']['node info']}")
+        response = await safe_request(f"http://{subscriber['ip']}:{port}/{configuration['request']['url']['clusters']['url endings']['node info']}")
         node_data.update(response)
         for k, v in node_data.items():
             if (k == "state") and (v != "Offline"):
-                cluster_data = await request_node_data(f"http://{str(subscriber['ip'])}:{str(port)}/{str(configuration['request']['url']['clusters']['url endings']['cluster info'])}")
+                cluster_data = await safe_request(f"http://{str(subscriber['ip'])}:{str(port)}/{str(configuration['request']['url']['clusters']['url endings']['cluster info'])}")
 
     return node_data, cluster_data
 
