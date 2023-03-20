@@ -9,6 +9,28 @@ class Request:
     def __init__(self, url):
         self.url = url
 
+
+    async def dictionary_from_text(self, text):
+        strings = ('process_uptime_seconds{application=',
+                   'system_cpu_count{application=',
+                   'system_load_average_1m{application=',
+                   'disk_free_bytes{application=',
+                   'disk_total_bytes{application=')
+        for line in text.split('\n'):
+            if not line.startswith('#'):
+                for i, item in enumerate(strings):
+                    idx = text.find(item)
+                    line_start = text[idx:].split('\n')
+                    value = line_start[0].split(' ')[1]
+                    results.append(value)
+                    del (value, line_start, idx)
+                    if i >= len(strings):
+                        break
+                    else:
+                        pass
+                del strings
+                break
+
     async def json(self, configuration):
         timeout = aiohttp.ClientTimeout(total=configuration["request"]["timeout"])
         async with aiohttp.ClientSession() as session:
@@ -16,6 +38,23 @@ class Request:
                 if resp.status == 200:
                     data = await resp.json()
                     logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST SUCCEEDED")
+                    return data
+                elif resp.status == 503:
+                    logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST FAILED: SERVICE UNAVAILABLE")
+                    return 503
+                else:
+                    logging.critical(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST FAILED")
+            del resp
+            await session.close()
+
+    async def text(self, configuration):
+        timeout = aiohttp.ClientTimeout(total=configuration["request"]["timeout"])
+        async with aiohttp.ClientSession() as session:
+            async with session.get(self.url, timeout=timeout) as resp:
+                if resp.status == 200:
+                    data = await resp.text()
+                    logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST SUCCEEDED")
+                    data = await Request.dictionary_from_text(data)
                     return data
                 elif resp.status == 503:
                     logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST FAILED: SERVICE UNAVAILABLE")
@@ -41,7 +80,11 @@ async def node_cluster_data(subscriber: dict, port: int, node_data: dict, config
         run_again = True
         while run_again:
             try:
-                data = await Request(request_url).json(configuration)
+                if await api_request_type(request_url) == ("info" or "clusters"):
+                    data = await Request(request_url).json(configuration)
+                else:
+                    print(request_url)
+                    data = await Request(request_url).text(configuration)
                 if retry_count >= configuration['request']['max retry count']:
                     if await api_request_type(request_url) == "info":
                         data = {"state": "Offline"}
@@ -75,7 +118,8 @@ async def node_cluster_data(subscriber: dict, port: int, node_data: dict, config
         for k, v in node_data.items():
             if (k == "state") and (v != "Offline"):
                 cluster_data = await safe_request(f"http://{str(subscriber['ip'])}:{str(port)}/{str(configuration['request']['url']['clusters']['url endings']['cluster info'])}")
-
+                metrics_data = await safe_request(f"http://{str(subscriber['ip'])}:{str(port)}/{str(configuration['request']['url']['clusters']['url endings']['metrics info'])}")
+                print(metrics_data)
     return node_data, cluster_data
 
 
