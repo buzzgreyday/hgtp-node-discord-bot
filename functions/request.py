@@ -64,11 +64,11 @@ class Request:
 
 async def node_cluster_data(subscriber: dict, port: int, node_data: dict, configuration: dict) -> tuple[dict, dict]:
     async def api_request_type(request_url: str) -> str:
-        if ("node" and "info") in request_url.split("/"):
+        if "node" in request_url.split("/"):
             return "info"
-        elif ("cluster" and "info") in request_url.split("/"):
+        elif "cluster" in request_url.split("/"):
             return "cluster"
-        elif ("node" and "metrics") in request_url.split("/"):
+        elif "metrics" in request_url.split("/"):
             return "metrics"
 
     async def safe_request(request_url: str) -> dict:
@@ -79,7 +79,7 @@ async def node_cluster_data(subscriber: dict, port: int, node_data: dict, config
             try:
                 if await api_request_type(request_url) == ("info" or "clusters"):
                     data = await Request(request_url).json(configuration)
-                else:
+                elif await api_request_type(request_url) == "metrics":
                     strings = ('process_uptime_seconds{application=',
                                'system_cpu_count{application=',
                                'system_load_average_1m{application=',
