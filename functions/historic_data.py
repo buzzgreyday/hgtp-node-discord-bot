@@ -41,8 +41,8 @@ async def merge_node_data(node_data: dict, historic_node_dataframe) -> dict:
         # node_data["formerClusterNames"] = str(historic_node_dataframe["cluster name"].values[0])
         node_data["formerClusterNames"] = Clean(historic_node_dataframe["cluster name"].values[0]).make_lower()
         node_data["formerClusterConnectivity"] = Clean(historic_node_dataframe["connectivity"][historic_node_dataframe["cluster name"] == node_data["formerClusterNames"]]).make_none()
-        node_data["formerClusterAssociationTime"] = historic_node_dataframe["association time"][historic_node_dataframe["cluster name"] == node_data["formerClusterNames"]]
-        node_data["formerClusterDissociationTime"] = historic_node_dataframe["dissociation time"][historic_node_dataframe["cluster name"] == node_data["formerClusterNames"]]
+        node_data["formerClusterAssociationTime"] = Clean(historic_node_dataframe["association time"][historic_node_dataframe["cluster name"] == node_data["formerClusterNames"]]).make_none()
+        node_data["formerClusterDissociationTime"] = Clean(historic_node_dataframe["dissociation time"][historic_node_dataframe["cluster name"] == node_data["formerClusterNames"]]).make_none()
         if node_data["state"] == "Offline":
             node_data["id"] = str(historic_node_dataframe["node id"].values[0])
             node_data["nodeWalletAddress"] = str(historic_node_dataframe["node wallet"].values[0])
