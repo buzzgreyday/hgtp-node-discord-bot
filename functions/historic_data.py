@@ -29,7 +29,7 @@ async def merge_node_data(node_data: dict, historic_node_dataframe) -> dict:
         def make_lower(self) -> str | None:
             if self._value is not None:
                 return self._value.lower()
-        def make_none(self) -> None:
+        def make_none(self) -> str | None:
             if len(self._value) != 0:
                 return self._value.values[0]
             else:
