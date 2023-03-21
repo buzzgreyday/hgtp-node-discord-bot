@@ -25,10 +25,14 @@ async def supported_clusters(cluster_layer: int, cluster_names: dict, configurat
         for lb_url in cluster_info["url"]:
             cluster_resp = list(await request.Request(f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['cluster info']}").json(configuration))
             node_resp = await request.Request(f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['node info']}").json(configuration)
+            if (cluster_resp and node_resp) is not None:
+                state = "online"
+            else:
+                state = "offline"
             data = {
                 "layer": cluster_layer,
                 "cluster name": cluster_name,
-                "state": node_resp["state"],
+                "state": f"{node_resp['state']}/{state}".lower(),
                 "id": node_resp["id"],
                 "clusterSession": node_resp["clusterSession"],
                 "data": cluster_resp
@@ -73,7 +77,6 @@ async def merge_node_data(layer: int, latest_tessellation_version: str, node_dat
                     for cluster_name, cluster_id in configuration["source ids"][cluster_layer].items():
                         if cluster_id == node_pair["id"]:
                             node_data["clusterNames"] = cluster_name.lower()
-                            print("SUCCESS", cluster_name, layer)
 
 
     return node_data

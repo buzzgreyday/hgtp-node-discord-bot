@@ -95,7 +95,7 @@ async def node_cluster_data(subscriber: dict, port: int, node_data: dict, config
                     }
                 if retry_count >= configuration['request']['max retry count']:
                     if await api_request_type(request_url) == "info":
-                        data = {"state": "Offline"}
+                        data = {"state": "offline"}
                     break
                 elif data == 503:
                     break
@@ -107,14 +107,14 @@ async def node_cluster_data(subscriber: dict, port: int, node_data: dict, config
             except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientOSError, aiohttp.client_exceptions.ServerDisconnectedError) as e:
                 if retry_count >= configuration['request']['max retry count']:
                     if await api_request_type(request_url) == "info":
-                        data = {"state": "Offline"}
+                        data = {"state": "offline"}
                     break
                 retry_count += 1
                 await asyncio.sleep(configuration['request']['retry sleep'])
                 logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE @ {subscriber['ip']}:{port} UNREACHABLE - TRIED {retry_count}/{configuration['request']['max retry count']}")
             except aiohttp.client_exceptions.InvalidURL:
                 if await api_request_type(request_url):
-                    data = {"state": "Offline"}
+                    data = {"state": "offline"}
                 break
             except aiohttp.client_exceptions.ClientConnectorError:
                 break
@@ -123,8 +123,9 @@ async def node_cluster_data(subscriber: dict, port: int, node_data: dict, config
     if port is not None:
         response = await safe_request(f"http://{subscriber['ip']}:{port}/{configuration['request']['url']['clusters']['url endings']['node info']}")
         node_data.update(response)
+        node_data["state"] = node_data["state"].lower()
         for k, v in node_data.items():
-            if (k == "state") and (v != "Offline"):
+            if (k == "state") and (v != "offline"):
                 cluster_data = await safe_request(f"http://{str(subscriber['ip'])}:{str(port)}/{str(configuration['request']['url']['clusters']['url endings']['cluster info'])}")
                 metrics_data = await safe_request(f"http://{str(subscriber['ip'])}:{str(port)}/{str(configuration['request']['url']['clusters']['url endings']['metrics info'])}")
                 node_data.update(metrics_data)
