@@ -7,6 +7,19 @@ async def request_node_data(subscriber: dict, port: int, node_data: dict, config
     return node_data, node_cluster_data
 
 async def supported_clusters(cluster_layer: int, cluster_names: dict, configuration: dict) -> dict:
+
+    async def update_config_with_latest_values():
+        import yaml
+        for layer in configuration["source ids"]:
+            if layer == data["layer"]:
+                for cluster_name in configuration["source ids"][layer]:
+                    if cluster_name == data["cluster name"]:
+                        if configuration["source ids"][layer][cluster_name] != data["id"]:
+                            configuration["source ids"][layer][cluster_name] = data["id"]
+                            with open("data/config_new.yml", "w") as file:
+                                yaml.dump(configuration, file)
+
+
     all_clusters_data = []
     for cluster_name, cluster_info in cluster_names.items():
         for lb_url in cluster_info["url"]:
@@ -20,7 +33,7 @@ async def supported_clusters(cluster_layer: int, cluster_names: dict, configurat
                 "clusterSession": node_resp["clusterSession"],
                 "data": cluster_resp
             }
-            print(data)
+            await update_config_with_latest_values()
             all_clusters_data.append(data)
         del lb_url
     return all_clusters_data
