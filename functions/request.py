@@ -131,26 +131,6 @@ async def node_cluster_data(subscriber: dict, port: int, node_data: dict, config
     return node_data, cluster_data
 
 
-async def supported_clusters(cluster_layer: int, cluster_names: dict, configuration: dict) -> dict:
-    all_clusters_data = []
-    for cluster_name, cluster_info in cluster_names.items():
-        for lb_url in cluster_info["url"]:
-            response = list(await Request(f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['cluster info']}").json(configuration))
-            if response is not None:
-                cluster_state = "online"
-            else:
-                cluster_state = "offline"
-            data = {
-                "layer": cluster_layer,
-                "cluster name": cluster_name,
-                "data": response,
-                "state": cluster_state
-            }
-            all_clusters_data.append(data)
-        del lb_url
-    return all_clusters_data
-
-
 async def validator_data(configuration: dict):
     async def safe_request(validator_urls: list) -> list[dict]:
         validator_network_data = None

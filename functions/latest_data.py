@@ -6,6 +6,25 @@ async def request_node_data(subscriber: dict, port: int, node_data: dict, config
     # ADD EVERY KEY MISSING HERE
     return node_data, node_cluster_data
 
+async def supported_clusters(cluster_layer: int, cluster_names: dict, configuration: dict) -> dict:
+    all_clusters_data = []
+    for cluster_name, cluster_info in cluster_names.items():
+        for lb_url in cluster_info["url"]:
+            cluster_resp = list(await request.Request(f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['cluster info']}").json(configuration))
+            node_resp = await request.Request(f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['node info']}").json(configuration)
+            data = {
+                "layer": cluster_layer,
+                "cluster name": cluster_name,
+                "state": node_resp["state"],
+                "id": node_resp["id"],
+                "clusterSession": node_resp["clusterSession"],
+                "data": cluster_resp
+            }
+            print(data)
+            all_clusters_data.append(data)
+        del lb_url
+    return all_clusters_data
+
 
 async def request_wallet_data(node_data, configuration):
 
