@@ -9,10 +9,8 @@ async def merge_node_data(node_data,  validator_mainnet_data, validator_testnet_
             if data["layer"] == f"layer {node_data['layer']}":
                 if data["cluster name"] == node_data["clusterNames"]:
                     node_data["clusterPairCount"] = len(data["data"])
-                    print("OK NAME", node_data["clusterPairCount"])
                 if data["cluster name"] == node_data["formerClusterNames"]:
                     node_data["formerClusterPairCount"] = len(data["data"])
-                    print("OK FORMER NAME", node_data["formerClusterPairCount"])
 
     for list_of_dict in [validator_mainnet_data, validator_testnet_data]:
         for validator in list_of_dict:
