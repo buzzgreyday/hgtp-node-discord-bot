@@ -146,8 +146,9 @@ async def supported_clusters(cluster_layer: int, cluster_names: dict, configurat
                 "data": response,
                 "state": cluster_state
             }
+            all_clusters_data.append(data)
         del lb_url
-    return data
+    return all_clusters_data
 
 
 async def validator_data(configuration: dict):
