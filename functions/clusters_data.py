@@ -1,4 +1,4 @@
-async def merge_node_data(node_data,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data, configuration):
+async def merge_node_data(node_data,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data):
 
     """DECIDE WHAT TO CHECK
     ADD VALIDATOR CHECK HERE?"""
