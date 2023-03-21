@@ -4,6 +4,7 @@ from functions import read, request, latest_data, historic_data, clusters_data, 
 
 
 async def preliminary_data(configuration):
+    import yaml
     timer_start = time.perf_counter()
     tasks = []
     cluster_data = []
@@ -13,9 +14,12 @@ async def preliminary_data(configuration):
         tasks.append(asyncio.create_task(latest_data.supported_clusters(cluster_layer, cluster_names, configuration)))
     for task in tasks:
         cluster_data.append(await task)
+    """RELOAD CONFIGURATION"""
+    with open('data/config.yml', 'r') as file:
+        configuration = yaml.safe_load(file)
     timer_stop = time.perf_counter()
     print("PRELIMINARIES TOOK:", timer_stop - timer_start)
-    return cluster_data, validator_mainnet_data, validator_testnet_data, latest_tessellation_version
+    return configuration, cluster_data, validator_mainnet_data, validator_testnet_data, latest_tessellation_version
 
 
 async def create_per_subscriber_future(dask_client, subscriber: dict, layer: int, port: int, latest_tessellation_version: str,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data: list[dict], history_dataframe, configuration: dict) -> dict:

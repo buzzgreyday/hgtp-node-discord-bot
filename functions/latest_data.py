@@ -16,7 +16,7 @@ async def supported_clusters(cluster_layer: int, cluster_names: dict, configurat
                     if cluster_name == data["cluster name"]:
                         if configuration["source ids"][layer][cluster_name] != data["id"]:
                             configuration["source ids"][layer][cluster_name] = data["id"]
-                            with open("data/config_new.yml", "w") as file:
+                            with open("data/config.yml", "w") as file:
                                 yaml.dump(configuration, file)
 
 
@@ -63,16 +63,17 @@ async def request_wallet_data(node_data, configuration):
 
 
 async def merge_node_data(layer: int, latest_tessellation_version: str, node_data: dict, node_cluster_data: dict, configuration: dict) -> dict:
-    lb_ids = []
     node_data["latestVersion"] = latest_tessellation_version
     node_data["layer"] = layer
     node_data["nodePairCount"] = len(node_cluster_data)
-    if node_cluster_data:
-        lb_ids.extend(v for v in configuration["source ids"].values())
-        for d in node_cluster_data:
-            for k, v in d.items():
-                if (k == "id") and (str(v) in lb_ids):
-                    for node_cluster_name, node_id in configuration["source ids"].items():
-                        if node_id == str(v):
-                            node_data["clusterNames"] = node_cluster_name.lower()
+    for node_pair in node_cluster_data:
+        if f"layer {layer}" in configuration["source ids"].keys():
+            for cluster_layer in configuration["source ids"].keys():
+                if cluster_layer == f"layer {layer}":
+                    for cluster_name, cluster_id in configuration["source ids"][cluster_layer].items():
+                        if cluster_id == node_pair["id"]:
+                            node_data["clusterNames"] = cluster_name.lower()
+                            print("SUCCESS", cluster_name, layer)
+
+
     return node_data

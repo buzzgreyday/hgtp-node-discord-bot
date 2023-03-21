@@ -37,9 +37,9 @@ if __name__ == "__main__":
     cluster = distributed.LocalCluster(asynchronous=True, n_workers=1, threads_per_worker=2, memory_limit='4GB',
                                        processes=True, silence_logs=logging.CRITICAL)
 
-    async def main() -> None:
+    async def main(configuration) -> None:
         # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
-        all_supported_clusters_data,  validator_mainnet_data, validator_testnet_data, latest_tessellation_version = await async_processes.preliminary_data(configuration)
+        configuration, all_supported_clusters_data,  validator_mainnet_data, validator_testnet_data, latest_tessellation_version = await async_processes.preliminary_data(configuration)
         await bot.wait_until_ready()
         async with Client(cluster) as dask_client:
             while not bot.is_closed():
@@ -64,5 +64,5 @@ if __name__ == "__main__":
         logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - CONNECTION TO DISCORD ESTABLISHED")
 
 
-    bot.loop.create_task(main())
+    bot.loop.create_task(main(configuration))
     bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))
