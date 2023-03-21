@@ -1,3 +1,5 @@
+import dask.typing
+
 import functions.latest_data
 
 
@@ -20,13 +22,27 @@ async def isolate_former_node_data(historic_node_dataframe):
 
 
 async def merge_node_data(node_data: dict, historic_node_dataframe) -> dict:
+    class Clean:
+        def __init__(self, value):
+            self._value = value
+
+        def make_lower(self) -> str | None:
+            if self._value is not None:
+                return self._value.lower()
+        def make_none(self) -> None:
+            if len(self._value) != 0:
+                return self._value.values[0]
+            else:
+                return None
+
 
     """IF HISTORIC DATA EXISTS"""
     if not historic_node_dataframe.empty:
-        node_data["formerClusterNames"] = str(historic_node_dataframe["cluster name"].values[0])
-        node_data["formerClusterConnectivity"] = historic_node_dataframe["connectivity"][historic_node_dataframe["cluster name"] == node_data["formerClusterNames"]].values[0]
-        node_data["formerClusterAssociationTime"] = historic_node_dataframe["association time"][historic_node_dataframe["cluster name"] == node_data["formerClusterNames"]].values[0]
-        node_data["formerClusterDissociationTime"] = historic_node_dataframe["dissociation time"][historic_node_dataframe["cluster name"] == node_data["formerClusterNames"]].values[0]
+        # node_data["formerClusterNames"] = str(historic_node_dataframe["cluster name"].values[0])
+        node_data["formerClusterNames"] = Clean(historic_node_dataframe["cluster name"].values[0]).make_lower()
+        node_data["formerClusterConnectivity"] = Clean(historic_node_dataframe["connectivity"][historic_node_dataframe["cluster name"] == node_data["formerClusterNames"]]).make_none()
+        node_data["formerClusterAssociationTime"] = historic_node_dataframe["association time"][historic_node_dataframe["cluster name"] == node_data["formerClusterNames"]]
+        node_data["formerClusterDissociationTime"] = historic_node_dataframe["dissociation time"][historic_node_dataframe["cluster name"] == node_data["formerClusterNames"]]
         if node_data["state"] == "Offline":
             node_data["id"] = str(historic_node_dataframe["node id"].values[0])
             node_data["nodeWalletAddress"] = str(historic_node_dataframe["node wallet"].values[0])

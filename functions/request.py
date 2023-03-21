@@ -77,7 +77,7 @@ async def node_cluster_data(subscriber: dict, port: int, node_data: dict, config
         run_again = True
         while run_again:
             try:
-                if await api_request_type(request_url) == ("info" or "clusters"):
+                if await api_request_type(request_url) in ("info", "cluster"):
                     data = await Request(request_url).json(configuration)
                 elif await api_request_type(request_url) == "metrics":
                     strings = ('process_uptime_seconds{application=',
