@@ -131,7 +131,7 @@ async def node_cluster_data(subscriber: dict, port: int, node_data: dict, config
     return node_data, cluster_data
 
 
-async def supported_clusters(cluster_layer: int, cluster_names: dict, configuration: dict) -> list[dict]:
+async def supported_clusters(cluster_layer: int, cluster_names: dict, configuration: dict) -> dict:
     all_clusters_data = []
     for cluster_name, cluster_info in cluster_names.items():
         for lb_url in cluster_info["url"]:
