@@ -34,8 +34,9 @@ async def supported_clusters(cluster_layer: int, cluster_names: dict, configurat
                 "cluster name": cluster_name,
                 "state": f"{node_resp['state']}/{state}".lower(),
                 "id": node_resp["id"],
+                "pair count": len(cluster_resp),
                 "clusterSession": node_resp["clusterSession"],
-                "data": cluster_resp
+                "data": (node_pair for node_pair in cluster_resp)
             }
             await update_config_with_latest_values()
             all_clusters_data.append(data)
