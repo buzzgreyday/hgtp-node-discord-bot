@@ -48,6 +48,7 @@ async def merge_node_data(node_data: dict, historic_node_dataframe) -> dict:
             node_data["id"] = Clean(historic_node_dataframe["node id"]).make_none()
             node_data["nodeWalletAddress"] = Clean(historic_node_dataframe["node wallet"]).make_none()
             node_data["version"] = Clean(historic_node_dataframe["node version"]).make_none()
+            node_data["cpuCount"] = float(historic_node_dataframe["node cpu count"])
             node_data["diskSpaceTotal"] = float(historic_node_dataframe["node total disk space"])
             node_data["diskSpaceFree"] = float(historic_node_dataframe["node free disk space"])
     return node_data
