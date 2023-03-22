@@ -25,10 +25,6 @@ async def supported_clusters(cluster_layer: int, cluster_names: dict, configurat
         for lb_url in cluster_info["url"]:
             cluster_resp = list(await request.Request(f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['cluster info']}").json(configuration))
             node_resp = await request.Request(f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['node info']}").json(configuration)
-            if (cluster_resp and node_resp) is not None:
-                state = "online"
-            else:
-                state = "offline"
             data = {
                 "layer": cluster_layer,
                 "cluster name": cluster_name,
