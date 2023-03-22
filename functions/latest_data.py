@@ -60,7 +60,7 @@ async def request_supported_clusters(cluster_layer: int, cluster_names: dict, co
 
 async def request_wallet_data(node_data, configuration):
 
-    async def make_update_data(data):
+    async def make_update(data):
         return {
             "nodeWalletBalance": data["data"]["balance"]
         }
@@ -71,12 +71,12 @@ async def request_wallet_data(node_data, configuration):
                 if be_name.lower() == (node_data['clusterNames'] or node_data['formerClusterNames']):
                     wallet_data = await request.wallet_data(f"{be_url}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
                     if wallet_data is not None:
-                        node_data.update(await make_update_data(wallet_data))
+                        node_data.update(await make_update(wallet_data))
 
         else:
             wallet_data = await request.wallet_data(f"{configuration['request']['url']['block explorer']['layer 0']['mainnet']}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
             if wallet_data is not None:
-                node_data.update(await make_update_data(wallet_data))
+                node_data.update(await make_update(wallet_data))
 
     return node_data
 
