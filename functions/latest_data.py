@@ -20,6 +20,7 @@ async def supported_clusters(cluster_layer: int, cluster_names: dict, configurat
                             configuration["source ids"][layer][cluster_name] = data["id"]
                             async with aiofiles.open("data/config.yml", "w") as file:
                                 await file.write(yaml.dump(configuration))
+        del layer
 
 
     all_clusters_data = []
@@ -41,7 +42,7 @@ async def supported_clusters(cluster_layer: int, cluster_names: dict, configurat
             all_clusters_data.append(data)
             cluster_resp.clear()
             del cluster_resp, node_resp, data
-    del lb_url
+    del lb_url, cluster_name, cluster_info
     return all_clusters_data
 
 
