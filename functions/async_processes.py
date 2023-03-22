@@ -1,5 +1,8 @@
 import time
 import asyncio
+
+import aiofiles
+
 from functions import read, request, latest_data, historic_data, clusters_data, new_data
 
 
@@ -15,8 +18,8 @@ async def preliminary_data(configuration):
     for task in tasks:
         cluster_data.append(await task)
     """RELOAD CONFIGURATION"""
-    with open('data/config.yml', 'r') as file:
-        configuration = yaml.safe_load(file)
+    async with aiofiles.open('data/config.yml', 'r') as file:
+        configuration = yaml.safe_load(await file.read())
     timer_stop = time.perf_counter()
     print("PRELIMINARIES TOOK:", timer_stop - timer_start)
     return configuration, cluster_data, validator_mainnet_data, validator_testnet_data, latest_tessellation_version
