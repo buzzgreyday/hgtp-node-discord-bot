@@ -31,18 +31,19 @@ async def request_supported_clusters(cluster_layer: str, cluster_names: dict, co
         for lb_url in cluster_info["url"]:
             cluster_resp = await request.cluster_data(f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['cluster info']}", configuration)
             node_resp = await request.cluster_data(f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
-            latest_ordinal, latest_timestamp = await request.snapshot(
-                f"{configuration['request']['url']['block explorer'][cluster_layer][cluster_name]}/global-snapshots/latest",
-                configuration)
+
+            try:
+                latest_ordinal, latest_timestamp = \
+                    await request.snapshot(
+                        f"{configuration['request']['url']['block explorer'][cluster_layer][cluster_name]}"
+                        f"/global-snapshots/latest", configuration)
+            except KeyError:
+                latest_ordinal = None; latest_timestamp = None
 
             if node_resp is None:
-                cluster_state = "offline"
-                cluster_id = await locate_id_offline()
-                cluster_session = None
+                cluster_state = "offline"; cluster_id = await locate_id_offline(); cluster_session = None
             else:
-                cluster_state = str(node_resp['state']).lower()
-                cluster_id = node_resp["id"]
-                cluster_session = node_resp["clusterSession"]
+                cluster_state = str(node_resp['state']).lower(); cluster_id = node_resp["id"]; cluster_session = node_resp["clusterSession"]
 
             data = {
                 "layer": cluster_layer,
