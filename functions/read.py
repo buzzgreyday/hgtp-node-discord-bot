@@ -1,11 +1,8 @@
 import os.path
 import logging
 from datetime import datetime
-import dask.typing
 import pandas as pd
 import dask.dataframe as dd
-import yaml
-
 
 async def history(configuration: dict):
     if not os.path.exists(configuration["file settings"]["locations"]["history"]):
