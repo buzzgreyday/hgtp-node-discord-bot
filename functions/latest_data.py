@@ -8,7 +8,7 @@ async def request_node_data(subscriber: dict, port: int, node_data: dict, config
     # ADD EVERY KEY MISSING HERE
     return node_data, node_cluster_data
 
-async def supported_clusters(cluster_layer: int, cluster_names: dict, configuration: dict) -> dict:
+async def supported_clusters(cluster_layer: int, cluster_names: dict, configuration: dict) -> list:
 
     async def update_config_with_latest_values():
         import yaml
@@ -39,6 +39,8 @@ async def supported_clusters(cluster_layer: int, cluster_names: dict, configurat
             }
             await update_config_with_latest_values()
             all_clusters_data.append(data)
+            cluster_resp.clear()
+            del cluster_resp, node_resp, data
     del lb_url
     return all_clusters_data
 
