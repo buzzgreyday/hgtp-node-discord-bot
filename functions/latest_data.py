@@ -1,3 +1,5 @@
+import aiofiles as aiofiles
+
 from functions import request
 
 
@@ -16,8 +18,8 @@ async def supported_clusters(cluster_layer: int, cluster_names: dict, configurat
                     if cluster_name == data["cluster name"]:
                         if configuration["source ids"][layer][cluster_name] != data["id"]:
                             configuration["source ids"][layer][cluster_name] = data["id"]
-                            with open("data/config.yml", "w") as file:
-                                yaml.dump(configuration, file)
+                            async with aiofiles.open("data/config.yml", "w") as file:
+                                await file.write(yaml.dump(configuration))
 
 
     all_clusters_data = []
@@ -37,7 +39,7 @@ async def supported_clusters(cluster_layer: int, cluster_names: dict, configurat
             }
             await update_config_with_latest_values()
             all_clusters_data.append(data)
-        del lb_url
+    del lb_url
     return all_clusters_data
 
 
