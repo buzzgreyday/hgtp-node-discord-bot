@@ -34,7 +34,7 @@ async def supported_clusters(cluster_layer: int, cluster_names: dict, configurat
                 "id": node_resp["id"],
                 "pair count": len(cluster_resp),
                 "clusterSession": node_resp["clusterSession"],
-                # BELOW I CREATED A GENERATOR TO SAVE MEMORY
+                # BELOW I CONVERT LIST OF NODE PAIRS TO A GENERATOR TO SAVE MEMORY
                 "data": (node_pair for node_pair in cluster_resp)
             }
             await update_config_with_latest_values()
