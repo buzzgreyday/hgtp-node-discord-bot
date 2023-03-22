@@ -1,3 +1,5 @@
+import asyncio
+
 import aiofiles as aiofiles
 
 from functions import request
@@ -13,14 +15,36 @@ async def request_supported_clusters(cluster_layer: str, cluster_names: dict, co
     async def locate_id_offline():
         return configuration["source ids"][cluster_layer][cluster_name]
 
+    async def locate_rewarded_addresses():
+        try:
+            latest_ordinal, latest_timestamp = \
+                await request.snapshot(
+                    f"{configuration['request']['url']['block explorer'][cluster_layer][cluster_name]}"
+                    f"/global-snapshots/latest", configuration)
+            tasks = []
+            for ordinal in range(latest_ordinal-50, latest_ordinal):
+                tasks.append(asyncio.create_task(request.snapshot_rewards(
+                    f"{configuration['request']['url']['block explorer'][cluster_layer][cluster_name]}"
+                    f"/global-snapshots/{ordinal}/rewards", configuration
+                )))
+            addresses = []
+            for task in tasks:
+                addresses.extend(await task)
+                addresses = list(set(addresses))
+        except KeyError:
+            latest_ordinal = None; latest_timestamp = None; addresses = []
+
+        addresses = (address_generator for address_generator in addresses)
+        return latest_ordinal, latest_timestamp, addresses
+
     async def update_config_with_latest_values():
         import yaml
         for layer in configuration["source ids"]:
-            if layer == data["layer"]:
+            if layer == cluster["layer"]:
                 for cluster_name in configuration["source ids"][layer]:
-                    if cluster_name == data["cluster name"]:
-                        if configuration["source ids"][layer][cluster_name] != data["id"]:
-                            configuration["source ids"][layer][cluster_name] = data["id"]
+                    if cluster_name == cluster["cluster name"]:
+                        if configuration["source ids"][layer][cluster_name] != cluster["id"]:
+                            configuration["source ids"][layer][cluster_name] = cluster["id"]
                             async with aiofiles.open("data/config.yml", "w") as file:
                                 await file.write(yaml.dump(configuration))
         del layer
@@ -32,20 +56,14 @@ async def request_supported_clusters(cluster_layer: str, cluster_names: dict, co
             cluster_resp = await request.cluster_data(f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['cluster info']}", configuration)
             node_resp = await request.cluster_data(f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
 
-            try:
-                latest_ordinal, latest_timestamp = \
-                    await request.snapshot(
-                        f"{configuration['request']['url']['block explorer'][cluster_layer][cluster_name]}"
-                        f"/global-snapshots/latest", configuration)
-            except KeyError:
-                latest_ordinal = None; latest_timestamp = None
+            latest_ordinal, latest_timestamp, addresses = await locate_rewarded_addresses()
 
             if node_resp is None:
                 cluster_state = "offline"; cluster_id = await locate_id_offline(); cluster_session = None
             else:
                 cluster_state = str(node_resp['state']).lower(); cluster_id = node_resp["id"]; cluster_session = node_resp["clusterSession"]
 
-            data = {
+            cluster = {
                 "layer": cluster_layer,
                 "cluster name": cluster_name,
                 "state": cluster_state,
@@ -54,14 +72,14 @@ async def request_supported_clusters(cluster_layer: str, cluster_names: dict, co
                 "cluster session": cluster_session,
                 "latest ordinal": latest_ordinal,
                 "latest ordinal timestamp": latest_timestamp,
+                "recently rewarded": addresses,
                 # BELOW I CONVERT LIST OF NODE PAIRS TO A GENERATOR TO SAVE MEMORY
                 "data": (node_pair for node_pair in cluster_resp)
             }
-            print(data["latest ordinal"])
             await update_config_with_latest_values()
-            all_clusters_data.append(data)
+            all_clusters_data.append(cluster)
             cluster_resp.clear()
-            del cluster_resp, node_resp, data
+            del cluster_resp, node_resp, cluster
     del lb_url, cluster_name, cluster_info
     return all_clusters_data
 
