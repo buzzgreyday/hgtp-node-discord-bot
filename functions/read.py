@@ -7,7 +7,7 @@ import dask.dataframe as dd
 import yaml
 
 
-async def history(configuration: dict) -> dask.typing.DaskCollection:
+async def history(configuration: dict):
     if not os.path.exists(configuration["file settings"]["locations"]["history"]):
         logging.warning(f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE DATA NOT FOUND, RETURN BLANK DATAFRAME WITH COLUMNS")
         df = pd.DataFrame(columns=configuration["file settings"]["columns"]["history"])
@@ -17,7 +17,7 @@ async def history(configuration: dict) -> dask.typing.DaskCollection:
         return dd.read_parquet(configuration["file settings"]["locations"]["history"], columns=configuration["file settings"]["columns"]["history"])
 
 
-async def subscribers(configuration: dict) -> dask.typing.DaskCollection:
+async def subscribers(configuration: dict):
     logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - READING SUBSCRIBER DATA AND RETURNING DATAFRAME")
     if not os.path.exists(configuration["file settings"]["locations"]["subscribers"]):
         df = pd.DataFrame(columns=configuration["file settings"]["columns"]["subscribers"])
