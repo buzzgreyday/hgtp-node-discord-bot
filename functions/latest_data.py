@@ -8,7 +8,7 @@ async def request_node_data(subscriber: dict, port: int, node_data: dict, config
     # ADD EVERY KEY MISSING HERE
     return node_data, node_cluster_data
 
-async def request_supported_clusters(cluster_layer: int, cluster_names: dict, configuration: dict) -> list:
+async def request_supported_clusters(cluster_layer: str, cluster_names: dict, configuration: dict) -> list:
 
     async def locate_id_offline():
         return configuration["source ids"][cluster_layer][cluster_name]
@@ -31,6 +31,10 @@ async def request_supported_clusters(cluster_layer: int, cluster_names: dict, co
         for lb_url in cluster_info["url"]:
             cluster_resp = await request.cluster_data(f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['cluster info']}", configuration)
             node_resp = await request.cluster_data(f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
+            latest_ordinal, latest_timestamp = await request.snapshot(
+                f"{configuration['request']['url']['block explorer'][cluster_layer][cluster_name]}/global-snapshots/latest",
+                configuration)
+
             if node_resp is None:
                 cluster_state = "offline"
                 cluster_id = await locate_id_offline()
@@ -46,10 +50,13 @@ async def request_supported_clusters(cluster_layer: int, cluster_names: dict, co
                 "state": cluster_state,
                 "id": cluster_id,
                 "pair count": len(cluster_resp),
-                "clusterSession": cluster_session,
+                "cluster session": cluster_session,
+                "latest ordinal": latest_ordinal,
+                "latest ordinal timestamp": latest_timestamp,
                 # BELOW I CONVERT LIST OF NODE PAIRS TO A GENERATOR TO SAVE MEMORY
                 "data": (node_pair for node_pair in cluster_resp)
             }
+            print(data["latest ordinal"])
             await update_config_with_latest_values()
             all_clusters_data.append(data)
             cluster_resp.clear()
