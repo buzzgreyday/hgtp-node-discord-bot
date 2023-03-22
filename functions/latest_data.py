@@ -32,7 +32,7 @@ async def supported_clusters(cluster_layer: int, cluster_names: dict, configurat
             data = {
                 "layer": cluster_layer,
                 "cluster name": cluster_name,
-                "state": f"{node_resp['state']}/{state}".lower(),
+                "state": str(node_resp['state']).lower(),
                 "id": node_resp["id"],
                 "pair count": len(cluster_resp),
                 "clusterSession": node_resp["clusterSession"],
