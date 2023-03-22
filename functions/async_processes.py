@@ -53,8 +53,11 @@ async def registered_subscriber_node_data(dask_client, ip: str, subscriber_dataf
 
 
 async def init(dask_client, latest_tessellation_version: str, validator_mainnet_data, validator_testnet_data, all_supported_cluster_data: list[dict], configuration: dict) -> list:
+    from concurrent.futures import ProcessPoolExecutor
     subscriber_futures = []
     request_futures = []
+    executor = ProcessPoolExecutor(2)
+    loop = asyncio.get_event_loop()
     history_dataframe = await read.history(configuration)
     subscriber_dataframe = await read.subscribers(configuration)
     for ip in list(set(await dask_client.compute(subscriber_dataframe["ip"].values))):
@@ -70,4 +73,5 @@ async def init(dask_client, latest_tessellation_version: str, validator_mainnet_
                 for port in v:
                     layer = 1
                     request_futures.append(asyncio.create_task(create_per_subscriber_future(dask_client, subscriber, layer, port, latest_tessellation_version, validator_mainnet_data, validator_testnet_data, all_supported_cluster_data, history_dataframe, configuration)))
+
     return request_futures

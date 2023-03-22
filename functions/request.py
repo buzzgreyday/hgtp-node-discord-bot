@@ -198,8 +198,10 @@ async def wallet_data(request_url: str, configuration: dict):
             try:
                 data = await Request(request_url).json(configuration)
                 if retry_count >= configuration['request']['max retry count']:
+                    data = None
                     break
                 elif data == 503:
+                    data = None
                     break
                 elif data is not None:
                     break
@@ -209,13 +211,16 @@ async def wallet_data(request_url: str, configuration: dict):
             except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientOSError,
                     aiohttp.client_exceptions.ServerDisconnectedError) as e:
                 if retry_count >= configuration['request']['max retry count']:
+                    data = None
                     break
                 retry_count += 1
                 await asyncio.sleep(configuration['request']['retry sleep'])
                 logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - CLUSTER @ {request_url} UNREACHABLE - TRIED {retry_count}/{configuration['request']['max retry count']}")
             except aiohttp.client_exceptions.InvalidURL:
+                data = None
                 break
             except aiohttp.client_exceptions.ClientConnectorError:
+                data = None
                 break
         return data
 

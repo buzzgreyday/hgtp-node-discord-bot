@@ -13,7 +13,6 @@ from nextcord.ext import commands
 from os import getenv, path, makedirs
 import yaml
 
-# asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 """LOAD DISCORD SERVER TOKEN FROM ENVIRONMENT"""
 discord_token = getenv("HGTP_SPIDR_DISCORD_TOKEN")
@@ -34,6 +33,7 @@ if __name__ == "__main__":
     description = '''Keeps track on your Constellation nodes'''
     intents = nextcord.Intents.all()
     intents.members = True
+
     bot = commands.Bot(command_prefix='!', description=description, intents=intents)
 
     cluster = distributed.LocalCluster(asynchronous=True, n_workers=1, threads_per_worker=2, memory_limit='4GB',
@@ -55,6 +55,7 @@ if __name__ == "__main__":
                         node_data = await async_process
                     except Exception as e:
                         logging.critical(repr(e.with_traceback(sys.exc_info())))
+                        await bot.close()
                         exit(1)
                 timer_stop = time.perf_counter()
                 print(timer_stop-timer_start)
@@ -64,7 +65,6 @@ if __name__ == "__main__":
     @bot.event
     async def on_ready():
         logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - CONNECTION TO DISCORD ESTABLISHED")
-
 
     bot.loop.create_task(main(configuration))
     bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))
