@@ -10,21 +10,6 @@ async def request_supported_clusters(cluster_layer: str, cluster_names: dict, co
     import importlib.util
     import sys
 
-    async def locate_id_offline():
-        return configuration["source ids"][cluster_layer][cluster_name]
-
-    async def update_config_with_latest_values():
-        import yaml
-        for layer in configuration["source ids"]:
-            if layer == cluster["layer"]:
-                for cluster_name in configuration["source ids"][layer]:
-                    if cluster_name == cluster["cluster name"]:
-                        if configuration["source ids"][layer][cluster_name] != cluster["id"]:
-                            configuration["source ids"][layer][cluster_name] = cluster["id"]
-                            async with aiofiles.open("data/config.yml", "w") as file:
-                                await file.write(yaml.dump(configuration))
-        del layer
-
     all_clusters_data = []
     for cluster_name, cluster_info in cluster_names.items():
         for lb_url in cluster_info["url"]:
@@ -33,31 +18,8 @@ async def request_supported_clusters(cluster_layer: str, cluster_names: dict, co
                 foo = importlib.util.module_from_spec(spec)
                 sys.modules["mainnet.cluster_data"] = foo
                 spec.loader.exec_module(foo)
-                cluster_resp = await foo.cluster_data(f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['cluster info']}", configuration)
-                node_resp = await foo.cluster_data(f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
-                latest_ordinal, latest_timestamp, addresses = await mainnet.locate_rewarded_addresses(cluster_layer, cluster_name, configuration)
-
-                if node_resp is None:
-                    cluster_state = "offline"; cluster_id = await locate_id_offline(); cluster_session = None
-                else:
-                    cluster_state = str(node_resp['state']).lower(); cluster_id = node_resp["id"]; cluster_session = node_resp["clusterSession"]
-
-                cluster = {
-                    "layer": cluster_layer,
-                    "cluster name": cluster_name,
-                    "state": cluster_state,
-                    "id": cluster_id,
-                    "pair count": len(cluster_resp),
-                    "cluster session": cluster_session,
-                    "latest ordinal": latest_ordinal,
-                    "latest ordinal timestamp": latest_timestamp,
-                    "recently rewarded": addresses
-                    # "pair data": cluster_resp
-                }
-                await update_config_with_latest_values()
+                cluster = await foo.init(lb_url, cluster_layer, cluster_name, configuration)
                 all_clusters_data.append(cluster)
-                cluster_resp.clear()
-                del node_resp, cluster
     del lb_url, cluster_name, cluster_info
     return all_clusters_data
 

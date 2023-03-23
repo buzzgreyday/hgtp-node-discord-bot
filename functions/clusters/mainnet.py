@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 import aiohttp
 import aiohttp.client_exceptions
+from functions.clusters import all
 
 class Request:
     def __init__(self, url):
@@ -62,6 +63,36 @@ class Request:
             del resp
             await session.close()
 
+
+async def init(lb_url, cluster_layer, cluster_name, configuration):
+    cluster_resp = await cluster_data(
+        f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['cluster info']}", configuration)
+    node_resp = await cluster_data(
+        f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
+    latest_ordinal, latest_timestamp, addresses = await locate_rewarded_addresses(cluster_layer, cluster_name,
+                                                                                          configuration)
+
+    if node_resp is None:
+        cluster_state = "offline" ; cluster_id = await all.locate_id_offline(cluster_layer, cluster_name, configuration) ; cluster_session = None
+    else:
+        cluster_state = str(node_resp['state']).lower() ; cluster_id = node_resp["id"] ; cluster_session = node_resp["clusterSession"]
+
+    cluster = {
+        "layer": cluster_layer,
+        "cluster name": cluster_name,
+        "state": cluster_state,
+        "id": cluster_id,
+        "pair count": len(cluster_resp),
+        "cluster session": cluster_session,
+        "latest ordinal": latest_ordinal,
+        "latest ordinal timestamp": latest_timestamp,
+        "recently rewarded": addresses
+        # "pair data": cluster_resp
+    }
+    await all.update_config_with_latest_values(cluster, configuration)
+    cluster_resp.clear()
+    del node_resp
+    return cluster
 
 async def locate_rewarded_addresses(cluster_layer, cluster_name, configuration):
     try:
