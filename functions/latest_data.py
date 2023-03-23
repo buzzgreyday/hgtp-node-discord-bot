@@ -14,11 +14,11 @@ async def request_supported_clusters(cluster_layer: str, cluster_names: dict, co
     for cluster_name, cluster_info in cluster_names.items():
         for lb_url in cluster_info["url"]:
             if os.path.exists(f"{configuration['file settings']['locations']['cluster functions']}/{cluster_name}.py"):
-                spec = importlib.util.spec_from_file_location("mainnet.cluster_data", f"{configuration['file settings']['locations']['cluster functions']}/{cluster_name}.py")
-                foo = importlib.util.module_from_spec(spec)
-                sys.modules["mainnet.cluster_data"] = foo
-                spec.loader.exec_module(foo)
-                cluster = await foo.init(lb_url, cluster_layer, cluster_name, configuration)
+                spec = importlib.util.spec_from_file_location(f"{cluster_name}.init", f"{configuration['file settings']['locations']['cluster functions']}/{cluster_name}.py")
+                module = importlib.util.module_from_spec(spec)
+                sys.modules[f"{cluster_name}.init"] = module
+                spec.loader.exec_module(module)
+                cluster = await module.init(lb_url, cluster_layer, cluster_name, configuration)
                 all_clusters_data.append(cluster)
     del lb_url, cluster_name, cluster_info
     return all_clusters_data
