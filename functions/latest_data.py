@@ -1,10 +1,5 @@
-import asyncio
 import os.path
-import sys
-from os import getenv, path, makedirs
-import aiofiles as aiofiles
-from functions.clusters import mainnet
-from functions import request
+
 
 async def request_supported_clusters(cluster_layer: str, cluster_names: dict, configuration: dict) -> list:
     import importlib.util
