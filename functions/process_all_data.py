@@ -22,5 +22,4 @@ async def merge_node_data(node_data,  validator_mainnet_data, validator_testnet_
             elif validator["id"] == node_data["id"]:
                 node_data["nodeWalletAddress"] = validator["address"]
                 break
-        break
     return node_data
