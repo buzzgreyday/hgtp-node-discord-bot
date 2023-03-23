@@ -2,7 +2,7 @@ import time
 import asyncio
 
 import aiofiles
-from functions import read, request, process_historic_data, merge, process_all_data, create, tessellation, locate
+from functions import read, request, process_historic_data, merge, create, tessellation, locate
 from functions.temporaries import temporaries
 
 
@@ -34,7 +34,7 @@ async def create_per_subscriber_future(dask_client, subscriber: dict, layer: int
     node_data = await merge.node_data(node_data, validator_mainnet_data, validator_testnet_data,
                                                        all_supported_clusters_data)
     node_data = await request.node_cluster(node_data, configuration)
-    node_data = await temporaries.run(node_data, all_supported_clusters_data, configuration)
+    node_data = await temporaries.run(node_data, all_supported_clusters_data)
     # FINALLY WE NEED TO SORT PER SUBSCRIBER IN MAIN.PY SO WE CAN MATCH DATA
     print(node_data)
     """REMEMBER TO CHECK DATE/TIME FOR LAST NOTICE"""

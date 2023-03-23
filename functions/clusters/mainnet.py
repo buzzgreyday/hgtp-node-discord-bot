@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 import aiohttp
 import aiohttp.client_exceptions
-from functions.locate import all
+from functions.clusters import all
 
 class Request:
     def __init__(self, url):
@@ -342,12 +342,12 @@ async def snapshot_rewards(request_url, configuration):
 
 async def reward_check(node_data: dict, all_supported_clusters_data: list):
     # SAME PROCEDURE AS IN CLUSTERS_DATA.MERGE_NODE_DATA
-    for cluster in all_supported_clusters_data:
-        for data in cluster:
-            if (data["layer"] == f"layer {node_data['layer']}") and (data["cluster name"] == node_data["clusterNames"]):
-                if str(node_data["nodeWalletAddress"]) in data["recently rewarded"]:
+    for lst in all_supported_clusters_data:
+        for cluster in lst:
+            if (cluster["layer"] == f"layer {node_data['layer']}") and (cluster["cluster name"] == node_data["clusterNames"]):
+                if str(node_data["nodeWalletAddress"]) in cluster["recently rewarded"]:
                     node_data["rewardState"] = True
-                elif (data["recently rewarded"] is None) and (str(node_data["nodeWalletAddress"]) not in data["recently rewarded"]):
+                elif (cluster["recently rewarded"] is None) and (str(node_data["nodeWalletAddress"]) not in cluster["recently rewarded"]):
                         node_data["rewardState"] = False
 
     return node_data
