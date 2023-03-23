@@ -57,6 +57,7 @@ if __name__ == "__main__":
                         logging.critical(repr(e.with_traceback(sys.exc_info())))
                         await bot.close()
                         exit(1)
+                # FINALLY WE NEED TO SORT PER SUBSCRIBER IN MAIN.PY SO WE CAN MATCH DATA
                 timer_stop = time.perf_counter()
                 print(timer_stop-timer_start)
                 exit(0)
