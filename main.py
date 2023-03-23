@@ -6,7 +6,7 @@ import time
 from datetime import datetime
 from dask.distributed import Client
 import distributed
-from modules import extras, async_processes
+from modules import extras, init, request
 import nextcord
 from nextcord.ext import commands
 from os import getenv, path, makedirs
@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     async def main(configuration) -> None:
         # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
-        configuration, all_supported_clusters_data,  validator_mainnet_data, validator_testnet_data, latest_tessellation_version = await async_processes.preliminary_data(configuration)
+        configuration, all_supported_clusters_data,  validator_mainnet_data, validator_testnet_data, latest_tessellation_version = await request.preliminary_data(configuration)
         await bot.wait_until_ready()
         async with Client(cluster) as dask_client:
             while not bot.is_closed():
@@ -48,7 +48,7 @@ if __name__ == "__main__":
                 logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - DASK CLIENT RUNNING")
                 timer_start = time.perf_counter()
                 await extras.set_active_presence(bot)
-                futures = await async_processes.init(dask_client, latest_tessellation_version,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data, configuration)
+                futures = await init.run(dask_client, latest_tessellation_version,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data, configuration)
                 for async_process in futures:
                     try:
                         node_data = await async_process

@@ -1,5 +1,8 @@
 import os.path
-
+import time
+from modules import tessellation, request
+import asyncio
+import aiofiles
 
 async def supported_clusters(cluster_layer: str, cluster_names: dict, configuration: dict) -> list:
     import importlib.util
@@ -39,4 +42,22 @@ async def node_cluster(node_data, configuration):
         return node_data
     else:
         return node_data
+
+async def preliminary_data(configuration):
+    import yaml
+    timer_start = time.perf_counter()
+    tasks = []
+    cluster_data = []
+    validator_mainnet_data, validator_testnet_data = await tessellation.validator_data(configuration)
+    latest_tessellation_version = await tessellation.latest_version_github(configuration)
+    for cluster_layer, cluster_names in list(configuration["request"]["url"]["clusters"]["load balancer"].items()):
+        tasks.append(asyncio.create_task(request.supported_clusters(cluster_layer, cluster_names, configuration)))
+    for task in tasks:
+        cluster_data.append(await task)
+    """RELOAD CONFIGURATION"""
+    async with aiofiles.open('data/config.yml', 'r') as file:
+        configuration = yaml.safe_load(await file.read())
+    timer_stop = time.perf_counter()
+    print("PRELIMINARIES TOOK:", timer_stop - timer_start)
+    return configuration, cluster_data, validator_mainnet_data, validator_testnet_data, latest_tessellation_version
 
