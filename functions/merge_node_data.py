@@ -30,16 +30,3 @@ async def historic_data(node_data: dict, historic_node_dataframe) -> dict:
             node_data["diskSpaceFree"] = float(historic_node_dataframe["node free disk space"])
     del historic_node_dataframe
     return node_data
-
-async def add_pair_count(layer: int, node_data: dict, node_cluster_data: dict, configuration: dict) -> dict:
-    node_data["nodePairCount"] = len(node_cluster_data)
-    for node_pair in node_cluster_data:
-        if f"layer {layer}" in configuration["source ids"].keys():
-            for cluster_layer in configuration["source ids"].keys():
-                if cluster_layer == f"layer {layer}":
-                    for cluster_name, cluster_id in configuration["source ids"][cluster_layer].items():
-                        if cluster_id == node_pair["id"]:
-                            node_data["clusterNames"] = cluster_name.lower()
-
-
-    return node_data

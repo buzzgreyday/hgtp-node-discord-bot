@@ -3,7 +3,7 @@ import asyncio
 
 import aiofiles
 from functions.clusters import mainnet
-from functions import read, request, process_historic_data, merge_node_data, process_other_data, new_data, tessellation, latest_data
+from functions import read, request, process_historic_data, merge_node_data, process_all_data, new_data, tessellation, latest_data
 from functions.temporaries import temporaries
 
 
@@ -34,9 +34,11 @@ async def create_per_subscriber_future(dask_client, subscriber: dict, layer: int
     historic_node_dataframe = await process_historic_data.isolate_node_data(dask_client, node_data, history_dataframe)
     historic_node_dataframe = await process_historic_data.isolate_former_node_data(historic_node_dataframe)
     node_data = await merge_node_data.historic_data(node_data, historic_node_dataframe)
-    node_data = await process_other_data.merge_node_data(node_data, validator_mainnet_data, validator_testnet_data, all_supported_clusters_data)
     # HERE WE NEED TO REQUEST DATA FROM THE CLUSTER IDENTIFIED IN LATEST OR HISTORIC DATA
+    node_data = await process_all_data.merge_node_data(node_data, validator_mainnet_data, validator_testnet_data,
+                                                       all_supported_clusters_data)
     node_data = await request.node_cluster(node_data, configuration)
+
     # node_data = await temporaries.run(node_data, all_supported_clusters_data, configuration)
     print(node_data)
     """REMEMBER TO CHECK DATE/TIME FOR LAST NOTICE"""

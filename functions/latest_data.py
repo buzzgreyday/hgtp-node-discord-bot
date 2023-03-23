@@ -6,6 +6,5 @@ async def locate_node(node_data, all_supported_clusters_data):
                     # LATER INCLUDE ID WHEN SUBSCRIBING
                     if pair["ip"] == node_data["host"]:
                         node_data["clusterNames"] = cluster["cluster name"].lower()
-                        print(f"NODE WAS FOUND IN {cluster['cluster name'].upper()} {cluster['layer'].upper()}")
 
     return node_data

@@ -190,6 +190,7 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
                 metrics_data = await safe_request(
                     f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/{str(configuration['request']['url']['clusters']['url endings']['metrics info'])}")
                 node_data.update(metrics_data)
+        node_data = await request_wallet_data(node_data, configuration)
     return node_data
 
 async def cluster_data(request_url: str, configuration: dict):
@@ -392,7 +393,6 @@ async def request_wallet_data(node_data, configuration):
         }
 
     for be_layer, be_names in configuration["request"]["url"]["block explorer"].items():
-        print(node_data['clusterNames'], node_data['formerClusterNames'])
         if (node_data['clusterNames'] or node_data['formerClusterNames']) in list(be_names.keys()):
             for be_name, be_url in be_names.items():
                 if be_name.lower() == (node_data['clusterNames'] or node_data['formerClusterNames']):
