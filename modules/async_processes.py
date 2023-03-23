@@ -2,8 +2,8 @@ import time
 import asyncio
 
 import aiofiles
-from functions import read, request, process_historic_data, merge, create, tessellation, locate
-from functions.temporaries import temporaries
+from modules import read, request, merge, create, tessellation, locate
+from modules.temporaries import temporaries
 
 
 async def preliminary_data(configuration):
@@ -28,8 +28,8 @@ async def preliminary_data(configuration):
 async def create_per_subscriber_future(dask_client, subscriber: dict, layer: int, port: int, latest_tessellation_version: str,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data: list[dict], history_dataframe, configuration: dict) -> dict:
     node_data = await create.snapshot(subscriber, port, layer, latest_tessellation_version)
     node_data = await locate.node(node_data, all_supported_clusters_data)
-    historic_node_dataframe = await process_historic_data.isolate_node_data(dask_client, node_data, history_dataframe)
-    historic_node_dataframe = await process_historic_data.isolate_former_node_data(historic_node_dataframe)
+    historic_node_dataframe = await locate.historic_node_data(dask_client, node_data, history_dataframe)
+    historic_node_dataframe = await locate.former_historic_node_data(historic_node_dataframe)
     node_data = await merge.historic_data(node_data, historic_node_dataframe)
     node_data = await merge.node_data(node_data, validator_mainnet_data, validator_testnet_data,
                                                        all_supported_clusters_data)

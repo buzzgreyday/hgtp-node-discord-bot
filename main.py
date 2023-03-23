@@ -6,7 +6,7 @@ import time
 from datetime import datetime
 from dask.distributed import Client
 import distributed
-from functions import extras, async_processes
+from modules import extras, async_processes
 import nextcord
 from nextcord.ext import commands
 from os import getenv, path, makedirs

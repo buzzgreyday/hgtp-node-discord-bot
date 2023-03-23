@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 import aiohttp
 import aiohttp.client_exceptions
-from functions.clusters import all
+from modules.clusters import all
 
 class Request:
     def __init__(self, url):
