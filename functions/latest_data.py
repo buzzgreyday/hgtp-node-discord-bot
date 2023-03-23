@@ -1,38 +1,17 @@
 import asyncio
-
+import os.path
+import sys
+from os import getenv, path, makedirs
 import aiofiles as aiofiles
-
+from functions.clusters import mainnet
 from functions import request
 
-
-async def request_node_data(subscriber: dict, port: int, node_data: dict, configuration: dict) -> tuple[dict, dict]:
-    return await request.node_cluster_data(subscriber, port, node_data, configuration)
-
 async def request_supported_clusters(cluster_layer: str, cluster_names: dict, configuration: dict) -> list:
+    import importlib.util
+    import sys
 
     async def locate_id_offline():
         return configuration["source ids"][cluster_layer][cluster_name]
-
-    async def locate_rewarded_addresses():
-        try:
-            latest_ordinal, latest_timestamp = \
-                await request.snapshot(
-                    f"{configuration['request']['url']['block explorer'][cluster_layer][cluster_name]}"
-                    f"/global-snapshots/latest", configuration)
-            tasks = []
-            for ordinal in range(latest_ordinal-50, latest_ordinal):
-                tasks.append(asyncio.create_task(request.snapshot_rewards(
-                    f"{configuration['request']['url']['block explorer'][cluster_layer][cluster_name]}"
-                    f"/global-snapshots/{ordinal}/rewards", configuration
-                )))
-            addresses = []
-            for task in tasks:
-                addresses.extend(await task); addresses = list(set(addresses))
-        except KeyError:
-            latest_ordinal = None; latest_timestamp = None; addresses = []
-
-        # addresses = (address_generator for address_generator in addresses)
-        return latest_ordinal, latest_timestamp, addresses
 
     async def update_config_with_latest_values():
         import yaml
@@ -46,36 +25,39 @@ async def request_supported_clusters(cluster_layer: str, cluster_names: dict, co
                                 await file.write(yaml.dump(configuration))
         del layer
 
-
     all_clusters_data = []
     for cluster_name, cluster_info in cluster_names.items():
         for lb_url in cluster_info["url"]:
-            cluster_resp = await request.cluster_data(f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['cluster info']}", configuration)
-            node_resp = await request.cluster_data(f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
+            if os.path.exists(f"{configuration['file settings']['locations']['cluster functions']}/{cluster_name}.py"):
+                spec = importlib.util.spec_from_file_location("mainnet.cluster_data", f"{configuration['file settings']['locations']['cluster functions']}/{cluster_name}.py")
+                foo = importlib.util.module_from_spec(spec)
+                sys.modules["mainnet.cluster_data"] = foo
+                spec.loader.exec_module(foo)
+                cluster_resp = await foo.cluster_data(f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['cluster info']}", configuration)
+                node_resp = await foo.cluster_data(f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
+                latest_ordinal, latest_timestamp, addresses = await mainnet.locate_rewarded_addresses(cluster_layer, cluster_name, configuration)
 
-            latest_ordinal, latest_timestamp, addresses = await locate_rewarded_addresses()
+                if node_resp is None:
+                    cluster_state = "offline"; cluster_id = await locate_id_offline(); cluster_session = None
+                else:
+                    cluster_state = str(node_resp['state']).lower(); cluster_id = node_resp["id"]; cluster_session = node_resp["clusterSession"]
 
-            if node_resp is None:
-                cluster_state = "offline"; cluster_id = await locate_id_offline(); cluster_session = None
-            else:
-                cluster_state = str(node_resp['state']).lower(); cluster_id = node_resp["id"]; cluster_session = node_resp["clusterSession"]
-
-            cluster = {
-                "layer": cluster_layer,
-                "cluster name": cluster_name,
-                "state": cluster_state,
-                "id": cluster_id,
-                "pair count": len(cluster_resp),
-                "cluster session": cluster_session,
-                "latest ordinal": latest_ordinal,
-                "latest ordinal timestamp": latest_timestamp,
-                "recently rewarded": addresses
-                # "pair data": cluster_resp
-            }
-            await update_config_with_latest_values()
-            all_clusters_data.append(cluster)
-            cluster_resp.clear()
-            del node_resp, cluster
+                cluster = {
+                    "layer": cluster_layer,
+                    "cluster name": cluster_name,
+                    "state": cluster_state,
+                    "id": cluster_id,
+                    "pair count": len(cluster_resp),
+                    "cluster session": cluster_session,
+                    "latest ordinal": latest_ordinal,
+                    "latest ordinal timestamp": latest_timestamp,
+                    "recently rewarded": addresses
+                    # "pair data": cluster_resp
+                }
+                await update_config_with_latest_values()
+                all_clusters_data.append(cluster)
+                cluster_resp.clear()
+                del node_resp, cluster
     del lb_url, cluster_name, cluster_info
     return all_clusters_data
 
@@ -91,12 +73,12 @@ async def request_wallet_data(node_data, configuration):
         if (node_data['clusterNames'] or node_data['formerClusterNames']) in list(be_names.keys()):
             for be_name, be_url in be_names.items():
                 if be_name.lower() == (node_data['clusterNames'] or node_data['formerClusterNames']):
-                    wallet_data = await request.wallet_data(f"{be_url}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
+                    wallet_data = await mainnet.wallet_data(f"{be_url}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
                     if wallet_data is not None:
                         node_data.update(await make_update(wallet_data))
 
         else:
-            wallet_data = await request.wallet_data(f"{configuration['request']['url']['block explorer']['layer 0']['mainnet']}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
+            wallet_data = await mainnet.wallet_data(f"{configuration['request']['url']['block explorer']['layer 0']['mainnet']}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
             if wallet_data is not None:
                 node_data.update(await make_update(wallet_data))
 

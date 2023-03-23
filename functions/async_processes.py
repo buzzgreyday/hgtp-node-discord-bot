@@ -2,7 +2,7 @@ import time
 import asyncio
 
 import aiofiles
-
+from functions.clusters import mainnet
 from functions import read, request, latest_data, historic_data, clusters_data, new_data, reward_data
 
 
@@ -11,8 +11,8 @@ async def preliminary_data(configuration):
     timer_start = time.perf_counter()
     tasks = []
     cluster_data = []
-    validator_mainnet_data, validator_testnet_data = await request.validator_data(configuration)
-    latest_tessellation_version = await request.latest_project_version_github(configuration)
+    validator_mainnet_data, validator_testnet_data = await mainnet.validator_data(configuration)
+    latest_tessellation_version = await mainnet.latest_project_version_github(configuration)
     for cluster_layer, cluster_names in list(configuration["request"]["url"]["clusters"]["load balancer"].items()):
         tasks.append(asyncio.create_task(latest_data.request_supported_clusters(cluster_layer, cluster_names, configuration)))
     for task in tasks:
@@ -27,7 +27,7 @@ async def preliminary_data(configuration):
 
 async def create_per_subscriber_future(dask_client, subscriber: dict, layer: int, port: int, latest_tessellation_version: str,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data: list[dict], history_dataframe, configuration: dict) -> dict:
     node_data = await new_data.create(subscriber, port)
-    node_data, node_cluster_data = await latest_data.request_node_data(subscriber, port, node_data, configuration)
+    node_data, node_cluster_data = await mainnet.node_cluster_data(subscriber, port, node_data, configuration)
     node_data = await latest_data.merge_node_data(layer, latest_tessellation_version, node_data, node_cluster_data, configuration)
     historic_node_dataframe = await historic_data.isolate_node_data(dask_client, node_data, history_dataframe)
     historic_node_dataframe = await historic_data.isolate_former_node_data(historic_node_dataframe)
