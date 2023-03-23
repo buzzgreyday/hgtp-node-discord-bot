@@ -37,4 +37,6 @@ async def node_cluster(node_data, configuration):
         spec.loader.exec_module(module)
         node_data = await module.node_cluster_data(node_data, configuration)
         return node_data
+    else:
+        return node_data
 
