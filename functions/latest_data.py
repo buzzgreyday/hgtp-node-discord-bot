@@ -6,9 +6,7 @@ from functions import request
 
 
 async def request_node_data(subscriber: dict, port: int, node_data: dict, configuration: dict) -> tuple[dict, dict]:
-    node_data, node_cluster_data = await request.node_cluster_data(subscriber, port, node_data, configuration)
-    # ADD EVERY KEY MISSING HERE
-    return node_data, node_cluster_data
+    return await request.node_cluster_data(subscriber, port, node_data, configuration)
 
 async def request_supported_clusters(cluster_layer: str, cluster_names: dict, configuration: dict) -> list:
 
@@ -29,12 +27,11 @@ async def request_supported_clusters(cluster_layer: str, cluster_names: dict, co
                 )))
             addresses = []
             for task in tasks:
-                addresses.extend(await task)
-                addresses = list(set(addresses))
+                addresses.extend(await task); addresses = list(set(addresses))
         except KeyError:
             latest_ordinal = None; latest_timestamp = None; addresses = []
 
-        addresses = (address_generator for address_generator in addresses)
+        # addresses = (address_generator for address_generator in addresses)
         return latest_ordinal, latest_timestamp, addresses
 
     async def update_config_with_latest_values():
@@ -74,12 +71,11 @@ async def request_supported_clusters(cluster_layer: str, cluster_names: dict, co
                 "latest ordinal timestamp": latest_timestamp,
                 "recently rewarded": addresses,
                 # BELOW I CONVERT LIST OF NODE PAIRS TO A GENERATOR TO SAVE MEMORY
-                "data": (node_pair for node_pair in cluster_resp)
+                "pair data": cluster_resp
             }
             await update_config_with_latest_values()
             all_clusters_data.append(cluster)
-            cluster_resp.clear()
-            del cluster_resp, node_resp, cluster
+            del node_resp, cluster
     del lb_url, cluster_name, cluster_info
     return all_clusters_data
 

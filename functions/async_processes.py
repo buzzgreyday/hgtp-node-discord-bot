@@ -3,7 +3,7 @@ import asyncio
 
 import aiofiles
 
-from functions import read, request, latest_data, historic_data, clusters_data, new_data
+from functions import read, request, latest_data, historic_data, clusters_data, new_data, reward_data
 
 
 async def preliminary_data(configuration):
@@ -34,6 +34,7 @@ async def create_per_subscriber_future(dask_client, subscriber: dict, layer: int
     node_data = await historic_data.merge_node_data(node_data, historic_node_dataframe)
     node_data = await clusters_data.merge_node_data(node_data, validator_mainnet_data, validator_testnet_data, all_supported_clusters_data)
     node_data = await latest_data.request_wallet_data(node_data, configuration)
+    node_data = await reward_data.check(node_data, all_supported_clusters_data)
     print(node_data)
     """REMEMBER TO CHECK DATE/TIME FOR LAST NOTICE"""
     # JUST SEE IF ID IS IN THE RETURNED DATA, DO NOT CHECK FOR CLUSTER NAME

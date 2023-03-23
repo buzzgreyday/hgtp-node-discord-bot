@@ -16,6 +16,8 @@ async def create(subscriber: dict, port: int):
         "formerClusterState": None,
         "clusterConnectivity": None,
         "formerClusterConnectivity": None,
+        "rewardState": None,
+        "formerRewardState": None,
         "clusterAssociationTime": None,
         "formerClusterAssociationTime": None,
         "clusterDissociationTime": None,
