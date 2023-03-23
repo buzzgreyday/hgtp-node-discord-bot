@@ -13,7 +13,7 @@ async def preliminary_data(configuration):
     tasks = []
     cluster_data = []
     validator_mainnet_data, validator_testnet_data = await mainnet.validator_data(configuration)
-    latest_tessellation_version = await mainnet.latest_project_version_github(configuration)
+    latest_tessellation_version = await mainnet.latest_version_github(configuration)
     for cluster_layer, cluster_names in list(configuration["request"]["url"]["clusters"]["load balancer"].items()):
         tasks.append(asyncio.create_task(latest_data.request_supported_clusters(cluster_layer, cluster_names, configuration)))
     for task in tasks:

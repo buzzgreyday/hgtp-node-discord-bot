@@ -280,7 +280,7 @@ async def validator_data(configuration: dict):
 
     return validator_mainnet_data, validator_testnet_data
 
-async def latest_project_version_github(configuration):
+async def latest_version_github(configuration):
     data = None
     run_again = True
     retry_count = 0
