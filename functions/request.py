@@ -29,7 +29,7 @@ async def node_cluster(node_data, configuration):
         spec.loader.exec_module(module)
         node_data = await module.node_cluster_data(node_data, configuration)
         return node_data
-    if os.path.exists(f"{configuration['file settings']['locations']['cluster functions']}/{node_data['formerClusterNames']}.py"):
+    elif os.path.exists(f"{configuration['file settings']['locations']['cluster functions']}/{node_data['formerClusterNames']}.py"):
         spec = importlib.util.spec_from_file_location(f"{node_data['formerClusterNames']}.node_cluster_data",
                                                       f"{configuration['file settings']['locations']['cluster functions']}/{node_data['formerClusterNames']}.py")
         module = importlib.util.module_from_spec(spec)
