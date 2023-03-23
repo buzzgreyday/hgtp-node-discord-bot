@@ -29,17 +29,14 @@ async def preliminary_data(configuration):
 async def create_per_subscriber_future(dask_client, subscriber: dict, layer: int, port: int, latest_tessellation_version: str,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data: list[dict], history_dataframe, configuration: dict) -> dict:
     node_data = await new_data.create(subscriber, port, layer, latest_tessellation_version)
     node_data = await latest_data.locate_node(node_data, all_supported_clusters_data)
-    # node_data, node_cluster_data = await mainnet.node_cluster_data(subscriber, port, node_data, configuration)
-    # node_data = await merge_node_data.latest_data(layer, latest_tessellation_version, node_data, node_cluster_data, configuration)
     historic_node_dataframe = await process_historic_data.isolate_node_data(dask_client, node_data, history_dataframe)
     historic_node_dataframe = await process_historic_data.isolate_former_node_data(historic_node_dataframe)
     node_data = await merge_node_data.historic_data(node_data, historic_node_dataframe)
-    # HERE WE NEED TO REQUEST DATA FROM THE CLUSTER IDENTIFIED IN LATEST OR HISTORIC DATA
     node_data = await process_all_data.merge_node_data(node_data, validator_mainnet_data, validator_testnet_data,
                                                        all_supported_clusters_data)
     node_data = await request.node_cluster(node_data, configuration)
-
-    # node_data = await temporaries.run(node_data, all_supported_clusters_data, configuration)
+    node_data = await temporaries.run(node_data, all_supported_clusters_data, configuration)
+    # FINALLY WE NEED TO SORT PER SUBSCRIBER IN MAIN.PY SO WE CAN MATCH DATA
     print(node_data)
     """REMEMBER TO CHECK DATE/TIME FOR LAST NOTICE"""
     # JUST SEE IF ID IS IN THE RETURNED DATA, DO NOT CHECK FOR CLUSTER NAME
