@@ -71,10 +71,11 @@ async def request_supported_clusters(cluster_layer: str, cluster_names: dict, co
                 "latest ordinal timestamp": latest_timestamp,
                 "recently rewarded": addresses,
                 # BELOW I CONVERT LIST OF NODE PAIRS TO A GENERATOR TO SAVE MEMORY
-                "pair data": cluster_resp
+                # "pair data": cluster_resp
             }
             await update_config_with_latest_values()
             all_clusters_data.append(cluster)
+            cluster_resp.clear()
             del node_resp, cluster
     del lb_url, cluster_name, cluster_info
     return all_clusters_data
