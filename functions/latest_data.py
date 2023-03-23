@@ -24,29 +24,6 @@ async def request_supported_clusters(cluster_layer: str, cluster_names: dict, co
     return all_clusters_data
 
 
-async def request_wallet_data(node_data, configuration):
-
-    async def make_update(data):
-        return {
-            "nodeWalletBalance": data["data"]["balance"]
-        }
-
-    for be_layer, be_names in configuration["request"]["url"]["block explorer"].items():
-        if (node_data['clusterNames'] or node_data['formerClusterNames']) in list(be_names.keys()):
-            for be_name, be_url in be_names.items():
-                if be_name.lower() == (node_data['clusterNames'] or node_data['formerClusterNames']):
-                    wallet_data = await mainnet.wallet_data(f"{be_url}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
-                    if wallet_data is not None:
-                        node_data.update(await make_update(wallet_data))
-
-        else:
-            wallet_data = await mainnet.wallet_data(f"{configuration['request']['url']['block explorer']['layer 0']['mainnet']}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
-            if wallet_data is not None:
-                node_data.update(await make_update(wallet_data))
-
-    return node_data
-
-
 async def merge_node_data(layer: int, latest_tessellation_version: str, node_data: dict, node_cluster_data: dict, configuration: dict) -> dict:
     node_data["latestVersion"] = latest_tessellation_version
     node_data["layer"] = layer
