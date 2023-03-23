@@ -64,7 +64,7 @@ class Request:
             await session.close()
 
 
-async def init(lb_url, cluster_layer, cluster_name, configuration):
+async def request_cluster_data(lb_url, cluster_layer, cluster_name, configuration):
     cluster_resp = await cluster_data(
         f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['cluster info']}", configuration)
     node_resp = await cluster_data(
@@ -86,11 +86,10 @@ async def init(lb_url, cluster_layer, cluster_name, configuration):
         "cluster session": cluster_session,
         "latest ordinal": latest_ordinal,
         "latest ordinal timestamp": latest_timestamp,
-        "recently rewarded": addresses
-        # "pair data": cluster_resp
+        "recently rewarded": addresses,
+        "pair data": cluster_resp
     }
     await all.update_config_with_latest_values(cluster, configuration)
-    cluster_resp.clear()
     del node_resp
     return cluster
 
@@ -124,7 +123,7 @@ async def api_request_type(request_url: str) -> str:
     elif "metrics" in request_url.split("/"):
         return "metrics"
 
-async def node_cluster_data(subscriber: dict, port: int, node_data: dict, configuration: dict) -> tuple[dict, dict]:
+async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict, dict]:
 
     async def safe_request(request_url: str) -> dict:
         data = {}
@@ -168,7 +167,7 @@ async def node_cluster_data(subscriber: dict, port: int, node_data: dict, config
                 retry_count += 1
                 await asyncio.sleep(configuration['request']['retry sleep'])
                 logging.info(
-                    f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE @ {subscriber['ip']}:{port} UNREACHABLE - TRIED {retry_count}/{configuration['request']['max retry count']}")
+                    f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE @ {node_data['host']}:{node_data['publicPort']} UNREACHABLE - TRIED {retry_count}/{configuration['request']['max retry count']}")
             except aiohttp.client_exceptions.InvalidURL:
                 if await api_request_type(request_url):
                     data = {"state": "offline"}
@@ -178,19 +177,20 @@ async def node_cluster_data(subscriber: dict, port: int, node_data: dict, config
         return data
 
     cluster_data = []
-    if port is not None:
+    if node_data['publicPort'] is not None:
         response = await safe_request(
-            f"http://{subscriber['ip']}:{port}/{configuration['request']['url']['clusters']['url endings']['node info']}")
+            f"http://{node_data['host']}:{node_data['publicPort']}/{configuration['request']['url']['clusters']['url endings']['node info']}")
         node_data.update(response)
         node_data["state"] = node_data["state"].lower()
         for k, v in node_data.items():
             if (k == "state") and (v != "offline"):
                 cluster_data = await safe_request(
-                    f"http://{str(subscriber['ip'])}:{str(port)}/{str(configuration['request']['url']['clusters']['url endings']['cluster info'])}")
+                    f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/{str(configuration['request']['url']['clusters']['url endings']['cluster info'])}")
+                node_data["nodePairCount"] = len(cluster_data)
                 metrics_data = await safe_request(
-                    f"http://{str(subscriber['ip'])}:{str(port)}/{str(configuration['request']['url']['clusters']['url endings']['metrics info'])}")
+                    f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/{str(configuration['request']['url']['clusters']['url endings']['metrics info'])}")
                 node_data.update(metrics_data)
-    return node_data, cluster_data
+    return node_data
 
 async def cluster_data(request_url: str, configuration: dict):
 
@@ -392,6 +392,7 @@ async def request_wallet_data(node_data, configuration):
         }
 
     for be_layer, be_names in configuration["request"]["url"]["block explorer"].items():
+        print(node_data['clusterNames'], node_data['formerClusterNames'])
         if (node_data['clusterNames'] or node_data['formerClusterNames']) in list(be_names.keys()):
             for be_name, be_url in be_names.items():
                 if be_name.lower() == (node_data['clusterNames'] or node_data['formerClusterNames']):

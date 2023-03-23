@@ -1,9 +1,9 @@
-async def create(subscriber: dict, port: int):
+async def create(subscriber: dict, port: int, layer: int, latest_tessellation_version: str):
     return {
         "name": subscriber["name"].values[0],
         "contact": subscriber["contact"].values[0],
         "host": subscriber["ip"],
-        "layer": None,
+        "layer": layer,
         "publicPort": port,
         "p2pPort": None,
         "id": None,
@@ -28,7 +28,7 @@ async def create(subscriber: dict, port: int):
         "clusterPairCount": None,
         "formerClusterPairCount": None,
         "version": None,
-        "latestVersion": None,
+        "latestVersion": latest_tessellation_version,
         "cpuCount": None,
         "diskSpaceTotal": None,
         "diskSpaceFree": None,
