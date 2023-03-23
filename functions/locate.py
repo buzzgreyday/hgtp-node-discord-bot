@@ -1,4 +1,4 @@
-async def locate_node(node_data, all_supported_clusters_data):
+async def node(node_data, all_supported_clusters_data):
     for lst in all_supported_clusters_data:
         for cluster in lst:
             if f"layer {node_data['layer']}" == cluster["layer"]:
