@@ -3,7 +3,7 @@ import asyncio
 
 import aiofiles
 from functions.clusters import mainnet
-from functions import read, latest_data, historic_data, clusters_data, new_data
+from functions import read, latest_data, historic_data, clusters_data, new_data, tessellation
 from functions.temporaries import temporaries
 
 
@@ -12,8 +12,8 @@ async def preliminary_data(configuration):
     timer_start = time.perf_counter()
     tasks = []
     cluster_data = []
-    validator_mainnet_data, validator_testnet_data = await mainnet.validator_data(configuration)
-    latest_tessellation_version = await mainnet.latest_version_github(configuration)
+    validator_mainnet_data, validator_testnet_data = await tessellation.validator_data(configuration)
+    latest_tessellation_version = await tessellation.latest_version_github(configuration)
     for cluster_layer, cluster_names in list(configuration["request"]["url"]["clusters"]["load balancer"].items()):
         tasks.append(asyncio.create_task(latest_data.request_supported_clusters(cluster_layer, cluster_names, configuration)))
     for task in tasks:
