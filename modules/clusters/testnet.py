@@ -116,12 +116,7 @@ async def locate_rewarded_addresses(cluster_layer, cluster_name, configuration):
 
 
 async def api_request_type(request_url: str) -> str:
-    if "node" in request_url.split("/"):
-        return "info"
-    elif "cluster" in request_url.split("/"):
-        return "cluster"
-    elif "metrics" in request_url.split("/"):
-        return "metrics"
+    return list(filter(lambda x: x in request_url.split("/"), ["node", "cluster", "metrics"]))[0]
 
 async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict, dict]:
 
@@ -131,7 +126,7 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
         run_again = True
         while run_again:
             try:
-                if await api_request_type(request_url) in ("info", "cluster"):
+                if await api_request_type(request_url) in ("node", "cluster"):
                     data = await Request(request_url).json(configuration)
                 elif await api_request_type(request_url) == "metrics":
                     strings = ('process_uptime_seconds{application=',
@@ -148,7 +143,7 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
                         "diskSpaceTotal": strings[4]
                     }
                 if retry_count >= configuration['request']['max retry count']:
-                    if await api_request_type(request_url) == "info":
+                    if await api_request_type(request_url) == "node":
                         data = {"state": "offline"}
                     break
                 elif data == 503:
@@ -161,7 +156,7 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
             except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientOSError,
                     aiohttp.client_exceptions.ServerDisconnectedError) as e:
                 if retry_count >= configuration['request']['max retry count']:
-                    if await api_request_type(request_url) == "info":
+                    if await api_request_type(request_url) == "node":
                         data = {"state": "offline"}
                     break
                 retry_count += 1
@@ -181,7 +176,7 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
         response = await safe_request(
             f"http://{node_data['host']}:{node_data['publicPort']}/{configuration['request']['url']['clusters']['url endings']['node info']}")
         node_data.update(response)
-        node_data["state"] = node_data["state"].lower()
+        node_data["state"] = node_data["state"]
         for k, v in node_data.items():
             if (k == "state") and (v != "offline"):
                 cluster_data = await safe_request(
@@ -205,13 +200,13 @@ async def cluster_data(request_url: str, configuration: dict):
                 if retry_count >= configuration['request']['max retry count']:
                     if await api_request_type(request_url) == "cluster":
                         data = []
-                    elif await api_request_type(request_url) == "info":
+                    elif await api_request_type(request_url) == "node":
                         data = None
                     break
                 elif data == 503:
                     if await api_request_type(request_url) == "cluster":
                         data = []
-                    elif await api_request_type(request_url) == "info":
+                    elif await api_request_type(request_url) == "node":
                         data = None
                     break
                 elif data is not None:
@@ -224,7 +219,7 @@ async def cluster_data(request_url: str, configuration: dict):
                 if retry_count >= configuration['request']['max retry count']:
                     if await api_request_type(request_url) == "cluster":
                         data = []
-                    elif await api_request_type(request_url) == "info":
+                    elif await api_request_type(request_url) == "node":
                         data = None
                     break
                 retry_count += 1
@@ -234,20 +229,20 @@ async def cluster_data(request_url: str, configuration: dict):
             except aiohttp.client_exceptions.InvalidURL:
                 if await api_request_type(request_url) == "cluster":
                     data = []
-                elif await api_request_type(request_url) == "info":
+                elif await api_request_type(request_url) == "node":
                     data = None
                 break
             except aiohttp.client_exceptions.ClientConnectorError:
                 if await api_request_type(request_url) == "cluster":
                     data = []
-                elif await api_request_type(request_url) == "info":
+                elif await api_request_type(request_url) == "node":
                     data = None
                 break
         return data
 
     if await api_request_type(request_url) == "cluster":
         return list(await safe_request(request_url))
-    elif await api_request_type(request_url) == "info":
+    elif await api_request_type(request_url) == "node":
         return await safe_request(request_url)
 
 async def snapshot(request_url, configuraton):
