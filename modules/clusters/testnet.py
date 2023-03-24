@@ -159,10 +159,7 @@ async def safe_request(request_url: str, configuration: dict):
 
             else:
                 data = await Request(request_url).json(configuration)
-            if retry_count >= configuration['request']['max retry count']:
-                data = None
-                break
-            elif data == 503:
+            if retry_count >= configuration['request']['max retry count'] | data == 503:
                 data = None
                 break
             elif data is not None:
