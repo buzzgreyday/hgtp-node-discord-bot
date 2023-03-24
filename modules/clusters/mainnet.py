@@ -187,100 +187,49 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
         node_data = await request_wallet_data(node_data, configuration)
     return node_data
 
+async def safe_request(request_url: str, configuration: dict):
+    data = {}
+    retry_count = 0
+    run_again = True
+    while run_again:
+        try:
+            data = await Request(request_url).json(configuration)
+            if retry_count >= configuration['request']['max retry count']:
+                data = [] if await api_request_type(request_url) == "cluster" else None if await api_request_type(request_url) == "info" else None
+                break
+            elif data == 503:
+                data = [] if await api_request_type(request_url) == "cluster" else None if await api_request_type(request_url) == "info" else None
+                break
+            elif data is not None:
+                break
+            else:
+                retry_count += 1
+                await asyncio.sleep(configuration['request']['retry sleep'])
+        except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientOSError,
+                aiohttp.client_exceptions.ServerDisconnectedError) as e:
+            if retry_count >= configuration['request']['max retry count']:
+                data = [] if await api_request_type(request_url) == "cluster" else None if await api_request_type(request_url) == "info" else None
+                break
+            retry_count += 1
+            await asyncio.sleep(configuration['request']['retry sleep'])
+            logging.info(
+                f"{datetime.utcnow().strftime('%H:%M:%S')} - CLUSTER @ {request_url} UNREACHABLE - TRIED {retry_count}/{configuration['request']['max retry count']}")
+        except aiohttp.client_exceptions.InvalidURL:
+            data = [] if await api_request_type(request_url) == "cluster" else None if await api_request_type(request_url) == "info" else None
+            break
+        except aiohttp.client_exceptions.ClientConnectorError:
+            data = [] if await api_request_type(request_url) == "cluster" else None if await api_request_type(request_url) == "info" else None
+            break
+    return data
+
 async def cluster_data(request_url: str, configuration: dict):
 
-    async def safe_request(request_url: str):
-        data = {}
-        retry_count = 0
-        run_again = True
-        while run_again:
-            try:
-                data = await Request(request_url).json(configuration)
-                if retry_count >= configuration['request']['max retry count']:
-                    if await api_request_type(request_url) == "cluster":
-                        data = []
-                    elif await api_request_type(request_url) == "info":
-                        data = None
-                    break
-                elif data == 503:
-                    if await api_request_type(request_url) == "cluster":
-                        data = []
-                    elif await api_request_type(request_url) == "info":
-                        data = None
-                    break
-                elif data is not None:
-                    break
-                else:
-                    retry_count += 1
-                    await asyncio.sleep(configuration['request']['retry sleep'])
-            except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientOSError,
-                    aiohttp.client_exceptions.ServerDisconnectedError) as e:
-                if retry_count >= configuration['request']['max retry count']:
-                    if await api_request_type(request_url) == "cluster":
-                        data = []
-                    elif await api_request_type(request_url) == "info":
-                        data = None
-                    break
-                retry_count += 1
-                await asyncio.sleep(configuration['request']['retry sleep'])
-                logging.info(
-                    f"{datetime.utcnow().strftime('%H:%M:%S')} - CLUSTER @ {request_url} UNREACHABLE - TRIED {retry_count}/{configuration['request']['max retry count']}")
-            except aiohttp.client_exceptions.InvalidURL:
-                if await api_request_type(request_url) == "cluster":
-                    data = []
-                elif await api_request_type(request_url) == "info":
-                    data = None
-                break
-            except aiohttp.client_exceptions.ClientConnectorError:
-                if await api_request_type(request_url) == "cluster":
-                    data = []
-                elif await api_request_type(request_url) == "info":
-                    data = None
-                break
-        return data
-
     if await api_request_type(request_url) == "cluster":
-        return list(await safe_request(request_url))
+        return list(await safe_request(request_url, configuration))
     elif await api_request_type(request_url) == "info":
-        return await safe_request(request_url)
+        return await safe_request(request_url, configuration)
 
 async def snapshot(request_url, configuraton):
-
-
-    async def safe_request(request_url: str, configuration):
-        data = {}
-        retry_count = 0
-        run_again = True
-        while run_again:
-            try:
-                data = await Request(request_url).json(configuration)
-                if retry_count >= configuration['request']['max retry count']:
-                    data = None
-                    break
-                elif data == 503:
-                    data = None
-                    break
-                elif data is not None:
-                    break
-                else:
-                    retry_count += 1
-                    await asyncio.sleep(configuration['request']['retry sleep'])
-            except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientOSError,
-                    aiohttp.client_exceptions.ServerDisconnectedError) as e:
-                if retry_count >= configuration['request']['max retry count']:
-                    data = None
-                    break
-                retry_count += 1
-                await asyncio.sleep(configuration['request']['retry sleep'])
-                logging.info(
-                    f"{datetime.utcnow().strftime('%H:%M:%S')} - CLUSTER @ {request_url} UNREACHABLE - TRIED {retry_count}/{configuration['request']['max retry count']}")
-            except aiohttp.client_exceptions.InvalidURL:
-                data = None
-                break
-            except aiohttp.client_exceptions.ClientConnectorError:
-                data = None
-                break
-        return data
 
     data = await safe_request(request_url, configuraton)
     if data is not None:
@@ -293,45 +242,9 @@ async def snapshot(request_url, configuraton):
         return ordinal, timestamp
 
 async def snapshot_rewards(request_url, configuration):
-    async def safe_request(request_url: str, configuration):
-        data = {}
-        retry_count = 0
-        run_again = True
-        while run_again:
-            try:
-                data = await Request(request_url).json(configuration)
-                if retry_count >= configuration['request']['max retry count']:
-                    data = None
-                    break
-                elif data == 503:
-                    data = None
-                    break
-                elif data is not None:
-                    break
-                else:
-                    retry_count += 1
-                    await asyncio.sleep(configuration['request']['retry sleep'])
-            except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientOSError,
-                    aiohttp.client_exceptions.ServerDisconnectedError) as e:
-                if retry_count >= configuration['request']['max retry count']:
-                    data = None
-                    break
-                retry_count += 1
-                await asyncio.sleep(configuration['request']['retry sleep'])
-                logging.info(
-                    f"{datetime.utcnow().strftime('%H:%M:%S')} - CLUSTER @ {request_url} UNREACHABLE - TRIED {retry_count}/{configuration['request']['max retry count']}")
-            except aiohttp.client_exceptions.InvalidURL:
-                data = None
-                break
-            except aiohttp.client_exceptions.ClientConnectorError:
-                data = None
-                break
-        return data
 
     data = await safe_request(request_url, configuration)
-    addresses = []
-    for data_dictionary in data["data"]:
-        addresses.append(data_dictionary["destination"])
+    addresses = list(data_dictionary["destination"] for data_dictionary in data["data"])
     return addresses
 
 async def reward_check(node_data: dict, all_supported_clusters_data: list):
@@ -339,64 +252,27 @@ async def reward_check(node_data: dict, all_supported_clusters_data: list):
     for lst in all_supported_clusters_data:
         for cluster in lst:
             if (cluster["layer"] == f"layer {node_data['layer']}") and (cluster["cluster name"] == node_data["clusterNames"]):
-                if str(node_data["nodeWalletAddress"]) in cluster["recently rewarded"]:
-                    node_data["rewardState"] = True
-                elif (cluster["recently rewarded"] is None) and (str(node_data["nodeWalletAddress"]) not in cluster["recently rewarded"]):
-                        node_data["rewardState"] = False
+                node_data["rewardState"] = \
+                    True if str(node_data["nodeWalletAddress"]) in cluster["recently rewarded"] \
+                    else False if (cluster["recently rewarded"] is None) \
+                                  and (str(node_data["nodeWalletAddress"]) not in cluster["recently rewarded"]) \
+                    else None
 
     return node_data
 
 async def request_wallet_data(node_data, configuration):
-    async def safe_request(request_url: str):
-        data = {}
-        retry_count = 0
-        run_again = True
-        while run_again:
-            try:
-                data = await Request(request_url).json(configuration)
-                if retry_count >= configuration['request']['max retry count']:
-                    data = None
-                    break
-                elif data == 503:
-                    data = None
-                    break
-                elif data is not None:
-                    break
-                else:
-                    retry_count += 1
-                    await asyncio.sleep(configuration['request']['retry sleep'])
-            except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientOSError,
-                    aiohttp.client_exceptions.ServerDisconnectedError) as e:
-                if retry_count >= configuration['request']['max retry count']:
-                    data = None
-                    break
-                retry_count += 1
-                await asyncio.sleep(configuration['request']['retry sleep'])
-                logging.info(
-                    f"{datetime.utcnow().strftime('%H:%M:%S')} - CLUSTER @ {request_url} UNREACHABLE - TRIED {retry_count}/{configuration['request']['max retry count']}")
-            except aiohttp.client_exceptions.InvalidURL:
-                data = None
-                break
-            except aiohttp.client_exceptions.ClientConnectorError:
-                data = None
-                break
-        return data
-    async def make_update(data):
-        return {
-            "nodeWalletBalance": data["data"]["balance"]
-        }
 
     for be_layer, be_names in configuration["request"]["url"]["block explorer"].items():
         if (node_data['clusterNames'] or node_data['formerClusterNames']) in list(be_names.keys()):
             for be_name, be_url in be_names.items():
                 if be_name.lower() == (node_data['clusterNames'] or node_data['formerClusterNames']):
-                    wallet_data = await safe_request(f"{be_url}/addresses/{node_data['nodeWalletAddress']}/balance")
+                    wallet_data = await safe_request(f"{be_url}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
                     if wallet_data is not None:
-                        node_data.update(await make_update(wallet_data))
+                        node_data["nodeWalletBalance"] = wallet_data["data"]["balance"]
 
         else:
-            wallet_data = await safe_request(f"{configuration['request']['url']['block explorer']['layer 0']['mainnet']}/addresses/{node_data['nodeWalletAddress']}/balance")
+            wallet_data = await safe_request(f"{configuration['request']['url']['block explorer']['layer 0']['mainnet']}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
             if wallet_data is not None:
-                node_data.update(await make_update(wallet_data))
+                node_data["nodeWalletBalance"] = wallet_data["data"]["balance"]
 
     return node_data
