@@ -12,6 +12,7 @@ async def check(dask_client, subscriber: dict, layer: int, port: int, latest_tes
     node_data = await merge.node_data(node_data, validator_mainnet_data, validator_testnet_data,
                                                        all_supported_clusters_data)
     node_data = await request.node_cluster(node_data, configuration)
+
     node_data = await temporaries.run(node_data, all_supported_clusters_data)
     # FINALLY WE NEED TO SORT PER SUBSCRIBER IN MAIN.PY SO WE CAN MATCH DATA
     print(node_data)

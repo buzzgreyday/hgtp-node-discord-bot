@@ -175,7 +175,7 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
         response = await safe_request(
             f"http://{node_data['host']}:{node_data['publicPort']}/{configuration['request']['url']['clusters']['url endings']['node info']}")
         node_data.update(response)
-        node_data["state"] = node_data["state"].lower()
+        node_data["state"] = node_data["state"]
         for k, v in node_data.items():
             if (k == "state") and (v != "offline"):
                 cluster_data = await safe_request(
