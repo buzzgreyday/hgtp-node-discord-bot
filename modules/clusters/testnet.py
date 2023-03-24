@@ -1,3 +1,11 @@
+#######################################################################################################################
+#                             ** TESTNET HGTP NODE SPIDER BOT MODULE, VERSION 1.0 **
+#---------------------------------------------------------------------------------------------------------------------
+# + DESCRIPTION
+#   THIS MODULE CONTAINS PROJECT-SPECIFIC CODE WHICH ENABLES SUPPORT FOR TESTNET DATA API FOR USE WITH HGTP NODE SPIDR.
+#----------------------------------------------------------------------------------------------------------------------
+#######################################################################################################################
+
 import asyncio
 import logging
 from datetime import datetime
@@ -122,21 +130,24 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
 
     if node_data['publicPort'] is not None:
         response = await safe_request(
-            f"http://{node_data['host']}:{node_data['publicPort']}/{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
+            f"http://{node_data['host']}:{node_data['publicPort']}/"
+            f"{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
         node_data["state"] = "offline" if response is None else node_data["state"]
         for k, v in node_data.items():
             if (k == "state") and (v != "offline"):
                 cluster_data = await safe_request(
-                    f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/{str(configuration['request']['url']['clusters']['url endings']['cluster info'])}", configuration)
+                    f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
+                    f"{str(configuration['request']['url']['clusters']['url endings']['cluster info'])}", configuration)
                 node_data["nodePairCount"] = len(cluster_data)
                 metrics_data = await safe_request(
-                    f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/{str(configuration['request']['url']['clusters']['url endings']['metrics info'])}", configuration)
+                    f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
+                    f"{str(configuration['request']['url']['clusters']['url endings']['metrics info'])}", configuration)
                 node_data.update(metrics_data)
         node_data = await request_wallet_data(node_data, configuration)
     return node_data
 
 async def safe_request(request_url: str, configuration: dict):
-    data = {}
+    data = None
     retry_count = 0
     run_again = True
     while run_again:
