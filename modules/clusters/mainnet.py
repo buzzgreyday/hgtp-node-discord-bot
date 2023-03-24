@@ -114,7 +114,6 @@ async def locate_rewarded_addresses(cluster_layer, cluster_name, configuration):
     # addresses = (address_generator for address_generator in addresses)
     return latest_ordinal, latest_timestamp, addresses
 
-
 async def api_request_type(request_url: str) -> str:
     return list(filter(lambda x: x in request_url.split("/"), ["node", "cluster", "metrics"]))[0]
 async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict, dict]:
@@ -146,6 +145,8 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
                         data = {"state": "offline"}
                     break
                 elif data == 503:
+                    if await api_request_type(request_url) == "info":
+                        data = {"state": "offline"}
                     break
                 elif data is not None:
                     break
@@ -162,15 +163,12 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
                 await asyncio.sleep(configuration['request']['retry sleep'])
                 logging.info(
                     f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE @ {node_data['host']}:{node_data['publicPort']} UNREACHABLE - TRIED {retry_count}/{configuration['request']['max retry count']}")
-            except aiohttp.client_exceptions.InvalidURL:
+            except (aiohttp.client_exceptions.ClientConnectorError, aiohttp.client_exceptions.InvalidURL):
                 if await api_request_type(request_url):
                     data = {"state": "offline"}
                 break
-            except aiohttp.client_exceptions.ClientConnectorError:
-                break
         return data
 
-    cluster_data = []
     if node_data['publicPort'] is not None:
         response = await safe_request(
             f"http://{node_data['host']}:{node_data['publicPort']}/{configuration['request']['url']['clusters']['url endings']['node info']}")
@@ -206,18 +204,14 @@ async def safe_request(request_url: str, configuration: dict):
                 retry_count += 1
                 await asyncio.sleep(configuration['request']['retry sleep'])
         except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientOSError,
-                aiohttp.client_exceptions.ServerDisconnectedError) as e:
+                aiohttp.client_exceptions.ServerDisconnectedError):
             if retry_count >= configuration['request']['max retry count']:
                 data = [] if await api_request_type(request_url) == "cluster" else None if await api_request_type(request_url) == "info" else None
                 break
             retry_count += 1
             await asyncio.sleep(configuration['request']['retry sleep'])
-            logging.info(
-                f"{datetime.utcnow().strftime('%H:%M:%S')} - CLUSTER @ {request_url} UNREACHABLE - TRIED {retry_count}/{configuration['request']['max retry count']}")
-        except aiohttp.client_exceptions.InvalidURL:
-            data = [] if await api_request_type(request_url) == "cluster" else None if await api_request_type(request_url) == "info" else None
-            break
-        except aiohttp.client_exceptions.ClientConnectorError:
+            logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - CLUSTER @ {request_url} UNREACHABLE - TRIED {retry_count}/{configuration['request']['max retry count']}")
+        except (aiohttp.client_exceptions.InvalidURL, aiohttp.client_exceptions.ClientConnectorError):
             data = [] if await api_request_type(request_url) == "cluster" else None if await api_request_type(request_url) == "info" else None
             break
     return data
@@ -231,12 +225,12 @@ async def cluster_data(request_url: str, configuration: dict):
 
 async def snapshot(request_url, configuraton):
 
-    data = await safe_request(request_url, configuraton)
-    if data is not None:
-        ordinal = data["data"]["ordinal"]
-        timestamp = datetime.strptime(data["data"]["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ")
+    snapshot_data = await safe_request(request_url, configuraton)
+    if snapshot_data is not None:
+        ordinal = snapshot_data["data"]["ordinal"]
+        timestamp = datetime.strptime(snapshot_data["data"]["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ")
         return ordinal, timestamp
-    elif data is None:
+    elif snapshot_data is None:
         ordinal = None
         timestamp = None
         return ordinal, timestamp
