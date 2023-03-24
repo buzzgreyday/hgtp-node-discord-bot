@@ -1,12 +1,12 @@
 import os.path
 import time
-from modules import tessellation, request
+from modules import tessellation
 import asyncio
 import aiofiles
+import importlib.util
+import sys
 
 async def supported_clusters(cluster_layer: str, cluster_names: dict, configuration: dict) -> list:
-    import importlib.util
-    import sys
 
     all_clusters_data = []
     for cluster_name, cluster_info in cluster_names.items():
@@ -22,8 +22,7 @@ async def supported_clusters(cluster_layer: str, cluster_names: dict, configurat
     return all_clusters_data
 
 async def node_cluster(node_data, configuration):
-    import importlib.util
-    import sys
+
     if os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{node_data['clusterNames']}.py"):
         spec = importlib.util.spec_from_file_location(f"{node_data['clusterNames']}.node_cluster_data",
                                                       f"{configuration['file settings']['locations']['cluster modules']}/{node_data['clusterNames']}.py")
@@ -51,7 +50,7 @@ async def preliminary_data(configuration):
     validator_mainnet_data, validator_testnet_data = await tessellation.validator_data(configuration)
     latest_tessellation_version = await tessellation.latest_version_github(configuration)
     for cluster_layer, cluster_names in list(configuration["request"]["url"]["clusters"]["load balancer"].items()):
-        tasks.append(asyncio.create_task(request.supported_clusters(cluster_layer, cluster_names, configuration)))
+        tasks.append(asyncio.create_task(supported_clusters(cluster_layer, cluster_names, configuration)))
     for task in tasks:
         cluster_data.append(await task)
     """RELOAD CONFIGURATION"""

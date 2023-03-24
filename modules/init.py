@@ -1,7 +1,4 @@
-import time
 import asyncio
-
-import aiofiles
 from modules import read, request, merge, create, locate
 from modules.temporaries import temporaries
 
