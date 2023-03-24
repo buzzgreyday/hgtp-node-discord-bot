@@ -116,13 +116,7 @@ async def locate_rewarded_addresses(cluster_layer, cluster_name, configuration):
 
 
 async def api_request_type(request_url: str) -> str:
-    if "node" in request_url.split("/"):
-        return "info"
-    elif "cluster" in request_url.split("/"):
-        return "cluster"
-    elif "metrics" in request_url.split("/"):
-        return "metrics"
-
+    return list(filter(lambda x: x in request_url.split("/"), ["node", "cluster", "metrics"]))[0]
 async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict, dict]:
 
     async def safe_request(request_url: str) -> dict:

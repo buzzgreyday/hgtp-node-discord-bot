@@ -5,6 +5,8 @@ import asyncio
 import aiofiles
 import importlib.util
 import sys
+import yaml
+
 
 async def supported_clusters(cluster_layer: str, cluster_names: dict, configuration: dict) -> list:
 
@@ -43,7 +45,6 @@ async def node_cluster(node_data, configuration):
         return node_data
 
 async def preliminary_data(configuration):
-    import yaml
     timer_start = time.perf_counter()
     tasks = []
     cluster_data = []

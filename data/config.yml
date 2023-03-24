@@ -90,7 +90,7 @@ file settings:
       public_l1: str
   locations:
     archived history: /data/archived/node data
-    cluster functions: modules/clusters
+    cluster modules: modules/clusters
     history: data/node data
     log: data/logs/bot.log
     subscribers: data/subscribers.csv
