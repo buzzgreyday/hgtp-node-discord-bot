@@ -123,7 +123,6 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
     if node_data['publicPort'] is not None:
         response = await safe_request(
             f"http://{node_data['host']}:{node_data['publicPort']}/{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
-        node_data.update(response)
         node_data["state"] = "offline" if response is None else node_data["state"]
         for k, v in node_data.items():
             if (k == "state") and (v != "offline"):
@@ -157,6 +156,7 @@ async def safe_request(request_url: str, configuration: dict):
                     "diskSpaceFree": strings[3],
                     "diskSpaceTotal": strings[4]
                 }
+
             else:
                 data = await Request(request_url).json(configuration)
             if retry_count >= configuration['request']['max retry count']:
