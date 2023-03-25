@@ -5,7 +5,7 @@
 #   THIS MODULE CONTAINS PROJECT- OR BUSINESS-SPECIFIC CODE WHICH ENABLES SUPPORT FOR THIS PARTICULAR CLUSTER'S API.
 # --------------------------------------------------------------------------------------------------------------------
 #######################################################################################################################
-# * IMPORTS, CONSTANTS AND VARIABLES
+# * IMPORTS: MODULES, CONSTANTS AND VARIABLES
 # ---------------------------------------------------------------------------------------------------------------------
 
 import asyncio
@@ -17,15 +17,13 @@ from modules import request
     SECTION 1: PRELIMINARIES
 """
 # ---------------------------------------------------------------------------------------------------------------------
-# + NODE SPECIFIC FUNCTIONS AND CLASSES GOES HERE
+# + CLUSTER SPECIFIC FUNCTIONS AND CLASSES GOES HERE
 # ---------------------------------------------------------------------------------------------------------------------
+#   THE FUNCTION BELOW IS ONE OF THE FIRST INITIATIONS. THIS FUNCTION REQUESTS DATA FROM THE MAINNET/TESTNET CLUSTER.
+#   IN THIS MODULE WE REQUEST THINGS LIKE STATE, LOAD BALANCER ID, PEERS AND THE LATEST CLUSTER SESSION TOKEN.
+#   WE THEN AGGREAGATE ALL THIS DATA IN A "CLUSTER DICTIONARY" AND ADDS IT TO A LIST OF ALL THE SUPPORTED CLUSTERS.
+#   WE ALSO CHECK FOR REWARDS.
 # ---------------------------------------------------------------------------------------------------------------------
-# + CLUSTER SPECIFIC FUNCTIONS GOES HERE
-# ---------------------------------------------------------------------------------------------------------------------
-
-# THIS IS ONE OF THE FIRST THINGS THE PROGRAM DOES. THIS FUNCTION REQUESTS DATA FROM THE MAINNET/TESTNET CLUSTER
-# IN THIS MODULE WE REQUEST THINGS LIKE STATE, LOAD BALANCER ID, PEERS AND THE LATEST CLUSTER SESSION TOKEN.
-# WE THEN AGGREAGATE ALL THIS DATA IN A CLUSTER DICTIONARY AND ADDS IT TO A LIST OF ALL THE SUPPORTED CLUSTERS.
 
 async def request_cluster_data(lb_url, cluster_layer, cluster_name, configuration):
     cluster_resp = await request.safe(
@@ -102,6 +100,9 @@ async def request_reward_addresses_per_snapshot(request_url, configuration):
 """
     SECTION 2: INDIVIDUAL NODE DATA PROCESSING
 """
+# ---------------------------------------------------------------------------------------------------------------------
+# + NODE SPECIFIC FUNCTIONS AND CLASSES GOES HERE
+# ---------------------------------------------------------------------------------------------------------------------
 
 async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict, dict]:
     if node_data['publicPort'] is not None:
@@ -146,7 +147,7 @@ async def request_wallet_data(node_data, configuration):
             wallet_data = await request.safe(f"{configuration['request']['url']['block explorer']['layer 0']['mainnet']}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
             if wallet_data is not None:
                 node_data["nodeWalletBalance"] = wallet_data["data"]["balance"]
-
+                
     return node_data
 
 """
