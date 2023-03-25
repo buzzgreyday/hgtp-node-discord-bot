@@ -41,10 +41,10 @@ async def node_data(node_data,  validator_mainnet_data, validator_testnet_data, 
         for cluster in lst:
             if cluster["layer"] == f"layer {node_data['layer']}":
                 if cluster["cluster name"] == node_data["clusterNames"]:
-                    node_data["clusterPairCount"] = cluster["pair count"]
+                    node_data["clusterPeerCount"] = cluster["peer count"]
                     node_data["clusterState"] = cluster["state"]
                 if cluster["cluster name"] == node_data["formerClusterNames"]:
-                    node_data["formerClusterPairCount"] = cluster["pair count"]
+                    node_data["formerClusterPeerCount"] = cluster["peer count"]
                     node_data["formerClusterState"] = cluster["state"]
 
     for list_of_dict in [validator_mainnet_data, validator_testnet_data]:

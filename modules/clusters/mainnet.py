@@ -43,12 +43,12 @@ async def request_cluster_data(lb_url, cluster_layer, cluster_name, configuratio
         "cluster name": cluster_name,
         "state": cluster_state,
         "id": cluster_id,
-        "pair count": len(cluster_resp),
+        "peer count": len(cluster_resp),
         "cluster session": cluster_session,
         "latest ordinal": latest_ordinal,
         "latest ordinal timestamp": latest_timestamp,
         "recently rewarded": addresses,
-        "pair data": cluster_resp
+        "peer data": cluster_resp
     }
     await all.update_config_with_latest_values(cluster, configuration)
     del node_resp
@@ -115,7 +115,7 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
                 cluster_data = await request.safe(
                     f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
                     f"{str(configuration['request']['url']['clusters']['url endings']['cluster info'])}", configuration)
-                node_data["nodePairCount"] = len(cluster_data)
+                node_data["nodePeerCount"] = len(cluster_data)
                 metrics_data = await request.safe(
                     f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
                     f"{str(configuration['request']['url']['clusters']['url endings']['metrics info'])}", configuration)

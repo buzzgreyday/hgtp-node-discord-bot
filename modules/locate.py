@@ -11,16 +11,11 @@ async def node(node_data, all_supported_clusters_data):
 
 async def historic_node_data(dask_client, node_data: dict, history_dataframe):
     # ISOLATE LAYER AND NODE IN HISTORIC DATA
-    ip = None
-    port = None
-    for k, v in node_data.items():
-        if k == "host":
-            ip = v
-        if k == "publicPort":
-            port = v
+    ip = node_data["host"]
+    port = node_data["publicPort"]
     # LATER USE NODE ID
     historic_node_dataframe = await dask_client.compute(history_dataframe[(history_dataframe["node ip"] == ip) & (history_dataframe["node port"] == port)])
-    del ip, port, k, v
+    del ip, port
     return historic_node_dataframe
 
 
