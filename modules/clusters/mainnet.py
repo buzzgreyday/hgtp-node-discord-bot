@@ -13,32 +13,13 @@ from datetime import datetime
 from modules.clusters import all
 from modules import request
 
-# * FUNCTIONS:
+"""
+    SECTION 1: PRELIMINARIES
+"""
 # ---------------------------------------------------------------------------------------------------------------------
 # + NODE SPECIFIC FUNCTIONS AND CLASSES GOES HERE
 # ---------------------------------------------------------------------------------------------------------------------
-
-# THIS IS WHERE WE GET ALL THE DATA FROM THE SUBSCRIBER'S NODE
-async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict, dict]:
-    if node_data['publicPort'] is not None:
-        response = await request.safe(
-            f"http://{node_data['host']}:{node_data['publicPort']}/"
-            f"{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
-        node_data["state"] = "offline" if response is None else response["state"].lower()
-        for k, v in node_data.items():
-            if (k == "state") and (v != "offline"):
-                cluster_data = await request.safe(
-                    f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
-                    f"{str(configuration['request']['url']['clusters']['url endings']['cluster info'])}", configuration)
-                node_data["nodePairCount"] = len(cluster_data)
-                metrics_data = await request.safe(
-                    f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
-                    f"{str(configuration['request']['url']['clusters']['url endings']['metrics info'])}", configuration)
-                node_data.update(metrics_data)
-        node_data = await request_wallet_data(node_data, configuration)
-    return node_data
-
-
+# ---------------------------------------------------------------------------------------------------------------------
 # + CLUSTER SPECIFIC FUNCTIONS GOES HERE
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -74,7 +55,6 @@ async def request_cluster_data(lb_url, cluster_layer, cluster_name, configuratio
     await all.update_config_with_latest_values(cluster, configuration)
     del node_resp
     return cluster
-
 
 # THE ABOVE FUNCTION ALSO REQUEST THE MOST RECENT REWARDED ADDRESSES. THIS FUNCTION LOCATES THESE ADDRESSES BY
 # REQUESTING THE RELEVANT API'S.
@@ -119,8 +99,30 @@ async def request_reward_addresses_per_snapshot(request_url, configuration):
     data = await request.safe(request_url, configuration)
     return list(data_dictionary["destination"] for data_dictionary in data["data"])
 
+"""
+    SECTION 2: INDIVIDUAL NODE DATA PROCESSING
+"""
+
+async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict, dict]:
+    if node_data['publicPort'] is not None:
+        response = await request.safe(
+            f"http://{node_data['host']}:{node_data['publicPort']}/"
+            f"{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
+        node_data["state"] = "offline" if response is None else response["state"].lower()
+        for k, v in node_data.items():
+            if (k == "state") and (v != "offline"):
+                cluster_data = await request.safe(
+                    f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
+                    f"{str(configuration['request']['url']['clusters']['url endings']['cluster info'])}", configuration)
+                node_data["nodePairCount"] = len(cluster_data)
+                metrics_data = await request.safe(
+                    f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
+                    f"{str(configuration['request']['url']['clusters']['url endings']['metrics info'])}", configuration)
+                node_data.update(metrics_data)
+        node_data = await request_wallet_data(node_data, configuration)
+    return node_data
+
 async def reward_check(node_data: dict, all_supported_clusters_data: list):
-    # SAME PROCEDURE AS IN CLUSTERS_DATA.MERGE_NODE_DATA
     for lst in all_supported_clusters_data:
         for cluster in lst:
             if (cluster["layer"] == f"layer {node_data['layer']}") and (cluster["cluster name"] == node_data["clusterNames"]):
@@ -146,3 +148,7 @@ async def request_wallet_data(node_data, configuration):
                 node_data["nodeWalletBalance"] = wallet_data["data"]["balance"]
 
     return node_data
+
+"""
+    SECTION 3: PREPARE REPORT
+"""
