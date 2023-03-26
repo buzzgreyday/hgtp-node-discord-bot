@@ -1,4 +1,4 @@
-async def snapshot(subscriber: dict, port: int, layer: int, latest_tessellation_version: str):
+def snapshot(subscriber: dict, port: int, layer: int, latest_tessellation_version: str):
     return {
         "name": subscriber["name"].values[0],
         "contact": subscriber["contact"].values[0],

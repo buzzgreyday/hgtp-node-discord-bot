@@ -106,21 +106,20 @@ async def request_reward_addresses_per_snapshot(request_url, configuration):
 
 async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict, dict]:
     if node_data['publicPort'] is not None:
-        response = await request.safe(
+        node_info_data = await request.safe(
             f"http://{node_data['host']}:{node_data['publicPort']}/"
             f"{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
-        node_data["state"] = "offline" if response is None else response["state"].lower()
-        for k, v in node_data.items():
-            if (k == "state") and (v != "offline"):
-                node_data["id"] = response["id"]
-                cluster_data = await request.safe(
-                    f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
-                    f"{str(configuration['request']['url']['clusters']['url endings']['cluster info'])}", configuration)
-                node_data["nodePeerCount"] = len(cluster_data)
-                metrics_data = await request.safe(
-                    f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
-                    f"{str(configuration['request']['url']['clusters']['url endings']['metrics info'])}", configuration)
-                node_data.update(metrics_data)
+        node_data["state"] = "offline" if node_info_data is None else node_info_data["state"].lower()
+        if node_data["state"] != "offline":
+            cluster_data = await request.safe(
+                f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
+                f"{str(configuration['request']['url']['clusters']['url endings']['cluster info'])}", configuration)
+            metrics_data = await request.safe(
+                f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
+                f"{str(configuration['request']['url']['clusters']['url endings']['metrics info'])}", configuration)
+            node_data["id"] = node_info_data["id"]
+            node_data["nodePeerCount"] = len(cluster_data)
+            node_data.update(metrics_data)
         node_data = await request_wallet_data(node_data, configuration)
     return node_data
 

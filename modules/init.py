@@ -4,12 +4,12 @@ from modules.temporaries import temporaries
 
 
 async def check(dask_client, subscriber: dict, layer: int, port: int, latest_tessellation_version: str,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data: list[dict], history_dataframe, configuration: dict) -> dict:
-    node_data = await create.snapshot(subscriber, port, layer, latest_tessellation_version)
-    node_data = await locate.node(node_data, all_supported_clusters_data)
+    node_data = create.snapshot(subscriber, port, layer, latest_tessellation_version)
+    node_data = locate.node_cluster(node_data, all_supported_clusters_data)
     historic_node_dataframe = await locate.historic_node_data(dask_client, node_data, history_dataframe)
-    historic_node_dataframe = await locate.former_historic_node_data(historic_node_dataframe)
-    node_data = await merge.historic_data(node_data, historic_node_dataframe)
-    node_data = await merge.node_data(node_data, validator_mainnet_data, validator_testnet_data,
+    historic_node_dataframe = locate.former_historic_node_data(historic_node_dataframe)
+    node_data = merge.historic_data(node_data, historic_node_dataframe)
+    node_data = merge.cluster_agnostic_node_data(node_data, validator_mainnet_data, validator_testnet_data,
                                                        all_supported_clusters_data)
     node_data = await request.node_cluster_data_from_dynamic_module(node_data, configuration)
     node_data = await temporaries.run(node_data, all_supported_clusters_data)
@@ -25,8 +25,8 @@ async def run(dask_client, latest_tessellation_version: str, validator_mainnet_d
     subscriber_dataframe = await read.subscribers(configuration)
     for ip in list(set(await dask_client.compute(subscriber_dataframe["ip"].values))):
         subscriber_futures.append(asyncio.create_task(locate.registered_subscriber_node_data(dask_client, ip, subscriber_dataframe)))
-    for _ in subscriber_futures:
-        subscriber = await _
+    for fut in subscriber_futures:
+        subscriber = await fut
         for k, v in subscriber.items():
             if k == "public_l0":
                 for port in v:

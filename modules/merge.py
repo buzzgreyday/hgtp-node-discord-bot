@@ -13,7 +13,7 @@ class Clean:
         else:
             return None
 
-async def historic_data(node_data: dict, historic_node_dataframe) -> dict:
+def historic_data(node_data: dict, historic_node_dataframe) -> dict:
 
     if not historic_node_dataframe.empty:
         # node_data["formerClusterNames"] = str(historic_node_dataframe["cluster name"].values[0])
@@ -31,7 +31,7 @@ async def historic_data(node_data: dict, historic_node_dataframe) -> dict:
     del historic_node_dataframe
     return node_data
 
-async def node_data(node_data,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data):
+def cluster_agnostic_node_data(node_data,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data):
 
     for lst in all_supported_clusters_data:
         for cluster in lst:
