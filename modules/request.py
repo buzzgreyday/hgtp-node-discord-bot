@@ -127,7 +127,7 @@ async def supported_clusters(cluster_layer: str, cluster_names: dict, configurat
     del lb_url, cluster_name, cluster_info
     return all_clusters_data
 
-async def node_cluster(node_data, configuration):
+async def node_cluster_data_from_dynamic_module(node_data, configuration):
 
     if os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{node_data['clusterNames']}.py"):
         spec = importlib.util.spec_from_file_location(f"{node_data['clusterNames']}.node_cluster_data",

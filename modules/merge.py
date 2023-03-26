@@ -15,7 +15,6 @@ class Clean:
 
 async def historic_data(node_data: dict, historic_node_dataframe) -> dict:
 
-    """IF HISTORIC DATA EXISTS"""
     if not historic_node_dataframe.empty:
         # node_data["formerClusterNames"] = str(historic_node_dataframe["cluster name"].values[0])
         node_data["formerClusterNames"] = Clean(historic_node_dataframe["cluster name"]).make_lower()
@@ -34,10 +33,6 @@ async def historic_data(node_data: dict, historic_node_dataframe) -> dict:
 
 async def node_data(node_data,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data):
 
-    """DECIDE WHAT TO CHECK
-    ADD VALIDATOR CHECK HERE?"""
-    # YOU NEED THIS VALUE DECLARED SO SIZE DOESN'T CHANGE DURING ITERATION
-    # YOU MIGHT WANT TO DECLARE ALL VALUES FIRST TIME THE DICT IS CREATED
     for lst in all_supported_clusters_data:
         for cluster in lst:
             if cluster["layer"] == f"layer {node_data['layer']}":
