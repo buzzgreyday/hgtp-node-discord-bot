@@ -45,10 +45,7 @@ def cluster_agnostic_node_data(node_data,  validator_mainnet_data, validator_tes
 
     for list_of_dict in [validator_mainnet_data, validator_testnet_data]:
         for validator in list_of_dict:
-            if validator["ip"] == node_data["host"]:
-                node_data["nodeWalletAddress"] = validator["address"]
-                break
-            elif validator["id"] == node_data["id"]:
+            if validator["ip"] == node_data["host"] or validator["id"] == node_data["id"]:
                 node_data["nodeWalletAddress"] = validator["address"]
                 break
     return node_data

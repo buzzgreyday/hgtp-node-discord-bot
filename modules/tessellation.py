@@ -1,9 +1,6 @@
-import asyncio
 import aiohttp
-from aiohttp import client_exceptions
 import logging
 from datetime import datetime
-
 from modules import request
 
 class Request:
@@ -29,7 +26,8 @@ class Request:
 
 async def latest_version_github(configuration):
     data = await request.safe(
-        f"{configuration['request']['url']['github']['api repo url']}/{configuration['request']['url']['github']['url endings']['tessellation']['latest release']}", configuration)
+        f"{configuration['request']['url']['github']['api repo url']}/"
+        f"{configuration['request']['url']['github']['url endings']['tessellation']['latest release']}", configuration)
     return data["tag_name"][1:]
 
 async def validator_data(configuration: dict):

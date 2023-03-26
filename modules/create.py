@@ -7,6 +7,7 @@ def snapshot(subscriber: dict, port: int, layer: int, latest_tessellation_versio
         "publicPort": port,
         "p2pPort": None,
         "id": None,
+        "lastNotified": None,
         "nodeWalletAddress": None,
         "nodeWalletBalance": None,
         "clusterNames": None,

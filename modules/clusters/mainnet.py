@@ -63,7 +63,7 @@ async def request_cluster_data(lb_url, cluster_layer, cluster_name, configuratio
 async def locate_rewarded_addresses(cluster_layer, cluster_name, configuration):
     try:
         latest_ordinal, latest_timestamp = \
-            await snapshot(
+            await request_snapshot(
                 f"{configuration['request']['url']['block explorer'][cluster_layer][cluster_name]}"
                 f"/global-snapshots/latest", configuration)
         tasks = []
@@ -82,7 +82,7 @@ async def locate_rewarded_addresses(cluster_layer, cluster_name, configuration):
 # IN THE FUNCTIOM ABOVE WE NEED TO REQUEST SNAPSHOT DATA, BEFORE BEING ABLE TO KNOW WHICH REWARD SNAPSHOTS WE WANT TO
 # CHECK AGAINST. THIS IS DONE IN THE FUNCTION BELOW.
 
-async def snapshot(request_url, configuration):
+async def request_snapshot(request_url, configuration):
     data = await request.safe(request_url, configuration)
     if data is not None:
         ordinal = data["data"]["ordinal"]
@@ -123,7 +123,8 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
         node_data = await request_wallet_data(node_data, configuration)
     return node_data
 
-async def reward_check(node_data: dict, all_supported_clusters_data: list):
+
+def reward_check(node_data: dict, all_supported_clusters_data: list):
     for lst in all_supported_clusters_data:
         for cluster in lst:
             if (cluster["layer"] == f"layer {node_data['layer']}") and (cluster["cluster name"] == node_data["clusterNames"]):

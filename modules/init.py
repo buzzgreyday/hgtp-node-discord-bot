@@ -2,7 +2,6 @@ import asyncio
 from modules import read, request, merge, create, locate
 from modules.temporaries import temporaries
 
-
 async def check(dask_client, subscriber: dict, layer: int, port: int, latest_tessellation_version: str,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data: list[dict], history_dataframe, configuration: dict) -> dict:
     node_data = create.snapshot(subscriber, port, layer, latest_tessellation_version)
     node_data = locate.node_cluster(node_data, all_supported_clusters_data)
@@ -12,11 +11,10 @@ async def check(dask_client, subscriber: dict, layer: int, port: int, latest_tes
     node_data = merge.cluster_agnostic_node_data(node_data, validator_mainnet_data, validator_testnet_data,
                                                        all_supported_clusters_data)
     node_data = await request.node_cluster_data_from_dynamic_module(node_data, configuration)
-    node_data = await temporaries.run(node_data, all_supported_clusters_data)
+    node_data = temporaries.run(node_data, all_supported_clusters_data)
     print(node_data)
 
     return node_data
-
 
 async def run(dask_client, latest_tessellation_version: str, validator_mainnet_data, validator_testnet_data, all_supported_cluster_data: list[dict], configuration: dict) -> list:
     subscriber_futures = []

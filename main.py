@@ -37,7 +37,6 @@ if __name__ == "__main__":
 
     cluster = distributed.LocalCluster(asynchronous=True, n_workers=1, threads_per_worker=2, memory_limit='4GB',
                                        processes=True, silence_logs=logging.CRITICAL)
-
     async def main(configuration) -> None:
         # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
         configuration, all_supported_clusters_data,  validator_mainnet_data, validator_testnet_data, latest_tessellation_version = await request.preliminary_data(configuration)
@@ -60,7 +59,6 @@ if __name__ == "__main__":
                 timer_stop = time.perf_counter()
                 print(timer_stop-timer_start)
                 exit(0)
-
 
     @bot.event
     async def on_ready():
