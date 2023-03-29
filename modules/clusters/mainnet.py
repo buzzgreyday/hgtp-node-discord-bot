@@ -170,7 +170,7 @@ async def set_connectivity_specific_node_data_values(node_data):
         elif node_data["clusterNames"] == node_data["formerClusterNames"] \
             and node_data["formerClusterConnectivity"] in ["association", "new association"]:
             node_data["clusterConnectivity"] = "associated"
-    else:
+    elif node_data["formerClusterConnectivity"] is None:
         if node_data["clusterNames"] is None and node_data["formerClusterNames"] is not None \
                 and node_data["clusterSession"] != node_data["latestClusterSession"]:
             node_data["clusterConnectivity"] = "new dissociation"
