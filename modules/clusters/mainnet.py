@@ -155,3 +155,48 @@ async def request_wallet_data(node_data, configuration):
     SECTION 3: CREATE REPORT FORMATTED DATA BEFORE AGGREGATING ALL SUBSCRIBER DATA (INCL. OTHER CLUSTER DATA) IN MAIN.
                SEND WHEN ALL REPORTS HAS BEEN GENERATED AND THE SUBSCRIBER DATA SORTED.
 """
+
+async def set_connectivity_specific_node_data_values(node_data):
+    if node_data["formerClusterConnectivity"] is not None:
+        if node_data["clusterNames"] != node_data["formerClusterNames"] \
+            and node_data["formerClusterConnectivity"] in ["association", "new association"]:
+            node_data["clusterConnectivity"] = "new dissociation"
+        elif node_data["clusterNames"] == node_data["formerClusterNames"] \
+            and node_data["formerClusterConnectivity"] in ["dissociation", "new dissociation"]:
+            node_data["clusterConnectivity"] = "dissociated"
+        elif node_data["clusterNames"] != node_data["formerClusterNames"] \
+            and node_data["formerClusterConnectivity"] in ["disociation", "new dissociation"]:
+            node_data["clusterConnectivity"] = "new associated"
+        elif node_data["clusterNames"] == node_data["formerClusterNames"] \
+            and node_data["formerClusterConnectivity"] in ["association", "new association"]:
+            node_data["clusterConnectivity"] = "associated"
+    else:
+        if node_data["clusterNames"] is None and node_data["formerClusterNames"] is not None \
+                and node_data["clusterSession"] != node_data["latestClusterSession"]:
+            node_data["clusterConnectivity"] = "new dissociation"
+        elif node_data["clusterNames"] is not None and node_data["formerClusterNames"] is None \
+                and node_data["clusterSession"] == node_data["latestClusterSession"]:
+            node_data["clusterConnectivity"] = "new association"
+        elif node_data["clusterNames"] is None and node_data["formerClusterNames"] is None\
+                and node_data["clusterSession"] != node_data["latestClusterSession"]:
+            node_data["clusterConnectivity"] = "dissociated"
+        elif node_data["clusterNames"] is not None and node_data["formerClusterNames"] is not None \
+                and node_data["clusterSession"] == node_data["latestClusterSession"]:
+            node_data["clusterConnectivity"] = "associated"
+async def generate_node_specific_report_data(node_data):
+    # general:
+    #    ip, port, id, layer
+    # connectivity:
+    #    cluster,
+    #    latest as- or dissication status, node peer count
+    # system:
+    #    node version, cpus and cpu load, disk and free space.
+    # wallet:
+    #    rewards, wallet address, wallet balance and explorer
+    node_report_data = {
+        "general": [node_data["host"], node_data["publicPort"], node_data["layer"]],
+        "connectivity": [node_data["clusterNames"] if node_data["clusterNames"] is not None else node_data["formerClusterNames"], node_data["clusterConnectivity"]],
+        "system": [],
+        "wallet": []
+    }
+
