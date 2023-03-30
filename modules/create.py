@@ -1,4 +1,4 @@
-def snapshot(subscriber: dict, port: int, layer: int, latest_tessellation_version: str):
+def snapshot(subscriber: dict, port: int, layer: int, latest_tessellation_version: str, dt_start):
     return {
         "name": subscriber["name"].values[0],
         "contact": subscriber["contact"].values[0],
@@ -7,7 +7,6 @@ def snapshot(subscriber: dict, port: int, layer: int, latest_tessellation_versio
         "publicPort": port,
         "p2pPort": None,
         "id": None,
-        "lastNotified": None,
         "nodeWalletAddress": None,
         "nodeWalletBalance": None,
         "clusterNames": None,
@@ -23,7 +22,7 @@ def snapshot(subscriber: dict, port: int, layer: int, latest_tessellation_versio
         "formerClusterAssociationTime": None,
         "clusterDissociationTime": None,
         "formerClusterDissociationTime": None,
-        "clusterSession": None,
+        "nodeClusterSession": None,
         "latestClusterSession": None,
         "nodePeerCount": None,
         "clusterPeerCount": None,
@@ -34,5 +33,8 @@ def snapshot(subscriber: dict, port: int, layer: int, latest_tessellation_versio
         "diskSpaceTotal": None,
         "diskSpaceFree": None,
         "1mSystemLoadAverage": None,
-        "session": None
+        "lastNotifiedTimestamp": None,
+        "timestampIndex": dt_start.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+        "formerTimestampIndex": None
+
     }

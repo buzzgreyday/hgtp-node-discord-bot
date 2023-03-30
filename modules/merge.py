@@ -21,9 +21,12 @@ def historic_data(node_data: dict, historic_node_dataframe) -> dict:
         node_data["formerClusterConnectivity"] = Clean(historic_node_dataframe["connectivity"][historic_node_dataframe["cluster name"] == node_data["formerClusterNames"]]).make_none()
         node_data["formerClusterAssociationTime"] = Clean(historic_node_dataframe["association time"][historic_node_dataframe["cluster name"] == node_data["formerClusterNames"]]).make_none()
         node_data["formerClusterDissociationTime"] = Clean(historic_node_dataframe["dissociation time"][historic_node_dataframe["cluster name"] == node_data["formerClusterNames"]]).make_none()
+        node_data["formerTimestampIndex"] = Clean(historic_node_dataframe["index timestamp"]).make_none()
+        # node_data["lastNotifiedTimestamp"] = Clean(historic_node_dataframe["last notified timestamp"][historic_node_dataframe["cluster_name"] == node_data["formerClusterNames"]]).make_none()
         if node_data["state"] == "Offline":
             node_data["id"] = Clean(historic_node_dataframe["node id"]).make_none()
             node_data["nodeWalletAddress"] = Clean(historic_node_dataframe["node wallet"]).make_none()
+            # node_data["nodeClusterSession"] = Clean(historic_node_dataframe["node cluster session"][historic_node_dataframe["cluster_name"] == node_data["formerClusterNames"]]).make_none()
             node_data["version"] = Clean(historic_node_dataframe["node version"]).make_none()
             node_data["cpuCount"] = float(historic_node_dataframe["node cpu count"])
             node_data["diskSpaceTotal"] = float(historic_node_dataframe["node total disk space"])

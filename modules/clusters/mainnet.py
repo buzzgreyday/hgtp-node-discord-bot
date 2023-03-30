@@ -110,6 +110,7 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
             f"http://{node_data['host']}:{node_data['publicPort']}/"
             f"{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
         node_data["state"] = "offline" if node_info_data is None else node_info_data["state"].lower()
+        node_data["nodeClusterSession"] = node_info_data["clusterSession"]
         if node_data["state"] != "offline":
             cluster_data = await request.safe(
                 f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
@@ -118,9 +119,12 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
                 f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
                 f"{str(configuration['request']['url']['clusters']['url endings']['metrics info'])}", configuration)
             node_data["id"] = node_info_data["id"]
-            node_data["nodePeerCount"] = len(cluster_data)
+            node_data["nodePeerCount"] = len(cluster_data) if cluster_data is not None else 0
             node_data.update(metrics_data)
         node_data = await request_wallet_data(node_data, configuration)
+        node_data = set_connectivity_specific_node_data_values(node_data)
+        node_data = set_association_time(node_data)
+
     return node_data
 
 
@@ -152,11 +156,14 @@ async def request_wallet_data(node_data, configuration):
     return node_data
 
 """
-    SECTION 3: CREATE REPORT FORMATTED DATA BEFORE AGGREGATING ALL SUBSCRIBER DATA (INCL. OTHER CLUSTER DATA) IN MAIN.
-               SEND WHEN ALL REPORTS HAS BEEN GENERATED AND THE SUBSCRIBER DATA SORTED.
+    SECTION 3: PROCESS AND CALCULATE CLUSTER SPECIFIC NODE DATA.
 """
+# ---------------------------------------------------------------------------------------------------------------------
+# + LIKE ASSOCIATION AND DISSOCIATION... FUNCTIONS WHICH SHOULD ONLY RUN IF A CLUSTER/MODULE EXISTS.
+# ---------------------------------------------------------------------------------------------------------------------
 
-async def set_connectivity_specific_node_data_values(node_data):
+def set_connectivity_specific_node_data_values(node_data):
+
     if node_data["formerClusterConnectivity"] is not None:
         if node_data["clusterNames"] != node_data["formerClusterNames"] \
             and node_data["formerClusterConnectivity"] in ["association", "new association"]:
@@ -172,17 +179,53 @@ async def set_connectivity_specific_node_data_values(node_data):
             node_data["clusterConnectivity"] = "associated"
     elif node_data["formerClusterConnectivity"] is None:
         if node_data["clusterNames"] is None and node_data["formerClusterNames"] is not None \
-                and node_data["clusterSession"] != node_data["latestClusterSession"]:
+                and node_data["nodeClusterSession"] != node_data["latestClusterSession"]:
             node_data["clusterConnectivity"] = "new dissociation"
-        elif node_data["clusterNames"] is not None and node_data["formerClusterNames"] is None \
-                and node_data["clusterSession"] == node_data["latestClusterSession"]:
-            node_data["clusterConnectivity"] = "new association"
-        elif node_data["clusterNames"] is None and node_data["formerClusterNames"] is None\
-                and node_data["clusterSession"] != node_data["latestClusterSession"]:
+        elif node_data["clusterNames"] is None and node_data["formerClusterNames"] is None:
             node_data["clusterConnectivity"] = "dissociated"
+
+        elif node_data["clusterNames"] is not None and node_data["formerClusterNames"] is None \
+                and node_data["nodeClusterSession"] == node_data["latestClusterSession"]:
+            node_data["clusterConnectivity"] = "new association"
+        elif node_data["clusterNames"] is not None and node_data["formerClusterNames"] is None \
+                and node_data["nodeClusterSession"] != node_data["latestClusterSession"]:
+            node_data["clusterConnectivity"] = "dissociated"
+
         elif node_data["clusterNames"] is not None and node_data["formerClusterNames"] is not None \
-                and node_data["clusterSession"] == node_data["latestClusterSession"]:
+                and node_data["nodeClusterSession"] == node_data["latestClusterSession"]:
             node_data["clusterConnectivity"] = "associated"
+        elif node_data["clusterNames"] is not None and node_data["formerClusterNames"] is not None \
+                and node_data["nodeClusterSession"] != node_data["latestClusterSession"]:
+            node_data["clusterConnectivity"] = "dissociated"
+
+    return node_data
+
+def set_association_time(node_data):
+    if node_data["formerTimestampIndex"] is not None:
+        # LINE BELOW IS TEMPORARY
+        node_data["formerTimestampIndex"] = datetime.fromtimestamp(node_data["formerTimestampIndex"]).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+        time_difference = (datetime.strptime(node_data["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ") - datetime.strptime(node_data["formerTimestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ")).seconds
+    else:
+        time_difference = datetime.strptime(node_data["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ").second
+
+    node_data["clusterAssociationTime"] = node_data["formerClusterAssociationTime"] if node_data["formerClusterAssociationTime"] is not None else 0
+    node_data["clusterDissociationTime"] = node_data["formerClusterDissociationTime"] if node_data["formerClusterDissociationTime"] is not None else 0
+
+    if node_data["clusterConnectivity"] == "association":
+        node_data["clusterAssociationTime"] = time_difference + node_data["formerClusterAssociationTime"]
+        node_data["clusterDissociationTime"] = node_data["formerClusterDissociationTime"]
+    elif node_data["clusterConnectivity"] == "disociation":
+        node_data["clusterDissociationTime"] = time_difference + node_data["formerClusterDissociationTime"]
+        node_data["clusterAssociationTime"] = node_data["formerClusterAssociationTime"]
+    elif node_data["clusterConnectivity"] in ["new association", "new dissociation"]:
+        node_data["clusterAssociationTime"] = node_data["formerClusterAssociationTime"]
+        node_data["clusterDissociationTime"] = node_data["formerClusterDissociationTime"]
+    return node_data
+
+"""
+    SECTION 4: CREATE REPORT
+"""
 async def generate_node_specific_report_data(node_data):
     # general:
     #    ip, port, id, layer

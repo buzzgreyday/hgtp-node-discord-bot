@@ -6,6 +6,7 @@ def node_cluster(node_data, all_supported_clusters_data):
                     # LATER INCLUDE ID WHEN SUBSCRIBING
                     if peer["ip"] == node_data["host"]:
                         node_data["clusterNames"] = cluster["cluster name"].lower()
+                        node_data["latestClusterSession"] = cluster["cluster session"]
     return node_data
 
 async def historic_node_data(dask_client, node_data: dict, history_dataframe):

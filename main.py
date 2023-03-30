@@ -45,12 +45,14 @@ if __name__ == "__main__":
             while not bot.is_closed():
                 await dask_client.wait_for_workers(n_workers=1)
                 logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - DASK CLIENT RUNNING")
+                dt_start = datetime.utcnow()
                 timer_start = time.perf_counter()
                 await extras.set_active_presence(bot)
-                futures = await init.run(dask_client, latest_tessellation_version,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data, configuration)
+                futures = await init.run(dask_client, dt_start, latest_tessellation_version,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data, configuration)
                 for async_process in futures:
                     try:
                         node_data = await async_process
+                        print(node_data)
                     except Exception as e:
                         logging.critical(repr(e.with_traceback(sys.exc_info())))
                         await bot.close()
