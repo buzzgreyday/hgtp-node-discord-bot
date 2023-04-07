@@ -1,4 +1,4 @@
-import encode
+from modules import encode
 
 class Clean:
     def __init__(self, value):
