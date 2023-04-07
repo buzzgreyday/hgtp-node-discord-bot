@@ -38,3 +38,4 @@ def snapshot(subscriber: dict, port: int, layer: int, latest_tessellation_versio
         "formerTimestampIndex": None
 
     }
+

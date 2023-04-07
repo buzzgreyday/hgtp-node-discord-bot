@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-
+import asyncio
 import logging
 import sys
 import time
 from datetime import datetime
 from dask.distributed import Client
 import distributed
-from modules import extras, init, request
+from modules import extras, init, request, create
 import nextcord
 from nextcord.ext import commands
 from os import getenv, path, makedirs
@@ -48,15 +48,22 @@ if __name__ == "__main__":
                 dt_start = datetime.utcnow()
                 timer_start = time.perf_counter()
                 await extras.set_active_presence(bot)
+                data = []
+                embeds = []
                 futures = await init.run(dask_client, dt_start, latest_tessellation_version,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data, configuration)
                 for async_process in futures:
                     try:
-                        node_data = await async_process
+                        data.append(await async_process)
                     except Exception as e:
                         logging.critical(repr(e.with_traceback(sys.exc_info())))
                         await bot.close()
                         exit(1)
                 # CREATE EMBEDS PER CLUSTER MODULE
+                # all_data = sorted(all_data, key=lambda x: x["layer"])
+                # all_data = sorted(all_data, key=lambda x: x["host"])
+                # all_data = sorted(all_data, key=lambda x: x["contact"])
+                futures.clear()
+                futures = init.post_run(data)
                 timer_stop = time.perf_counter()
                 print(timer_stop-timer_start)
                 exit(0)

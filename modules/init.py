@@ -36,3 +36,14 @@ async def run(dask_client, dt_start, latest_tessellation_version: str, validator
                     request_futures.append(asyncio.create_task(check(dask_client, subscriber, layer, port, latest_tessellation_version, validator_mainnet_data, validator_testnet_data, all_supported_cluster_data, history_dataframe, dt_start, configuration)))
 
     return request_futures
+
+async def post_run(data):
+    embeds = []
+    while data:
+        key_value = data[0]["contact"]
+        contact_list = [d for d in data if d["contact"] == key_value]
+
+        embeds.append(contact_list) # CREATE EMBED INSTEAD
+        data = [d for d in data if d not in contact_list] # REMOVE CONTACT ENTRIES FROM ORIGINAL LIST
+    print(embeds)
+
