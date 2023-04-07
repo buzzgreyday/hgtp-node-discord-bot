@@ -53,6 +53,7 @@ if __name__ == "__main__":
                     try:
                         node_data = await async_process
                         # CREATE EMBEDS PER CLUSTER MODULE
+
                     except Exception as e:
                         logging.critical(repr(e.with_traceback(sys.exc_info())))
                         await bot.close()
