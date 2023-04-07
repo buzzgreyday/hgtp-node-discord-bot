@@ -52,7 +52,6 @@ if __name__ == "__main__":
                 for async_process in futures:
                     try:
                         node_data = await async_process
-                        print(node_data)
                     except Exception as e:
                         logging.critical(repr(e.with_traceback(sys.exc_info())))
                         await bot.close()

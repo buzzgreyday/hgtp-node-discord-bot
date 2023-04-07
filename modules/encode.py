@@ -1,16 +1,8 @@
 import re
 from hashlib import sha256
 import base58
-node_data = {
-        "name": "test",
-        "contact": "contact",
-        "host": "157.245.121.245",
-        "layer": 0,
-        "publicPort": 9000,
-        "p2pPort": None,
-        "id": 	"05b84749ed796e85ec43852f8d87af489e6d5f6f481fe2c720be1898e85b27a8b582de12e47f16bf3332889c5318e601d5dce30841d7ee29128f692597b1217c"
-}
-def id_to_address():
+
+def id_to_dag_address(node_data):
     # pkcs prefix + 04 required bytes
     pkcs_prefix = "3056301006072a8648ce3d020106052b8104000a034200" + "04"
 
@@ -33,5 +25,4 @@ def id_to_address():
             check_digit = check_digit % 9
 
     wallet_address = f"DAG{check_digit}{node_id}"
-    print(wallet_address)
-
+    return wallet_address

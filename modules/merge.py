@@ -1,3 +1,5 @@
+import encode
+
 class Clean:
     def __init__(self, value):
         self._value = value
@@ -34,7 +36,7 @@ def historic_data(node_data: dict, historic_node_dataframe) -> dict:
     del historic_node_dataframe
     return node_data
 
-def cluster_agnostic_node_data(node_data,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data):
+def cluster_agnostic_node_data(node_data, all_supported_clusters_data):
 
     for lst in all_supported_clusters_data:
         for cluster in lst:
@@ -46,9 +48,11 @@ def cluster_agnostic_node_data(node_data,  validator_mainnet_data, validator_tes
                     node_data["formerClusterPeerCount"] = cluster["peer count"]
                     node_data["formerClusterState"] = cluster["state"]
 
-    for list_of_dict in [validator_mainnet_data, validator_testnet_data]:
+    """for list_of_dict in [validator_mainnet_data, validator_testnet_data]:
         for validator in list_of_dict:
             if validator["ip"] == node_data["host"] or validator["id"] == node_data["id"]:
                 node_data["nodeWalletAddress"] = validator["address"]
-                break
+                break"""
+    node_data["nodeWalletAddress"] = encode.id_to_dag_address(node_data)
+
     return node_data
