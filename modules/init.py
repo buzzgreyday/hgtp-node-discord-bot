@@ -10,7 +10,8 @@ async def check(dask_client, subscriber: dict, layer: int, port: int, latest_tes
     historic_node_dataframe = await locate.historic_node_data(dask_client, node_data, history_dataframe)
     historic_node_dataframe = locate.former_historic_node_data(historic_node_dataframe)
     node_data = merge.historic_data(node_data, historic_node_dataframe)
-    node_data = merge.cluster_agnostic_node_data(node_data, all_supported_clusters_data)
+    node_data = merge.cluster_agnostic_node_data(node_data, validator_mainnet_data, validator_testnet_data,
+                                                       all_supported_clusters_data)
     node_data = await request.node_cluster_data_from_dynamic_module(node_data, configuration)
     node_data = temporaries.run(node_data, all_supported_clusters_data)
     print(node_data)
