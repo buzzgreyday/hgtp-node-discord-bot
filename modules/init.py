@@ -13,7 +13,6 @@ async def check(dask_client, subscriber: dict, layer: int, port: int, latest_tes
     node_data = merge.cluster_agnostic_node_data(node_data, all_supported_clusters_data)
     node_data = await request.node_cluster_data_from_dynamic_module(node_data, configuration)
     node_data = temporaries.run(node_data, all_supported_clusters_data)
-    print(node_data)
 
     return node_data
 

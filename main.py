@@ -48,15 +48,19 @@ if __name__ == "__main__":
                 dt_start = datetime.utcnow()
                 timer_start = time.perf_counter()
                 await extras.set_active_presence(bot)
+                data = []
                 futures = await init.run(dask_client, dt_start, latest_tessellation_version,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data, configuration)
                 for async_process in futures:
                     try:
                         node_data = await async_process
+                        data.append(node_data)
                     except Exception as e:
                         logging.critical(repr(e.with_traceback(sys.exc_info())))
                         await bot.close()
                         exit(1)
                 # FINALLY WE NEED TO SORT PER SUBSCRIBER IN MAIN.PY SO WE CAN MATCH DATA
+                data = sorted(data, key=lambda d: d['contact'])
+                data = sorted(data, key=lambda d: d['host'])
                 timer_stop = time.perf_counter()
                 print(timer_stop-timer_start)
                 exit(0)
