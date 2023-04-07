@@ -52,12 +52,11 @@ if __name__ == "__main__":
                 for async_process in futures:
                     try:
                         node_data = await async_process
-                        # CREATE EMBEDS PER CLUSTER MODULE
-
                     except Exception as e:
                         logging.critical(repr(e.with_traceback(sys.exc_info())))
                         await bot.close()
                         exit(1)
+                # CREATE EMBEDS PER CLUSTER MODULE
                 timer_stop = time.perf_counter()
                 print(timer_stop-timer_start)
                 exit(0)
