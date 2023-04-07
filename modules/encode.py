@@ -30,37 +30,3 @@ def id_to_dag_address(node_id: str):
     print(wallet_address, output_nodeid)
     return wallet_address
 
-async def embed(contact_data):
-    title_layer = None
-    title_state = None
-    for node_data in contact_data:
-        # TITLE CLUSTER
-        if node_data["clusterNames"] is not None:
-            title_cluster = node_data["clusterNames"]
-        elif node_data["clusterNames"] is None and node_data["formerClusterNames"] is not None:
-            title_cluster = node_data["formerClusterNames"]
-        else:
-            title_cluster = None
-        # TITLE LAYER
-        if node_data["layer"] == 0:
-            if title_cluster is not None:
-                title_layer = f"{title_cluster} validator layer"
-            else:
-                title_layer = f"Validator layer"
-        elif node_data["layer"] == 1:
-            if title_cluster is not None:
-                title_layer = f"{title_cluster} metagraph layer"
-            else:
-                title_layer = f"Metagraph layer"
-        # TITLE STATE
-        if node_data["clusterConnectivity"] in ("new association", "associated"):
-            title_state = "up"
-        elif node_data["clusterConnectivity"] in ("new dissociation", "dissociated"):
-            title_state = "down"
-        elif node_data["clusterConnectivity"] is None:
-            title_state = node_data["state"]
-        # TITLE
-        title = f"HGTP NODE SPIDR\n" \
-                f"{title_layer} is {title_state}"
-        print(title)
-        # report = nextcord.Embed(title=title)
