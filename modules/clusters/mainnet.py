@@ -110,7 +110,8 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
             f"http://{node_data['host']}:{node_data['publicPort']}/"
             f"{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
         node_data["state"] = "offline" if node_info_data is None else node_info_data["state"].lower()
-        node_data["nodeClusterSession"] = None if node_info_data["clusterSession"] is None else node_info_data["clusterSession"]
+        if node_info_data is not None:
+            node_data["nodeClusterSession"] = node_info_data["clusterSession"]
         if node_data["state"] != "offline":
             cluster_data = await request.safe(
                 f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
