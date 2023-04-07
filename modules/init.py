@@ -37,7 +37,7 @@ async def run(dask_client, dt_start, latest_tessellation_version: str, validator
 
     return request_futures
 
-async def post_run(data):
+async def send(data):
     embeds = []
     while data:
         key_value = data[0]["contact"]
