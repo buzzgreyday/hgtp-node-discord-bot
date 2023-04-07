@@ -46,10 +46,10 @@ def cluster_agnostic_node_data(node_data,  validator_mainnet_data, validator_tes
                     node_data["formerClusterPeerCount"] = cluster["peer count"]
                     node_data["formerClusterState"] = cluster["state"]
 
-    for list_of_dict in [validator_mainnet_data, validator_testnet_data]:
+    """for list_of_dict in [validator_mainnet_data, validator_testnet_data]:
         for validator in list_of_dict:
             if validator["ip"] == node_data["host"] or validator["id"] == node_data["id"]:
                 node_data["nodeWalletAddress"] = validator["address"]
-                break
+                break"""
 
     return node_data
