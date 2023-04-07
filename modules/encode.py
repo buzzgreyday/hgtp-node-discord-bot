@@ -27,5 +27,3 @@ def id_to_dag_address(node_data):
 
         wallet_address = f"DAG{check_digit}{node_id}"
         return wallet_address
-    else:
-        return None
