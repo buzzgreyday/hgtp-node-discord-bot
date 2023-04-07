@@ -2,14 +2,14 @@ import re
 from hashlib import sha256
 import base58
 
-def id_to_dag_address(node_data):
+def id_to_dag_address(node_id: str):
     # pkcs prefix + 04 required bytes
     pkcs_prefix = "3056301006072a8648ce3d020106052b8104000a034200" + "04"
 
-    output_nodeid = f"{node_data['id'][0:8]}...{node_data['id'][-8:]}"
+    output_nodeid = f"{node_id[0:8]}...{node_id[-8:]}"
 
-    if len(node_data["id"]) == 128:
-        node_id = f"{pkcs_prefix}{node_data['id']}"
+    if len(node_id) == 128:
+        node_id = f"{pkcs_prefix}{node_id}"
     else:
         node_id = None
 

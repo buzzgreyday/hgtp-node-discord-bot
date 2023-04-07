@@ -120,9 +120,10 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
                 f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
                 f"{str(configuration['request']['url']['clusters']['url endings']['metrics info'])}", configuration)
             node_data["id"] = node_info_data["id"]
-            node_data["nodeWalletAddress"] = encode.id_to_dag_address(node_data)
+            node_data["nodeWalletAddress"] = encode.id_to_dag_address(node_data["id"])
             node_data["nodePeerCount"] = len(cluster_data) if cluster_data is not None else 0
             node_data.update(metrics_data)
+
         node_data = await request_wallet_data(node_data, configuration)
         node_data = set_connectivity_specific_node_data_values(node_data)
         node_data = set_association_time(node_data)
