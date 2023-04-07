@@ -1,7 +1,7 @@
 import asyncio
 import datetime
 
-from modules import read, request, merge, create, locate
+from modules import read, request, merge, create, locate, encode
 from modules.temporaries import temporaries
 
 async def check(dask_client, subscriber: dict, layer: int, port: int, latest_tessellation_version: str,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data: list[dict], history_dataframe, dt_start, configuration: dict) -> dict:
@@ -38,12 +38,9 @@ async def run(dask_client, dt_start, latest_tessellation_version: str, validator
     return request_futures
 
 async def send(data):
-    embeds = []
     while data:
         key_value = data[0]["contact"]
-        contact_list = [d for d in data if d["contact"] == key_value]
-
-        embeds.append(contact_list) # CREATE EMBED INSTEAD
-        data = [d for d in data if d not in contact_list] # REMOVE CONTACT ENTRIES FROM ORIGINAL LIST
-    print(embeds)
+        contact_data = [d for d in data if d["contact"] == key_value]
+        await encode.embed(contact_data) # CREATE EMBED INSTEAD
+        data = [d for d in data if d not in contact_data] # REMOVE CONTACT ENTRIES FROM ORIGINAL LIST
 

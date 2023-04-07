@@ -39,3 +39,5 @@ def snapshot(subscriber: dict, port: int, layer: int, latest_tessellation_versio
 
     }
 
+async def embeds(contact_data):
+    pass
