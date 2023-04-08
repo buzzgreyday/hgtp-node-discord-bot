@@ -25,9 +25,9 @@ def build_general(node_data):
         general_node_state = f"**Node**\n" \
                              f":green_square: Online\n" \
                              f"```" \
+                             f"Id: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
                              f"Ip: {node_data['host']}\n" \
-                             f"Port: {node_data['publicPort']}\n" \
-                             f"Id: {node_data['id'][:6]}...{node_data['id'][-6:]}```"
+                             f"Port: {node_data['publicPort']}```"
     elif node_data["state"] != "offline" and node_data['id'] is None:
         general_node_state = f"**Node**\n" \
                              f":green_square: Online\n" \
@@ -38,9 +38,9 @@ def build_general(node_data):
         general_node_state =f"**Node**\n" \
                              f":red_square: Offline\n" \
                              f"```" \
+                             f"Id: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
                              f"Ip: {node_data['host']}\n" \
-                             f"Port: {node_data['publicPort']}\n" \
-                             f"Id: {node_data['id'][:6]}...{node_data['id'][-6:]}```"
+                             f"Port: {node_data['publicPort']}```"
     elif node_data["state"] == "offline" and node_data['id'] is None:
         general_node_state = f"**Node**\n" \
                              f":red_square: Offline\n" \
@@ -50,12 +50,12 @@ def build_general(node_data):
 
     if node_data["clusterConnectivity"] in ("new association", "associated"):
         general_cluster_connectivity = f"**Cluster connectivity**\n" \
-                                       f":green_square: {node_data['clusterConnectivity'].title()}\n" \
-                                       f"```{node_data['clusterNames'].title()}```"
+                                       f":green_square: {str(node_data['clusterConnectivity']).title()}\n" \
+                                       f"```{str(node_data['clusterNames']).title()}```"
     elif node_data["clusterConnectivity"] in ("new dissociation", "dissociated"):
         general_cluster_connectivity = f"**Cluster connectivity**\n" \
-                                       f":red_square: {node_data['clusterConnectivity'].title()}\n" \
-                                       f"```{node_data['formerClusterNames'].title()}```"
+                                       f":red_square: {str(node_data['clusterConnectivity']).title()}\n" \
+                                       f"```{str(node_data['formerClusterNames']).title()}```"
     else:
         general_cluster_connectivity = f"**Cluster connectivity**\n" \
                                        f":yellow_square: Unknown cluster"
