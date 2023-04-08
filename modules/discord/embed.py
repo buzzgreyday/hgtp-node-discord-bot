@@ -56,7 +56,7 @@ def build_general(node_data):
         general_cluster_connectivity = f"**CLUSTER**\n" \
                                        f":red_square: {str(node_data['clusterConnectivity']).title()}\n" \
                                        f"```{str(node_data['formerClusterNames']).title()}```"
-    else:
+    elif node_data["clusterConnectivity"] is None:
         general_cluster_connectivity = f"**CLUSTER**\n" \
                                        f":yellow_square: Unknown cluster"
 
