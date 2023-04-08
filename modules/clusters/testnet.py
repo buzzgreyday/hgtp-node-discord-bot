@@ -252,7 +252,7 @@ def build_title(node_data):
     return f"HGTP NODE REPORT\n" \
            f"{title_layer} is {title_state}".upper()
 
-def build_general(node_data):
+def build_general_node_state(node_data):
     if node_data["state"] != "offline" and node_data['id'] is not None:
         general_node_state = f"**NODE**\n" \
                              f":green_square: Online\n" \
@@ -279,7 +279,9 @@ def build_general(node_data):
                              f"```" \
                              f"Ip: {node_data['host']}\n" \
                              f"Port: {node_data['publicPort']}```"
+    return general_node_state
 
+def build_general_cluster_state(node_data):
     if node_data["clusterConnectivity"] in ("new association", "associated"):
         general_cluster_state = f"**CLUSTER**\n" \
                                        f":green_square: {str(node_data['clusterConnectivity']).title()}\n" \
@@ -292,15 +294,37 @@ def build_general(node_data):
         general_cluster_state = f"**CLUSTER**\n" \
                                        f":yellow_square: Unknown Cluster"
 
-    return general_node_state, general_cluster_state
+    return general_cluster_state
 
-    # REMEMBER CLUSTER/MODULE SPECIFIC ENTRIES
+def build_general_node_wallet(node_data):
+    if node_data["rewardState"] is False:
+        general_node_wallet = f"**WALLET**\n" \
+                              f":red_square: Rewards Missing\n" \
+                              f"```" \
+                              f"Address: {node_data['nodeWalletAddress']}\n" \
+                              f"Balance: {node_data['nodeWalletBalance']}```"
+    elif node_data["rewardState"] is True:
+        general_node_wallet = f"**WALLET**\n" \
+                              f":green_square: Rewards OK\n" \
+                              f"```" \
+                              f"Address: {node_data['nodeWalletAddress']}\n" \
+                              f"Balance: {node_data['nodeWalletBalance']}```"
+    else:
+        general_node_wallet = f"**WALLET**\n" \
+                              f"```" \
+                              f"Address: {node_data['nodeWalletAddress']}\n" \
+                              f"Balance: {node_data['nodeWalletBalance']}```"
+    return general_node_wallet
 
 def build_embed(node_data):
     title = build_title(node_data)
-    general_node_state, general_cluster_state = build_general(node_data)
+    general_node_state = build_general_node_state(node_data)
+    general_cluster_state = build_general_cluster_state(node_data)
+    general_node_wallet = build_general_node_wallet(node_data)
     embed = nextcord.Embed(title=title)
     embed.add_field(name="\u200B", value=general_node_state)
     embed.add_field(name=f"\u200B", value=general_cluster_state)
+    embed.add_field(name=f"\u200B", value=general_node_wallet)
+
     return embed
 
