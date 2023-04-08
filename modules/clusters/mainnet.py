@@ -298,9 +298,9 @@ def build_general(node_data):
 
 def build_embed(node_data):
     title = build_title(node_data)
-    general_node_state, general_cluster_connectivity = build_general(node_data)
+    general_node_state, general_cluster_state = build_general(node_data)
     embed = nextcord.Embed(title=title)
     embed.add_field(name="\u200B", value=general_node_state)
-    embed.add_field(name=f"\u200B", value=general_cluster_connectivity)
+    embed.add_field(name=f"\u200B", value=general_cluster_state)
     return embed
 
