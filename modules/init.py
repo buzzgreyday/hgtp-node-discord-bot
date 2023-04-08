@@ -42,9 +42,12 @@ async def run(dask_client, dt_start, latest_tessellation_version: str, validator
     return request_futures
 
 async def send(bot, data):
+    futures = []
     for node_data in data:
         embed = modules.discord.embed.build_embed(node_data)
-        await bot.get_channel(int(977357753947402281)).send(embed=embed)
+        futures.append(asyncio.create_task(bot.get_channel(int(977357753947402281)).send(embed=embed)))
+    for fut in futures:
+        await fut
 
 
 
