@@ -1,7 +1,6 @@
 import re
 from hashlib import sha256
 import base58
-import nextcord
 
 
 def id_to_dag_address(node_id: str):

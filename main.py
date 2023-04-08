@@ -63,7 +63,7 @@ if __name__ == "__main__":
                 # all_data = sorted(all_data, key=lambda x: x["host"])
                 # all_data = sorted(all_data, key=lambda x: x["contact"])
                 futures.clear()
-                await init.send(bot, data)
+                await init.send(bot, data, configuration)
                 timer_stop = time.perf_counter()
                 print(timer_stop-timer_start)
                 exit(0)

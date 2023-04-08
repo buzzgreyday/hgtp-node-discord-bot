@@ -1,12 +1,11 @@
 import asyncio
-import datetime
+import os
+import importlib.util
+import sys
 
-import nextcord
-
-import modules.discord.embed
 from modules import read, request, merge, create, locate
 from modules.temporaries import temporaries
-from modules.discord import embed
+from modules.clusters import mainnet, testnet
 
 async def check(dask_client, subscriber: dict, layer: int, port: int, latest_tessellation_version: str,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data: list[dict], history_dataframe, dt_start, configuration: dict) -> dict:
     node_data = create.snapshot(subscriber, port, layer, latest_tessellation_version, dt_start)
@@ -41,11 +40,23 @@ async def run(dask_client, dt_start, latest_tessellation_version: str, validator
 
     return request_futures
 
-async def send(bot, data):
+async def send(bot, data, configuration):
     futures = []
     for node_data in data:
-        embed = modules.discord.embed.build_embed(node_data)
-        futures.append(asyncio.create_task(bot.get_channel(int(977357753947402281)).send(embed=embed)))
+
+        if node_data["state"] != "offline":
+            cluster_name = node_data["clusterNames"]
+        else:
+            cluster_name = node_data["formerClusterNames"]
+
+        if os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{cluster_name}.py"):
+            spec = importlib.util.spec_from_file_location(f"{cluster_name}.build_embed",
+                                                          f"{configuration['file settings']['locations']['cluster modules']}/{cluster_name}.py")
+            module = importlib.util.module_from_spec(spec)
+            sys.modules[f"{cluster_name}.build_embed"] = module
+            spec.loader.exec_module(module)
+            embed = module.build_embed(node_data)
+            futures.append(asyncio.create_task(bot.get_channel(int(977357753947402281)).send(embed=embed)))
     for fut in futures:
         await fut
 
