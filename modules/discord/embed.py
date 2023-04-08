@@ -49,15 +49,15 @@ def build_general(node_data):
                              f"Port: {node_data['publicPort']}```"
 
     if node_data["clusterConnectivity"] in ("new association", "associated"):
-        general_cluster_connectivity = f"**Cluster connectivity**\n" \
+        general_cluster_connectivity = f"**Cluster**\n" \
                                        f":green_square: {str(node_data['clusterConnectivity']).title()}\n" \
                                        f"```{str(node_data['clusterNames']).title()}```"
     elif node_data["clusterConnectivity"] in ("new dissociation", "dissociated"):
-        general_cluster_connectivity = f"**Cluster connectivity**\n" \
+        general_cluster_connectivity = f"**Cluster**\n" \
                                        f":red_square: {str(node_data['clusterConnectivity']).title()}\n" \
                                        f"```{str(node_data['formerClusterNames']).title()}```"
     else:
-        general_cluster_connectivity = f"**Cluster connectivity**\n" \
+        general_cluster_connectivity = f"**Cluster**\n" \
                                        f":yellow_square: Unknown cluster"
 
     return general_node_state, general_cluster_connectivity
