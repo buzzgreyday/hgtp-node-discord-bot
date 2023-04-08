@@ -22,43 +22,43 @@ def build_title(node_data):
 
 def build_general(node_data):
     if node_data["state"] != "offline" and node_data['id'] is not None:
-        general_node_state = f"**Node**\n" \
-                             f":green_square: `Ip: {node_data['host']}`\n" \
-                             f"`   Port: {node_data['publicPort']}`\n" \
-                             f"`   Id: {node_data['id'][:6]}...{node_data['id'][-6:]}`"
+        general_node_state = f":green_square: **Node**\n" \
+                             f"Ip: {node_data['host']}`\n" \
+                             f"Port: {node_data['publicPort']}`\n" \
+                             f"Id: {node_data['id'][:6]}...{node_data['id'][-6:]}`"
     elif node_data["state"] != "offline" and node_data['id'] is None:
-        general_node_state = f"**Node**\n" \
-                             f":green_square: `Ip: {node_data['host']}`\n" \
-                             f"`   Port: {node_data['publicPort']}`"
+        general_node_state = f":green_square: **Node**\n" \
+                             f"Ip: {node_data['host']}`\n" \
+                             f"Port: {node_data['publicPort']}`"
     elif node_data["state"] == "offline" and node_data['id'] is not None:
-        general_node_state = f"**Node**\n" \
-                             f":red_square: `Ip: {node_data['host']}`\n" \
-                             f"`   Port: {node_data['publicPort']}`\n" \
-                             f"`   Id: {node_data['id'][:6]}...{node_data['id'][-6:]}`"
+        general_node_state = f":red_square: **Node**\n" \
+                             f"Ip: {node_data['host']}`\n" \
+                             f"Port: {node_data['publicPort']}`\n" \
+                             f"Id: {node_data['id'][:6]}...{node_data['id'][-6:]}`"
     elif node_data["state"] == "offline" and node_data['id'] is None:
-        general_node_state = f"**Node**\n" \
-                             f":red_square: `Ip: {node_data['host']}`\n" \
-                             f"`   Port: {node_data['publicPort']}`"
+        general_node_state = f":red_square: **Node**\n" \
+                             f"Ip: {node_data['host']}`\n" \
+                             f"Port: {node_data['publicPort']}`"
 
     if node_data["clusterConnectivity"] in ("new association", "associated"):
-        general_cluster_connectivity = f"**Cluster connectivity**\n" \
-                                       f":green_square: {node_data['clusterConnectivity']}"
+        general_cluster_connectivity = f":green_square: **Cluster connectivity**\n" \
+                                       f"{node_data['clusterConnectivity']}"
     elif node_data["clusterConnectivity"] in ("new dissociation", "dissociated"):
-        general_cluster_connectivity = f"**Cluster connectivity**\n" \
-                                       f":red_square: {node_data['clusterConnectivity']}"
+        general_cluster_connectivity = f":red_square: **Cluster connectivity**\n" \
+                                       f"{node_data['clusterConnectivity']}"
     else:
-        general_cluster_connectivity = f"**Cluster connectivity**\n" \
-                                       f":yellow_square: {node_data['clusterConnectivity']}"
+        general_cluster_connectivity = f":yellow_square: **Cluster connectivity**\n" \
+                                       f"{node_data['clusterConnectivity']}"
 
     if node_data["clusterState"] != "offline" and node_data["clusterState"] is not None:
-        general_cluster_state = f"**Cluster**\n" \
-                                f":green_square: {node_data['clusterNames']}"
+        general_cluster_state = f":green_square: **Cluster**\n" \
+                                f"{node_data['clusterNames']}"
     elif node_data["clusterState"] != "offline" and node_data["clusterState"] is None:
-        general_cluster_state = f"**Cluster**\n" \
-                                f":yellow_square: {node_data['clusterNames']}"
+        general_cluster_state = f":yellow_square: **Cluster**\n" \
+                                f"{node_data['clusterNames']}"
     else:
-        general_cluster_state = f"**Cluster**\n" \
-                                f":red_square: {node_data['clusterNames']}"
+        general_cluster_state = f":red_square: **Cluster**\n" \
+                                f"{node_data['clusterNames']}"
     return general_node_state, general_cluster_state, general_cluster_connectivity
 
     # REMEMBER CLUSTER/MODULE SPECIFIC ENTRIES
