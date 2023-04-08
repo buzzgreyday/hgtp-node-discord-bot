@@ -1,7 +1,10 @@
 import asyncio
 import datetime
 
-from modules import read, request, merge, create, locate, encode
+import nextcord
+
+import modules.discord.embed
+from modules import read, request, merge, create, locate
 from modules.temporaries import temporaries
 from modules.discord import embed
 
@@ -38,10 +41,10 @@ async def run(dask_client, dt_start, latest_tessellation_version: str, validator
 
     return request_futures
 
-async def send(data):
-    while data:
-        key_value = data[0]["contact"]
-        contact_data = [d for d in data if d["contact"] == key_value]
-        await embed.build_embed(contact_data) # CREATE EMBED INSTEAD
-        data = [d for d in data if d not in contact_data] # REMOVE CONTACT ENTRIES FROM ORIGINAL LIST
+async def send(bot, data):
+    for node_data in data:
+        embed = modules.discord.embed.build_embed(node_data)
+        await bot.get_channel(int(977357753947402281)).send(embed=embed)
+
+
 
