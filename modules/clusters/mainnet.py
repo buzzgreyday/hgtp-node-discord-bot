@@ -281,18 +281,18 @@ def build_general(node_data):
                              f"Port: {node_data['publicPort']}```"
 
     if node_data["clusterConnectivity"] in ("new association", "associated"):
-        general_cluster_connectivity = f"**CLUSTER**\n" \
+        general_cluster_state = f"**CLUSTER**\n" \
                                        f":green_square: {str(node_data['clusterConnectivity']).title()}\n" \
                                        f"```{str(node_data['clusterNames']).title()}```"
     elif node_data["clusterConnectivity"] in ("new dissociation", "dissociated"):
-        general_cluster_connectivity = f"**CLUSTER**\n" \
+        general_cluster_state = f"**CLUSTER**\n" \
                                        f":red_square: {str(node_data['clusterConnectivity']).title()}\n" \
                                        f"```{str(node_data['formerClusterNames']).title()}```"
     elif node_data["clusterConnectivity"] is None:
-        general_cluster_connectivity = f"**CLUSTER**\n" \
+        general_cluster_state = f"**CLUSTER**\n" \
                                        f":yellow_square: Unknown Cluster"
 
-    return general_node_state, general_cluster_connectivity
+    return general_node_state, general_cluster_state
 
     # REMEMBER CLUSTER/MODULE SPECIFIC ENTRIES
 
