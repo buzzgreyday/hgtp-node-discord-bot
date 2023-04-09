@@ -316,7 +316,7 @@ def build_general_node_wallet(node_data):
                        f"```\n" \
                        f"{node_data['nodeWalletAddress']}\n" \
                        f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
-                       f":information_source: The wallet receives rewards"
+                       f":coin: The wallet receives rewards"
             if node_data["rewardState"] is None:
                 if node_data["layer"] == 0:
                     return f":yellow_square: **WALLET**\n" \
