@@ -303,41 +303,54 @@ def build_general_cluster_state(node_data):
                f":information_source: Unknown cluster"
 
 def build_general_node_wallet(node_data):
-    if node_data["rewardState"] is False and node_data["nodeWalletBalance"] >= 250000*100000000:
-        return f":red_square: **WALLET**\n" \
-               f"```\n" \
-               f"{node_data['nodeWalletAddress']}\n" \
-               f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
-               f":warning: The wallet did *not* receive rewards for the last 50 snapshots"
-    elif node_data["rewardState"] is True and node_data["nodeWalletBalance"] >= 250000*100000000:
-        return f":green_square: **WALLET**\n" \
-               f"```\n" \
-               f"{node_data['nodeWalletAddress']}\n" \
-               f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
-               f":information_source: The wallet receives rewards"
-    elif node_data["rewardState"] is True and node_data["nodeWalletBalance"] < 250000*100000000:
-        return f":red_square: **WALLET**\n" \
-               f"```\n" \
-               f"{node_data['nodeWalletAddress']}\n" \
-               f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
-               f":warning: The wallet does not hold sufficient collateral"
-    elif node_data["rewardState"] is False and node_data["nodeWalletBalance"] < 250000*100000000:
-        return f":red_square: **WALLET**\n" \
-               f"```\n" \
-               f"{node_data['nodeWalletAddress']}\n" \
-               f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
-               f":warning: The wallet did *not* receive rewards for the last 50 snapshots and does *not* hold sufficient collateral"
-    else:
-        if node_data["nodeWalletAddress"] is not None:
-            if node_data["rewardState"] is None:
+    if node_data["nodeWalletBalance"] >= 250000 * 100000000:
+        if node_data["rewardState"] is False:
+            return f":red_square: **WALLET**\n" \
+                   f"```\n" \
+                   f"{node_data['nodeWalletAddress']}\n" \
+                   f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
+                   f":warning: The wallet did *not* receive rewards for the last 50 snapshots"
+        elif node_data["rewardState"] is True:
+            return f":green_square: **WALLET**\n" \
+                   f"```\n" \
+                   f"{node_data['nodeWalletAddress']}\n" \
+                   f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
+                   f":information_source: The wallet receives rewards"
+        if node_data["rewardState"] is None:
+            if node_data["layer"] == 0:
+                return f":yellow_square: **WALLET**\n" \
+                       f"```\n" \
+                       f"{node_data['nodeWalletAddress']}\n" \
+                       f"{node_data['nodeWalletBalance'] / 100000000} $DAG```" \
+                       f":information_source: Could not check reward state please report this as a bug"
+            elif node_data["layer"] == 1:
                 return f":green_square: **WALLET**\n" \
                        f"```\n" \
                        f"{node_data['nodeWalletAddress']}\n" \
-                       f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
+                       f"{node_data['nodeWalletBalance'] / 100000000} $DAG```" \
                        f":information_source: This layer might not support rewards"
-        else:
-            return f":yellow_square: **WALLET**\n" \
-                   f":information_source: No data available"
+    elif node_data["nodeWalletBalance"] < 250000 * 100000000:
+        if node_data["rewardState"] is True:
+            return f":red_square: **WALLET**\n" \
+                   f"```\n" \
+                   f"{node_data['nodeWalletAddress']}\n" \
+                   f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
+                   f":warning: The wallet does not hold sufficient collateral"
+        elif node_data["rewardState"] is False:
+            return f":red_square: **WALLET**\n" \
+                   f"```\n" \
+                   f"{node_data['nodeWalletAddress']}\n" \
+                   f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
+                   f":warning: The wallet did *not* receive rewards for the last 50 snapshots and does *not* hold sufficient collateral"
+        elif node_data["rewardState"] is None:
+            return f":red_square: **WALLET**\n" \
+                   f"```\n" \
+                   f"{node_data['nodeWalletAddress']}\n" \
+                   f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
+                   f":warning: The wallet does *not* hold sufficient collateral"
+    else:
+        return f":yellow_square: **WALLET**\n" \
+               f":information_source: No data available"
 
 def build_system_node_version(node_data):
     if node_data["version"] is not None:
@@ -349,7 +362,7 @@ def build_system_node_version(node_data):
         elif node_data["version"] < node_data["latestVersion"]:
             return f":red_square: **TESSELLATION **\n" \
                    f"```Version {node_data['version']} installed```" \
-                   f":warning: The latest version is `{node_data['latestVersion']}`"
+                   f":warning: The latest version is `{node_data['latestVersion']}` - please check if an upgrade is necessary"
         elif node_data["version"] > node_data["latestVersion"]:
             return f":green_square: **TESSELLATION **\n" \
                    f"```Version {node_data['version']} installed```" \
