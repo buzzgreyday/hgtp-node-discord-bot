@@ -300,7 +300,7 @@ def build_general_cluster_state(node_data):
                f"\"{str(node_data['formerClusterNames']).title()}\"```"
     elif node_data["clusterConnectivity"] is None:
         return f":yellow_square: **CLUSTER**\n" \
-               f":information_source: Unknown cluster"
+               f":information_source: No data available"
 
 def build_general_node_wallet(node_data):
     if node_data["nodeWalletAddress"] is not None:
