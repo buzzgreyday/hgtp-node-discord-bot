@@ -115,6 +115,7 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
         node_data["state"] = "offline" if node_info_data is None else node_info_data["state"].lower()
         if node_info_data is not None:
             node_data["nodeClusterSession"] = node_info_data["clusterSession"]
+            node_data["version"] = node_info_data["version"]
         if node_data["state"] != "offline":
             cluster_data = await request.safe(
                 f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
@@ -254,77 +255,123 @@ def build_title(node_data):
 
 def build_general_node_state(node_data):
     if node_data["state"] != "offline" and node_data['id'] is not None:
-        general_node_state = f"**NODE**\n" \
-                             f":green_square: Online\n" \
-                             f"```" \
-                             f"Id: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
-                             f"Ip: {node_data['host']}\n" \
-                             f"Port: {node_data['publicPort']}```"
+        return f":green_square: **NODE**\n" \
+               f"```\n" \
+               f"Id: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
+               f"Ip: {node_data['host']}\n" \
+               f"Port: {node_data['publicPort']}\n" \
+               f"State: Online```"
     elif node_data["state"] != "offline" and node_data['id'] is None:
-        general_node_state = f"**NODE**\n" \
-                             f":green_square: Online\n" \
-                             f"```" \
-                             f"Ip: {node_data['host']}\n" \
-                             f"Port: {node_data['publicPort']}```"
+        return f":green_square: **NODE**\n" \
+               f"```\n" \
+               f"Ip: {node_data['host']}\n" \
+               f"Port: {node_data['publicPort']}\n" \
+               f"State: Online```"
     elif node_data["state"] == "offline" and node_data['id'] is not None:
-        general_node_state =f"**NODE**\n" \
-                             f":red_square: Offline\n" \
-                             f"```" \
-                             f"Id: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
-                             f"Ip: {node_data['host']}\n" \
-                             f"Port: {node_data['publicPort']}```"
+        return f":red_square: **NODE**\n" \
+               f"```\n" \
+               f"Id: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
+               f"Ip: {node_data['host']}\n" \
+               f"Port: {node_data['publicPort']}\n" \
+               f"State: Offline```"
     elif node_data["state"] == "offline" and node_data['id'] is None:
-        general_node_state = f"**NODE**\n" \
-                             f":red_square: Offline\n" \
-                             f"```" \
-                             f"Ip: {node_data['host']}\n" \
-                             f"Port: {node_data['publicPort']}```"
-    return general_node_state
+        return f":red_square: **NODE**\n" \
+               f"```\n" \
+               f"Ip: {node_data['host']}\n" \
+               f"Port: {node_data['publicPort']}\n" \
+               f"State: Offline```"
 
 def build_general_cluster_state(node_data):
-    if node_data["clusterConnectivity"] in ("new association", "associated"):
-        general_cluster_state = f"**CLUSTER**\n" \
-                                       f":green_square: {str(node_data['clusterConnectivity']).title()}\n" \
-                                       f"```{str(node_data['clusterNames']).title()}```"
-    elif node_data["clusterConnectivity"] in ("new dissociation", "dissociated"):
-        general_cluster_state = f"**CLUSTER**\n" \
-                                       f":red_square: {str(node_data['clusterConnectivity']).title()}\n" \
-                                       f"```{str(node_data['formerClusterNames']).title()}```"
+    if node_data["clusterConnectivity"] == "new association":
+        return f":green_square: **CLUSTER**\n" \
+               f"```Recently associated with:\n" \
+               f"\"{str(node_data['clusterNames']).title()}\"```"
+    elif node_data["clusterConnectivity"] == "associated":
+        return f":green_square: **CLUSTER**\n" \
+               f"```Associated with:\n" \
+               f"\"{str(node_data['clusterNames']).title()}\"```"
+    elif node_data["clusterConnectivity"] == "new dissociation":
+        return f":red_square: **CLUSTER**\n" \
+               f"```Recently dissociated from:\n" \
+               f"\"{str(node_data['formerClusterNames']).title()}\"```"
+    elif node_data["clusterConnectivity"] == "dissociated":
+        return f":red_square: **CLUSTER**\n" \
+               f"```Dissociated from:\n" \
+               f"\"{str(node_data['formerClusterNames']).title()}\"```"
     elif node_data["clusterConnectivity"] is None:
-        general_cluster_state = f"**CLUSTER**\n" \
-                                       f":yellow_square: Unknown Cluster"
-
-    return general_cluster_state
+        return f":yellow_square: **CLUSTER**\n" \
+               f":information_source: Unknown cluster"
 
 def build_general_node_wallet(node_data):
-    if node_data["rewardState"] is False:
-        general_node_wallet = f"**WALLET**\n" \
-                              f":red_square: Rewards Missing\n" \
-                              f"```" \
-                              f"Address: {node_data['nodeWalletAddress']}\n" \
-                              f"Balance: {node_data['nodeWalletBalance']}```"
-    elif node_data["rewardState"] is True:
-        general_node_wallet = f"**WALLET**\n" \
-                              f":green_square: Rewards OK\n" \
-                              f"```" \
-                              f"Address: {node_data['nodeWalletAddress']}\n" \
-                              f"Balance: {node_data['nodeWalletBalance']}```"
+    if node_data["rewardState"] is False and node_data["nodeWalletBalance"] >= 250000*100000000:
+        return f":red_square: **WALLET**\n" \
+               f"```\n" \
+               f"{node_data['nodeWalletAddress']}\n" \
+               f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
+               f":warning: The wallet did *not* receive rewards for the last 50 snapshots"
+    elif node_data["rewardState"] is True and node_data["nodeWalletBalance"] >= 250000*100000000:
+        return f":green_square: **WALLET**\n" \
+               f"```\n" \
+               f"{node_data['nodeWalletAddress']}\n" \
+               f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
+               f":information_source: The wallet receives rewards"
+    elif node_data["rewardState"] is True and node_data["nodeWalletBalance"] < 250000*100000000:
+        return f":red_square: **WALLET**\n" \
+               f"```\n" \
+               f"{node_data['nodeWalletAddress']}\n" \
+               f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
+               f":warning: The wallet does not hold sufficient collateral"
+    elif node_data["rewardState"] is False and node_data["nodeWalletBalance"] < 250000*100000000:
+        return f":red_square: **WALLET**\n" \
+               f"```\n" \
+               f"{node_data['nodeWalletAddress']}\n" \
+               f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
+               f":warning: The wallet did *not* receive rewards for the last 50 snapshots and does *not* hold sufficient collateral"
     else:
-        general_node_wallet = f"**WALLET**\n" \
-                              f"```" \
-                              f"Address: {node_data['nodeWalletAddress']}\n" \
-                              f"Balance: {node_data['nodeWalletBalance']}```"
-    return general_node_wallet
+        if node_data["nodeWalletAddress"] is not None:
+            if node_data["rewardState"] is None:
+                return f":green_square: **WALLET**\n" \
+                       f"```\n" \
+                       f"{node_data['nodeWalletAddress']}\n" \
+                       f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
+                       f":information_source: This layer might not support rewards"
+        else:
+            return f":yellow_square: **WALLET**\n" \
+                   f":information_source: No data available"
+
+def build_system_node_version(node_data):
+    if node_data["version"] is not None:
+        if node_data["version"] == node_data["latestVersion"]:
+            return f":green_square: **TESSELLATION**\n" \
+                   f"```Version {node_data['version']} installed```" \
+                   f":information_source: No new version available"
+
+        elif node_data["version"] < node_data["latestVersion"]:
+            return f":red_square: **TESSELLATION **\n" \
+                   f"```Version {node_data['version']} installed```" \
+                   f":warning: The latest version is `{node_data['latestVersion']}`"
+        elif node_data["version"] > node_data["latestVersion"]:
+            return f":green_square: **TESSELLATION **\n" \
+                   f"```Version {node_data['version']} installed```" \
+                   f":information_source: The installed version is higher than the latest officially released version `{node_data['latestVersion']}` :fire:"
+        else:
+            return f":yellow_square: **TESSELLATION **\n" \
+                   f"```Version {node_data['version']} installed```" \
+                   f":information_source: Latest version is `{node_data['latestVersion']}`"
+    else:
+        return f":yellow_square: **TESSELLATION VERSION**\n" \
+               f":information_source: No data available"
+
+def build_system_node_load_average(node_data):
+    pass
 
 def build_embed(node_data):
-    title = build_title(node_data)
-    general_node_state = build_general_node_state(node_data)
-    general_cluster_state = build_general_cluster_state(node_data)
-    general_node_wallet = build_general_node_wallet(node_data)
-    embed = nextcord.Embed(title=title)
-    embed.add_field(name="\u200B", value=general_node_state)
-    embed.add_field(name=f"\u200B", value=general_cluster_state)
-    embed.add_field(name=f"\u200B", value=general_node_wallet)
+    embed = nextcord.Embed(title=build_title(node_data))
+    embed.add_field(name="\u200B", value=build_general_node_state(node_data))
+    embed.add_field(name=f"\u200B", value=build_general_cluster_state(node_data))
+    embed.add_field(name=f"\u200B", value=build_general_node_wallet(node_data), inline=False)
+    embed.add_field(name="\u200B", value=build_system_node_version(node_data), inline=False)
+
 
     return embed
 
