@@ -363,11 +363,11 @@ def build_system_node_load_average(node_data):
                f"CPU LOAD: {node_data['1mSystemLoadAverage']}```" \
                f"{field_info}"
 
-    if float(node_data["1mSystemLoadAverage"] / node_data["cpuCount"]) >= 1:
+    if float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) >= 1:
         field_symbol = ":red_square:"
         field_info = f":warning: CPU load is *too high* - should be below the number of CPUs ({node_data['cpuCount']})"
         return wallet_field()
-    elif float(node_data["1mSystemLoadAverage"] / node_data["cpuCount"]) < 1:
+    elif float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) < 1:
         field_symbol = ":green_square:"
         field_info = f":information_source: CPU load is *OK*"
         return wallet_field()
