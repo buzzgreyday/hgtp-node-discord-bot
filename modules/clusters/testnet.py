@@ -362,6 +362,7 @@ def build_system_node_load_average(node_data):
                f"CPU COUNT: {node_data['cpuCount']}\n" \
                f"CPU LOAD: {node_data['1mSystemLoadAverage']}```" \
                f"{field_info}"
+
     if node_data["1mSystemLoadAverage"] / node_data["cpuCount"] >= 1:
         field_symbol = ":red_square:"
         field_info = f":warning: CPU load is *too high* - should be below the number of CPUs ({node_data['cpuCount']})"
@@ -379,6 +380,7 @@ def build_embed(node_data):
     embed.add_field(name=f"\u200B", value=build_general_cluster_state(node_data))
     embed.add_field(name=f"\u200B", value=build_general_node_wallet(node_data), inline=False)
     embed.add_field(name="\u200B", value=build_system_node_version(node_data), inline=False)
+    embed.add_field(name="\u200B", value=build_system_node_load_average(node_data), inline=True)
 
     return embed
 
