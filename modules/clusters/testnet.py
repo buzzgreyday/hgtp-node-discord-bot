@@ -236,17 +236,13 @@ def set_association_time(node_data):
 """
 
 def build_title(node_data):
-    if node_data["clusterConnectivity"] == "new association":
-        title_state = f"recently associated with \"{node_data['clusterNames'].title()}\""
-    elif node_data["clusterConnectivity"] == "associated":
-        title_state = f"associated with \"{node_data['clusterNames'].title()}\""
-    elif node_data["clusterConnectivity"] == "new dissociation":
-        title_state = f"recently dissociated from \"{node_data['formerClusterNames'].title()}\""
-    elif node_data["clusterConnectivity"] == "dissociated":
-        title_state = f"dissociated from \"{node_data['formerClusterNames'].title()}\""
+    if node_data["clusterConnectivity"] in ("new association", "associated"):
+        title_ending = f"is up"
+    elif node_data["clusterConnectivity"] in ("new dissociation", "dissociated"):
+        title_ending = f"is down"
     else:
-        title_state = f"report"
-    return f"{node_data['host']} layer {node_data['layer']} ({node_data['publicPort']}) {title_state}"
+        title_ending = f"report"
+    return f"\"{node_data['clusterNames'].title()}\" layer {node_data['layer']} node ({node_data['host']}) {title_ending}"
 
 
 def build_general_node_state(node_data):
@@ -390,8 +386,18 @@ def build_system_node_load_average(node_data):
         return load_average_field()
 
 
+
+
 def build_embed(node_data):
-    embed = nextcord.Embed(title=build_title(node_data).upper())
+    def determine_color():
+        if node_data["clusterConnectivity"] in ("new association", "associated"):
+            return nextcord.Color.brand_green()
+        elif node_data["clusterConnectivity"] in ("new dissociation", "dissociated"):
+            return nextcord.Color.brand_red()
+        else:
+            return nextcord.Color.yellow()
+
+    embed = nextcord.Embed(title=build_title(node_data).upper(), colour=determine_color())
     embed.set_author(name=node_data["name"])
     embed.add_field(name="\u200B", value=build_general_node_state(node_data))
     embed.add_field(name=f"\u200B", value=build_general_cluster_state(node_data))
