@@ -371,7 +371,7 @@ def build_system_node_load_average(node_data):
     def load_average_field():
         return f"{field_symbol} **CPU**\n" \
                f"```\n" \
-               f"Count: {int(node_data['cpuCount'])}\n" \
+               f"Count: {round(node_data['cpuCount'])}\n" \
                f"Load: {round(node_data['1mSystemLoadAverage'], 2)}```" \
                f"{field_info}"
     if (node_data["1mSystemLoadAverage"] or node_data["cpuCount"]) is not None:
