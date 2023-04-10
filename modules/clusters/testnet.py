@@ -404,9 +404,12 @@ def build_embed(node_data):
     embed.set_author(name=node_data["name"])
     embed.add_field(name="\u200B", value=build_general_node_state(node_data))
     embed.add_field(name=f"\u200B", value=build_general_cluster_state(node_data))
-    embed.add_field(name=f"\u200B", value=build_general_node_wallet(node_data), inline=False)
-    embed.add_field(name="\u200B", value=build_system_node_version(node_data), inline=False)
-    embed.add_field(name="\u200B", value=build_system_node_load_average(node_data), inline=True)
+    if node_data["nodeWalletAddress"] is not None:
+        embed.add_field(name=f"\u200B", value=build_general_node_wallet(node_data), inline=False)
+    if node_data["version"] is not None:
+        embed.add_field(name="\u200B", value=build_system_node_version(node_data), inline=False)
+    if node_data["1mSystemLoadAverage"] is not None:
+        embed.add_field(name="\u200B", value=build_system_node_load_average(node_data), inline=True)
 
     return embed
 
