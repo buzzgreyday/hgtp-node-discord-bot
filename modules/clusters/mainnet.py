@@ -242,7 +242,10 @@ def build_title(node_data):
         title_ending = f"is down"
     else:
         title_ending = f"report"
-    return f"\"{node_data['clusterNames'].title()}\" layer {node_data['layer']} node ({node_data['host']}) {title_ending}"
+    if node_data['clusterNames'] is not None:
+        return f"{node_data['clusterNames'].title()} layer {node_data['layer']} node ({node_data['host']}) {title_ending}"
+    else:
+        return f"layer {node_data['layer']} node ({node_data['host']}) {title_ending}"
 
 
 def build_general_node_state(node_data):
@@ -391,7 +394,7 @@ def build_system_node_load_average(node_data):
 def build_embed(node_data):
     def determine_color():
         if node_data["clusterConnectivity"] in ("new association", "associated"):
-            return nextcord.Color.brand_green()
+            return nextcord.Color.dark_green()
         elif node_data["clusterConnectivity"] in ("new dissociation", "dissociated"):
             return nextcord.Color.brand_red()
         else:
