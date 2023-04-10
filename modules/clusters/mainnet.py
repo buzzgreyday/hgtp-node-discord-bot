@@ -322,9 +322,22 @@ def build_general_node_wallet(node_data):
                 field_info = f":warning: The wallet does *not* hold sufficient collateral"
                 return wallet_field(field_symbol, field_info)
             else:
-                field_symbol = ":green_square:"
-                field_info = f":information_source: No minimum collateral required"
-                return wallet_field(field_symbol, field_info)
+                if node_data["rewardState"] is True:
+                    field_symbol = ":green_square:"
+                    field_info = f":information_source: No minimum collateral required\n" \
+                                 f":coin: The wallet receives rewards"
+                    return wallet_field(field_symbol, field_info)
+                elif node_data["rewardState"] is False:
+                    field_symbol = ":red_square:"
+                    field_info = f":information_source: No minimum collateral required\n" \
+                                 f":warning: The wallet did *not* receive rewards for the last 50 snapshots"
+                    return wallet_field(field_symbol, field_info)
+                else:
+                    field_symbol = ":yellow_square:"
+                    field_info = f":information_source: No minimum collateral required\n" \
+                                 f":information_source: The wallet reward state is unknown. Please report"
+                    return wallet_field(field_symbol, field_info)
+
 
     if node_data["nodeWalletAddress"] is not None:
             return field_from_wallet_conditions()
