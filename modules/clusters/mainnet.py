@@ -308,16 +308,16 @@ def build_general_node_wallet(node_data):
                 if node_data["formerRewardState"] is True:
                     field_info = f":warning: The wallet recently stopped receiving rewards"
                     return wallet_field(field_symbol, field_info)
-                elif node_data["formerRewardState"] is (False or None):
+                else:
                     field_info = f":warning: The wallet does *not* receive rewards"
                     return wallet_field(field_symbol, field_info)
             elif node_data["rewardState"] is True:
                 field_symbol = ":green_square:"
-                if node_data["formerRewardState"] is (True or None):
-                    field_info = f":coin: The wallet receives rewards"
-                    return wallet_field(field_symbol, field_info)
-                elif node_data["formerRewardState"] is False:
+                if node_data["formerRewardState"] is False:
                     field_info = f":coin: The wallet recently started receiving rewards"
+                    return wallet_field(field_symbol, field_info)
+                else:
+                    field_info = f":coin: The wallet receives rewards"
                     return wallet_field(field_symbol, field_info)
             elif node_data["rewardState"] is None:
                 field_symbol = ":yellow_square:"
@@ -331,21 +331,22 @@ def build_general_node_wallet(node_data):
             else:
                 if node_data["rewardState"] is True:
                     field_symbol = ":green_square:"
-                    if node_data["formerRewardState"] is (True or None):
-                        field_info = f":information_source: No minimum collateral required\n" \
-                                     f":coin: The wallet receives rewards"
-                        return wallet_field(field_symbol, field_info)
-                    elif node_data["formerRewardState"] is False:
+                    if node_data["formerRewardState"] is False:
                         field_info = f":information_source: No minimum collateral required\n" \
                                      f":coin: The wallet recently started receiving rewards"
                         return wallet_field(field_symbol, field_info)
+                    else:
+                        field_info = f":information_source: No minimum collateral required\n" \
+                                     f":coin: The wallet receives rewards"
+                        return wallet_field(field_symbol, field_info)
+
                 elif node_data["rewardState"] is False:
                     field_symbol = ":red_square:"
                     if node_data["formerRewardState"] is True:
                         field_info = f":information_source: No minimum collateral required\n" \
                                      f":warning: The wallet recently stopped receiving rewards"
                         return wallet_field(field_symbol, field_info)
-                    elif node_data["formerRewardState"] is (False or None):
+                    else:
                         field_info = f":information_source: No minimum collateral required\n" \
                                      f":warning: The wallet does *not* receive rewards"
                         return wallet_field(field_symbol, field_info)
