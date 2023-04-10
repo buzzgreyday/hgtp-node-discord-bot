@@ -138,7 +138,8 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
 def reward_check(node_data: dict, all_supported_clusters_data: list):
     for lst in all_supported_clusters_data:
         for cluster in lst:
-            if (cluster["layer"] == f"layer {node_data['layer']}") and (cluster["cluster name"] == node_data["clusterNames"]):
+            # if (cluster["layer"] == f"layer {node_data['layer']}") and (cluster["cluster name"] == node_data["clusterNames"]):
+            if (cluster["cluster name"] == node_data["clusterNames"]) or (cluster["cluster name"] == node_data["formerClusterNames"]):
                 if str(node_data["nodeWalletAddress"]) in cluster["recently rewarded"]:
                     node_data["rewardState"] = True
                 elif (cluster["recently rewarded"] is None) and (str(node_data["nodeWalletAddress"]) not in cluster["recently rewarded"]):
@@ -235,51 +236,48 @@ def set_association_time(node_data):
 """
 
 def build_title(node_data):
-    title_state = None
-    # TITLE LAYER
-    if node_data["layer"] == 0:
-        title_layer = f"{node_data['host']} layer 0"
+    if node_data["clusterConnectivity"] == "new association":
+        title_state = f"recently associated with \"{node_data['clusterNames'].title()}\""
+    elif node_data["clusterConnectivity"] == "associated":
+        title_state = f"associated with \"{node_data['clusterNames'].title()}\""
+    elif node_data["clusterConnectivity"] == "new dissociation":
+        title_state = f"recently dissociated from \"{node_data['formerClusterNames'].title()}\""
+    elif node_data["clusterConnectivity"] == "dissociated":
+        title_state = f"dissociated from \"{node_data['formerClusterNames'].title()}\""
     else:
-        title_layer = f"{node_data['host']} layer 1"
+        title_state = f"report"
+    return f"{node_data['host']} layer {node_data['layer']} ({node_data['publicPort']}) {title_state}"
 
-    # TITLE STATE
-    if node_data["clusterConnectivity"] in ("new association", "associated"):
-        title_state = "up"
-    elif node_data["clusterConnectivity"] in ("new dissociation", "dissociated"):
-        title_state = "down"
-    elif node_data["clusterConnectivity"] is None:
-        title_state = node_data["state"]
-    # TITLE
-    return f"HGTP NODE REPORT\n" \
-           f"{title_layer} is {title_state}".upper()
 
 def build_general_node_state(node_data):
-    if node_data["state"] != "offline" and node_data['id'] is not None:
-        return f":green_square: **NODE**\n" \
-               f"```\n" \
-               f"Id: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
-               f"Ip: {node_data['host']}\n" \
-               f"Port: {node_data['publicPort']}\n" \
-               f"State: Online```"
-    elif node_data["state"] != "offline" and node_data['id'] is None:
-        return f":green_square: **NODE**\n" \
-               f"```\n" \
-               f"Ip: {node_data['host']}\n" \
-               f"Port: {node_data['publicPort']}\n" \
-               f"State: Online```"
-    elif node_data["state"] == "offline" and node_data['id'] is not None:
-        return f":red_square: **NODE**\n" \
-               f"```\n" \
-               f"Id: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
-               f"Ip: {node_data['host']}\n" \
-               f"Port: {node_data['publicPort']}\n" \
-               f"State: Offline```"
-    elif node_data["state"] == "offline" and node_data['id'] is None:
-        return f":red_square: **NODE**\n" \
-               f"```\n" \
-               f"Ip: {node_data['host']}\n" \
-               f"Port: {node_data['publicPort']}\n" \
-               f"State: Offline```"
+    if node_data["id"] is not None:
+        if node_data["state"] != "offline":
+            return f":green_square: **NODE**\n" \
+                   f"```\n" \
+                   f"ID: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
+                   f"IP: {node_data['host']}\n" \
+                   f"Port: {node_data['publicPort']}\n" \
+                   f"State: {node_data['state'].title()}```"
+        elif node_data["state"] == "offline":
+            return f":red_square: **NODE**\n" \
+                   f"```\n" \
+                   f"ID: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
+                   f"IP: {node_data['host']}\n" \
+                   f"Port: {node_data['publicPort']}\n" \
+                   f"State: Offline```"
+    elif node_data["id"] is None:
+        if node_data["state"] != "offline":
+            return f":green_square: **NODE**\n" \
+                   f"```\n" \
+                   f"IP: {node_data['host']}\n" \
+                   f"Port: {node_data['publicPort']}\n" \
+                   f"State: {node_data['state'].title()}```"
+        elif node_data["state"] == "offline":
+            return f":red_square: **NODE**\n" \
+                   f"```\n" \
+                   f"IP: {node_data['host']}\n" \
+                   f"Port: {node_data['publicPort']}\n" \
+                   f"State: Offline```"
 
 def build_general_cluster_state(node_data):
     if node_data["clusterConnectivity"] == "new association":
@@ -303,52 +301,33 @@ def build_general_cluster_state(node_data):
                f":information_source: No data available"
 
 def build_general_node_wallet(node_data):
-    if node_data["nodeWalletAddress"] is not None:
+    def wallet_field(field_symbol, field_info):
+        return f"{field_symbol} **WALLET**\n" \
+               f"```\n" \
+               f"{node_data['nodeWalletAddress']}\n" \
+               f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
+               f"{field_info}"
+    def field_from_wallet_conditions():
         if node_data["nodeWalletBalance"] >= 250000 * 100000000:
             if node_data["rewardState"] is False:
-                return f":red_square: **WALLET**\n" \
-                       f"```\n" \
-                       f"{node_data['nodeWalletAddress']}\n" \
-                       f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
-                       f":warning: The wallet did *not* receive rewards for the last 50 snapshots"
+                field_symbol = ":red_square:"
+                field_info = f":warning: The wallet did *not* receive rewards for the last 50 snapshots"
+                return wallet_field(field_symbol, field_info)
             elif node_data["rewardState"] is True:
-                return f":green_square: **WALLET**\n" \
-                       f"```\n" \
-                       f"{node_data['nodeWalletAddress']}\n" \
-                       f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
-                       f":coin: The wallet receives rewards"
-            if node_data["rewardState"] is None:
-                if node_data["layer"] == 0:
-                    return f":yellow_square: **WALLET**\n" \
-                           f"```\n" \
-                           f"{node_data['nodeWalletAddress']}\n" \
-                           f"{node_data['nodeWalletBalance'] / 100000000} $DAG```" \
-                           f":information_source: Could not check reward state please report this as a bug"
-                elif node_data["layer"] == 1:
-                    return f":green_square: **WALLET**\n" \
-                           f"```\n" \
-                           f"{node_data['nodeWalletAddress']}\n" \
-                           f"{node_data['nodeWalletBalance'] / 100000000} $DAG```" \
-                           f":information_source: This layer might not support rewards"
-        elif node_data["nodeWalletBalance"] < 250000 * 100000000:
-            if node_data["rewardState"] is True:
-                return f":red_square: **WALLET**\n" \
-                       f"```\n" \
-                       f"{node_data['nodeWalletAddress']}\n" \
-                       f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
-                       f":warning: The wallet does not hold sufficient collateral"
-            elif node_data["rewardState"] is False:
-                return f":red_square: **WALLET**\n" \
-                       f"```\n" \
-                       f"{node_data['nodeWalletAddress']}\n" \
-                       f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
-                       f":warning: The wallet did *not* receive rewards for the last 50 snapshots and does *not* hold sufficient collateral"
+                field_symbol = ":green_square:"
+                field_info = f":coin: The wallet receives rewards"
+                return wallet_field(field_symbol, field_info)
             elif node_data["rewardState"] is None:
-                return f":red_square: **WALLET**\n" \
-                       f"```\n" \
-                       f"{node_data['nodeWalletAddress']}\n" \
-                       f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
-                       f":warning: The wallet does *not* hold sufficient collateral"
+                field_symbol = ":yellow_square:"
+                field_info = f":information_source: Unknown reward state - please report"
+                return wallet_field(field_symbol, field_info)
+        else:
+            field_symbol = ":red_square:"
+            field_info = f":warning: The wallet does *not* hold sufficient collateral"
+            return wallet_field(field_symbol, field_info)
+
+    if node_data["nodeWalletAddress"] is not None:
+            return field_from_wallet_conditions()
     else:
         return f":yellow_square: **WALLET**\n" \
                f":information_source: No data available"
@@ -377,15 +356,29 @@ def build_system_node_version(node_data):
                f":information_source: No data available"
 
 def build_system_node_load_average(node_data):
-    pass
+    def wallet_field():
+        return f"{field_symbol} **CPU**\n" \
+               f"```\n" \
+               f"CPU COUNT: {node_data['cpuCount']}\n" \
+               f"CPU LOAD: {node_data['1mSystemLoadAverage']}```" \
+               f"{field_info}"
+    if node_data["1mSystemLoadAverage"] / node_data["cpuCount"] >= 1:
+        field_symbol = ":red_square:"
+        field_info = f":warning: CPU load is *too high* - should be below the number of CPUs ({node_data['cpuCount']})"
+        return wallet_field()
+    elif node_data["1mSystemLoadAverage"] / node_data["cpuCount"] < 1:
+        field_symbol = ":green_square:"
+        field_info = f":information_source: CPU load is *OK*"
+        return wallet_field()
+
 
 def build_embed(node_data):
-    embed = nextcord.Embed(title=build_title(node_data))
+    embed = nextcord.Embed(title=build_title(node_data).upper())
+    embed.set_author(name=node_data["name"])
     embed.add_field(name="\u200B", value=build_general_node_state(node_data))
     embed.add_field(name=f"\u200B", value=build_general_cluster_state(node_data))
     embed.add_field(name=f"\u200B", value=build_general_node_wallet(node_data), inline=False)
     embed.add_field(name="\u200B", value=build_system_node_version(node_data), inline=False)
-
 
     return embed
 
