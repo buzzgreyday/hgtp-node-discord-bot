@@ -308,7 +308,7 @@ def build_general_node_wallet(node_data):
                 if node_data["formerRewardState"] is True:
                     field_info = f":warning: The wallet recently stopped receiving rewards"
                     return wallet_field(field_symbol, field_info)
-                elif node_data["formerRewardState"] is False or None:
+                elif node_data["formerRewardState"] is (False or None):
                     field_info = f":warning: The wallet did *not* recently receive rewards"
                     return wallet_field(field_symbol, field_info)
             elif node_data["rewardState"] is True:
@@ -316,7 +316,7 @@ def build_general_node_wallet(node_data):
                 if node_data["formerRewardState"] is True:
                     field_info = f":coin: The wallet receives rewards"
                     return wallet_field(field_symbol, field_info)
-                elif node_data["formerRewardState"] is False or None:
+                elif node_data["formerRewardState"] is (False or None):
                     field_info = f":coin: The wallet recently started receiving rewards"
                     return wallet_field(field_symbol, field_info)
             elif node_data["rewardState"] is None:
