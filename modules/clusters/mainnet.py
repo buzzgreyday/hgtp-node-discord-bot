@@ -317,7 +317,7 @@ def build_general_node_wallet(node_data):
                 field_info = f":information_source: Unknown reward state - please report"
                 return wallet_field(field_symbol, field_info)
         else:
-            if node_data["clusterNames"] or node_data["formerClusterNames"] != "testnet":
+            if (node_data["clusterNames"] or node_data["formerClusterNames"]) != "testnet":
                 field_symbol = ":red_square:"
                 field_info = f":warning: The wallet does *not* hold sufficient collateral"
                 return wallet_field(field_symbol, field_info)
