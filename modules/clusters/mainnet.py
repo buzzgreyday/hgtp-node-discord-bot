@@ -250,34 +250,29 @@ def build_title(node_data):
 
 
 def build_general_node_state(node_data):
-    if node_data["id"] is not None:
-        if node_data["state"] != "offline":
-            return f":green_square: **NODE**\n" \
+    def node_state_field():
+        if node_data["id"] is not None:
+            return f"{field_symbol} **NODE**\n" \
                    f"```\n" \
                    f"ID: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
                    f"IP: {node_data['host']}\n" \
                    f"Port: {node_data['publicPort']}\n" \
-                   f"State: {node_data['state'].title()}```"
-        elif node_data["state"] == "offline":
-            return f":red_square: **NODE**\n" \
-                   f"```\n" \
-                   f"ID: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
-                   f"IP: {node_data['host']}\n" \
-                   f"Port: {node_data['publicPort']}\n" \
-                   f"State: Offline```"
-    elif node_data["id"] is None:
-        if node_data["state"] != "offline":
-            return f":green_square: **NODE**\n" \
+                   f"State: {node_state}```"
+        elif node_data["id"] is None:
+            return f"{field_symbol} **NODE**\n" \
                    f"```\n" \
                    f"IP: {node_data['host']}\n" \
                    f"Port: {node_data['publicPort']}\n" \
-                   f"State: {node_data['state'].title()}```"
-        elif node_data["state"] == "offline":
-            return f":red_square: **NODE**\n" \
-                   f"```\n" \
-                   f"IP: {node_data['host']}\n" \
-                   f"Port: {node_data['publicPort']}\n" \
-                   f"State: Offline```"
+                   f"State: {node_state}```"
+
+    if node_data["state"] != "offline":
+        field_symbol = ":green_square:"
+        node_state = node_data['state'].title()
+        return node_state_field()
+    elif node_data["state"] == "offline":
+        field_symbol = f":red_square:"
+        node_state = "Offline"
+        return node_state_field()
 
 def build_general_cluster_state(node_data):
     if node_data["clusterConnectivity"] == "new association":
@@ -322,9 +317,14 @@ def build_general_node_wallet(node_data):
                 field_info = f":information_source: Unknown reward state - please report"
                 return wallet_field(field_symbol, field_info)
         else:
-            field_symbol = ":red_square:"
-            field_info = f":warning: The wallet does *not* hold sufficient collateral"
-            return wallet_field(field_symbol, field_info)
+            if node_data["clusterNames"] or node_data["formerClusterNames"] != "testnet":
+                field_symbol = ":red_square:"
+                field_info = f":warning: The wallet does *not* hold sufficient collateral"
+                return wallet_field(field_symbol, field_info)
+            else:
+                field_symbol = ":green_square:"
+                field_info = f":information_source: No minimum collateral required"
+                return wallet_field(field_symbol, field_info)
 
     if node_data["nodeWalletAddress"] is not None:
             return field_from_wallet_conditions()
@@ -359,8 +359,8 @@ def build_system_node_load_average(node_data):
     def load_average_field():
         return f"{field_symbol} **CPU**\n" \
                f"```\n" \
-               f"CPU COUNT: {node_data['cpuCount']}\n" \
-               f"CPU LOAD: {node_data['1mSystemLoadAverage']}```" \
+               f"Count: {node_data['cpuCount']}\n" \
+               f"Load: {node_data['1mSystemLoadAverage']}```" \
                f"{field_info}"
     if (node_data["1mSystemLoadAverage"] or node_data["cpuCount"]) is not None:
         if float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) >= 1:
@@ -375,7 +375,6 @@ def build_system_node_load_average(node_data):
         field_symbol = ":yellow_square:"
         field_info = f":information_source: None-type is present"
         return load_average_field()
-
 
 
 def build_embed(node_data):
