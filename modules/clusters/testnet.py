@@ -139,11 +139,11 @@ def reward_check(node_data: dict, all_supported_clusters_data: list):
     for lst in all_supported_clusters_data:
         for cluster in lst:
             # if (cluster["layer"] == f"layer {node_data['layer']}") and (cluster["cluster name"] == node_data["clusterNames"]):
-            if (cluster["cluster name"] == node_data["clusterNames"]) or (cluster["cluster name"] == node_data["formerClusterNames"]):
-                if str(node_data["nodeWalletAddress"]) in cluster["recently rewarded"]:
-                    node_data["rewardState"] = True
-                elif (cluster["recently rewarded"] is None) and (str(node_data["nodeWalletAddress"]) not in cluster["recently rewarded"]):
-                        node_data["rewardState"] = False
+            # if (cluster["cluster name"] == node_data["clusterNames"]) or (cluster["cluster name"] == node_data["formerClusterNames"]):
+            if str(node_data["nodeWalletAddress"]) in cluster["recently rewarded"]:
+                node_data["rewardState"] = True
+            elif (cluster["recently rewarded"] is None) and (str(node_data["nodeWalletAddress"]) not in cluster["recently rewarded"]):
+                    node_data["rewardState"] = False
 
     return node_data
 
@@ -365,11 +365,11 @@ def build_system_node_load_average(node_data):
     if (node_data["1mSystemLoadAverage"] or node_data["cpuCount"]) is not None:
         if float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) >= 1:
             field_symbol = ":red_square:"
-            field_info = f":warning: CPU load is *too high* - should be below the number of CPUs ({node_data['cpuCount']})"
+            field_info = f":warning: CPU load is *too high*; should be below \"CPU count\" ({node_data['cpuCount']}). You might need more CPU power"
             return wallet_field()
         elif float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) < 1:
             field_symbol = ":green_square:"
-            field_info = f":information_source: CPU load is *OK*"
+            field_info = f":information_source: CPU load is *OK*; should be below \"CPU count\" ({node_data['cpuCount']})"
             return wallet_field()
     else:
         field_symbol = ":yellow_square:"
