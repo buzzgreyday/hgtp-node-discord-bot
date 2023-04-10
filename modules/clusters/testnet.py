@@ -307,18 +307,20 @@ def build_general_node_wallet(node_data):
                 field_symbol = ":red_square:"
                 if node_data["formerRewardState"] is True:
                     field_info = f":warning: The wallet recently stopped receiving rewards"
-                    return wallet_field(field_symbol, field_info)
-                elif node_data["formerRewardState"] is (False or None):
+                elif node_data["formerRewardState"] is False:
                     field_info = f":warning: The wallet did *not* recently receive rewards"
-                    return wallet_field(field_symbol, field_info)
+                else:
+                    field_info = f":coin: The wallet receives rewards"
+                return wallet_field(field_symbol, field_info)
             elif node_data["rewardState"] is True:
                 field_symbol = ":green_square:"
                 if node_data["formerRewardState"] is True:
                     field_info = f":coin: The wallet receives rewards"
-                    return wallet_field(field_symbol, field_info)
-                elif node_data["formerRewardState"] is (False or None):
+                elif node_data["formerRewardState"] is False:
                     field_info = f":coin: The wallet recently started receiving rewards"
-                    return wallet_field(field_symbol, field_info)
+                else:
+                    field_info = f":coin: The wallet receives rewards"
+                return wallet_field(field_symbol, field_info)
             elif node_data["rewardState"] is None:
                 field_symbol = ":yellow_square:"
                 field_info = f":information_source: Unknown reward state - please report"
