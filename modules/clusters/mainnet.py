@@ -356,7 +356,7 @@ def build_system_node_version(node_data):
                f":information_source: No data available"
 
 def build_system_node_load_average(node_data):
-    def wallet_field():
+    def load_average_field():
         return f"{field_symbol} **CPU**\n" \
                f"```\n" \
                f"CPU COUNT: {node_data['cpuCount']}\n" \
@@ -366,15 +366,15 @@ def build_system_node_load_average(node_data):
         if float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) >= 1:
             field_symbol = ":red_square:"
             field_info = f":warning: \"CPU load\" is *too high*. This value should be below \"CPU count\" ({node_data['cpuCount']}). You might need more CPU power"
-            return wallet_field()
+            return load_average_field()
         elif float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) < 1:
             field_symbol = ":green_square:"
             field_info = f":information_source: \"CPU load\" is *OK*. This value should be below \"CPU count\" ({node_data['cpuCount']})"
-            return wallet_field()
+            return load_average_field()
     else:
         field_symbol = ":yellow_square:"
         field_info = f":information_source: None-type is present"
-        return wallet_field()
+        return load_average_field()
 
 
 
