@@ -340,19 +340,19 @@ def build_system_node_version(node_data):
                    f":information_source: No new version available"
 
         elif node_data["version"] < node_data["latestVersion"]:
-            return f":red_square: **TESSELLATION **\n" \
+            return f":red_square: **TESSELLATION**\n" \
                    f"```Version {node_data['version']} installed```" \
                    f":warning: The latest version is `{node_data['latestVersion']}` - please check if an upgrade is necessary"
         elif node_data["version"] > node_data["latestVersion"]:
-            return f":green_square: **TESSELLATION **\n" \
+            return f":green_square: **TESSELLATION**\n" \
                    f"```Version {node_data['version']} installed```" \
                    f":information_source: The installed version is higher than the latest officially released version `{node_data['latestVersion']}` :fire:"
         else:
-            return f":yellow_square: **TESSELLATION **\n" \
+            return f":yellow_square: **TESSELLATION**\n" \
                    f"```Version {node_data['version']} installed```" \
                    f":information_source: Latest version is `{node_data['latestVersion']}`"
     else:
-        return f":yellow_square: **TESSELLATION VERSION**\n" \
+        return f":yellow_square: **TESSELLATION**\n" \
                f":information_source: No data available"
 
 def build_system_node_load_average(node_data):
@@ -365,11 +365,11 @@ def build_system_node_load_average(node_data):
     if (node_data["1mSystemLoadAverage"] or node_data["cpuCount"]) is not None:
         if float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) >= 1:
             field_symbol = ":red_square:"
-            field_info = f":warning: CPU load is *too high*; should be below \"CPU count\" ({node_data['cpuCount']}). You might need more CPU power"
+            field_info = f":warning: \"CPU load\" is *too high*. This value should be below \"CPU count\" ({node_data['cpuCount']}). You might need more CPU power"
             return wallet_field()
         elif float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) < 1:
             field_symbol = ":green_square:"
-            field_info = f":information_source: CPU load is *OK*; should be below \"CPU count\" ({node_data['cpuCount']})"
+            field_info = f":information_source: \"CPU load\" is *OK*. This value should be below \"CPU count\" ({node_data['cpuCount']})"
             return wallet_field()
     else:
         field_symbol = ":yellow_square:"
