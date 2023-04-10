@@ -362,15 +362,20 @@ def build_system_node_load_average(node_data):
                f"CPU COUNT: {node_data['cpuCount']}\n" \
                f"CPU LOAD: {node_data['1mSystemLoadAverage']}```" \
                f"{field_info}"
+    if (node_data["1mSystemLoadAverage"] or node_data["cpuCount"]) is not None:
+        if float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) >= 1:
+            field_symbol = ":red_square:"
+            field_info = f":warning: CPU load is *too high* - should be below the number of CPUs ({node_data['cpuCount']})"
+            return wallet_field()
+        elif float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) < 1:
+            field_symbol = ":green_square:"
+            field_info = f":information_source: CPU load is *OK*"
+            return wallet_field()
+    else:
+        field_symbol = ":yellow_square:"
+        field_info = f":information_source: None-type is present"
+        return wallet_field()
 
-    if float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) >= 1:
-        field_symbol = ":red_square:"
-        field_info = f":warning: CPU load is *too high* - should be below the number of CPUs ({node_data['cpuCount']})"
-        return wallet_field()
-    elif float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) < 1:
-        field_symbol = ":green_square:"
-        field_info = f":information_source: CPU load is *OK*"
-        return wallet_field()
 
 
 def build_embed(node_data):
