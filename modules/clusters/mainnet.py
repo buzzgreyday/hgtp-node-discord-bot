@@ -310,7 +310,7 @@ def build_general_node_wallet(node_data):
                 elif node_data["formerRewardState"] is False:
                     field_info = f":warning: The wallet did *not* recently receive rewards"
                 else:
-                    field_info = f":coin: The wallet receives rewards"
+                    field_info = f":warning: The wallet does not receive rewards"
                 return wallet_field(field_symbol, field_info)
             elif node_data["rewardState"] is True:
                 field_symbol = ":green_square:"
