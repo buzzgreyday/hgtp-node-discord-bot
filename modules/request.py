@@ -79,7 +79,8 @@ async def safe(request_url: str, configuration: dict):
                            'system_cpu_count{application=',
                            'system_load_average_1m{application=',
                            'disk_free_bytes{application=',
-                           'disk_total_bytes{application=')
+                           'disk_total_bytes{application=',
+                           )
                 strings = await Request(request_url).text(strings, configuration)
                 data = {
                     "clusterAssociationTime": strings[0],

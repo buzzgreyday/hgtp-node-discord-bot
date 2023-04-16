@@ -402,11 +402,11 @@ def build_system_node_load_average(node_data):
     if (node_data["1mSystemLoadAverage"] or node_data["cpuCount"]) is not None:
         if float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) >= 1:
             field_symbol = ":red_square:"
-            field_info = f":warning: `\"CPU load\" is *too high*. This value should be below \"CPU count\" ({node_data['cpuCount']}). You might need more CPU power`"
+            field_info = f":warning: `\"CPU load\" is too high. This value should be below \"CPU count\" ({node_data['cpuCount']}). You might need more CPU power`"
             return load_average_field()
         elif float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) < 1:
             field_symbol = ":green_square:"
-            field_info = f":information_source: `\"CPU load\" is *OK*. This value should be below \"CPU count\" ({node_data['cpuCount']})`"
+            field_info = f":information_source: `\"CPU load\" is OK. This value should be below \"CPU count\" ({node_data['cpuCount']})`"
             return load_average_field()
     else:
         field_symbol = ":yellow_square:"
