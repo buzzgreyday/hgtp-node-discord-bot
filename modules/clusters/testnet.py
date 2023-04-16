@@ -294,7 +294,7 @@ def build_general_cluster_state(node_data):
         return general_cluster_state_field()
     elif node_data["clusterConnectivity"] == "dissociated":
         field_symbol = ":red_square:"
-        field_description = "```dissociated from:"
+        field_description = "dissociated from:"
         return general_cluster_state_field()
     elif node_data["clusterConnectivity"] is None:
         field_symbol = ":yellow_square:"
