@@ -252,17 +252,15 @@ def build_general_node_state(node_data):
     def node_state_field():
         if node_data["id"] is not None:
             return f"{field_symbol} **NODE**\n" \
-                   f"```\n" \
                    f"ID: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
                    f"IP: {node_data['host']}\n" \
                    f"Port: {node_data['publicPort']}\n" \
-                   f"State: {node_state}```"
+                   f"State: {node_state}"
         elif node_data["id"] is None:
             return f"{field_symbol} **NODE**\n" \
-                   f"```\n" \
                    f"IP: {node_data['host']}\n" \
                    f"Port: {node_data['publicPort']}\n" \
-                   f"State: {node_state}```"
+                   f"State: {node_state}"
 
     if node_data["state"] != "offline":
         field_symbol = ":green_square:"
@@ -274,32 +272,36 @@ def build_general_node_state(node_data):
         return node_state_field()
 
 def build_general_cluster_state(node_data):
+    def general_cluster_state_field():
+        return f"{field_symbol} **CLUSTER**\n" \
+               f"{field_description.title()}\n" \
+               f"\"{str(node_data['clusterNames']).title()}\""
+
     if node_data["clusterConnectivity"] == "new association":
-        return f":green_square: **CLUSTER**\n" \
-               f"```Recently associated with:\n" \
-               f"\"{str(node_data['clusterNames']).title()}\"```"
+        field_symbol = ":green_square:"
+        field_description = "recently associated with:"
+        return general_cluster_state_field()
     elif node_data["clusterConnectivity"] == "associated":
-        return f":green_square: **CLUSTER**\n" \
-               f"```Associated with:\n" \
-               f"\"{str(node_data['clusterNames']).title()}\"```"
+        field_symbol = ":green_square:"
+        field_description = "associated with:"
+        return general_cluster_state_field()
     elif node_data["clusterConnectivity"] == "new dissociation":
-        return f":red_square: **CLUSTER**\n" \
-               f"```Recently dissociated from:\n" \
-               f"\"{str(node_data['formerClusterNames']).title()}\"```"
+        field_symbol = ":red_square:"
+        field_description = "recently dissociated from:"
+        return general_cluster_state_field()
     elif node_data["clusterConnectivity"] == "dissociated":
-        return f":red_square: **CLUSTER**\n" \
-               f"```Dissociated from:\n" \
-               f"\"{str(node_data['formerClusterNames']).title()}\"```"
+        field_symbol = ":red_square:"
+        field_description = "dissociated from:"
+        return general_cluster_state_field()
     elif node_data["clusterConnectivity"] is None:
-        return f":yellow_square: **CLUSTER**\n" \
-               f":information_source: No data available"
+        field_symbol = ":yellow_square:"
+        field_description = ":information_source: No data available"
 
 def build_general_node_wallet(node_data):
     def wallet_field(field_symbol, field_info):
         return f"{field_symbol} **WALLET**\n" \
-               f"```\n" \
                f"{node_data['nodeWalletAddress']}\n" \
-               f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
+               f"{node_data['nodeWalletBalance']/100000000} $DAG" \
                f"{field_info}"
     def field_from_wallet_conditions():
         if node_data["nodeWalletBalance"] >= 250000 * 100000000:
@@ -309,12 +311,12 @@ def build_general_node_wallet(node_data):
                     field_info = f":warning: The wallet recently stopped receiving rewards"
                     return wallet_field(field_symbol, field_info)
                 else:
-                    field_info = f":warning: The wallet does *not* receive rewards"
+                    field_info = f":warning: The wallet doesn't receive rewards"
                     return wallet_field(field_symbol, field_info)
             elif node_data["rewardState"] is True:
                 field_symbol = ":green_square:"
                 if node_data["formerRewardState"] is False:
-                    field_info = f":coin: The wallet recently started receiving rewards"
+                    field_info = f":coin: The wallet recently **started** receiving rewards"
                     return wallet_field(field_symbol, field_info)
                 else:
                     field_info = f":coin: The wallet receives rewards"
@@ -326,7 +328,7 @@ def build_general_node_wallet(node_data):
         else:
             if (node_data["clusterNames"] or node_data["formerClusterNames"]) != "testnet":
                 field_symbol = ":red_square:"
-                field_info = f":warning: The wallet does *not* hold sufficient collateral"
+                field_info = f":warning: The wallet doesn't hold sufficient collateral"
                 return wallet_field(field_symbol, field_info)
             else:
                 if node_data["rewardState"] is True:
@@ -348,7 +350,7 @@ def build_general_node_wallet(node_data):
                         return wallet_field(field_symbol, field_info)
                     else:
                         field_info = f":information_source: No minimum collateral required\n" \
-                                     f":warning: The wallet does *not* receive rewards"
+                                     f":warning: The wallet doesn't receive rewards"
                         return wallet_field(field_symbol, field_info)
                 else:
                     field_symbol = ":yellow_square:"
@@ -367,20 +369,20 @@ def build_system_node_version(node_data):
     if node_data["version"] is not None:
         if node_data["version"] == node_data["latestVersion"]:
             return f":green_square: **TESSELLATION**\n" \
-                   f"```Version {node_data['version']} installed```" \
+                   f"Version {node_data['version']} installed" \
                    f":information_source: No new version available"
 
         elif node_data["version"] < node_data["latestVersion"]:
             return f":red_square: **TESSELLATION**\n" \
-                   f"```Version {node_data['version']} installed```" \
+                   f"Version {node_data['version']} installed" \
                    f":warning: The latest version is `{node_data['latestVersion']}` - please check if an upgrade is necessary"
         elif node_data["version"] > node_data["latestVersion"]:
             return f":green_square: **TESSELLATION**\n" \
-                   f"```Version {node_data['version']} installed```" \
+                   f"Version {node_data['version']} installed" \
                    f":information_source: The installed version is higher than the latest officially released version `{node_data['latestVersion']}` :fire:"
         else:
             return f":yellow_square: **TESSELLATION**\n" \
-                   f"```Version {node_data['version']} installed```" \
+                   f"Version {node_data['version']} installed" \
                    f":information_source: Latest version is `{node_data['latestVersion']}`"
     else:
         return f":yellow_square: **TESSELLATION**\n" \
@@ -389,9 +391,8 @@ def build_system_node_version(node_data):
 def build_system_node_load_average(node_data):
     def load_average_field():
         return f"{field_symbol} **CPU**\n" \
-               f"```\n" \
                f"Count: {round(float(node_data['cpuCount']))}\n" \
-               f"Load: {round(float(node_data['1mSystemLoadAverage']), 2)}```" \
+               f"Load: {round(float(node_data['1mSystemLoadAverage']), 2)}" \
                f"{field_info}"
     if (node_data["1mSystemLoadAverage"] or node_data["cpuCount"]) is not None:
         if float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) >= 1:
