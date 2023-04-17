@@ -443,8 +443,8 @@ def build_system_node_disk_space(node_data):
     def disk_space_field():
         return f"{field_symbol} **DISK**\n" \
                f"```\n" \
-               f"Free: {round(float(node_data['diskSpaceFree']))}\n" \
-               f"Total: {round(float(node_data['diskSpaceTotal']), 2)}```" \
+               f"Free: {round(float(node_data['diskSpaceFree']/1073741824))}\n" \
+               f"Total: {round(float(node_data['diskSpaceTotal']/1073741824), 2)}```" \
                f"{field_info}"
 
     if 0 < float(node_data['diskSpaceFree'])*100/float(node_data['diskSpaceTotal']) < 10:
