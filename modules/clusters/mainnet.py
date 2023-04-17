@@ -262,13 +262,13 @@ def build_general_node_state(node_data):
                    f"ID: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
                    f"IP: {node_data['host']}\n" \
                    f"Subscribed Port: {node_data['publicPort']}\n" \
-                   f"State: {node_state}```"
+                   f"State: {node_state}```\u200B"
         elif node_data["id"] is None:
             return f"{field_symbol} **NODE**\n" \
                    f"```\n" \
                    f"IP: {node_data['host']}\n" \
                    f"Subscribed Port: {node_data['publicPort']}\n" \
-                   f"State: {node_state}```"
+                   f"State: {node_state}```\u200B"
 
     if node_data["state"] != "offline":
         field_symbol = ":green_square:"
@@ -284,7 +284,7 @@ def build_general_cluster_state(node_data):
         return f"{field_symbol} **CLUSTER**\n" \
                f"```" \
                f"{field_description.title()}\n" \
-               f"\"{str(node_data['clusterNames']).title()}\"```"
+               f"\"{str(node_data['clusterNames']).title()}\"```\u200B"
 
     if node_data["clusterConnectivity"] == "new association":
         field_symbol = ":green_square:"
