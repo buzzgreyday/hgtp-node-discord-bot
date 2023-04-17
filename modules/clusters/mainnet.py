@@ -380,8 +380,7 @@ def build_system_node_version(node_data):
     def version_field(field_symbol, field_info):
         return f"{field_symbol} **TESSELLATION**\n" \
                f"```\n" \
-               f"```Version {node_data['version']} installed```" \
-               f":information_source: `No new version available`" \
+               f"Version {node_data['version']} installed```" \
                f"{field_info}"
 
     if node_data["version"] is not None:
@@ -389,8 +388,12 @@ def build_system_node_version(node_data):
             field_symbol = ":green_square:"
             if node_data["clusterVersion"] == node_data["latestVersion"]:
                 field_info = ":information_source: `No new version available`"
-            else:
+            elif node_data["clusterVersion"] < node_data["latestVersion"]:
                 field_info = f":information_source: `You are running the latest version but a new release ({node_data['latestVersion']}) should be available soon"
+            elif node_data["clusterVersion"] > node_data["latestVersion"]:
+                field_info = f":information_source: `You seem to be associated with a cluster running a test-release. Latest official version is {node_data['latestVersion']}`"
+            else:
+                field_info = None
             return version_field(field_symbol, field_info)
 
         elif node_data["version"] < node_data["clusterVersion"]:
