@@ -260,13 +260,13 @@ def build_general_node_state(node_data):
                    f"```\n" \
                    f"ID: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
                    f"IP: {node_data['host']}\n" \
-                   f"Port: {node_data['publicPort']}\n" \
+                   f"Subscribed Port: {node_data['publicPort']}\n" \
                    f"State: {node_state}```"
         elif node_data["id"] is None:
             return f"{field_symbol} **NODE**\n" \
                    f"```\n" \
                    f"IP: {node_data['host']}\n" \
-                   f"Port: {node_data['publicPort']}\n" \
+                   f"Subscribed Port: {node_data['publicPort']}\n" \
                    f"State: {node_state}```"
 
     if node_data["state"] != "offline":
