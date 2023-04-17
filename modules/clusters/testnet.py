@@ -375,24 +375,39 @@ def build_general_node_wallet(node_data):
                f":information_source: `No data available`"
 
 def build_system_node_version(node_data):
-    if node_data["version"] is not None:
-        if node_data["version"] == node_data["latestVersion"]:
-            return f":green_square: **TESSELLATION**\n" \
-                   f"```Version {node_data['version']} installed```" \
-                   f":information_source: `No new version available`"
 
-        elif node_data["version"] < node_data["latestVersion"]:
-            return f":red_square: **TESSELLATION**\n" \
-                   f"```Version {node_data['version']} installed```" \
-                   f":warning: `The latest version is `{node_data['latestVersion']}` - please check if an upgrade is necessary`"
+    def version_field(field_symbol, field_info):
+        return f"{field_symbol} **TESSELLATION**\n" \
+               f"```\n" \
+               f"```Version {node_data['version']} installed```" \
+               f":information_source: `No new version available`" \
+               f"{field_info}"
+
+    if node_data["version"] is not None:
+        if node_data["version"] == node_data["clusterVersion"]:
+            field_symbol = ":green_square:"
+            if node_data["clusterVersion"] == node_data["latestVersion"]:
+                field_info = ":information_source: `No new version available`"
+            else:
+                field_info = f":information_source: `You are running the latest version but a new release ({node_data['latestVersion']}) should be available soon"
+            return version_field(field_symbol, field_info)
+
+        elif node_data["version"] < node_data["clusterVersion"]:
+            field_symbol = ":red_square:"
+            field_info = f":warning: `New upgrade (v{node_data['latestVersion']}) available`"
+            return version_field(field_symbol, field_info)
+
         elif node_data["version"] > node_data["latestVersion"]:
-            return f":green_square: **TESSELLATION**\n" \
-                   f"```Version {node_data['version']} installed```" \
-                   f":information_source: `The installed version is higher than the latest officially released version {node_data['latestVersion']}` :fire:"
+            field_symbol = ":green_square:"
+            if node_data["version"] == node_data["clusterVersion"]:
+                field_info = f":information_source: `You seem to be associated with a cluster running a test-release. Latest official version is {node_data['latestVersion']}`"
+            else:
+                field_info = f":information_source: `You seem to be running a test-release. Latest official version is {node_data['latestVersion']}`"
+            return version_field(field_symbol, field_info)
         else:
-            return f":yellow_square: **TESSELLATION**\n" \
-                   f"```Version {node_data['version']} installed```" \
-                   f":information_source: `Latest version is {node_data['latestVersion']}`"
+            field_symbol = ":yellow_square:"
+            field_info = f":information_source: `Latest version is {node_data['latestVersion']}`"
+            return version_field(field_symbol, field_info)
     else:
         return f":yellow_square: **TESSELLATION**\n" \
                f":information_source: `No data available`"
