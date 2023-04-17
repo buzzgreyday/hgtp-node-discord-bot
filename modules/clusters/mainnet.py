@@ -444,7 +444,7 @@ def build_system_node_disk_space(node_data):
         return f"{field_symbol} **DISK**\n" \
                f"```\n" \
                f"Free: {round(float(node_data['diskSpaceFree'])/1073741824)}\n" \
-               f"Total: {round(float(node_data['diskSpaceTotal']), 2)/1073741824}```" \
+               f"Total: {round(float(node_data['diskSpaceTotal'])/1073741824, 2)}```" \
                f"{field_info}"
     print(node_data['diskSpaceFree'])
     if node_data['diskSpaceFree'] is not None:
