@@ -7,6 +7,8 @@ def node_cluster(node_data, all_supported_clusters_data):
                     if peer["ip"] == node_data["host"]:
                         node_data["clusterNames"] = cluster["cluster name"].lower()
                         node_data["latestClusterSession"] = cluster["cluster session"]
+                        node_data["clusterVersion"] = cluster["cluster version"]
+
     return node_data
 
 async def historic_node_data(dask_client, node_data: dict, history_dataframe):

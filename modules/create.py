@@ -28,6 +28,7 @@ def snapshot(subscriber: dict, port: int, layer: int, latest_tessellation_versio
         "clusterPeerCount": None,
         "formerClusterPeerCount": None,
         "version": None,
+        "clusterVersion": None,
         "latestVersion": latest_tessellation_version,
         "cpuCount": None,
         "diskSpaceTotal": None,
