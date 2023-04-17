@@ -262,13 +262,13 @@ def build_general_node_state(node_data):
                    f"ID: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
                    f"IP: {node_data['host']}\n" \
                    f"Subscribed Port: {node_data['publicPort']}\n" \
-                   f"State: {node_state}```\u200B"
+                   f"State: {node_state}```"
         elif node_data["id"] is None:
             return f"{field_symbol} **NODE**\n" \
                    f"```\n" \
                    f"IP: {node_data['host']}\n" \
                    f"Subscribed Port: {node_data['publicPort']}\n" \
-                   f"State: {node_state}```\u200B"
+                   f"State: {node_state}```"
 
     if node_data["state"] != "offline":
         field_symbol = ":green_square:"
@@ -284,7 +284,7 @@ def build_general_cluster_state(node_data):
         return f"{field_symbol} **CLUSTER**\n" \
                f"```" \
                f"{field_description.title()}\n" \
-               f"\"{str(node_data['clusterNames']).title()}\"```\u200B"
+               f"\"{str(node_data['clusterNames']).title()}\"```"
 
     if node_data["clusterConnectivity"] == "new association":
         field_symbol = ":green_square:"
@@ -468,8 +468,8 @@ def build_embed(node_data):
 
     embed = nextcord.Embed(title=build_title(node_data).upper(), colour=determine_color())
     embed.set_author(name=node_data["name"])
-    embed.add_field(name="\u200B", value=build_general_node_state(node_data), inline=True)
-    embed.add_field(name=f"\u200B", value=build_general_cluster_state(node_data), inline=True)
+    embed.add_field(name="\u200B", value=build_general_node_state(node_data))
+    embed.add_field(name=f"\u200B", value=build_general_cluster_state(node_data))
     if node_data["nodeWalletAddress"] is not None:
         embed.add_field(name=f"\u200B", value=build_general_node_wallet(node_data), inline=False)
     if node_data["version"] is not None:
