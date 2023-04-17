@@ -377,7 +377,7 @@ def build_general_node_wallet(node_data):
 
 def build_system_node_version(node_data):
 
-    def version_field(field_symbol, field_info):
+    def version_field():
         return f"{field_symbol} **TESSELLATION**\n" \
                f"```\n" \
                f"Version {node_data['version']} installed```" \
@@ -394,12 +394,12 @@ def build_system_node_version(node_data):
                 field_info = f":information_source: `You seem to be associated with a cluster running a test-release. Latest official version is {node_data['latestVersion']}`"
             else:
                 field_info = ":information_source: `This line should not be seen`"
-            return version_field(field_symbol, field_info)
+            return version_field()
 
         elif node_data["version"] < node_data["clusterVersion"]:
             field_symbol = ":red_square:"
             field_info = f":warning: `New upgrade (v{node_data['latestVersion']}) available`"
-            return version_field(field_symbol, field_info)
+            return version_field()
 
         elif node_data["version"] > node_data["latestVersion"]:
             field_symbol = ":green_square:"
@@ -407,11 +407,11 @@ def build_system_node_version(node_data):
                 field_info = f":information_source: `You seem to be associated with a cluster running a test-release. Latest official version is {node_data['latestVersion']}`"
             else:
                 field_info = f":information_source: `You seem to be running a test-release. Latest official version is {node_data['latestVersion']}`"
-            return version_field(field_symbol, field_info)
+            return version_field()
         else:
             field_symbol = ":yellow_square:"
             field_info = f":information_source: `Latest version is {node_data['latestVersion']}`"
-            return version_field(field_symbol, field_info)
+            return version_field()
     else:
         return f":yellow_square: **TESSELLATION**\n" \
                f":information_source: `No data available`"
@@ -423,6 +423,7 @@ def build_system_node_load_average(node_data):
                f"Count: {round(float(node_data['cpuCount']))}\n" \
                f"Load: {round(float(node_data['1mSystemLoadAverage']), 2)}```" \
                f"{field_info}"
+
     if (node_data["1mSystemLoadAverage"] or node_data["cpuCount"]) is not None:
         if float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) >= 1:
             field_symbol = ":red_square:"
@@ -438,7 +439,22 @@ def build_system_node_load_average(node_data):
         return load_average_field()
 
 
+def build_system_node_disk_space(node_data):
+    def disk_space_field():
+        return f"{field_symbol} **DISK**\n" \
+               f"```\n" \
+               f"Free: {round(float(node_data['diskSpaceFree']))}\n" \
+               f"Total: {round(float(node_data['diskSpaceTotal']), 2)}```" \
+               f"{field_info}"
 
+    if 0 < float(node_data['diskSpaceFree'])*100/float(node_data['diskSpaceTotal']) < 10:
+        field_symbol = ":red_square:"
+        field_info = f":warning: `Free disk space is low ({round(float(node_data['diskSpaceFree'])*100/float(node_data['diskSpaceTotal']), 2)}%)"
+        return disk_space_field()
+    else:
+        field_symbol = ":green_square:"
+        field_info = f":information_source: `Free disk space is okay ({round(float(node_data['diskSpaceFree']) * 100 / float(node_data['diskSpaceTotal']), 2)}%)"
+        return disk_space_field()
 
 def build_embed(node_data):
     def determine_color():
@@ -459,6 +475,8 @@ def build_embed(node_data):
         embed.add_field(name="\u200B", value=build_system_node_version(node_data), inline=False)
     if node_data["1mSystemLoadAverage"] is not None:
         embed.add_field(name="\u200B", value=build_system_node_load_average(node_data), inline=True)
+    if node_data["diskSpaceTotal"] is not None:
+        embed.add_field(name="\u200B", value=build_system_node_disk_space(node_data), inline=True)
 
     return embed
 
