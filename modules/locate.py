@@ -7,7 +7,7 @@ def node_cluster(node_data, all_supported_clusters_data):
                     if peer["ip"] == node_data["host"]:
                         node_data["clusterNames"] = cluster["cluster name"].lower()
                         node_data["latestClusterSession"] = cluster["cluster session"]
-                        node_data["clusterVersion"] = cluster["cluster version"]
+                        node_data["clusterVersion"] = cluster["version"]
 
     return node_data
 
