@@ -446,15 +446,15 @@ def build_system_node_disk_space(node_data):
                f"Free: {round(float(node_data['diskSpaceFree']/1073741824))}\n" \
                f"Total: {round(float(node_data['diskSpaceTotal']/1073741824), 2)}```" \
                f"{field_info}"
-
-    if 0 < float(node_data['diskSpaceFree'])*100/float(node_data['diskSpaceTotal']) < 10:
-        field_symbol = ":red_square:"
-        field_info = f":warning: `Free disk space is low ({round(float(node_data['diskSpaceFree'])*100/float(node_data['diskSpaceTotal']), 2)}%)"
-        return disk_space_field()
-    else:
-        field_symbol = ":green_square:"
-        field_info = f":information_source: `Free disk space is okay ({round(float(node_data['diskSpaceFree']) * 100 / float(node_data['diskSpaceTotal']), 2)}%)"
-        return disk_space_field()
+    if node_data['diskSpaceFree'] is not None:
+        if 0 < float(node_data['diskSpaceFree'])*100/float(node_data['diskSpaceTotal']) < 10:
+            field_symbol = ":red_square:"
+            field_info = f":warning: `Free disk space is low ({round(float(node_data['diskSpaceFree'])*100/float(node_data['diskSpaceTotal']), 2)}%)"
+            return disk_space_field()
+        else:
+            field_symbol = ":green_square:"
+            field_info = f":information_source: `Free disk space is okay ({round(float(node_data['diskSpaceFree']) * 100 / float(node_data['diskSpaceTotal']), 2)}%)"
+            return disk_space_field()
 
 def build_embed(node_data):
     def determine_color():
