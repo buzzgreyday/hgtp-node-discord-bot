@@ -7,7 +7,7 @@ from modules import read, request, merge, create, locate
 from modules.temporaries import temporaries
 from modules.clusters import mainnet, testnet
 
-async def check(dask_client, subscriber: dict, layer: int, port: int, latest_tessellation_version: str,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data: list[dict], history_dataframe, dt_start, configuration: dict) -> dict:
+async def check(dask_client, subscriber: dict, layer: int, port: int, latest_tessellation_version: str, all_supported_clusters_data: list[dict], history_dataframe, dt_start, configuration: dict) -> dict:
     node_data = create.snapshot(subscriber, port, layer, latest_tessellation_version, dt_start)
     node_data = locate.node_cluster(node_data, all_supported_clusters_data)
     historic_node_dataframe = await locate.historic_node_data(dask_client, node_data, history_dataframe)
@@ -19,7 +19,7 @@ async def check(dask_client, subscriber: dict, layer: int, port: int, latest_tes
 
     return node_data
 
-async def run(dask_client, dt_start, latest_tessellation_version: str, validator_mainnet_data, validator_testnet_data, all_supported_cluster_data: list[dict], configuration: dict) -> list:
+async def run(dask_client, dt_start, latest_tessellation_version: str, all_supported_cluster_data: list[dict], configuration: dict) -> list:
     subscriber_futures = []
     request_futures = []
     history_dataframe = await read.history(configuration)
@@ -32,11 +32,11 @@ async def run(dask_client, dt_start, latest_tessellation_version: str, validator
             if k == "public_l0":
                 for port in v:
                     layer = 0
-                    request_futures.append(asyncio.create_task(check(dask_client, subscriber, layer, port, latest_tessellation_version, validator_mainnet_data, validator_testnet_data, all_supported_cluster_data, history_dataframe, dt_start, configuration)))
+                    request_futures.append(asyncio.create_task(check(dask_client, subscriber, layer, port, latest_tessellation_version, all_supported_cluster_data, history_dataframe, dt_start, configuration)))
             elif k == "public_l1":
                 for port in v:
                     layer = 1
-                    request_futures.append(asyncio.create_task(check(dask_client, subscriber, layer, port, latest_tessellation_version, validator_mainnet_data, validator_testnet_data, all_supported_cluster_data, history_dataframe, dt_start, configuration)))
+                    request_futures.append(asyncio.create_task(check(dask_client, subscriber, layer, port, latest_tessellation_version, all_supported_cluster_data, history_dataframe, dt_start, configuration)))
 
     return request_futures
 

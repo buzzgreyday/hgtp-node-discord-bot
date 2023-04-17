@@ -29,18 +29,3 @@ async def latest_version_github(configuration):
         f"{configuration['request']['url']['github']['api repo url']}/"
         f"{configuration['request']['url']['github']['url endings']['tessellation']['latest release']}", configuration)
     return data["tag_name"][1:]
-
-async def validator_data(configuration: dict):
-    async def make_request(validator_urls: list) -> list[dict]:
-        for url in validator_urls:
-            validator_network_data = await request.safe(str(url), configuration)
-            if validator_network_data is None:
-                continue
-            elif validator_network_data is not None:
-                return validator_network_data["data"]
-
-
-    validator_testnet_data = await make_request(configuration['request']['url']['validator info']['testnet']['url'])
-    validator_mainnet_data = await make_request(configuration['request']['url']['validator info']['mainnet']['url'])
-
-    return validator_mainnet_data, validator_testnet_data

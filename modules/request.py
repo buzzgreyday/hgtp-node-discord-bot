@@ -153,7 +153,6 @@ async def preliminary_data(configuration):
     timer_start = time.perf_counter()
     tasks = []
     cluster_data = []
-    validator_mainnet_data, validator_testnet_data = await tessellation.validator_data(configuration)
     latest_tessellation_version = await tessellation.latest_version_github(configuration)
     for cluster_layer, cluster_names in list(configuration["request"]["url"]["clusters"]["load balancer"].items()):
         tasks.append(asyncio.create_task(supported_clusters(cluster_layer, cluster_names, configuration)))
@@ -164,5 +163,5 @@ async def preliminary_data(configuration):
         configuration = yaml.safe_load(await file.read())
     timer_stop = time.perf_counter()
     print("PRELIMINARIES TOOK:", timer_stop - timer_start)
-    return configuration, cluster_data, validator_mainnet_data, validator_testnet_data, latest_tessellation_version
+    return configuration, cluster_data, latest_tessellation_version
 

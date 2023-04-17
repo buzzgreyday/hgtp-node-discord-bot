@@ -39,7 +39,7 @@ if __name__ == "__main__":
                                        processes=True, silence_logs=logging.CRITICAL)
     async def main(configuration) -> None:
         # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
-        configuration, all_supported_clusters_data,  validator_mainnet_data, validator_testnet_data, latest_tessellation_version = await request.preliminary_data(configuration)
+        configuration, all_supported_clusters_data,  latest_tessellation_version = await request.preliminary_data(configuration)
         await bot.wait_until_ready()
         async with Client(cluster) as dask_client:
             while not bot.is_closed():
@@ -50,7 +50,7 @@ if __name__ == "__main__":
                 await extras.set_active_presence(bot)
                 data = []
                 embeds = []
-                futures = await init.run(dask_client, dt_start, latest_tessellation_version,  validator_mainnet_data, validator_testnet_data, all_supported_clusters_data, configuration)
+                futures = await init.run(dask_client, dt_start, latest_tessellation_version,  all_supported_clusters_data, configuration)
                 for async_process in futures:
                     try:
                         data.append(await async_process)
