@@ -393,7 +393,7 @@ def build_system_node_version(node_data):
             elif node_data["clusterVersion"] > node_data["latestVersion"]:
                 field_info = f":information_source: `You seem to be associated with a cluster running a test-release. Latest official version is {node_data['latestVersion']}`"
             else:
-                field_info = None
+                field_info = ":information_source: `This line should not be seen`"
             return version_field(field_symbol, field_info)
 
         elif node_data["version"] < node_data["clusterVersion"]:
