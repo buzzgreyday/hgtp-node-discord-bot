@@ -42,7 +42,7 @@ async def request_cluster_data(lb_url, cluster_layer, cluster_name, configuratio
     else:
         print(node_resp)
         cluster_state = str(node_resp['state']).lower() ; cluster_id = node_resp["id"] ; cluster_session = node_resp["clusterSession"]
-        cluster_version = str(node_resp["version"]) ; cluster_host = cluster_resp["host"] ; cluster_port = cluster_resp["publicPort"]
+        cluster_version = str(node_resp["version"]) ; cluster_host = node_resp["host"] ; cluster_port = node_resp["publicPort"]
 
     cluster = {
         "layer": cluster_layer,
