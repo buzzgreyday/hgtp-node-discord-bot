@@ -22,7 +22,7 @@ def id_to_dag_address(node_id: str):
     check_digit = 0
     for n in check_digits:
         check_digit += int(n)
-        if check_digit > 9:
+        if check_digit >= 9:
             check_digit = check_digit % 9
 
     wallet_address = f"DAG{check_digit}{node_id}"
