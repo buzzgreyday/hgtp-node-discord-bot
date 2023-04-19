@@ -467,8 +467,9 @@ def build_system_node_disk_space(node_data):
 
 def build_connectivity_time(node_data):
     def time_field():
-        return f"{field_symbol} **{connectivity_type} TIMER**\n" \
-               f":stopwatch: {node_data[f'cluster{connectivity_type.title()}Time']}\n" \
+        # f":stopwatch: {node_data[f'cluster{connectivity_type.title()}Time']}\n" \
+        return f"{field_symbol} **{connectivity_type}**\n" \
+               f":stopwatch: {node_data[f'formerCluster{connectivity_type.title()}Time']}\n" \
                f"{field_info}"
     field_symbol = ":black_large_square:"
     connectivity_type = "association".upper()
