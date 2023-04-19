@@ -468,13 +468,13 @@ def build_system_node_disk_space(node_data):
 def build_connectivity_time(node_data):
     def time_field():
         return f"{field_symbol} **{connectivity_type} TIMER**\n" \
-               f":stopwatch: {node_data['diskSpaceFree']}\n" \
+               f":stopwatch: {node_data[f'cluster{connectivity_type.title()}Time']}\n" \
                f"{field_info}"
-    field_symbol = ":black_square:"
+    field_symbol = ":black_large_square:"
     connectivity_type = "association".upper()
     field_info = f"Tets"
     time_field1 = time_field()
-    field_symbol = ":black_square:"
+    field_symbol = ":black_large_square:"
     connectivity_type = "dissociation".upper()
     field_info = f"Tets"
     time_field2 = time_field()
