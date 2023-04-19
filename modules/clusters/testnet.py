@@ -284,27 +284,33 @@ def build_general_cluster_state(node_data):
         return f"{field_symbol} **CLUSTER**\n" \
                f"```" \
                f"{field_description.title()}\n" \
-               f"\"{str(node_data['clusterNames']).title()}\"```"
+               f"\"{str(node_data['clusterNames']).title()}\"```" \
+               f"{field_info}"
 
     if node_data["clusterConnectivity"] == "new association":
         field_symbol = ":green_square:"
         field_description = "recently associated with:"
+        field_info = f":information_source: `A new connection to the cluster was made recently. The cluster is constituted by {node_data['clusterPeerCount']} peers"
         return general_cluster_state_field()
     elif node_data["clusterConnectivity"] == "associated":
         field_symbol = ":green_square:"
         field_description = "associated with:"
+        field_info = f":information_source: `The node is consecutively associated with the cluster. The cluster is constituted by {node_data['clusterPeerCount']} peers"
         return general_cluster_state_field()
     elif node_data["clusterConnectivity"] == "new dissociation":
         field_symbol = ":red_square:"
         field_description = "recently dissociated from:"
+        field_info = f":information_source: `The node was recently dissociated from the cluster`"
         return general_cluster_state_field()
     elif node_data["clusterConnectivity"] == "dissociated":
         field_symbol = ":red_square:"
         field_description = "dissociated from:"
+        field_info = f":information_source: `The node is consecutively dissociated from the cluster`"
         return general_cluster_state_field()
     elif node_data["clusterConnectivity"] is None:
         field_symbol = ":yellow_square:"
-        field_description = ":information_source: `No data available`"
+        field_description = ":information_source: `No connectivity data available`"
+        return general_cluster_state_field()
 
 def build_general_node_wallet(node_data):
     def wallet_field(field_symbol, field_info):
