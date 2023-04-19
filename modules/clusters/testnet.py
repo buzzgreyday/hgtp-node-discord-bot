@@ -457,6 +457,25 @@ def build_system_node_disk_space(node_data):
             field_info = f":information_source: `Free disk space is okay ({round(float(node_data['diskSpaceFree']) * 100 / float(node_data['diskSpaceTotal']), 2)}%)`"
             return disk_space_field()
 
+
+def build_connectivity_time(node_data):
+    def time_field():
+        return f"{field_symbol} **{connectivity_type} TIMER**\n" \
+               f":stopwatch: {node_data['diskSpaceFree']}\n" \
+               f"{field_info}"
+    field_symbol = ":black_square:"
+    connectivity_type = "association".upper()
+    field_info = f"Tets"
+    time_field1 = time_field()
+    field_symbol = ":black_square:"
+    connectivity_type = "dissociation".upper()
+    field_info = f"Tets"
+    time_field2 = time_field()
+
+    return f"{time_field1}\n" \
+           f"{time_field2}"
+
+
 def build_embed(node_data):
     def determine_color():
         if node_data["clusterConnectivity"] in ("new association", "associated"):
