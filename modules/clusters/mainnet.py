@@ -310,6 +310,7 @@ def build_general_cluster_state(node_data):
     elif node_data["clusterConnectivity"] is None:
         field_symbol = ":yellow_square:"
         field_description = ":information_source: `No connectivity data available`"
+        field_info = f""
         return general_cluster_state_field()
 
 def build_general_node_wallet(node_data):
