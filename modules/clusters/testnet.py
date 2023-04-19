@@ -290,12 +290,12 @@ def build_general_cluster_state(node_data):
     if node_data["clusterConnectivity"] == "new association":
         field_symbol = ":green_square:"
         field_description = "recently associated with:"
-        field_info = f":information_source: `A new connection to the cluster was made recently. The cluster is constituted by {node_data['clusterPeerCount']} peers"
+        field_info = f":information_source: `A new connection to the cluster was made recently. The cluster is constituted by {node_data['clusterPeerCount']} peers`"
         return general_cluster_state_field()
     elif node_data["clusterConnectivity"] == "associated":
         field_symbol = ":green_square:"
         field_description = "associated with:"
-        field_info = f":information_source: `The node is consecutively associated with the cluster. The cluster is constituted by {node_data['clusterPeerCount']} peers"
+        field_info = f":information_source: `The node is consecutively associated with the cluster. The cluster is constituted by {node_data['clusterPeerCount']} peers`"
         return general_cluster_state_field()
     elif node_data["clusterConnectivity"] == "new dissociation":
         field_symbol = ":red_square:"
