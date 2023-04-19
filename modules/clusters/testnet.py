@@ -465,25 +465,6 @@ def build_system_node_disk_space(node_data):
             return disk_space_field()
 
 
-def build_connectivity_time(node_data):
-    def time_field():
-        # f":stopwatch: {node_data[f'cluster{connectivity_type.title()}Time']}\n" \
-        return f"{field_symbol} **{connectivity_type}**\n" \
-               f":stopwatch: {node_data[f'formerCluster{connectivity_type.title()}Time']}\n" \
-               f"{field_info}"
-    field_symbol = ":black_large_square:"
-    connectivity_type = "association".upper()
-    field_info = f"Tets"
-    time_field1 = time_field()
-    field_symbol = ":black_large_square:"
-    connectivity_type = "dissociation".upper()
-    field_info = f"Tets"
-    time_field2 = time_field()
-
-    return f"{time_field1}\n" \
-           f"{time_field2}"
-
-
 def build_embed(node_data):
     def determine_color():
         if node_data["clusterConnectivity"] in ("new association", "associated"):
@@ -497,7 +478,6 @@ def build_embed(node_data):
     embed.set_author(name=node_data["name"])
     embed.add_field(name="\u200B", value=build_general_node_state(node_data))
     embed.add_field(name=f"\u200B", value=build_general_cluster_state(node_data))
-    embed.add_field(name="\u200B", value=build_connectivity_time(node_data), inline=True)
     if node_data["nodeWalletAddress"] is not None:
         embed.add_field(name=f"\u200B", value=build_general_node_wallet(node_data), inline=False)
     if node_data["version"] is not None:
