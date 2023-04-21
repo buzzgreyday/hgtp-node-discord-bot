@@ -9,7 +9,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import nextcord
 
@@ -223,8 +223,12 @@ def set_association_time(node_data):
     else:
         time_difference = datetime.strptime(node_data["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ").second
 
-    node_data["clusterAssociationTime"] = node_data["formerClusterAssociationTime"] if node_data["formerClusterAssociationTime"] is not None else 0
-    node_data["clusterDissociationTime"] = node_data["formerClusterDissociationTime"] if node_data["formerClusterDissociationTime"] is not None else 0
+    if node_data['clusterAssociationTime'] is None and node_data['formerClusterAssociationTime'] is None:
+        node_data['clusterAssociationTime'] = 0
+        node_data['formerClusterAssociationTime'] = 0
+    if node_data['clusterDissociationTime'] is None and node_data['formerClusterDissociationTime'] is None:
+        node_data['clusterDissociationTime'] = 0
+        node_data['formerClusterDissociationTime'] = 0
 
     if node_data["clusterConnectivity"] == "association":
         node_data["clusterAssociationTime"] = time_difference + node_data["formerClusterAssociationTime"]
@@ -261,6 +265,7 @@ def build_general_node_state(node_data):
                    f"```\n" \
                    f"ID: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
                    f"IP: {node_data['host']}\n" \
+                   f"Node Peers: {node_data['nodePeerCount']}" \
                    f"Subscribed Port: {node_data['publicPort']}\n" \
                    f"State: {node_state}```"
         elif node_data["id"] is None:
@@ -282,16 +287,30 @@ def build_general_node_state(node_data):
 def build_general_cluster_state(node_data):
     def general_cluster_state_field():
         return f"{field_symbol} **CLUSTER**\n" \
-               f"```{str(node_data['clusterNames']).title()}```" \
+               f"```\n" \
+               f"{str(node_data['clusterNames']).title()}\n" \
+               f"Assoc. Time: {timedelta(seconds=float(node_data['clusterAssociationTime']))} {association_percent()}%\n" \
+               f"Dissoc. Time: {timedelta(seconds=float(node_data['clusterDissociationTime']))}\n" \
+               f"Cluster Peers: {node_data['clusterPeerCount']}```" \
                f"{field_info}"
+
+    def association_percent():
+        if node_data["clusterAssociationTime"] or node_data["clusterDissociationTime"] not in (0, None):
+            return round(float(node_data['clusterAssociationTime'])*100/float(node_data['clusterAssociationTime'])+float(node_data['clusterDissociationTime']), 2)
+        elif node_data["clusterAssociationTime"] not in (0, None) and node_data["clusterDissociationTime"] == 0:
+            return round(float(node_data['clusterAssociationTime'])*100/float(node_data['clusterAssociationTime'])+float(0.0), 2)
+        elif node_data["clusterAssociationTime"] in (0, None) and node_data["clusterDissociationTime"] not in (0, None):
+            return round(float(node_data['clusterAssociationTime'])*100/float(0.0)+float(node_data['clusterDissociationTime']), 2)
+
+
 
     if node_data["clusterConnectivity"] == "new association":
         field_symbol = ":green_square:"
-        field_info = f":information_source: `A new connection to the cluster was made recently. The cluster is constituted by {node_data['clusterPeerCount']} peers`"
+        field_info = f":information_source: `Association with the cluster was recently established`"
         return general_cluster_state_field()
     elif node_data["clusterConnectivity"] == "associated":
         field_symbol = ":green_square:"
-        field_info = f":information_source: `The node is consecutively associated with the cluster. The cluster is constituted by {node_data['clusterPeerCount']} peers`"
+        field_info = f":information_source: `The node is consecutively associated with the cluster`"
         return general_cluster_state_field()
     elif node_data["clusterConnectivity"] == "new dissociation":
         field_symbol = ":red_square:"
