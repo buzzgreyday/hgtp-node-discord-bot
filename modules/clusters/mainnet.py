@@ -265,13 +265,15 @@ def build_general_node_state(node_data):
                    f"```\n" \
                    f"ID: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
                    f"IP: {node_data['host']}\n" \
-                   f"Node Peers: {node_data['nodePeerCount']}" \
+                   f"Node Peers: {node_data['nodePeerCount']}\n" \
                    f"Subscribed Port: {node_data['publicPort']}\n" \
                    f"State: {node_state}```"
         elif node_data["id"] is None:
             return f"{field_symbol} **NODE**\n" \
                    f"```\n" \
                    f"IP: {node_data['host']}\n" \
+                   f"\n" \
+                   f"Node Peers: {node_data['nodePeerCount']}\n" \
                    f"Subscribed Port: {node_data['publicPort']}\n" \
                    f"State: {node_state}```"
 
@@ -286,9 +288,8 @@ def build_general_node_state(node_data):
 
 def build_general_cluster_state(node_data):
     def general_cluster_state_field():
-        return f"{field_symbol} **CLUSTER**\n" \
+        return f"{field_symbol} **{str(node_data['clusterNames']).upper()} CLUSTER**\n" \
                f"```\n" \
-               f"{str(node_data['clusterNames']).title()}\n" \
                f"Assoc. Time: {timedelta(seconds=float(node_data['clusterAssociationTime']))} {association_percent()}%\n" \
                f"Dissoc. Time: {timedelta(seconds=float(node_data['clusterDissociationTime']))}\n" \
                f"Cluster Peers: {node_data['clusterPeerCount']}```" \
@@ -301,6 +302,8 @@ def build_general_cluster_state(node_data):
             return round(float(node_data['clusterAssociationTime'])*100/float(node_data['clusterAssociationTime'])+float(0.0), 2)
         elif node_data["clusterAssociationTime"] in (0, None) and node_data["clusterDissociationTime"] not in (0, None):
             return round(float(node_data['clusterAssociationTime'])*100/float(0.0)+float(node_data['clusterDissociationTime']), 2)
+        else:
+            return 0
 
 
 
