@@ -113,6 +113,9 @@ async def request_reward_addresses_per_snapshot(request_url, configuration):
 # + NODE SPECIFIC FUNCTIONS AND CLASSES GOES HERE
 # ---------------------------------------------------------------------------------------------------------------------
 
+yellow_color_trigger = False
+red_color_trigger = False
+
 async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict, dict]:
     if node_data['publicPort'] is not None:
         node_info_data = await request.safe(
@@ -280,11 +283,12 @@ def build_general_node_state(node_data):
     if node_data["state"] != "offline":
         field_symbol = ":green_square:"
         node_state = node_data['state'].title()
-        return node_state_field()
+        return node_state_field(), False, yellow_color_trigger
     elif node_data["state"] == "offline":
         field_symbol = f":red_square:"
         node_state = "Offline"
-        return node_state_field()
+        red_color_trigger = True
+        return node_state_field(), red_color_trigger, yellow_color_trigger
 
 def build_general_cluster_state(node_data):
     def general_cluster_state_field():
@@ -310,23 +314,25 @@ def build_general_cluster_state(node_data):
     if node_data["clusterConnectivity"] == "new association":
         field_symbol = ":green_square:"
         field_info = f"`ⓘ  Association with the cluster was recently established`"
-        return general_cluster_state_field()
+        return general_cluster_state_field(), False, yellow_color_trigger
     elif node_data["clusterConnectivity"] == "associated":
         field_symbol = ":green_square:"
         field_info = f"`ⓘ  The node is consecutively associated with the cluster`"
-        return general_cluster_state_field()
+        return general_cluster_state_field(), False, yellow_color_trigger
     elif node_data["clusterConnectivity"] == "new dissociation":
         field_symbol = ":red_square:"
         field_info = f"`ⓘ  The node was recently dissociated from the cluster`"
-        return general_cluster_state_field()
+        red_color_trigger = True
+        return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
     elif node_data["clusterConnectivity"] == "dissociated":
         field_symbol = ":red_square:"
         field_info = f"`ⓘ  The node is consecutively dissociated from the cluster`"
-        return general_cluster_state_field()
+        red_color_trigger = True
+        return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
     elif node_data["clusterConnectivity"] is None:
         field_symbol = ":yellow_square:"
         field_info = f""
-        return general_cluster_state_field()
+        return general_cluster_state_field(), False, yellow_color_trigger
 
 def build_general_node_wallet(node_data):
     def wallet_field(field_symbol, field_info):
@@ -341,61 +347,69 @@ def build_general_node_wallet(node_data):
                 field_symbol = ":red_square:"
                 if node_data["formerRewardState"] is True:
                     field_info = f"`⚠ The wallet recently stopped receiving rewards`"
-                    return wallet_field(field_symbol, field_info)
+                    red_color_trigger = True
+                    return wallet_field(field_symbol, field_info), red_color_trigger, False
                 else:
                     field_info = f"`⚠ The wallet doesn't receive rewards`"
-                    return wallet_field(field_symbol, field_info)
+                    red_color_trigger = True
+                    return wallet_field(field_symbol, field_info), red_color_trigger, False
             elif node_data["rewardState"] is True:
                 field_symbol = ":green_square:"
                 if node_data["formerRewardState"] is False:
-                    field_info = f":coin: `The wallet recently **started** receiving rewards`"
-                    return wallet_field(field_symbol, field_info)
+                    field_info = f":coin: `The wallet recently started receiving rewards`"
+                    return wallet_field(field_symbol, field_info), False, False
                 else:
                     field_info = f":coin: `The wallet receives rewards`"
-                    return wallet_field(field_symbol, field_info)
+                    return wallet_field(field_symbol, field_info), False, False
             elif node_data["rewardState"] is None:
                 field_symbol = ":yellow_square:"
                 field_info = f"`ⓘ  Unknown reward state - please report`"
-                return wallet_field(field_symbol, field_info)
+                yellow_color_trigger = True
+                return wallet_field(field_symbol, field_info), False, yellow_color_trigger
         else:
             if (node_data["clusterNames"] or node_data["formerClusterNames"]) != "testnet":
                 field_symbol = ":red_square:"
                 field_info = f"`⚠ The wallet doesn't hold sufficient collateral`"
-                return wallet_field(field_symbol, field_info)
+                red_color_trigger = True
+                return wallet_field(field_symbol, field_info), red_color_trigger, False
             else:
                 if node_data["rewardState"] is True:
                     field_symbol = ":green_square:"
                     if node_data["formerRewardState"] is False:
                         field_info = f"`ⓘ  No minimum collateral required`\n" \
                                      f":coin: `The wallet recently started receiving rewards`"
-                        return wallet_field(field_symbol, field_info)
+                        return wallet_field(field_symbol, field_info), False, False
                     else:
                         field_info = f"`ⓘ  No minimum collateral required`\n" \
                                      f":coin: `The wallet receives rewards`"
-                        return wallet_field(field_symbol, field_info)
+                        return wallet_field(field_symbol, field_info), False, False
 
                 elif node_data["rewardState"] is False:
                     field_symbol = ":red_square:"
                     if node_data["formerRewardState"] is True:
                         field_info = f"`ⓘ  No minimum collateral required`\n" \
                                      f"`⚠ The wallet recently stopped receiving rewards`"
-                        return wallet_field(field_symbol, field_info)
+                        red_color_trigger = True
+                        return wallet_field(field_symbol, field_info), red_color_trigger, False
                     else:
                         field_info = f"`ⓘ  No minimum collateral required`\n" \
                                      f"`⚠ The wallet doesn't receive rewards`"
-                        return wallet_field(field_symbol, field_info)
+                        red_color_trigger = True
+                        return wallet_field(field_symbol, field_info), red_color_trigger, False
                 else:
                     field_symbol = ":yellow_square:"
                     field_info = f"`ⓘ  No minimum collateral required`\n" \
                                  f"`ⓘ  The wallet reward state is unknown. Please report`"
-                    return wallet_field(field_symbol, field_info)
+                    yellow_color_trigger = True
+                    return wallet_field(field_symbol, field_info), False, yellow_color_trigger
 
 
     if node_data["nodeWalletAddress"] is not None:
-            return field_from_wallet_conditions()
+        field_content, red_color_trigger, yellow_color_trigger = field_from_wallet_conditions()
+        return field_content, red_color_trigger, yellow_color_trigger
     else:
         return f":yellow_square: **WALLET**\n" \
-               f"`ⓘ  No data available`"
+               f"`ⓘ  No data available`", False, False
 
 def build_system_node_version(node_data):
 
@@ -416,12 +430,13 @@ def build_system_node_version(node_data):
                 field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest official version is {node_data['latestVersion']}`"
             else:
                 field_info = "`ⓘ  This line should not be seen`"
-            return version_field()
+            return version_field(), red_color_trigger, False
 
         elif node_data["version"] < node_data["clusterVersion"]:
             field_symbol = ":red_square:"
             field_info = f"`⚠ New upgrade (v{node_data['latestVersion']}) available`"
-            return version_field()
+            yellow_color_trigger = True
+            return version_field(), red_color_trigger, yellow_color_trigger
 
         elif node_data["version"] > node_data["latestVersion"]:
             field_symbol = ":green_square:"
@@ -429,14 +444,14 @@ def build_system_node_version(node_data):
                 field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest official version is {node_data['latestVersion']}`"
             else:
                 field_info = f"`ⓘ  You seem to be running a test-release. Latest official version is {node_data['latestVersion']}`"
-            return version_field()
+            return version_field(), red_color_trigger, False
         else:
             field_symbol = ":yellow_square:"
             field_info = f"`ⓘ  Latest version is {node_data['latestVersion']}`"
-            return version_field()
+            return version_field(), red_color_trigger, False
     else:
         return f":yellow_square: **TESSELLATION**\n" \
-               f"`ⓘ  No data available`"
+               f"`ⓘ  No data available`", red_color_trigger, False
 
 def build_system_node_load_average(node_data):
     def load_average_field():
@@ -449,16 +464,17 @@ def build_system_node_load_average(node_data):
     if (node_data["1mSystemLoadAverage"] or node_data["cpuCount"]) is not None:
         if float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) >= 1:
             field_symbol = ":red_square:"
-            field_info = f"`⚠ \"CPU load\" is too high. This value should be below \"CPU count\" ({node_data['cpuCount']}). You might need more CPU power`"
-            return load_average_field()
+            field_info = f"`⚠ \"CPU load\" is too high - should be below \"CPU count\". You might need more CPU power`"
+            yellow_color_trigger = True
+            return load_average_field(), red_color_trigger, yellow_color_trigger
         elif float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) < 1:
             field_symbol = ":green_square:"
-            field_info = f"`ⓘ  \"CPU load\" is OK. This value should be below \"CPU count\" ({node_data['cpuCount']})`"
-            return load_average_field()
+            field_info = f"`ⓘ  \"CPU load\" is OK - should be below \"CPU count\"`"
+            return load_average_field(), red_color_trigger, False
     else:
         field_symbol = ":yellow_square:"
         field_info = f"`ⓘ  None-type is present`"
-        return load_average_field()
+        return load_average_field(), red_color_trigger, False
 
 
 def build_system_node_disk_space(node_data):
@@ -468,39 +484,70 @@ def build_system_node_disk_space(node_data):
                f"Free:  {round(float(node_data['diskSpaceFree'])/1073741824, 2)} {round(float(node_data['diskSpaceFree'])*100/float(node_data['diskSpaceTotal']), 2)}%\n" \
                f"Total: {round(float(node_data['diskSpaceTotal'])/1073741824, 2)}```" \
                f"{field_info}"
-    print(node_data['diskSpaceFree'])
     if node_data['diskSpaceFree'] is not None:
         if 0 < float(node_data['diskSpaceFree'])*100/float(node_data['diskSpaceTotal']) < 10:
             field_symbol = ":red_square:"
             field_info = f"`⚠ Free disk space is low`"
-            return disk_space_field()
+            yellow_color_trigger = True
+            return disk_space_field(), red_color_trigger, yellow_color_trigger
         else:
             field_symbol = ":green_square:"
             field_info = f"`ⓘ  Free disk space is okay`"
-            return disk_space_field()
+            return disk_space_field(), red_color_trigger, False
 
 
 def build_embed(node_data):
-    def determine_color():
-        if node_data["clusterConnectivity"] in ("new association", "associated"):
-            return nextcord.Color.dark_green()
-        elif node_data["clusterConnectivity"] in ("new dissociation", "dissociated"):
-            return nextcord.Color.brand_red()
+    embed_created = False
+    def determine_color_and_create_embed(yellow_color_trigger, red_color_trigger):
+        title = build_title(node_data).upper()
+        if yellow_color_trigger and red_color_trigger is False:
+            return nextcord.Embed(title=title, colour=nextcord.Color.orange())
+        elif red_color_trigger:
+            return nextcord.Embed(title=title, colour=nextcord.Color.brand_red())
         else:
-            return nextcord.Color.yellow()
+            return nextcord.Embed(title=title, colour=nextcord.Color.dark_green())
 
-    embed = nextcord.Embed(title=build_title(node_data).upper(), colour=determine_color())
-    embed.set_author(name=node_data["name"])
-    embed.add_field(name="\u200B", value=build_general_node_state(node_data))
-    embed.add_field(name=f"\u200B", value=build_general_cluster_state(node_data))
+
+    node_state, red_color_trigger, yellow_color_trigger = build_general_node_state(node_data)
+    if (red_color_trigger is True or yellow_color_trigger is True) and not embed_created:
+        embed = determine_color_and_create_embed(yellow_color_trigger, red_color_trigger)
+        embed_created = True
+    cluster_state, red_color_trigger, yellow_color_trigger = build_general_cluster_state(node_data)
+    if (red_color_trigger is True or yellow_color_trigger is True) and not embed_created:
+        embed = determine_color_and_create_embed(yellow_color_trigger, red_color_trigger)
+        embed_created = True
     if node_data["nodeWalletAddress"] is not None:
-        embed.add_field(name=f"\u200B", value=build_general_node_wallet(node_data), inline=False)
+        node_wallet, red_color_trigger, yellow_color_trigger = build_general_node_wallet(node_data)
+        if (red_color_trigger is True or yellow_color_trigger is True) and not embed_created:
+            embed = determine_color_and_create_embed(yellow_color_trigger, red_color_trigger)
+            embed_created = True
     if node_data["version"] is not None:
-        embed.add_field(name="\u200B", value=build_system_node_version(node_data), inline=False)
+        node_version, red_color_trigger, yellow_color_trigger = build_system_node_version(node_data)
+        if (red_color_trigger is True or yellow_color_trigger is True) and not embed_created:
+            embed = determine_color_and_create_embed(yellow_color_trigger, red_color_trigger)
+            embed_created = True
     if node_data["1mSystemLoadAverage"] is not None:
-        embed.add_field(name="\u200B", value=build_system_node_load_average(node_data), inline=True)
+        node_load, red_color_trigger, yellow_color_trigger = build_system_node_load_average(node_data)
+        if (red_color_trigger is True or yellow_color_trigger is True) and not embed_created:
+            embed = determine_color_and_create_embed(yellow_color_trigger, red_color_trigger)
+            embed_created = True
     if node_data["diskSpaceTotal"] is not None:
-        embed.add_field(name="\u200B", value=build_system_node_disk_space(node_data), inline=True)
+        node_disk, red_color_trigger, yellow_color_trigger = build_system_node_disk_space(node_data)
+        if (red_color_trigger is True or yellow_color_trigger is True) and not embed_created:
+            embed = determine_color_and_create_embed(yellow_color_trigger, red_color_trigger)
+    if not embed_created:
+        embed = determine_color_and_create_embed(yellow_color_trigger, red_color_trigger)
+    embed.set_author(name=node_data["name"])
+    embed.add_field(name="\u200B", value=node_state)
+    embed.add_field(name=f"\u200B", value=cluster_state)
+    if node_data["nodeWalletAddress"] is not None:
+        embed.add_field(name=f"\u200B", value=node_wallet, inline=False)
+    if node_data["version"] is not None:
+        embed.add_field(name="\u200B", value=node_version, inline=False)
+    if node_data["1mSystemLoadAverage"] is not None:
+        embed.add_field(name="\u200B", value=node_load, inline=True)
+    if node_data["diskSpaceTotal"] is not None:
+        embed.add_field(name="\u200B", value=node_disk, inline=True)
 
     return embed
 
