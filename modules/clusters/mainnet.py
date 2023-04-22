@@ -271,21 +271,28 @@ def build_general_node_state(node_data):
                    f"ID: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
                    f"IP: {node_data['host']}\n" \
                    f"Subscribed Port: {node_data['publicPort']}\n" \
-                   f"State: {node_state}```"
+                   f"State: {node_state}```" \
+                   f"{field_info}"
         elif node_data["id"] is None:
             return f"{field_symbol} **NODE**\n" \
                    f"```\n" \
                    f"Peers: {node_data['nodePeerCount']}\n" \
                    f"IP: {node_data['host']}\n" \
                    f"Subscribed Port: {node_data['publicPort']}\n" \
-                   f"State: {node_state}```"
+                   f"State: {node_state}```" \
+                   f"{field_info}"
 
     if node_data["state"] != "offline":
         field_symbol = ":green_square:"
+        if node_data["clusterPeerCount"] in (None, 0):
+            field_info = f"`ⓘ  The node is not connected to any known cluster`"
+        else:
+            field_info = f"`ⓘ  Connected to {node_data['nodePeerCount']*100/node_data['clusterPeerCount']}% of the cluster peers`"
         node_state = node_data['state'].title()
         return node_state_field(), False, yellow_color_trigger
     elif node_data["state"] == "offline":
         field_symbol = f":red_square:"
+        field_info = f"`ⓘ  The node is connected to 0% of the previously associated cluster`"
         node_state = "Offline"
         red_color_trigger = True
         return node_state_field(), red_color_trigger, yellow_color_trigger
@@ -469,7 +476,7 @@ def build_system_node_load_average(node_data):
             return load_average_field(), red_color_trigger, yellow_color_trigger
         elif float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) < 1:
             field_symbol = ":green_square:"
-            field_info = f"`ⓘ  \"CPU load\" is OK - should be below \"CPU count\"`"
+            field_info = f"`ⓘ  \"CPU load\" is ok - should be below \"CPU count\"`"
             return load_average_field(), red_color_trigger, False
     else:
         field_symbol = ":yellow_square:"
