@@ -488,18 +488,18 @@ def build_system_node_disk_space(node_data):
     def disk_space_field():
         return f"{field_symbol} **DISK**\n" \
                f"```\n" \
-               f"Free:  {round(float(node_data['diskSpaceFree'])/1073741824, 2)} {round(float(node_data['diskSpaceFree'])*100/float(node_data['diskSpaceTotal']), 2)}%\n" \
-               f"Total: {round(float(node_data['diskSpaceTotal'])/1073741824, 2)}```" \
+               f"Free:  {round(float(node_data['diskSpaceFree'])/1073741824, 2)} GB {round(float(node_data['diskSpaceFree'])*100/float(node_data['diskSpaceTotal']), 2)}%\n" \
+               f"Total: {round(float(node_data['diskSpaceTotal'])/1073741824, 2)} GB```" \
                f"{field_info}"
     if node_data['diskSpaceFree'] is not None:
-        if 0 < float(node_data['diskSpaceFree'])*100/float(node_data['diskSpaceTotal']) < 10:
+        if 0 <= float(node_data['diskSpaceFree'])*100/float(node_data['diskSpaceTotal']) <= 10:
             field_symbol = ":red_square:"
             field_info = f"`⚠ Free disk space is low`"
             yellow_color_trigger = True
             return disk_space_field(), red_color_trigger, yellow_color_trigger
         else:
             field_symbol = ":green_square:"
-            field_info = f"`ⓘ  Free disk space is okay`"
+            field_info = f"`ⓘ  Free disk space is ok`"
             return disk_space_field(), red_color_trigger, False
 
 
