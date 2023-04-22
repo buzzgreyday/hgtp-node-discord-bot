@@ -218,17 +218,15 @@ def set_association_time(node_data):
     if node_data["formerTimestampIndex"] is not None:
         # LINE BELOW IS TEMPORARY
         node_data["formerTimestampIndex"] = datetime.fromtimestamp(node_data["formerTimestampIndex"]).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-
         time_difference = (datetime.strptime(node_data["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ") - datetime.strptime(node_data["formerTimestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ")).seconds
     else:
         time_difference = datetime.strptime(node_data["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ").second
 
-    if node_data['clusterAssociationTime'] is None and node_data['formerClusterAssociationTime'] is None:
-        node_data['clusterAssociationTime'] = 0
-        node_data['formerClusterAssociationTime'] = 0
-    if node_data['clusterDissociationTime'] is None and node_data['formerClusterDissociationTime'] is None:
-        node_data['clusterDissociationTime'] = 0
-        node_data['formerClusterDissociationTime'] = 0
+    for connectivity_type in ("association", "dissociation"):
+        if node_data[f'cluster{connectivity_type.title()}Time'] is None:
+            node_data[f'cluster{connectivity_type.title()}Time'] = 0
+        if node_data[f'formerCluster{connectivity_type.title()}Time'] is None:
+            node_data[f'formerCluster{connectivity_type.title()}Time'] = 0
 
     if node_data["clusterConnectivity"] == "association":
         node_data["clusterAssociationTime"] = time_difference + node_data["formerClusterAssociationTime"]
@@ -239,6 +237,7 @@ def set_association_time(node_data):
     elif node_data["clusterConnectivity"] in ["new association", "new dissociation"]:
         node_data["clusterAssociationTime"] = node_data["formerClusterAssociationTime"]
         node_data["clusterDissociationTime"] = node_data["formerClusterDissociationTime"]
+
     return node_data
 
 """
@@ -263,17 +262,16 @@ def build_general_node_state(node_data):
         if node_data["id"] is not None:
             return f"{field_symbol} **NODE**\n" \
                    f"```\n" \
+                   f"Peers: {node_data['nodePeerCount']}\n" \
                    f"ID: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
                    f"IP: {node_data['host']}\n" \
-                   f"Node Peers: {node_data['nodePeerCount']}\n" \
                    f"Subscribed Port: {node_data['publicPort']}\n" \
                    f"State: {node_state}```"
         elif node_data["id"] is None:
             return f"{field_symbol} **NODE**\n" \
                    f"```\n" \
+                   f"Peers: {node_data['nodePeerCount']}\n" \
                    f"IP: {node_data['host']}\n" \
-                   f"\n" \
-                   f"Node Peers: {node_data['nodePeerCount']}\n" \
                    f"Subscribed Port: {node_data['publicPort']}\n" \
                    f"State: {node_state}```"
 
@@ -290,9 +288,9 @@ def build_general_cluster_state(node_data):
     def general_cluster_state_field():
         return f"{field_symbol} **{str(node_data['clusterNames']).upper()} CLUSTER**\n" \
                f"```\n" \
-               f"Assoc. Time: {timedelta(seconds=float(node_data['clusterAssociationTime']))} {association_percent()}%\n" \
-               f"Dissoc. Time: {timedelta(seconds=float(node_data['clusterDissociationTime']))}\n" \
-               f"Cluster Peers: {node_data['clusterPeerCount']}```" \
+               f"Peers:   {node_data['clusterPeerCount']}\n" \
+               f"Assoc.:  {timedelta(seconds=float(node_data['clusterAssociationTime'])).days} days {association_percent()}%\n" \
+               f"Dissoc.: {timedelta(seconds=float(node_data['clusterDissociationTime'])).days} days {100.00-association_percent()}%```" \
                f"{field_info}"
 
     def association_percent():
@@ -309,19 +307,19 @@ def build_general_cluster_state(node_data):
 
     if node_data["clusterConnectivity"] == "new association":
         field_symbol = ":green_square:"
-        field_info = f":information_source: `Association with the cluster was recently established`"
+        field_info = f"`ⓘ  Association with the cluster was recently established`"
         return general_cluster_state_field()
     elif node_data["clusterConnectivity"] == "associated":
         field_symbol = ":green_square:"
-        field_info = f":information_source: `The node is consecutively associated with the cluster`"
+        field_info = f"`ⓘ  The node is consecutively associated with the cluster`"
         return general_cluster_state_field()
     elif node_data["clusterConnectivity"] == "new dissociation":
         field_symbol = ":red_square:"
-        field_info = f":information_source: `The node was recently dissociated from the cluster`"
+        field_info = f"`ⓘ  The node was recently dissociated from the cluster`"
         return general_cluster_state_field()
     elif node_data["clusterConnectivity"] == "dissociated":
         field_symbol = ":red_square:"
-        field_info = f":information_source: `The node is consecutively dissociated from the cluster`"
+        field_info = f"`ⓘ  The node is consecutively dissociated from the cluster`"
         return general_cluster_state_field()
     elif node_data["clusterConnectivity"] is None:
         field_symbol = ":yellow_square:"
@@ -332,18 +330,18 @@ def build_general_node_wallet(node_data):
     def wallet_field(field_symbol, field_info):
         return f"{field_symbol} **WALLET**\n" \
                f"```\n" \
-               f"{node_data['nodeWalletAddress']}\n" \
-               f"{node_data['nodeWalletBalance']/100000000} $DAG```" \
+               f"Address: {node_data['nodeWalletAddress']}\n" \
+               f"Balance: {node_data['nodeWalletBalance']/100000000} ＄DAG```" \
                f"{field_info}"
     def field_from_wallet_conditions():
         if node_data["nodeWalletBalance"] >= 250000 * 100000000:
             if node_data["rewardState"] is False:
                 field_symbol = ":red_square:"
                 if node_data["formerRewardState"] is True:
-                    field_info = f":warning: `The wallet recently stopped receiving rewards`"
+                    field_info = f"`⚠ The wallet recently stopped receiving rewards`"
                     return wallet_field(field_symbol, field_info)
                 else:
-                    field_info = f":warning: `The wallet doesn't receive rewards`"
+                    field_info = f"`⚠ The wallet doesn't receive rewards`"
                     return wallet_field(field_symbol, field_info)
             elif node_data["rewardState"] is True:
                 field_symbol = ":green_square:"
@@ -355,39 +353,39 @@ def build_general_node_wallet(node_data):
                     return wallet_field(field_symbol, field_info)
             elif node_data["rewardState"] is None:
                 field_symbol = ":yellow_square:"
-                field_info = f":information_source: `Unknown reward state - please report`"
+                field_info = f"`ⓘ  Unknown reward state - please report`"
                 return wallet_field(field_symbol, field_info)
         else:
             if (node_data["clusterNames"] or node_data["formerClusterNames"]) != "testnet":
                 field_symbol = ":red_square:"
-                field_info = f":warning: `The wallet doesn't hold sufficient collateral`"
+                field_info = f"`⚠ The wallet doesn't hold sufficient collateral`"
                 return wallet_field(field_symbol, field_info)
             else:
                 if node_data["rewardState"] is True:
                     field_symbol = ":green_square:"
                     if node_data["formerRewardState"] is False:
-                        field_info = f":information_source: `No minimum collateral required`\n" \
+                        field_info = f"`ⓘ  No minimum collateral required`\n" \
                                      f":coin: `The wallet recently started receiving rewards`"
                         return wallet_field(field_symbol, field_info)
                     else:
-                        field_info = f":information_source: `No minimum collateral required`\n" \
+                        field_info = f"`ⓘ  No minimum collateral required`\n" \
                                      f":coin: `The wallet receives rewards`"
                         return wallet_field(field_symbol, field_info)
 
                 elif node_data["rewardState"] is False:
                     field_symbol = ":red_square:"
                     if node_data["formerRewardState"] is True:
-                        field_info = f":information_source: `No minimum collateral required`\n" \
-                                     f":warning: `The wallet recently stopped receiving rewards`"
+                        field_info = f"`ⓘ  No minimum collateral required`\n" \
+                                     f"`⚠ The wallet recently stopped receiving rewards`"
                         return wallet_field(field_symbol, field_info)
                     else:
-                        field_info = f":information_source: `No minimum collateral required`\n" \
-                                     f":warning: `The wallet doesn't receive rewards`"
+                        field_info = f"`ⓘ  No minimum collateral required`\n" \
+                                     f"`⚠ The wallet doesn't receive rewards`"
                         return wallet_field(field_symbol, field_info)
                 else:
                     field_symbol = ":yellow_square:"
-                    field_info = f":information_source: `No minimum collateral required`\n" \
-                                 f":information_source: `The wallet reward state is unknown. Please report`"
+                    field_info = f"`ⓘ  No minimum collateral required`\n" \
+                                 f"`ⓘ  The wallet reward state is unknown. Please report`"
                     return wallet_field(field_symbol, field_info)
 
 
@@ -395,7 +393,7 @@ def build_general_node_wallet(node_data):
             return field_from_wallet_conditions()
     else:
         return f":yellow_square: **WALLET**\n" \
-               f":information_source: `No data available`"
+               f"`ⓘ  No data available`"
 
 def build_system_node_version(node_data):
 
@@ -409,55 +407,55 @@ def build_system_node_version(node_data):
         if node_data["version"] == node_data["clusterVersion"]:
             field_symbol = ":green_square:"
             if node_data["clusterVersion"] == node_data["latestVersion"]:
-                field_info = ":information_source: `No new version available`"
+                field_info = "`ⓘ  No new version available`"
             elif node_data["clusterVersion"] < node_data["latestVersion"]:
-                field_info = f":information_source: `You are running the latest version but a new release ({node_data['latestVersion']}) should be available soon"
+                field_info = f"`ⓘ  You are running the latest version but a new release ({node_data['latestVersion']}) should be available soon"
             elif node_data["clusterVersion"] > node_data["latestVersion"]:
-                field_info = f":information_source: `You seem to be associated with a cluster running a test-release. Latest official version is {node_data['latestVersion']}`"
+                field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest official version is {node_data['latestVersion']}`"
             else:
-                field_info = ":information_source: `This line should not be seen`"
+                field_info = "`ⓘ  This line should not be seen`"
             return version_field()
 
         elif node_data["version"] < node_data["clusterVersion"]:
             field_symbol = ":red_square:"
-            field_info = f":warning: `New upgrade (v{node_data['latestVersion']}) available`"
+            field_info = f"`⚠ New upgrade (v{node_data['latestVersion']}) available`"
             return version_field()
 
         elif node_data["version"] > node_data["latestVersion"]:
             field_symbol = ":green_square:"
             if node_data["version"] == node_data["clusterVersion"]:
-                field_info = f":information_source: `You seem to be associated with a cluster running a test-release. Latest official version is {node_data['latestVersion']}`"
+                field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest official version is {node_data['latestVersion']}`"
             else:
-                field_info = f":information_source: `You seem to be running a test-release. Latest official version is {node_data['latestVersion']}`"
+                field_info = f"`ⓘ  You seem to be running a test-release. Latest official version is {node_data['latestVersion']}`"
             return version_field()
         else:
             field_symbol = ":yellow_square:"
-            field_info = f":information_source: `Latest version is {node_data['latestVersion']}`"
+            field_info = f"`ⓘ  Latest version is {node_data['latestVersion']}`"
             return version_field()
     else:
         return f":yellow_square: **TESSELLATION**\n" \
-               f":information_source: `No data available`"
+               f"`ⓘ  No data available`"
 
 def build_system_node_load_average(node_data):
     def load_average_field():
         return f"{field_symbol} **CPU**\n" \
                f"```\n" \
                f"Count: {round(float(node_data['cpuCount']))}\n" \
-               f"Load: {round(float(node_data['1mSystemLoadAverage']), 2)}```" \
+               f"Load:  {round(float(node_data['1mSystemLoadAverage']), 2)}```" \
                f"{field_info}"
 
     if (node_data["1mSystemLoadAverage"] or node_data["cpuCount"]) is not None:
         if float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) >= 1:
             field_symbol = ":red_square:"
-            field_info = f":warning: `\"CPU load\" is too high. This value should be below \"CPU count\" ({node_data['cpuCount']}). You might need more CPU power`"
+            field_info = f"`⚠ \"CPU load\" is too high. This value should be below \"CPU count\" ({node_data['cpuCount']}). You might need more CPU power`"
             return load_average_field()
         elif float(node_data["1mSystemLoadAverage"]) / float(node_data["cpuCount"]) < 1:
             field_symbol = ":green_square:"
-            field_info = f":information_source: `\"CPU load\" is OK. This value should be below \"CPU count\" ({node_data['cpuCount']})`"
+            field_info = f"`ⓘ  \"CPU load\" is OK. This value should be below \"CPU count\" ({node_data['cpuCount']})`"
             return load_average_field()
     else:
         field_symbol = ":yellow_square:"
-        field_info = f":information_source: `None-type is present`"
+        field_info = f"`ⓘ  None-type is present`"
         return load_average_field()
 
 
@@ -465,18 +463,18 @@ def build_system_node_disk_space(node_data):
     def disk_space_field():
         return f"{field_symbol} **DISK**\n" \
                f"```\n" \
-               f"Free: {round(float(node_data['diskSpaceFree'])/1073741824, 2)}\n" \
+               f"Free:  {round(float(node_data['diskSpaceFree'])/1073741824, 2)} {round(float(node_data['diskSpaceFree'])*100/float(node_data['diskSpaceTotal']), 2)}%\n" \
                f"Total: {round(float(node_data['diskSpaceTotal'])/1073741824, 2)}```" \
                f"{field_info}"
     print(node_data['diskSpaceFree'])
     if node_data['diskSpaceFree'] is not None:
         if 0 < float(node_data['diskSpaceFree'])*100/float(node_data['diskSpaceTotal']) < 10:
             field_symbol = ":red_square:"
-            field_info = f":warning: `Free disk space is low ({round(float(node_data['diskSpaceFree'])*100/float(node_data['diskSpaceTotal']), 2)}%)`"
+            field_info = f"`⚠ Free disk space is low`"
             return disk_space_field()
         else:
             field_symbol = ":green_square:"
-            field_info = f":information_source: `Free disk space is okay ({round(float(node_data['diskSpaceFree']) * 100 / float(node_data['diskSpaceTotal']), 2)}%)`"
+            field_info = f"`ⓘ  Free disk space is okay`"
             return disk_space_field()
 
 
