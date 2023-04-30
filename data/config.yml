@@ -1,5 +1,42 @@
 file settings:
   columns:
+    history_new:
+    - name
+    - contact
+    - ip
+    - layer
+    - publicPort
+    - p2pPort
+    - id
+    - nodeWalletAddress
+    - nodeWalletBalance
+    - clusterNames
+    - formerClusterNames
+    - state
+    - clusterState
+    - clusterConnectivity
+    - formerClusterConnectivity
+    - rewardState
+    - formerRewardState
+    - clusterAssociationTime
+    - formerClusterAssociationTime
+    - clusterDissociationTime
+    - formerClusterDissociationTime
+    - nodeClusterSession
+    - latestClusterSession
+    - nodePeerCount
+    - clusterPeerCount
+    - formerClusterPeerCount
+    - version
+    - clusterVersion
+    - latestVersion
+    - cpuCount
+    - diskSpaceTotal
+    - diskSpaceFree
+    - 1mSystemLoadAverage
+    - lastNotifiedTimestamp
+    - timestampIndex
+    - formerTimestampIndex
     history:
     - index timestamp
     - date
@@ -39,6 +76,7 @@ file settings:
     - source port
     - source id
     subscribers:
+    - id
     - name
     - contact
     - ip
@@ -83,6 +121,7 @@ file settings:
       source version: str
       time: str
     subscribers:
+      id: str
       contact: str
       ip: str
       name: str
