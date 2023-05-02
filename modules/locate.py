@@ -13,10 +13,10 @@ def node_cluster(node_data, all_supported_clusters_data):
     return node_data
 
 async def historic_node_data(dask_client, node_data: dict, history_dataframe):
-    return await dask_client.compute(history_dataframe[(history_dataframe["node ip"] == node_data["host"]) & (history_dataframe["node port"] == node_data["publicPort"])])
+    return await dask_client.compute(history_dataframe[(history_dataframe["host"] == node_data["host"]) & (history_dataframe["publicPort"] == node_data["publicPort"])])
 
 def former_historic_node_data(historic_node_dataframe):
-    return historic_node_dataframe[historic_node_dataframe["index timestamp"] == historic_node_dataframe["index timestamp"].max()]
+    return historic_node_dataframe[historic_node_dataframe["timestampIndex"] == historic_node_dataframe["timestampIndex"].max()]
 
 async def registered_subscriber_node_data(dask_client, ip: str, subscriber_dataframe) -> dict:
     subscriber = {

@@ -5,13 +5,13 @@ import pandas as pd
 import dask.dataframe as dd
 
 async def history(configuration: dict):
-    if not os.path.exists(configuration["file settings"]["locations"]["history"]):
+    if not os.path.exists(configuration["file settings"]["locations"]["history_new"]):
         logging.warning(f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE DATA NOT FOUND, RETURN BLANK DATAFRAME WITH COLUMNS")
-        df = pd.DataFrame(columns=configuration["file settings"]["columns"]["history"])
+        df = pd.DataFrame(columns=configuration["file settings"]["columns"]["history_new"])
         return dd.from_pandas(df, npartitions=1)
-    elif os.path.exists(configuration["file settings"]["locations"]["history"]):
+    elif os.path.exists(configuration["file settings"]["locations"]["history_new"]):
         logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE DATA FOUND, RETURN READ DATAFRAME")
-        return dd.read_parquet(configuration["file settings"]["locations"]["history"], columns=configuration["file settings"]["columns"]["history"])
+        return dd.read_parquet(configuration["file settings"]["locations"]["history_new"], columns=configuration["file settings"]["columns"]["history_new"])
 
 
 async def subscribers(configuration: dict):
