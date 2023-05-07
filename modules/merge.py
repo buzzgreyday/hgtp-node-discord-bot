@@ -22,6 +22,8 @@ def historic_data(node_data: dict, historic_node_dataframe) -> dict:
         node_data["formerClusterDissociationTime"] = Clean(historic_node_dataframe["clusterDissociationTime"][historic_node_dataframe["clusterNames"] == node_data["formerClusterNames"]]).make_none()
         node_data["formerTimestampIndex"] = Clean(historic_node_dataframe["timestampIndex"]).make_none()
         node_data["lastNotifiedTimestamp"] = Clean(historic_node_dataframe["lastNotifiedTimestamp"]).make_none()
+        node_data["rewardTrueCount"] = historic_node_dataframe["rewardTrueCount"]
+        node_data["rewardFalseCount"] = historic_node_dataframe["rewardFalseCount"]
         if node_data["state"] == "Offline":
             node_data["id"] = Clean(historic_node_dataframe["id"]).make_none()
             node_data["nodeWalletAddress"] = Clean(historic_node_dataframe["nodeWalletAddress"]).make_none()

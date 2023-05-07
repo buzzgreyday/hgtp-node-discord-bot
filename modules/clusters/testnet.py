@@ -12,6 +12,7 @@ import asyncio
 from datetime import datetime, timedelta
 
 import nextcord
+import numpy
 
 from modules.clusters import all
 from modules import request, encode
@@ -153,9 +154,19 @@ def reward_check(node_data: dict, all_supported_clusters_data: list):
             # if (cluster["cluster name"] == node_data["clusterNames"]) or (cluster["cluster name"] == node_data["formerClusterNames"]):
             if str(node_data["nodeWalletAddress"]) in cluster["recently rewarded"]:
                 node_data["rewardState"] = True
+                if node_data["rewardTrueCount"] is None:
+                    former_reward_count = 0
+                elif node_data["rewardTrueCount"] is not None:
+                    former_reward_count = node_data["rewardTrueCount"]
+                node_data["rewardTrueCount"] = former_reward_count + 1
                 break
             elif str(node_data["nodeWalletAddress"]) not in cluster["recently rewarded"]:
-                    node_data["rewardState"] = False
+                node_data["rewardState"] = False
+                if node_data["rewardFalseCount"] is None:
+                    former_reward_count = 0
+                elif node_data["rewardTrueCount"] is not None:
+                    former_reward_count = node_data["rewardFalseCount"]
+                node_data["rewardFalseCount"] = former_reward_count + 1
         break
 
     return node_data
@@ -342,54 +353,61 @@ def build_general_cluster_state(node_data):
         return general_cluster_state_field(), False, yellow_color_trigger
 
 def build_general_node_wallet(node_data):
-    def wallet_field(field_symbol, field_info):
+    def wallet_field(field_symbol, reward_percentage, field_info):
         return f"{field_symbol} **WALLET**\n" \
                f"```\n" \
                f"Address: {node_data['nodeWalletAddress']}\n" \
-               f"Balance: {node_data['nodeWalletBalance']/100000000} ＄DAG```" \
+               f"Balance: {node_data['nodeWalletBalance']/100000000} ＄DAG\n" \
+               f"Reward frequency: {round(float(reward_percentage), 2)}%```" \
                f"{field_info}"
     def field_from_wallet_conditions():
+        if node_data['rewardTrueCount'] in [0, None]:
+            reward_percentage = 0
+        elif node_data['rewardFalseCount'] in [0, None]:
+            reward_percentage = 100
+        else:
+            reward_percentage = float(node_data['rewardTrueCount']) * 100 / float(node_data['rewardFalseCount'])
         if node_data["nodeWalletBalance"] >= 250000 * 100000000:
             if node_data["rewardState"] is False:
                 field_symbol = ":red_square:"
                 if node_data["formerRewardState"] is True:
                     field_info = f"`⚠ The wallet recently stopped receiving rewards`"
                     red_color_trigger = True
-                    return wallet_field(field_symbol, field_info), red_color_trigger, False
+                    return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
                 else:
                     field_info = f"`⚠ The wallet doesn't receive rewards`"
                     red_color_trigger = True
-                    return wallet_field(field_symbol, field_info), red_color_trigger, False
+                    return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
             elif node_data["rewardState"] is True:
                 field_symbol = ":green_square:"
                 if node_data["formerRewardState"] is False:
                     field_info = f":coin:` The wallet recently started receiving rewards`"
-                    return wallet_field(field_symbol, field_info), False, False
+                    return wallet_field(field_symbol, reward_percentage, field_info), False, False
                 else:
                     field_info = f":coin:` The wallet receives rewards`"
-                    return wallet_field(field_symbol, field_info), False, False
+                    return wallet_field(field_symbol, reward_percentage, field_info), False, False
             elif node_data["rewardState"] is None:
                 field_symbol = ":yellow_square:"
                 field_info = f"`ⓘ  Unknown reward state - please report`"
                 yellow_color_trigger = True
-                return wallet_field(field_symbol, field_info), False, yellow_color_trigger
+                return wallet_field(field_symbol, reward_percentage, field_info), False, yellow_color_trigger
         else:
             if (node_data["clusterNames"] or node_data["formerClusterNames"]) != "testnet":
                 field_symbol = ":red_square:"
                 field_info = f"`⚠ The wallet doesn't hold sufficient collateral`"
                 red_color_trigger = True
-                return wallet_field(field_symbol, field_info), red_color_trigger, False
+                return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
             else:
                 if node_data["rewardState"] is True:
                     field_symbol = ":green_square:"
                     if node_data["formerRewardState"] is False:
                         field_info = f"`ⓘ  No minimum collateral required`\n" \
                                      f":coin:` The wallet recently started receiving rewards`"
-                        return wallet_field(field_symbol, field_info), False, False
+                        return wallet_field(field_symbol, reward_percentage, field_info), False, False
                     else:
                         field_info = f"`ⓘ  No minimum collateral required`\n" \
                                      f":coin:` The wallet receives rewards`"
-                        return wallet_field(field_symbol, field_info), False, False
+                        return wallet_field(field_symbol, reward_percentage, field_info), False, False
 
                 elif node_data["rewardState"] is False:
                     field_symbol = ":red_square:"
@@ -397,18 +415,18 @@ def build_general_node_wallet(node_data):
                         field_info = f"`ⓘ  No minimum collateral required`\n" \
                                      f"`⚠ The wallet recently stopped receiving rewards`"
                         red_color_trigger = True
-                        return wallet_field(field_symbol, field_info), red_color_trigger, False
+                        return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
                     else:
                         field_info = f"`ⓘ  No minimum collateral required`\n" \
                                      f"`⚠ The wallet doesn't receive rewards`"
                         red_color_trigger = True
-                        return wallet_field(field_symbol, field_info), red_color_trigger, False
+                        return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
                 else:
                     field_symbol = ":yellow_square:"
                     field_info = f"`ⓘ  No minimum collateral required`\n" \
                                  f"`ⓘ  The wallet reward state is unknown. Please report`"
                     yellow_color_trigger = True
-                    return wallet_field(field_symbol, field_info), False, yellow_color_trigger
+                    return wallet_field(field_symbol, reward_percentage, field_info), False, yellow_color_trigger
 
 
     if node_data["nodeWalletAddress"] is not None:
