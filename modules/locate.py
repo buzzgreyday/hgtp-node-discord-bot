@@ -9,6 +9,7 @@ def node_cluster(node_data, all_supported_clusters_data):
                         node_data["latestClusterSession"] = cluster["cluster session"]
                         node_data["clusterVersion"] = cluster["version"]
                         # node_data["publicPort"] = peer["publicPort"]
+                        # The above could be done with ID if known both locate IP and PORT
 
     return node_data
 
