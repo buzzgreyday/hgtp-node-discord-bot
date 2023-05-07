@@ -157,7 +157,7 @@ file settings:
       notify: str
       p2pPort: float
       publicPort: float
-      rewardFalseCount: str
+      rewardFalseCount: float
       rewardState: float
       rewardTrueCount: float
       state: str

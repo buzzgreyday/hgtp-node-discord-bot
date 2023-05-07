@@ -156,7 +156,7 @@ def reward_check(node_data: dict, all_supported_clusters_data: list):
                 node_data["rewardState"] = True
                 if node_data["rewardTrueCount"] is None:
                     former_reward_count = 0
-                elif node_data["rewardTrueCount"] is not None:
+                else:
                     former_reward_count = node_data["rewardTrueCount"]
                 node_data["rewardTrueCount"] = former_reward_count + 1
                 break
@@ -164,7 +164,7 @@ def reward_check(node_data: dict, all_supported_clusters_data: list):
                 node_data["rewardState"] = False
                 if node_data["rewardFalseCount"] is None:
                     former_reward_count = 0
-                elif node_data["rewardTrueCount"] is not None:
+                else:
                     former_reward_count = node_data["rewardFalseCount"]
                 node_data["rewardFalseCount"] = former_reward_count + 1
         break
@@ -606,6 +606,5 @@ def mark_notify(d, configuration):
         elif 0 <= float(d['diskSpaceFree'])*100/float(d['diskSpaceTotal']) <= 10:
             d["notify"] = True
             d["lastNotifiedTimestamp"] = d["timestampIndex"]
-    print(d["lastNotifiedTimestamp"])
     return d
 
