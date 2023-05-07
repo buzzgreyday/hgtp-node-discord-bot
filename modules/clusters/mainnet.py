@@ -159,6 +159,8 @@ def reward_check(node_data: dict, all_supported_clusters_data: list):
                 else:
                     former_reward_count = node_data["rewardTrueCount"]
                 node_data["rewardTrueCount"] = former_reward_count + 1
+                if node_data["rewardFalseCount"] is None:
+                    node_data["rewardFalseCount"] = 0
                 break
             elif str(node_data["nodeWalletAddress"]) not in cluster["recently rewarded"]:
                 node_data["rewardState"] = False
@@ -167,6 +169,8 @@ def reward_check(node_data: dict, all_supported_clusters_data: list):
                 else:
                     former_reward_count = node_data["rewardFalseCount"]
                 node_data["rewardFalseCount"] = former_reward_count + 1
+                if node_data["rewardTrueCount"] is None:
+                    node_data["rewardTrueCount"] = 0
         break
 
     return node_data
@@ -361,9 +365,9 @@ def build_general_node_wallet(node_data):
                f"Reward frequency: {round(float(reward_percentage), 2)}%```" \
                f"{field_info}"
     def field_from_wallet_conditions():
-        if node_data['rewardTrueCount'] in [0, None]:
+        if node_data["rewardTrueCount"] == 0:
             reward_percentage = 0
-        elif node_data['rewardFalseCount'] in [0, None]:
+        elif node_data["rewardFalseCount"] == 0:
             reward_percentage = 100
         else:
             reward_percentage = float(node_data['rewardTrueCount']) * 100 / float(node_data['rewardFalseCount'])

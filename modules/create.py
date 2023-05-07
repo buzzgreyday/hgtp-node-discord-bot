@@ -36,7 +36,7 @@ def snapshot(subscriber: dict, port: int, layer: int, latest_tessellation_versio
         "diskSpaceTotal": None,
         "diskSpaceFree": None,
         "1mSystemLoadAverage": None,
-        "notify": False,
+        "notify": True,
         "lastNotifiedTimestamp": None,
         "timestampIndex": dt_start.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         "formerTimestampIndex": None
