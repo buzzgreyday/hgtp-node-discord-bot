@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 import asyncio
+import gc
+import importlib.util
 import logging
 import sys
 import time
 from datetime import datetime
+
+from aiofiles import os
 from dask.distributed import Client
 import distributed
 from modules import extras, init, request, write
@@ -49,22 +53,34 @@ if __name__ == "__main__":
                 timer_start = time.perf_counter()
                 await extras.set_active_presence(bot)
                 data = []
-                embeds = []
                 futures = await init.run(dask_client, dt_start, latest_tessellation_version,  all_supported_clusters_data, configuration)
                 for async_process in futures:
                     try:
                         data.append(await async_process)
                     except Exception as e:
                         logging.critical(repr(e.with_traceback(sys.exc_info())))
-                        await bot.close()
                         exit(1)
                 # CREATE EMBEDS PER CLUSTER MODULE
                 # all_data = sorted(all_data, key=lambda x: x["layer"])
                 # all_data = sorted(all_data, key=lambda x: x["host"])
                 # all_data = sorted(all_data, key=lambda x: x["contact"])
                 futures.clear()
+                # Check if notification should be sent
+                for i, d in enumerate(data):
+                    if await os.path.exists(
+                            f"{configuration['file settings']['locations']['cluster modules']}/{d['clusterNames']}.py"):
+                        spec = importlib.util.spec_from_file_location(f"{d['clusterNames']}.build_embed",
+                                                                      f"{configuration['file settings']['locations']['cluster modules']}/{d['clusterNames']}.py")
+                        module = importlib.util.module_from_spec(spec)
+                        sys.modules[f"{d['clusterNames']}.build_embed"] = module
+                        spec.loader.exec_module(module)
+                        data[i] = module.mark_notify(d, configuration)
+                # If not request received through Discord channel
+
                 await write.history(dask_client, data, configuration)
                 await init.send(bot, data, configuration)
+                await asyncio.sleep(0.8)
+                gc.collect()
                 timer_stop = time.perf_counter()
                 print(timer_stop-timer_start)
                 exit(0)

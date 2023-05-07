@@ -136,6 +136,7 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
             node_data["id"] = node_info_data["id"]
             node_data["nodeWalletAddress"] = encode.id_to_dag_address(node_data["id"])
             node_data["nodePeerCount"] = len(cluster_data) if cluster_data is not None else 0
+            # WILL FAIL IF = NONE
             node_data.update(metrics_data)
 
         node_data = await request_wallet_data(node_data, configuration)
@@ -185,38 +186,36 @@ async def request_wallet_data(node_data, configuration):
 def set_connectivity_specific_node_data_values(node_data):
 
     if node_data["formerClusterConnectivity"] is not None:
-        if node_data["clusterNames"] != node_data["formerClusterNames"] \
-            and node_data["formerClusterConnectivity"] in ["association", "new association"]:
-            node_data["clusterConnectivity"] = "new dissociation"
-        elif node_data["clusterNames"] == node_data["formerClusterNames"] \
-            and node_data["formerClusterConnectivity"] in ["dissociation", "new dissociation"]:
-            node_data["clusterConnectivity"] = "dissociated"
-        elif node_data["clusterNames"] != node_data["formerClusterNames"] \
-            and node_data["formerClusterConnectivity"] in ["disociation", "new dissociation"]:
-            node_data["clusterConnectivity"] = "new associated"
-        elif node_data["clusterNames"] == node_data["formerClusterNames"] \
-            and node_data["formerClusterConnectivity"] in ["association", "new association"]:
-            node_data["clusterConnectivity"] = "associated"
+        if node_data["clusterNames"] != node_data["formerClusterNames"]:
+            if node_data["formerClusterConnectivity"] in ["association", "new association"]:
+                node_data["clusterConnectivity"] = "new dissociation"
+            elif node_data["formerClusterConnectivity"] in ["disociation", "new dissociation"]:
+                node_data["clusterConnectivity"] = "new associated"
+        elif node_data["clusterNames"] == node_data["formerClusterNames"]:
+            if node_data["formerClusterConnectivity"] in ["dissociation", "new dissociation"]:
+                node_data["clusterConnectivity"] = "dissociated"
+            elif node_data["formerClusterConnectivity"] in ["association", "new association"]:
+                node_data["clusterConnectivity"] = "associated"
     elif node_data["formerClusterConnectivity"] is None:
-        if node_data["clusterNames"] is None and node_data["formerClusterNames"] is not None \
-                and node_data["nodeClusterSession"] != node_data["latestClusterSession"]:
-            node_data["clusterConnectivity"] = "new dissociation"
-        elif node_data["clusterNames"] is None and node_data["formerClusterNames"] is None:
-            node_data["clusterConnectivity"] = "dissociated"
+        if node_data["clusterNames"] is None:
+            if node_data["formerClusterNames"] is not None:
+                node_data["clusterConnectivity"] = "new dissociation"
+            elif node_data["formerClusterNames"] is None:
+                node_data["clusterConnectivity"] = "dissociated"
 
-        elif node_data["clusterNames"] is not None and node_data["formerClusterNames"] is None \
-                and node_data["nodeClusterSession"] == node_data["latestClusterSession"]:
-            node_data["clusterConnectivity"] = "new association"
-        elif node_data["clusterNames"] is not None and node_data["formerClusterNames"] is None \
-                and node_data["nodeClusterSession"] != node_data["latestClusterSession"]:
-            node_data["clusterConnectivity"] = "dissociated"
 
-        elif node_data["clusterNames"] is not None and node_data["formerClusterNames"] is not None \
-                and node_data["nodeClusterSession"] == node_data["latestClusterSession"]:
-            node_data["clusterConnectivity"] = "associated"
-        elif node_data["clusterNames"] is not None and node_data["formerClusterNames"] is not None \
-                and node_data["nodeClusterSession"] != node_data["latestClusterSession"]:
-            node_data["clusterConnectivity"] = "dissociated"
+        elif node_data["clusterNames"] is not None:
+            if node_data["formerClusterNames"] is None:
+                if node_data["nodeClusterSession"] == node_data["latestClusterSession"]:
+                    node_data["clusterConnectivity"] = "new association"
+                elif node_data["nodeClusterSession"] != node_data["latestClusterSession"]:
+                    node_data["clusterConnectivity"] = "dissociated"
+
+            elif node_data["formerClusterNames"] is not None:
+                if node_data["nodeClusterSession"] == node_data["latestClusterSession"]:
+                    node_data["clusterConnectivity"] = "associated"
+                elif node_data["nodeClusterSession"] != node_data["latestClusterSession"]:
+                    node_data["clusterConnectivity"] = "dissociated"
 
     return node_data
 
@@ -558,4 +557,37 @@ def build_embed(node_data):
         embed.add_field(name="\u200B", value=node_disk, inline=True)
 
     return embed
+
+
+"""
+    SECTION 5: NOTIFICATION CONDITIONS
+"""
+
+def mark_notify(d, configuration):
+    if d["clusterConnectivity"] in ["new association", "new dissociation"]:
+        d["notify"] = True
+        d["lastNotifiedTimestamp"] = d["timestampIndex"]
+    if d["lastNotifiedTimestamp"] is not None:
+        if d["rewardState"] is False and ((datetime.strptime(d["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ").second - datetime.strptime(d["lastNotifiedTimestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").second) >= timedelta(minutes=10).seconds):
+            d["notify"] = True
+            d["lastNotifiedTimestamp"] = d["timestampIndex"]
+        elif (d["version"] != d["clusterVersion"]) and ((datetime.strptime(d["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ").second - datetime.strptime(d["lastNotifiedTimestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").second) >= timedelta(hours=6).seconds):
+            d["notify"] = True
+            d["lastNotifiedTimestamp"] = d["timestampIndex"]
+        elif (0 <= float(d['diskSpaceFree'])*100/float(d['diskSpaceTotal']) <= 10) and ((datetime.strptime(d["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ").second - datetime.strptime(d["lastNotifiedTimestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").second) >= timedelta(hours=6).seconds):
+            d["notify"] = True
+            d["lastNotifiedTimestamp"] = d["timestampIndex"]
+    # IF NO FORMER DATA
+    else:
+        if d["rewardState"] is False:
+            d["notify"] = True
+            d["lastNotifiedTimestamp"] = d["timestampIndex"]
+        elif d["version"] != d["clusterVersion"]:
+            d["notify"] = True
+            d["lastNotifiedTimestamp"] = d["timestampIndex"]
+        elif 0 <= float(d['diskSpaceFree'])*100/float(d['diskSpaceTotal']) <= 10:
+            d["notify"] = True
+            d["lastNotifiedTimestamp"] = d["timestampIndex"]
+    print(d["lastNotifiedTimestamp"])
+    return d
 

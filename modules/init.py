@@ -42,20 +42,21 @@ async def run(dask_client, dt_start, latest_tessellation_version: str, all_suppo
 async def send(bot, data, configuration):
     futures = []
     for node_data in data:
+        if node_data["notify"] is True:
+            if node_data["state"] != "offline":
+                cluster_name = node_data["clusterNames"]
+            else:
+                cluster_name = node_data["formerClusterNames"]
 
-        if node_data["state"] != "offline":
-            cluster_name = node_data["clusterNames"]
-        else:
-            cluster_name = node_data["formerClusterNames"]
+            if os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{cluster_name}.py"):
+                spec = importlib.util.spec_from_file_location(f"{cluster_name}.build_embed",
+                                                              f"{configuration['file settings']['locations']['cluster modules']}/{cluster_name}.py")
+                module = importlib.util.module_from_spec(spec)
+                sys.modules[f"{cluster_name}.build_embed"] = module
+                spec.loader.exec_module(module)
+                embed = module.build_embed(node_data)
 
-        if os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{cluster_name}.py"):
-            spec = importlib.util.spec_from_file_location(f"{cluster_name}.build_embed",
-                                                          f"{configuration['file settings']['locations']['cluster modules']}/{cluster_name}.py")
-            module = importlib.util.module_from_spec(spec)
-            sys.modules[f"{cluster_name}.build_embed"] = module
-            spec.loader.exec_module(module)
-            embed = module.build_embed(node_data)
-            futures.append(asyncio.create_task(bot.get_channel(int(977357753947402281)).send(embed=embed)))
+                futures.append(asyncio.create_task(bot.get_channel(int(977357753947402281)).send(embed=embed)))
     for fut in futures:
         await fut
 

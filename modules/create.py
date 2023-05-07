@@ -18,6 +18,8 @@ def snapshot(subscriber: dict, port: int, layer: int, latest_tessellation_versio
         "formerClusterConnectivity": None,
         "rewardState": None,
         "formerRewardState": None,
+        "rewardTrueCount": None,
+        "rewardFalseCount": None,
         "clusterAssociationTime": None,
         "formerClusterAssociationTime": None,
         "clusterDissociationTime": None,
@@ -34,6 +36,7 @@ def snapshot(subscriber: dict, port: int, layer: int, latest_tessellation_versio
         "diskSpaceTotal": None,
         "diskSpaceFree": None,
         "1mSystemLoadAverage": None,
+        "notify": False,
         "lastNotifiedTimestamp": None,
         "timestampIndex": dt_start.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         "formerTimestampIndex": None
