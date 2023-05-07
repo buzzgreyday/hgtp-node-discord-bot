@@ -1,4 +1,4 @@
-import os.path
+from aiofiles import os
 import logging
 from datetime import datetime
 import pandas as pd

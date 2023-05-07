@@ -13,8 +13,9 @@ class Clean:
         else:
             return None
 
-def historic_data(node_data: dict, historic_node_dataframe) -> dict:
 
+def historic_data(node_data: dict, historic_node_dataframe) -> dict:
+    # Might need refactoring when metagraphs is coming
     if not historic_node_dataframe.empty:
         node_data["formerClusterNames"] = Clean(historic_node_dataframe["clusterNames"]).make_lower()
         node_data["formerClusterConnectivity"] = Clean(historic_node_dataframe["clusterConnectivity"][historic_node_dataframe["clusterNames"] == node_data["formerClusterNames"]]).make_none()
@@ -31,6 +32,7 @@ def historic_data(node_data: dict, historic_node_dataframe) -> dict:
             node_data["diskSpaceFree"] = float(historic_node_dataframe["diskSpaceFree"])
     del historic_node_dataframe
     return node_data
+
 
 def cluster_agnostic_node_data(node_data, all_supported_clusters_data):
 

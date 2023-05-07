@@ -175,6 +175,7 @@ def reward_check(node_data: dict, all_supported_clusters_data: list):
 
     return node_data
 
+
 async def request_wallet_data(node_data, configuration):
     for be_layer, be_names in configuration["request"]["url"]["block explorer"].items():
         if (node_data['clusterNames'] or node_data['formerClusterNames']) in list(be_names.keys()):
@@ -198,6 +199,7 @@ async def request_wallet_data(node_data, configuration):
 # + LIKE ASSOCIATION AND DISSOCIATION... FUNCTIONS WHICH SHOULD ONLY RUN IF A CLUSTER/MODULE EXISTS.
 # ---------------------------------------------------------------------------------------------------------------------
 
+
 def set_connectivity_specific_node_data_values(node_data):
 
     if node_data["formerClusterConnectivity"] is not None:
@@ -217,7 +219,6 @@ def set_connectivity_specific_node_data_values(node_data):
                 node_data["clusterConnectivity"] = "new dissociation"
             elif node_data["formerClusterNames"] is None:
                 node_data["clusterConnectivity"] = "dissociated"
-
 
         elif node_data["clusterNames"] is not None:
             if node_data["formerClusterNames"] is None:
@@ -263,6 +264,7 @@ def set_association_time(node_data):
 """
     SECTION 4: CREATE REPORT
 """
+
 
 def build_title(node_data):
     if node_data["clusterConnectivity"] in ("new association", "associated"):
@@ -312,6 +314,7 @@ def build_general_node_state(node_data):
         red_color_trigger = True
         return node_state_field(), red_color_trigger, yellow_color_trigger
 
+
 def build_general_cluster_state(node_data):
     def general_cluster_state_field():
         return f"{field_symbol} **{str(node_data['clusterNames']).upper()} CLUSTER**\n" \
@@ -330,8 +333,6 @@ def build_general_cluster_state(node_data):
             return round(float(node_data['clusterAssociationTime'])*100/float(0.0)+float(node_data['clusterDissociationTime']), 2)
         else:
             return 0
-
-
 
     if node_data["clusterConnectivity"] == "new association":
         field_symbol = ":green_square:"
@@ -356,6 +357,7 @@ def build_general_cluster_state(node_data):
         field_info = f""
         return general_cluster_state_field(), False, yellow_color_trigger
 
+
 def build_general_node_wallet(node_data):
     def wallet_field(field_symbol, reward_percentage, field_info):
         return f"{field_symbol} **WALLET**\n" \
@@ -364,6 +366,7 @@ def build_general_node_wallet(node_data):
                f"Balance: {node_data['nodeWalletBalance']/100000000} ＄DAG\n" \
                f"Reward frequency: {round(float(reward_percentage), 2)}%```" \
                f"{field_info}"
+
     def field_from_wallet_conditions():
         if node_data["rewardTrueCount"] == 0:
             reward_percentage = 0
@@ -432,13 +435,13 @@ def build_general_node_wallet(node_data):
                     yellow_color_trigger = True
                     return wallet_field(field_symbol, reward_percentage, field_info), False, yellow_color_trigger
 
-
     if node_data["nodeWalletAddress"] is not None:
         field_content, red_color_trigger, yellow_color_trigger = field_from_wallet_conditions()
         return field_content, red_color_trigger, yellow_color_trigger
     else:
         return f":yellow_square: **WALLET**\n" \
                f"`ⓘ  No data available`", False, False
+
 
 def build_system_node_version(node_data):
 
@@ -481,6 +484,7 @@ def build_system_node_version(node_data):
     else:
         return f":yellow_square: **TESSELLATION**\n" \
                f"`ⓘ  No data available`", red_color_trigger, False
+
 
 def build_system_node_load_average(node_data):
     def load_average_field():
@@ -527,6 +531,7 @@ def build_system_node_disk_space(node_data):
 
 def build_embed(node_data):
     embed_created = False
+
     def determine_color_and_create_embed(yellow_color_trigger, red_color_trigger):
         title = build_title(node_data).upper()
         if yellow_color_trigger and red_color_trigger is False:
@@ -535,7 +540,6 @@ def build_embed(node_data):
             return nextcord.Embed(title=title, colour=nextcord.Color.brand_red())
         else:
             return nextcord.Embed(title=title, colour=nextcord.Color.dark_green())
-
 
     node_state, red_color_trigger, yellow_color_trigger = build_general_node_state(node_data)
     if (red_color_trigger is True or yellow_color_trigger is True) and not embed_created:
@@ -585,7 +589,9 @@ def build_embed(node_data):
     SECTION 5: NOTIFICATION CONDITIONS
 """
 
+
 def mark_notify(d, configuration):
+    # The hardcoded values should be adjustable in config.yml
     if d["clusterConnectivity"] in ["new association", "new dissociation"]:
         d["notify"] = True
         d["lastNotifiedTimestamp"] = d["timestampIndex"]

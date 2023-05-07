@@ -1,4 +1,4 @@
-import os.path
+from aiofiles import os
 import time
 from modules import tessellation
 import asyncio

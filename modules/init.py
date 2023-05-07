@@ -1,10 +1,11 @@
 import asyncio
-import os
+from aiofiles import os
 import importlib.util
 import sys
 
 from modules import read, request, merge, create, locate
 from modules.temporaries import temporaries
+
 
 async def check(dask_client, subscriber: dict, layer: int, port: int, latest_tessellation_version: str, all_supported_clusters_data: list[dict], history_dataframe, dt_start, configuration: dict) -> dict:
     node_data = create.snapshot(subscriber, port, layer, latest_tessellation_version, dt_start)
