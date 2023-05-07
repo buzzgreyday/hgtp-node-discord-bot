@@ -68,7 +68,6 @@ if __name__ == "__main__":
                 # all_data = sorted(all_data, key=lambda x: x["contact"])
                 futures.clear()
                 # Check if notification should be sent
-                print(data)
                 for i, d in enumerate(data):
                     if await os.path.exists(
                             f"{configuration['file settings']['locations']['cluster modules']}/{d['clusterNames']}.py"):

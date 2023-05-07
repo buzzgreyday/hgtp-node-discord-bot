@@ -27,23 +27,19 @@ async def run(dask_client, requester, dt_start, latest_tessellation_version: str
     subscriber_dataframe = await read.subscribers(configuration)
     if requester is not None:
         ips = list(set(await dask_client.compute(subscriber_dataframe["ip"][subscriber_dataframe["name"] == requester].values)))
-        print(ips)
     else:
         ips = list(set(await dask_client.compute(subscriber_dataframe["ip"].values)))
     for ip in ips:
         subscriber_futures.append(asyncio.create_task(locate.registered_subscriber_node_data(dask_client, ip, subscriber_dataframe)))
     for fut in subscriber_futures:
         subscriber = await fut
-        print(subscriber)
         for k, v in subscriber.items():
             if k == "public_l0":
                 for port in v:
-                    print(port)
                     layer = 0
                     request_futures.append(asyncio.create_task(check(dask_client, requester, subscriber, layer, port, latest_tessellation_version, all_supported_cluster_data, history_dataframe, dt_start, configuration)))
             elif k == "public_l1":
                 for port in v:
-                    print(port)
                     layer = 1
                     request_futures.append(asyncio.create_task(check(dask_client, requester, subscriber, layer, port, latest_tessellation_version, all_supported_cluster_data, history_dataframe, dt_start, configuration)))
 
