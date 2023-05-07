@@ -113,12 +113,13 @@ async def safe(request_url: str, configuration: dict):
             break
     return data
 
+
 async def supported_clusters(cluster_layer: str, cluster_names: dict, configuration: dict) -> list:
 
     all_clusters_data = []
     for cluster_name, cluster_info in cluster_names.items():
         for lb_url in cluster_info["url"]:
-            if os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{cluster_name}.py"):
+            if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{cluster_name}.py"):
                 spec = importlib.util.spec_from_file_location(f"{cluster_name}.request_cluster_data", f"{configuration['file settings']['locations']['cluster modules']}/{cluster_name}.py")
                 module = importlib.util.module_from_spec(spec)
                 sys.modules[f"{cluster_name}.request_cluster_data"] = module
@@ -130,7 +131,7 @@ async def supported_clusters(cluster_layer: str, cluster_names: dict, configurat
 
 async def node_cluster_data_from_dynamic_module(node_data, configuration):
 
-    if os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{node_data['clusterNames']}.py"):
+    if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{node_data['clusterNames']}.py"):
         spec = importlib.util.spec_from_file_location(f"{node_data['clusterNames']}.node_cluster_data",
                                                       f"{configuration['file settings']['locations']['cluster modules']}/{node_data['clusterNames']}.py")
         module = importlib.util.module_from_spec(spec)
@@ -138,7 +139,7 @@ async def node_cluster_data_from_dynamic_module(node_data, configuration):
         spec.loader.exec_module(module)
         node_data = await module.node_cluster_data(node_data, configuration)
         return node_data
-    elif os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{node_data['formerClusterNames']}.py"):
+    elif await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{node_data['formerClusterNames']}.py"):
         spec = importlib.util.spec_from_file_location(f"{node_data['formerClusterNames']}.node_cluster_data",
                                                       f"{configuration['file settings']['locations']['cluster modules']}/{node_data['formerClusterNames']}.py")
         module = importlib.util.module_from_spec(spec)

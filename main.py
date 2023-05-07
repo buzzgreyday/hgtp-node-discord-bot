@@ -43,6 +43,7 @@ if __name__ == "__main__":
                                        processes=True, silence_logs=logging.CRITICAL)
 
     async def main(configuration) -> None:
+        requester = "hgtp_Michael#4720"
         # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
         configuration, all_supported_clusters_data,  latest_tessellation_version = await request.preliminary_data(configuration)
         await bot.wait_until_ready()
@@ -54,7 +55,7 @@ if __name__ == "__main__":
                 timer_start = time.perf_counter()
                 await extras.set_active_presence(bot)
                 data = []
-                futures = await init.run(dask_client, dt_start, latest_tessellation_version,  all_supported_clusters_data, configuration)
+                futures = await init.run(dask_client, requester, dt_start, latest_tessellation_version,  all_supported_clusters_data, configuration)
                 for async_process in futures:
                     try:
                         data.append(await async_process)
@@ -67,6 +68,7 @@ if __name__ == "__main__":
                 # all_data = sorted(all_data, key=lambda x: x["contact"])
                 futures.clear()
                 # Check if notification should be sent
+                print(data)
                 for i, d in enumerate(data):
                     if await os.path.exists(
                             f"{configuration['file settings']['locations']['cluster modules']}/{d['clusterNames']}.py"):

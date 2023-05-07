@@ -1,7 +1,7 @@
-def snapshot(subscriber: dict, port: int, layer: int, latest_tessellation_version: str, dt_start):
+def snapshot(requester, subscriber: dict, port: int, layer: int, latest_tessellation_version: str, dt_start):
     return {
-        "name": subscriber["name"].values[0],
-        "contact": subscriber["contact"].values[0],
+        "name": subscriber["name"],
+        "contact": subscriber["contact"],
         "host": subscriber["ip"],
         "layer": layer,
         "publicPort": port,
@@ -36,7 +36,7 @@ def snapshot(subscriber: dict, port: int, layer: int, latest_tessellation_versio
         "diskSpaceTotal": None,
         "diskSpaceFree": None,
         "1mSystemLoadAverage": None,
-        "notify": False,
+        "notify": False if requester is None else True,
         "lastNotifiedTimestamp": None,
         "timestampIndex": dt_start.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         "formerTimestampIndex": None
