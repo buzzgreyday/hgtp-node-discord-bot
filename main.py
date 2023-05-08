@@ -42,8 +42,7 @@ if __name__ == "__main__":
     cluster = distributed.LocalCluster(asynchronous=True, n_workers=1, threads_per_worker=2, memory_limit='4GB',
                                        processes=True, silence_logs=logging.CRITICAL)
 
-    async def main(configuration) -> None:
-        requester = "hgtp_Michael#4720"
+    async def main(requester, configuration) -> None:
         # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
         configuration, all_supported_clusters_data,  latest_tessellation_version = await request.preliminary_data(configuration)
         await bot.wait_until_ready()
@@ -80,16 +79,31 @@ if __name__ == "__main__":
                 # If not request received through Discord channel
 
                 await write.history(dask_client, data, configuration)
+                # Write node id, ip, ports to subscriber list, then base code on id
                 await init.send(bot, data, configuration)
                 await asyncio.sleep(0.8)
                 gc.collect()
                 timer_stop = time.perf_counter()
                 print(timer_stop-timer_start)
-                exit(0)
+                # exit(0)
+
+    @bot.command()
+    async def r(ctx, *arguments):
+        if isinstance(ctx.channel, nextcord.DMChannel):
+            await ctx.message.add_reaction('\U0001F4E5')
+            requester = ctx.message.author
+            await main(requester, configuration)
+            await ctx.message.edit
+        else:
+            await ctx.message.add_reaction('\U0001F4E5')
+            requester = ctx.message.author
+            await main(requester, configuration)
+            await ctx.message.delete(delay=3)
+
 
     @bot.event
     async def on_ready():
         logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - CONNECTION TO DISCORD ESTABLISHED")
 
-    bot.loop.create_task(main(configuration))
+    bot.loop.create_task(main(None, configuration))
     bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))
