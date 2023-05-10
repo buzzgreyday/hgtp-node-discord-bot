@@ -26,7 +26,8 @@ async def run(dask_client, requester, dt_start, latest_tessellation_version: str
     history_dataframe = await read.history(configuration)
     subscriber_dataframe = await read.subscribers(configuration)
     if requester is not None:
-        ips = list(set(await dask_client.compute(subscriber_dataframe["ip"][subscriber_dataframe["name"] == requester].values)))
+        print(requester)
+        ips = list(set(await dask_client.compute(subscriber_dataframe["ip"][subscriber_dataframe["name"] == str(requester)])))
     else:
         ips = list(set(await dask_client.compute(subscriber_dataframe["ip"].values)))
     for ip in ips:
@@ -46,7 +47,7 @@ async def run(dask_client, requester, dt_start, latest_tessellation_version: str
     return request_futures
 
 
-async def send(bot, data, configuration):
+async def send(ctx, requester, bot, data, configuration):
     futures = []
     for node_data in data:
         if node_data["notify"] is True:
@@ -62,7 +63,8 @@ async def send(bot, data, configuration):
                 sys.modules[f"{cluster_name}.build_embed"] = module
                 spec.loader.exec_module(module)
                 embed = module.build_embed(node_data)
-
+                if requester is not None:
+                    futures.append((asyncio.create_task(ctx.author.send(embed=embed))))
                 futures.append(asyncio.create_task(bot.get_channel(int(977357753947402281)).send(embed=embed)))
     for fut in futures:
         await fut

@@ -42,7 +42,7 @@ if __name__ == "__main__":
     cluster = distributed.LocalCluster(asynchronous=True, n_workers=1, threads_per_worker=2, memory_limit='4GB',
                                        processes=True, silence_logs=logging.CRITICAL)
 
-    async def main(requester, configuration) -> None:
+    async def main(ctx, reply_msg, requester, configuration) -> None:
         # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
         configuration, all_supported_clusters_data,  latest_tessellation_version = await request.preliminary_data(configuration)
         await bot.wait_until_ready()
@@ -52,9 +52,20 @@ if __name__ == "__main__":
                 logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - DASK CLIENT RUNNING")
                 dt_start = datetime.utcnow()
                 timer_start = time.perf_counter()
-                await extras.set_active_presence(bot)
+                if requester is None:
+                    await extras.set_active_presence(bot)
+                if requester is not None:
+                    reply_msg = await reply_msg.edit("**1. Request added to queue.**\n"
+                                                     "**2. Processing. Please wait...**\n"
+                                                     "3. Send report(s).")
+                    await reply_msg.add_reaction('\U000023F3')
+
                 data = []
                 futures = await init.run(dask_client, requester, dt_start, latest_tessellation_version,  all_supported_clusters_data, configuration)
+                if requester is not None:
+                    reply_msg = await reply_msg.edit("**1. Request added to queue.**\n"
+                                                     "**2. Processing. Building report(s)...**\n"
+                                                     "3. Send report(s).")
                 for async_process in futures:
                     try:
                         data.append(await async_process)
@@ -76,11 +87,21 @@ if __name__ == "__main__":
                         sys.modules[f"{d['clusterNames']}.build_embed"] = module
                         spec.loader.exec_module(module)
                         data[i] = module.mark_notify(d, configuration)
-                # If not request received through Discord channel
+                if requester is not None:
+                    reply_msg = await reply_msg.edit("**1. Request added to queue.**\n"
+                                                     "**2. Processing. Done!**\n"
+                                                     "**3. Sending report(s)...**")
+                    await reply_msg.add_reaction('\U0001F4E8')
 
-                await write.history(dask_client, data, configuration)
+                # If not request received through Discord channel
+                if requester is not None:
+                    await write.history(dask_client, data, configuration)
                 # Write node id, ip, ports to subscriber list, then base code on id
-                await init.send(bot, data, configuration)
+                await init.send(ctx, requester, bot, data, configuration)
+                if requester is not None:
+                    reply_msg = await reply_msg.edit("**1. Request added to queue.**\n"
+                                                     "**2. Processing. Done!**\n"
+                                                     "**3. Report(s) sent!**")
                 await asyncio.sleep(0.8)
                 gc.collect()
                 timer_stop = time.perf_counter()
@@ -90,14 +111,19 @@ if __name__ == "__main__":
     @bot.command()
     async def r(ctx, *arguments):
         if isinstance(ctx.channel, nextcord.DMChannel):
-            await ctx.message.add_reaction('\U0001F4E5')
+            reply_msg = await ctx.message.author.send("**1. Request added to queue.**\n"
+                                                      "2. Process request.\n"
+                                                      "3. Send report(s).")
+            await reply_msg.add_reaction('\U0001F4E5')
             requester = ctx.message.author
-            await main(requester, configuration)
-            await ctx.message.edit
+            await main(ctx, reply_msg, requester, configuration)
         else:
-            await ctx.message.add_reaction('\U0001F4E5')
+            reply_msg = await ctx.message.author.send("**1. Request added to queue.**\n"
+                                                      "2. Process request.\n"
+                                                      "3. Send report(s).")
+            await reply_msg.add_reaction('\U0001F4E5')
             requester = ctx.message.author
-            await main(requester, configuration)
+            await main(ctx, reply_msg, requester, configuration)
             await ctx.message.delete(delay=3)
 
 
@@ -105,5 +131,5 @@ if __name__ == "__main__":
     async def on_ready():
         logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - CONNECTION TO DISCORD ESTABLISHED")
 
-    bot.loop.create_task(main(None, configuration))
+    # bot.loop.create_task(main(None, None, None, configuration))
     bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))
