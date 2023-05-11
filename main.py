@@ -10,7 +10,8 @@ from datetime import datetime
 from aiofiles import os
 from dask.distributed import Client
 import distributed
-from modules import extras, init, request, write
+from modules import init, request, write
+from modules.discord import discord
 import nextcord
 from nextcord.ext import commands
 from os import getenv, path, makedirs
@@ -42,7 +43,8 @@ if __name__ == "__main__":
     cluster = distributed.LocalCluster(asynchronous=True, n_workers=1, threads_per_worker=2, memory_limit='4GB',
                                        processes=True, silence_logs=logging.CRITICAL)
 
-    async def main(ctx, reply_msg, requester, configuration) -> None:
+    async def main(ctx, process_msg, requester, configuration) -> None:
+        data = []
         # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
         configuration, all_supported_clusters_data,  latest_tessellation_version = await request.preliminary_data(configuration)
         await bot.wait_until_ready()
@@ -52,23 +54,12 @@ if __name__ == "__main__":
                 logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - DASK CLIENT RUNNING")
                 dt_start = datetime.utcnow()
                 timer_start = time.perf_counter()
-                if requester is None:
-                    await extras.set_active_presence(bot)
-                if requester is not None:
-                    reply_msg = await reply_msg.edit("**1. Request added to queue.**\n"
-                                                     "**2. Processing. Please wait...**\n"
-                                                     "3. Send report(s).")
-                    await reply_msg.add_reaction('\U000023F3')
-
-                data = []
-                futures = await init.run(dask_client, requester, dt_start, latest_tessellation_version,  all_supported_clusters_data, configuration)
-                if requester is not None:
-                    reply_msg = await reply_msg.edit("**1. Request added to queue.**\n"
-                                                     "**2. Processing. Building report(s)...**\n"
-                                                     "3. Send report(s).")
+                process_msg = await discord.init_process(bot, process_msg)
+                futures = await init.process(dask_client, process_msg, requester, dt_start, latest_tessellation_version,  all_supported_clusters_data, configuration)
                 for async_process in futures:
                     try:
-                        data.append(await async_process)
+                        d, process_msg = await async_process
+                        data.append(d)
                     except Exception as e:
                         logging.critical(repr(e.with_traceback(sys.exc_info())))
                         exit(1)
@@ -77,6 +68,7 @@ if __name__ == "__main__":
                 # all_data = sorted(all_data, key=lambda x: x["host"])
                 # all_data = sorted(all_data, key=lambda x: x["contact"])
                 futures.clear()
+                process_msg = await discord.update_proces_msg(process_msg, 3)
                 # Check if notification should be sent
                 for i, d in enumerate(data):
                     if await os.path.exists(
@@ -87,43 +79,30 @@ if __name__ == "__main__":
                         sys.modules[f"{d['clusterNames']}.build_embed"] = module
                         spec.loader.exec_module(module)
                         data[i] = module.mark_notify(d, configuration)
-                if requester is not None:
-                    reply_msg = await reply_msg.edit("**1. Request added to queue.**\n"
-                                                     "**2. Processing. Done!**\n"
-                                                     "**3. Sending report(s)...**")
-                    await reply_msg.add_reaction('\U0001F4E8')
+                process_msg = await discord.update_proces_msg(process_msg, 4)
 
                 # If not request received through Discord channel
-                if requester is not None:
+                if process_msg is None:
                     await write.history(dask_client, data, configuration)
                 # Write node id, ip, ports to subscriber list, then base code on id
-                await init.send(ctx, requester, bot, data, configuration)
-                if requester is not None:
-                    reply_msg = await reply_msg.edit("**1. Request added to queue.**\n"
-                                                     "**2. Processing. Done!**\n"
-                                                     "**3. Report(s) sent!**")
+                await init.send(ctx, process_msg, bot, data, configuration)
+                await discord.update_proces_msg(process_msg, 5)
                 await asyncio.sleep(0.8)
                 gc.collect()
                 timer_stop = time.perf_counter()
                 print(timer_stop-timer_start)
-                # exit(0)
+                exit(0)
 
     @bot.command()
     async def r(ctx, *arguments):
         if isinstance(ctx.channel, nextcord.DMChannel):
-            reply_msg = await ctx.message.author.send("**1. Request added to queue.**\n"
-                                                      "2. Process request.\n"
-                                                      "3. Send report(s).")
-            await reply_msg.add_reaction('\U0001F4E5')
-            requester = ctx.message.author
-            await main(ctx, reply_msg, requester, configuration)
+            process_msg = await discord.send_process_msg(ctx)
+            requester = await discord.get_requester(ctx)
+            await main(ctx, process_msg, requester, configuration)
         else:
-            reply_msg = await ctx.message.author.send("**1. Request added to queue.**\n"
-                                                      "2. Process request.\n"
-                                                      "3. Send report(s).")
-            await reply_msg.add_reaction('\U0001F4E5')
-            requester = ctx.message.author
-            await main(ctx, reply_msg, requester, configuration)
+            process_msg = await discord.send_process_msg(ctx)
+            requester = await discord.get_requester(ctx)
+            await main(ctx, process_msg, requester, configuration)
             await ctx.message.delete(delay=3)
 
 
