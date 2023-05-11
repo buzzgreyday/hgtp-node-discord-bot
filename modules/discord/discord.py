@@ -26,7 +26,7 @@ async def set_active_presence(bot):
 
 async def send_process_msg(ctx):
     msg = await ctx.message.author.send(
-        "**`➡ 1. Request added to queue.`**\n"
+        "**`➭ 1. Request added to queue.`**\n"
         "`  2. Process request.`\n"
         "`  3. Send report(s).`"
     )
@@ -39,7 +39,7 @@ async def update_proces_msg(process_msg, process_num):
     elif process_msg is not None:
         if process_num == 1:
             return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
-                                          "**`➡ 2. Processing:`**\n"
+                                          "**`➭ 2. Processing:`**\n"
                                           "**`   ➥ Historic node data...`**\n"
                                           "`  3. Send report(s).`")
         elif process_num == 2:
@@ -49,14 +49,14 @@ async def update_proces_msg(process_msg, process_num):
                                           "`  3. Send report(s).`")
         elif process_num == 3:
             return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
-                                          "**`➡ 2. Processing:`**\n"
+                                          "**`➭ 2. Processing:`**\n"
                                           "**`   ➥ Building report(s)...`**\n"
                                           "`  3. Send report(s).`")
         elif process_num == 4:
             return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
                                           "**`✓ 2. Processing:`**\n"
                                           "**`   ➥ Done!`**\n"
-                                          "**`➡ 3. Sending report(s).`**")
+                                          "**`➭ 3. Sending report(s).`**")
         elif process_num == 5:
             return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
                                           "**`✓ 2. Processing:`**\n"
