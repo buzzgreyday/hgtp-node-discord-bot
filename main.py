@@ -54,7 +54,7 @@ if __name__ == "__main__":
                 logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - DASK CLIENT RUNNING")
                 dt_start = datetime.utcnow()
                 timer_start = time.perf_counter()
-                process_msg = await discord.init_process(bot, process_msg)
+                await discord.init_process(bot, requester)
                 futures = await init.process(dask_client, process_msg, requester, dt_start, latest_tessellation_version,  all_supported_clusters_data, configuration)
                 for async_process in futures:
                     try:

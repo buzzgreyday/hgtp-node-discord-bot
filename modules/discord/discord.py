@@ -3,14 +3,9 @@ import logging
 from datetime import datetime
 
 
-async def init_process(bot, process_msg):
-    if process_msg is None:
+async def init_process(bot, requester):
+    if requester is not None:
         await set_active_presence(bot)
-        return None
-    elif process_msg is not None:
-        return await process_msg.edit("**1. Request added to queue.**\n"
-                                      "**2. Processing started. Please wait...**\n"
-                                      "3. Send report(s).")
 
 
 async def set_active_presence(bot):
