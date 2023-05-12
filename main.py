@@ -13,7 +13,7 @@ import distributed
 from modules import init, request, write
 from modules.discord import discord
 import nextcord
-from nextcord.ext import commands
+from nextcord.ext import commands, tasks
 from os import getenv, path, makedirs
 import yaml
 
@@ -32,11 +32,25 @@ if not path.exists(configuration["file settings"]["locations"]["log"]):
 """DEFINE LOGGING LEVEL AND LOCATION"""
 logging.basicConfig(filename=configuration["file settings"]["locations"]["log"], filemode='w', format='%(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
+
+def generate_runtimes() -> list:
+    from datetime import datetime, timedelta
+
+    start = datetime.strptime(configuration['general']['loop_init_time'], "%H:%M:%S")
+    end = (datetime.strptime(configuration['general']['loop_init_time'], "%H:%M:%S") + timedelta(hours=24))
+    min_gap = (configuration['general']['loop_interval_minutes'])
+    times = [(start + timedelta(hours=min_gap * i / 60)).strftime("%H:%M:%S") for i in range(int((end - start).total_seconds() / 60.0 / min_gap))]
+    # compute datetime interval
+    return [(start + timedelta(hours=min_gap * i / 60)).strftime("%H:%M:%S") for i in
+            range(int((end - start).total_seconds() / 60.0 / min_gap))]
+
+
 if __name__ == "__main__":
 
     description = '''Bot by hgtp_Michael'''
     intents = nextcord.Intents.all()
     intents.members = True
+    times = generate_runtimes()
 
     bot = commands.Bot(command_prefix='!', description=description, intents=intents)
 
@@ -49,49 +63,48 @@ if __name__ == "__main__":
         configuration, all_supported_clusters_data,  latest_tessellation_version = await request.preliminary_data(configuration)
         await bot.wait_until_ready()
         async with Client(cluster) as dask_client:
-            while not bot.is_closed():
-                await dask_client.wait_for_workers(n_workers=1)
-                logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - DASK CLIENT RUNNING")
-                dt_start = datetime.utcnow()
-                timer_start = time.perf_counter()
-                await discord.init_process(bot, requester)
-                futures = await init.process(dask_client, process_msg, requester, dt_start, latest_tessellation_version,  all_supported_clusters_data, configuration)
-                for async_process in futures:
-                    try:
-                        d, process_msg = await async_process
-                        data.append(d)
-                    except Exception as e:
-                        logging.critical(repr(e.with_traceback(sys.exc_info())))
-                        exit(1)
-                # CREATE EMBEDS PER CLUSTER MODULE
-                # all_data = sorted(all_data, key=lambda x: x["layer"])
-                # all_data = sorted(all_data, key=lambda x: x["host"])
-                # all_data = sorted(all_data, key=lambda x: x["contact"])
-                futures.clear()
-                process_msg = await discord.update_proces_msg(process_msg, 3)
-                # Check if notification should be sent
-                for i, d in enumerate(data):
-                    if await os.path.exists(
-                            f"{configuration['file settings']['locations']['cluster modules']}/{d['clusterNames']}.py"):
-                        spec = importlib.util.spec_from_file_location(f"{d['clusterNames']}.build_embed",
-                                                                      f"{configuration['file settings']['locations']['cluster modules']}/{d['clusterNames']}.py")
-                        module = importlib.util.module_from_spec(spec)
-                        sys.modules[f"{d['clusterNames']}.build_embed"] = module
-                        spec.loader.exec_module(module)
-                        data[i] = module.mark_notify(d, configuration)
-                process_msg = await discord.update_proces_msg(process_msg, 4)
+            await dask_client.wait_for_workers(n_workers=1)
+            logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - DASK CLIENT RUNNING")
+            dt_start = datetime.utcnow()
+            timer_start = time.perf_counter()
+            await discord.init_process(bot, requester)
+            futures = await init.process(dask_client, process_msg, requester, dt_start, latest_tessellation_version,  all_supported_clusters_data, configuration)
+            for async_process in futures:
+                try:
+                    d, process_msg = await async_process
+                    data.append(d)
+                except Exception as e:
+                    logging.critical(repr(e.with_traceback(sys.exc_info())))
+                    exit(1)
+            # CREATE EMBEDS PER CLUSTER MODULE
+            # all_data = sorted(all_data, key=lambda x: x["layer"])
+            # all_data = sorted(all_data, key=lambda x: x["host"])
+            # all_data = sorted(all_data, key=lambda x: x["contact"])
+            futures.clear()
+            process_msg = await discord.update_proces_msg(process_msg, 3)
+            # Check if notification should be sent
+            for i, d in enumerate(data):
+                if await os.path.exists(
+                        f"{configuration['file settings']['locations']['cluster modules']}/{d['clusterNames']}.py"):
+                    spec = importlib.util.spec_from_file_location(f"{d['clusterNames']}.build_embed",
+                                                                  f"{configuration['file settings']['locations']['cluster modules']}/{d['clusterNames']}.py")
+                    module = importlib.util.module_from_spec(spec)
+                    sys.modules[f"{d['clusterNames']}.build_embed"] = module
+                    spec.loader.exec_module(module)
+                    data[i] = module.mark_notify(d, configuration)
+            process_msg = await discord.update_proces_msg(process_msg, 4)
 
-                # If not request received through Discord channel
-                if process_msg is None:
-                    await write.history(dask_client, data, configuration)
-                # Write node id, ip, ports to subscriber list, then base code on id
-                await init.send(ctx, process_msg, bot, data, configuration)
-                await discord.update_proces_msg(process_msg, 5)
-                await asyncio.sleep(0.8)
-                gc.collect()
-                timer_stop = time.perf_counter()
-                print(timer_stop-timer_start)
-                exit(0)
+            # If not request received through Discord channel
+            if requester is None:
+                await write.history(dask_client, data, configuration)
+            # Write node id, ip, ports to subscriber list, then base code on id
+            await init.send(ctx, process_msg, bot, data, configuration)
+            await discord.update_proces_msg(process_msg, 5)
+            await asyncio.sleep(3)
+            gc.collect()
+            timer_stop = time.perf_counter()
+            print(timer_stop-timer_start)
+
 
     @bot.command()
     async def r(ctx, *arguments):
@@ -106,9 +119,17 @@ if __name__ == "__main__":
             await ctx.message.delete(delay=3)
 
 
+    async def loop():
+        while True:
+            if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
+                await main(None, None, None, configuration)
+            else:
+                print(datetime.time(datetime.utcnow()).strftime("%H:%M:%S"), "SKIPPING...")
+            await asyncio.sleep(1)
+
+
     @bot.event
     async def on_ready():
         logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - CONNECTION TO DISCORD ESTABLISHED")
-
-    # bot.loop.create_task(main(None, None, None, configuration))
+    bot.loop.create_task(loop())
     bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))

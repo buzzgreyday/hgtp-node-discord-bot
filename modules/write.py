@@ -1,3 +1,6 @@
+import logging
+from datetime import datetime
+
 import pandas as pd
 import dask.dataframe as dd
 
@@ -11,3 +14,4 @@ async def history(dask_client, node_data, configuration):
 
     fut = history_dataframe.to_parquet(configuration["file settings"]["locations"]["history_new"], overwrite=False, compute=False, write_index=False)
     await dask_client.compute(fut)
+    logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - Writing history to parquet")
