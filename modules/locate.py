@@ -14,7 +14,12 @@ def node_cluster(node_data, all_supported_clusters_data):
     return node_data
 
 async def historic_node_data(dask_client, node_data: dict, history_dataframe):
-    return await dask_client.compute(history_dataframe[(history_dataframe["host"] == node_data["host"]) & (history_dataframe["publicPort"] == node_data["publicPort"])])
+
+    # history_node_dataframe = await dask_client.compute(history_dataframe[(history_dataframe["host"] == node_data["host"]) & (history_dataframe["publicPort"] == node_data["publicPort"])])
+    if node_data["publicPort"] is not None:
+        return await dask_client.compute(history_dataframe[(history_dataframe["host"] == node_data["host"]) & (history_dataframe["publicPort"] == float(node_data["publicPort"]))])
+    else:
+        return await dask_client.compute(history_dataframe[(history_dataframe["host"] == node_data["host"]) & (history_dataframe["publicPort"] == node_data["publicPort"])])
 
 def former_historic_node_data(historic_node_dataframe):
     return historic_node_dataframe[historic_node_dataframe["timestampIndex"] == historic_node_dataframe["timestampIndex"].max()]

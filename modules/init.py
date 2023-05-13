@@ -13,7 +13,7 @@ async def check(dask_client, process_msg, requester: str, subscriber: dict, laye
     node_data = create.snapshot(requester, subscriber, port, layer, latest_tessellation_version, dt_start)
     node_data = locate.node_cluster(node_data, all_supported_clusters_data)
     historic_node_dataframe = await locate.historic_node_data(dask_client, node_data, history_dataframe)
-    # historic_node_dataframe = locate.former_historic_node_data(historic_node_dataframe)
+    historic_node_dataframe = locate.former_historic_node_data(historic_node_dataframe)
     node_data = merge.historic_data(node_data, historic_node_dataframe)
     node_data = merge.cluster_agnostic_node_data(node_data, all_supported_clusters_data)
     process_msg = await discord.update_proces_msg(process_msg, 2)

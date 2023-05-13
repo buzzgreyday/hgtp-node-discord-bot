@@ -17,7 +17,6 @@ class Clean:
 def historic_data(node_data: dict, historic_node_dataframe) -> dict:
     # Might need refactoring when metagraphs is coming
     if not historic_node_dataframe.empty:
-        print(historic_node_dataframe["clusterNames"])
         node_data["formerClusterNames"] = Clean(historic_node_dataframe["clusterNames"]).make_lower()
         node_data["formerClusterConnectivity"] = Clean(historic_node_dataframe["clusterConnectivity"][historic_node_dataframe["clusterNames"] == node_data["formerClusterNames"]]).make_none()
         node_data["formerClusterAssociationTime"] = Clean(historic_node_dataframe["clusterAssociationTime"][historic_node_dataframe["clusterNames"] == node_data["formerClusterNames"]]).make_none()

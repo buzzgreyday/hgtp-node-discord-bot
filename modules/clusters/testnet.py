@@ -604,9 +604,10 @@ def mark_notify(d, configuration):
         elif (d["version"] != d["clusterVersion"]) and ((datetime.strptime(d["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ").second - datetime.strptime(d["lastNotifiedTimestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").second) >= timedelta(hours=6).seconds):
             d["notify"] = True
             d["lastNotifiedTimestamp"] = d["timestampIndex"]
-        elif (0 <= float(d['diskSpaceFree'])*100/float(d['diskSpaceTotal']) <= 10) and ((datetime.strptime(d["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ").second - datetime.strptime(d["lastNotifiedTimestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").second) >= timedelta(hours=6).seconds):
-            d["notify"] = True
-            d["lastNotifiedTimestamp"] = d["timestampIndex"]
+        elif d['diskSpaceFree'] and d['diskSpaceTotal'] is not None:
+            if (0 <= float(d['diskSpaceFree'])*100/float(d['diskSpaceTotal']) <= 10) and ((datetime.strptime(d["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ").second - datetime.strptime(d["lastNotifiedTimestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").second) >= timedelta(hours=6).seconds):
+                d["notify"] = True
+                d["lastNotifiedTimestamp"] = d["timestampIndex"]
     # IF NO FORMER DATA
     else:
         if d["rewardState"] is False:
