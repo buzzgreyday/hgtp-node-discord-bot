@@ -327,7 +327,7 @@ def build_general_cluster_state(node_data):
                f"{field_info}"
 
     def association_percent():
-        if node_data["clusterAssociationTime"] or node_data["clusterDissociationTime"] not in (0, None):
+        if node_data["clusterAssociationTime"] and node_data["clusterDissociationTime"] not in (0, None):
             return round(float(node_data['clusterAssociationTime'])*100/float(node_data['clusterAssociationTime'])+float(node_data['clusterDissociationTime']), 2)
         elif node_data["clusterAssociationTime"] not in (0, None) and node_data["clusterDissociationTime"] == 0:
             return round(float(node_data['clusterAssociationTime'])*100/float(node_data['clusterAssociationTime'])+float(0.0), 2)
