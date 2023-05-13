@@ -38,11 +38,8 @@ def generate_runtimes() -> list:
 
     start = datetime.strptime(configuration['general']['loop_init_time'], "%H:%M:%S")
     end = (datetime.strptime(configuration['general']['loop_init_time'], "%H:%M:%S") + timedelta(hours=24))
-    min_gap = (configuration['general']['loop_interval_minutes'])
-    times = [(start + timedelta(hours=min_gap * i / 60)).strftime("%H:%M:%S") for i in range(int((end - start).total_seconds() / 60.0 / min_gap))]
-    # compute datetime interval
-    return [(start + timedelta(hours=min_gap * i / 60)).strftime("%H:%M:%S") for i in
-            range(int((end - start).total_seconds() / 60.0 / min_gap))]
+    return [(start + timedelta(hours=(configuration['general']['loop_interval_minutes']) * i / 60)).strftime("%H:%M:%S") for i in
+            range(int((end - start).total_seconds() / 60.0 / (configuration['general']['loop_interval_minutes'])))]
 
 
 if __name__ == "__main__":
@@ -60,6 +57,7 @@ if __name__ == "__main__":
     async def main(ctx, process_msg, requester, configuration) -> None:
         data = []
         # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
+        process_msg = await discord.update_proces_msg(process_msg, 1, None)
         configuration, all_supported_clusters_data,  latest_tessellation_version = await request.preliminary_data(configuration)
         await bot.wait_until_ready()
         async with Client(cluster) as dask_client:
@@ -81,7 +79,7 @@ if __name__ == "__main__":
             # all_data = sorted(all_data, key=lambda x: x["host"])
             # all_data = sorted(all_data, key=lambda x: x["contact"])
             futures.clear()
-            process_msg = await discord.update_proces_msg(process_msg, 3)
+            process_msg = await discord.update_proces_msg(process_msg, 5, None)
             # Check if notification should be sent
             for i, d in enumerate(data):
                 if await os.path.exists(
@@ -92,31 +90,62 @@ if __name__ == "__main__":
                     sys.modules[f"{d['clusterNames']}.build_embed"] = module
                     spec.loader.exec_module(module)
                     data[i] = module.mark_notify(d, configuration)
-            process_msg = await discord.update_proces_msg(process_msg, 4)
+            process_msg = await discord.update_proces_msg(process_msg, 6, None)
 
             # If not request received through Discord channel
             if process_msg is None:
                 await write.history(dask_client, data, configuration)
-            # Write node id, ip, ports to subscriber list, then base code on id
-            await init.send(ctx, process_msg, bot, data, configuration)
-            await discord.update_proces_msg(process_msg, 5)
-            await asyncio.sleep(3)
-            gc.collect()
-            timer_stop = time.perf_counter()
-            print(timer_stop-timer_start)
+        # Write node id, ip, ports to subscriber list, then base code on id
+        await init.send(ctx, process_msg, bot, data, configuration)
+        await discord.update_proces_msg(process_msg, 7, None)
+        await asyncio.sleep(3)
+        gc.collect()
+        timer_stop = time.perf_counter()
+        print(timer_stop-timer_start)
+
+
+    async def notCommand(ctx, bot):
+
+        embed = nextcord.Embed(title=":no_entry: Command Not Found",
+                               color=nextcord.Color.yellow())
+        embed.insert_field_at(index=0, name="\u200B",
+                              value=f"'{ctx.message.content}' was not recognised as a command. Please check you entered the command correctly.",
+                              inline=False)
+        embed.set_author(name=ctx.message.author,
+                         icon_url=bot.get_user(
+                             ctx.message.author.id).display_avatar.url)
+        return embed
+
+
+    @bot.event
+    async def on_message(message):
+        if message.author == bot.user:
+            return
+        try:
+            ctx = await bot.get_context(message)
+            if ctx.valid:
+                await bot.process_commands(message)
+            else:
+                if ctx.message.channel.id in (977357753947402281, 974431346850140204, 1030007676257710080) or ctx.message.author.id != 977302927154769971:
+                    # IGNORE INTERPRETING MESSAGES IN THESE CHANNELS AS COMMANDS
+                    pass
+                else:
+                    if isinstance(ctx.message.channel, nextcord.DMChannel):
+                        await message.delete(delay=None)
+                    embed = await notCommand(ctx, bot)
+                    await bot.get_channel(977357753947402281).send(embed=embed)
+                    await ctx.author.send(embed=embed)
+        except nextcord.errors.HTTPException:
+            pass
 
 
     @bot.command()
     async def r(ctx, *arguments):
+        process_msg = await discord.send_process_msg(ctx)
+        requester = await discord.get_requester(ctx)
         if isinstance(ctx.channel, nextcord.DMChannel):
-            process_msg = await discord.send_process_msg(ctx)
-            requester = await discord.get_requester(ctx)
-            await main(ctx, process_msg, requester, configuration)
-        else:
-            process_msg = await discord.send_process_msg(ctx)
-            requester = await discord.get_requester(ctx)
-            await main(ctx, process_msg, requester, configuration)
             await ctx.message.delete(delay=3)
+        await main(ctx, process_msg, requester, configuration)
 
 
     async def loop():

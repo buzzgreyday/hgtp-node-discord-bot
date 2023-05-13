@@ -28,31 +28,41 @@ async def send_process_msg(ctx):
     return msg
 
 
-async def update_proces_msg(process_msg, process_num):
+async def update_proces_msg(process_msg, process_num, foo):
     if process_msg is None:
         return None
     elif process_msg is not None:
         if process_num == 1:
             return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
                                           "**`➭ 2. Processing:`**\n"
-                                          "**`   ➥ Historic node data...`**\n"
+                                          "**`   ➥ Preliminary data...`**\n"
                                           "`  3. Send report(s).`")
         elif process_num == 2:
             return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
                                           "**`➭ 2. Processing:`**\n"
-                                          "**`   ➥ API node data...`**\n"
+                                          "**`   ➥ Historic node data...`**\n"
                                           "`  3. Send report(s).`")
         elif process_num == 3:
             return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
                                           "**`➭ 2. Processing:`**\n"
-                                          "**`   ➥ Building report(s)...`**\n"
+                                          "**`   ➥ API node data...`**\n"
                                           "`  3. Send report(s).`")
         elif process_num == 4:
+            return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
+                                          "**`➭ 2. Processing:`**\n"
+                                          f"**`   ➥ {foo.title()} node data...`**\n"
+                                          "`  3. Send report(s).`")
+        elif process_num == 5:
+            return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
+                                          "**`➭ 2. Processing:`**\n"
+                                          "**`   ➥ Building report(s)...`**\n"
+                                          "`  3. Send report(s).`")
+        elif process_num == 6:
             return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
                                           "**`✓ 2. Processing:`**\n"
                                           "**`   ➥ Done!`**\n"
                                           "**`➭ 3. Sending report(s).`**")
-        elif process_num == 5:
+        elif process_num == 7:
             return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
                                           "**`✓ 2. Processing:`**\n"
                                           "**`   ➥ Done!`**\n"

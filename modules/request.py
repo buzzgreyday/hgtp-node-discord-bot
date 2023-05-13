@@ -1,6 +1,7 @@
 from aiofiles import os
 import time
 from modules import tessellation
+from modules.discord import discord
 import asyncio
 import aiofiles
 import aiohttp
@@ -129,24 +130,27 @@ async def supported_clusters(cluster_layer: str, cluster_names: dict, configurat
     del lb_url, cluster_name, cluster_info
     return all_clusters_data
 
-async def node_cluster_data_from_dynamic_module(node_data, configuration):
+
+async def node_cluster_data_from_dynamic_module(process_msg, node_data, configuration):
 
     if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{node_data['clusterNames']}.py"):
+        process_msg = await discord.update_proces_msg(process_msg, 4, f"{node_data['clusterNames']} layer {node_data['layer']}")
         spec = importlib.util.spec_from_file_location(f"{node_data['clusterNames']}.node_cluster_data",
                                                       f"{configuration['file settings']['locations']['cluster modules']}/{node_data['clusterNames']}.py")
         module = importlib.util.module_from_spec(spec)
         sys.modules[f"{node_data['clusterNames']}.node_cluster_data"] = module
         spec.loader.exec_module(module)
         node_data = await module.node_cluster_data(node_data, configuration)
-        return node_data
+        return node_data, process_msg
     elif await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{node_data['formerClusterNames']}.py"):
+        process_msg = await discord.update_proces_msg(process_msg, 4, f"{node_data['clusterNames']} layer {node_data['layer']}")
         spec = importlib.util.spec_from_file_location(f"{node_data['formerClusterNames']}.node_cluster_data",
                                                       f"{configuration['file settings']['locations']['cluster modules']}/{node_data['formerClusterNames']}.py")
         module = importlib.util.module_from_spec(spec)
         sys.modules[f"{node_data['formerClusterNames']}.node_cluster_data"] = module
         spec.loader.exec_module(module)
         node_data = await module.node_cluster_data(node_data, configuration)
-        return node_data
+        return node_data, process_msg
     else:
         return node_data
 

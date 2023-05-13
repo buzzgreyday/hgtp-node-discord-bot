@@ -9,15 +9,15 @@ from modules.temporaries import temporaries
 
 
 async def check(dask_client, process_msg, requester: str, subscriber: dict, layer: int, port: int, latest_tessellation_version: str, all_supported_clusters_data: list[dict], history_dataframe, dt_start, configuration: dict) -> tuple:
-    process_msg = await discord.update_proces_msg(process_msg, 1)
+    process_msg = await discord.update_proces_msg(process_msg, 2, None)
     node_data = create.snapshot(requester, subscriber, port, layer, latest_tessellation_version, dt_start)
     node_data = locate.node_cluster(node_data, all_supported_clusters_data)
     historic_node_dataframe = await locate.historic_node_data(dask_client, node_data, history_dataframe)
     historic_node_dataframe = locate.former_historic_node_data(historic_node_dataframe)
     node_data = merge.historic_data(node_data, historic_node_dataframe)
     node_data = merge.cluster_agnostic_node_data(node_data, all_supported_clusters_data)
-    process_msg = await discord.update_proces_msg(process_msg, 2)
-    node_data = await request.node_cluster_data_from_dynamic_module(node_data, configuration)
+    process_msg = await discord.update_proces_msg(process_msg, 3, None)
+    node_data, process_msg = await request.node_cluster_data_from_dynamic_module(process_msg, node_data, configuration)
     node_data = temporaries.run(node_data, all_supported_clusters_data)
 
     return node_data, process_msg
@@ -71,7 +71,7 @@ async def send(ctx, process_msg, bot, data, configuration):
                 if process_msg is not None:
                     futures.append((asyncio.create_task(ctx.author.send(embed=embed))))
                 elif process_msg is None:
-                    futures.append(asyncio.create_task(bot.get_channel(int(977357753947402281)).send(embed=embed)))
+                    futures.append(asyncio.create_task(bot.get_channel(977357753947402281).send(embed=embed)))
     for fut in futures:
         await fut
 
