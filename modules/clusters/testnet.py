@@ -380,20 +380,20 @@ def build_general_node_wallet(node_data):
             if node_data["rewardState"] is False:
                 field_symbol = ":red_square:"
                 if node_data["formerRewardState"] is True:
-                    field_info = f"`⚠ The wallet recently stopped receiving rewards`"
+                    field_info = f":red_circle:` The wallet recently stopped receiving rewards`"
                     red_color_trigger = True
                     return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
                 else:
-                    field_info = f"`⚠ The wallet doesn't receive rewards`"
+                    field_info = f":red_circle:` The wallet doesn't receive rewards`"
                     red_color_trigger = True
                     return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
             elif node_data["rewardState"] is True:
                 field_symbol = ":green_square:"
                 if node_data["formerRewardState"] is False:
-                    field_info = f"`🪙 The wallet recently started receiving rewards`"
+                    field_info = f":coin:` The wallet recently started receiving rewards`"
                     return wallet_field(field_symbol, reward_percentage, field_info), False, False
                 else:
-                    field_info = f"`🪙 The wallet receives rewards`"
+                    field_info = f":coin:` The wallet receives rewards`"
                     return wallet_field(field_symbol, reward_percentage, field_info), False, False
             elif node_data["rewardState"] is None:
                 field_symbol = ":yellow_square:"
@@ -410,30 +410,34 @@ def build_general_node_wallet(node_data):
                 if node_data["rewardState"] is True:
                     field_symbol = ":green_square:"
                     if node_data["formerRewardState"] is False:
-                        field_info = f"`ⓘ  No minimum collateral required`\n" \
-                                     f"`🪙 The wallet recently started receiving rewards`"
+                        field_info = f":coin:` The wallet recently started receiving rewards`\n" \
+                                     f"`ⓘ  No minimum collateral required`"
                         return wallet_field(field_symbol, reward_percentage, field_info), False, False
                     else:
-                        field_info = f"`ⓘ  No minimum collateral required`\n" \
-                                     f"`🪙 The wallet receives rewards`"
+                        field_info = f":coin:` The wallet receives rewards`\n" \
+                                     f"`ⓘ  No minimum collateral required`"
+
                         return wallet_field(field_symbol, reward_percentage, field_info), False, False
 
                 elif node_data["rewardState"] is False:
                     field_symbol = ":red_square:"
                     if node_data["formerRewardState"] is True:
-                        field_info = f"`ⓘ  No minimum collateral required`\n" \
-                                     f"`⚠ The wallet recently stopped receiving rewards`"
+                        field_info = f":red_circle:` The wallet recently stopped receiving rewards`\n" \
+                                     f"`ⓘ  No minimum collateral required`"
+
                         red_color_trigger = True
                         return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
                     else:
-                        field_info = f"`ⓘ  No minimum collateral required`\n" \
-                                     f"`⚠ The wallet doesn't receive rewards`"
+                        field_info = f":red_circle:` The wallet doesn't receive rewards`\n"\
+                                     f"`ⓘ  No minimum collateral required`"
+
                         red_color_trigger = True
                         return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
                 else:
                     field_symbol = ":yellow_square:"
-                    field_info = f"`ⓘ  No minimum collateral required`\n" \
-                                 f"`ⓘ  The wallet reward state is unknown. Please report`"
+                    field_info = f"`ⓘ  The wallet reward state is unknown. Please report`\n" \
+                                 f"`ⓘ  No minimum collateral required`"
+
                     yellow_color_trigger = True
                     return wallet_field(field_symbol, reward_percentage, field_info), False, yellow_color_trigger
 
