@@ -222,6 +222,7 @@ def set_connectivity_specific_node_data_values(node_data):
 
         elif node_data["clusterNames"] is not None:
             if node_data["formerClusterNames"] is None:
+                print("Error")
                 if node_data["nodeClusterSession"] == node_data["latestClusterSession"]:
                     node_data["clusterConnectivity"] = "new association"
                 elif node_data["nodeClusterSession"] != node_data["latestClusterSession"]:
@@ -234,6 +235,7 @@ def set_connectivity_specific_node_data_values(node_data):
                     node_data["clusterConnectivity"] = "dissociated"
 
     return node_data
+
 
 def set_association_time(node_data):
     if node_data["formerTimestampIndex"] is not None:
@@ -388,10 +390,10 @@ def build_general_node_wallet(node_data):
             elif node_data["rewardState"] is True:
                 field_symbol = ":green_square:"
                 if node_data["formerRewardState"] is False:
-                    field_info = f":coin:` The wallet recently started receiving rewards`"
+                    field_info = f"`🪙 The wallet recently started receiving rewards`"
                     return wallet_field(field_symbol, reward_percentage, field_info), False, False
                 else:
-                    field_info = f":coin:` The wallet receives rewards`"
+                    field_info = f"`🪙 The wallet receives rewards`"
                     return wallet_field(field_symbol, reward_percentage, field_info), False, False
             elif node_data["rewardState"] is None:
                 field_symbol = ":yellow_square:"
@@ -409,11 +411,11 @@ def build_general_node_wallet(node_data):
                     field_symbol = ":green_square:"
                     if node_data["formerRewardState"] is False:
                         field_info = f"`ⓘ  No minimum collateral required`\n" \
-                                     f":coin:` The wallet recently started receiving rewards`"
+                                     f"`🪙 The wallet recently started receiving rewards`"
                         return wallet_field(field_symbol, reward_percentage, field_info), False, False
                     else:
                         field_info = f"`ⓘ  No minimum collateral required`\n" \
-                                     f":coin:` The wallet receives rewards`"
+                                     f"`🪙 The wallet receives rewards`"
                         return wallet_field(field_symbol, reward_percentage, field_info), False, False
 
                 elif node_data["rewardState"] is False:

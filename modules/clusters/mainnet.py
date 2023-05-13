@@ -390,10 +390,10 @@ def build_general_node_wallet(node_data):
             elif node_data["rewardState"] is True:
                 field_symbol = ":green_square:"
                 if node_data["formerRewardState"] is False:
-                    field_info = f":coin:` The wallet recently started receiving rewards`"
+                    field_info = f"`🪙 The wallet recently started receiving rewards`"
                     return wallet_field(field_symbol, reward_percentage, field_info), False, False
                 else:
-                    field_info = f":coin:` The wallet receives rewards`"
+                    field_info = f"`🪙 The wallet receives rewards`"
                     return wallet_field(field_symbol, reward_percentage, field_info), False, False
             elif node_data["rewardState"] is None:
                 field_symbol = ":yellow_square:"
@@ -411,11 +411,11 @@ def build_general_node_wallet(node_data):
                     field_symbol = ":green_square:"
                     if node_data["formerRewardState"] is False:
                         field_info = f"`ⓘ  No minimum collateral required`\n" \
-                                     f":coin:` The wallet recently started receiving rewards`"
+                                     f"`🪙 The wallet recently started receiving rewards`"
                         return wallet_field(field_symbol, reward_percentage, field_info), False, False
                     else:
                         field_info = f"`ⓘ  No minimum collateral required`\n" \
-                                     f":coin:` The wallet receives rewards`"
+                                     f"`🪙 The wallet receives rewards`"
                         return wallet_field(field_symbol, reward_percentage, field_info), False, False
 
                 elif node_data["rewardState"] is False:

@@ -95,7 +95,7 @@ if __name__ == "__main__":
             process_msg = await discord.update_proces_msg(process_msg, 4)
 
             # If not request received through Discord channel
-            if requester is None:
+            if process_msg is None:
                 await write.history(dask_client, data, configuration)
             # Write node id, ip, ports to subscriber list, then base code on id
             await init.send(ctx, process_msg, bot, data, configuration)
