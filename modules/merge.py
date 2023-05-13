@@ -30,7 +30,6 @@ def historic_data(node_data: dict, historic_node_dataframe) -> dict:
             node_data["cpuCount"] = float(historic_node_dataframe["cpuCount"])
             node_data["diskSpaceTotal"] = float(historic_node_dataframe["diskSpaceTotal"])
             node_data["diskSpaceFree"] = float(historic_node_dataframe["diskSpaceFree"])
-    del historic_node_dataframe
     return node_data
 
 

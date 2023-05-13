@@ -222,6 +222,7 @@ def set_connectivity_specific_node_data_values(node_data):
 
         elif node_data["clusterNames"] is not None:
             if node_data["formerClusterNames"] is None:
+                print("Error")
                 if node_data["nodeClusterSession"] == node_data["latestClusterSession"]:
                     node_data["clusterConnectivity"] = "new association"
                 elif node_data["nodeClusterSession"] != node_data["latestClusterSession"]:
@@ -234,6 +235,7 @@ def set_connectivity_specific_node_data_values(node_data):
                     node_data["clusterConnectivity"] = "dissociated"
 
     return node_data
+
 
 def set_association_time(node_data):
     if node_data["formerTimestampIndex"] is not None:
