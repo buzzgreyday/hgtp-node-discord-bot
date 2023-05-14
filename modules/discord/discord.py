@@ -70,5 +70,5 @@ async def update_proces_msg(process_msg, process_num, foo):
 
 
 async def get_requester(ctx):
-    return ctx.message.author
+    return ctx.message.author.id
 

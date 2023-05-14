@@ -66,7 +66,7 @@ if __name__ == "__main__":
             dt_start = datetime.utcnow()
             timer_start = time.perf_counter()
             await discord.init_process(bot, requester)
-            futures = await init.process(dask_client, process_msg, requester, dt_start, latest_tessellation_version,  all_supported_clusters_data, configuration)
+            futures = await init.process(dask_client, bot, process_msg, requester, dt_start, latest_tessellation_version,  all_supported_clusters_data, configuration)
             for async_process in futures:
                 try:
                     d, process_msg = await async_process

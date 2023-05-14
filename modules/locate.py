@@ -13,6 +13,7 @@ def node_cluster(node_data, all_supported_clusters_data):
 
     return node_data
 
+
 async def historic_node_data(dask_client, node_data: dict, history_dataframe):
 
     # history_node_dataframe = await dask_client.compute(history_dataframe[(history_dataframe["host"] == node_data["host"]) & (history_dataframe["publicPort"] == node_data["publicPort"])])
@@ -21,14 +22,18 @@ async def historic_node_data(dask_client, node_data: dict, history_dataframe):
     else:
         return await dask_client.compute(history_dataframe[(history_dataframe["host"] == node_data["host"]) & (history_dataframe["publicPort"] == node_data["publicPort"])])
 
+
 def former_historic_node_data(historic_node_dataframe):
     return historic_node_dataframe[historic_node_dataframe["timestampIndex"] == historic_node_dataframe["timestampIndex"].max()]
 
-async def registered_subscriber_node_data(dask_client, ip: str, subscriber_dataframe) -> dict:
-    name = await dask_client.compute(subscriber_dataframe.name[subscriber_dataframe.ip == ip])
+
+async def registered_subscriber_node_data(dask_client, bot, ip: str, subscriber_dataframe) -> dict:
+    # THIS SHOULD BE DETERMINED BY ID
+    node_id = await dask_client.compute(subscriber_dataframe.id[subscriber_dataframe.ip == ip])
     contact = await dask_client.compute(subscriber_dataframe.contact[subscriber_dataframe.ip == ip])
     subscriber = {
-        "name": name.values[0],
+        "id": node_id.values[0],
+        "name": bot.get_user(contact.values[0]),
         "contact": contact.values[0],
         "ip": ip,
         "public_l0": tuple(await dask_client.compute(subscriber_dataframe.public_l0[subscriber_dataframe.ip == ip])),
