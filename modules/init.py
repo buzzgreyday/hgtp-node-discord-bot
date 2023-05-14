@@ -28,7 +28,6 @@ async def process(dask_client, bot, process_msg, requester, dt_start, latest_tes
         if requester is None:
             return list(set(await dask_client.compute(subscriber_dataframe["ip"])))
         else:
-            print(await dask_client.compute(subscriber_dataframe["contact"].astype(dtype=int)), requester)
             return list(set(await dask_client.compute(subscriber_dataframe["ip"][subscriber_dataframe["contact"].astype(dtype=int) == int(requester)])))
 
     subscriber_futures = []
