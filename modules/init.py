@@ -3,7 +3,7 @@ from aiofiles import os
 import importlib.util
 import sys
 
-from modules import read, request, merge, create, locate
+from modules import read, request, merge, create, locate, determine_module
 from modules.discord import discord
 from modules.temporaries import temporaries
 
@@ -60,13 +60,8 @@ async def send(ctx, process_msg, bot, data, configuration):
                 cluster_name = node_data["clusterNames"]
             else:
                 cluster_name = node_data["formerClusterNames"]
-
             if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{cluster_name}.py"):
-                spec = importlib.util.spec_from_file_location(f"{cluster_name}.build_embed",
-                                                              f"{configuration['file settings']['locations']['cluster modules']}/{cluster_name}.py")
-                module = importlib.util.module_from_spec(spec)
-                sys.modules[f"{cluster_name}.build_embed"] = module
-                spec.loader.exec_module(module)
+                module = determine_module.set_module(cluster_name, configuration)
                 embed = module.build_embed(node_data)
                 if process_msg is not None:
                     futures.append((asyncio.create_task(ctx.author.send(embed=embed))))

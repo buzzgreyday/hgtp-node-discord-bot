@@ -10,7 +10,7 @@ from datetime import datetime
 from aiofiles import os
 from dask.distributed import Client
 import distributed
-from modules import init, request, write
+from modules import init, request, write, determine_module
 from modules.discord import discord
 import nextcord
 from nextcord.ext import commands, tasks
@@ -77,17 +77,8 @@ if __name__ == "__main__":
             futures.clear()
             process_msg = await discord.update_proces_msg(process_msg, 5, None)
             # Check if notification should be sent
-            for i, d in enumerate(data):
-                if await os.path.exists(
-                        f"{configuration['file settings']['locations']['cluster modules']}/{d['clusterNames']}.py"):
-                    spec = importlib.util.spec_from_file_location(f"{d['clusterNames']}.build_embed",
-                                                                  f"{configuration['file settings']['locations']['cluster modules']}/{d['clusterNames']}.py")
-                    module = importlib.util.module_from_spec(spec)
-                    sys.modules[f"{d['clusterNames']}.build_embed"] = module
-                    spec.loader.exec_module(module)
-                    data[i] = module.mark_notify(d, configuration)
+            data = await determine_module.notify(data, configuration)
             process_msg = await discord.update_proces_msg(process_msg, 6, None)
-
             # If not request received through Discord channel
             if process_msg is None:
                 await write.history(dask_client, data, configuration)
