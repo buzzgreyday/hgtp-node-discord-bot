@@ -108,7 +108,7 @@ if __name__ == "__main__":
 
         embed = nextcord.Embed(title="Command not found".upper(),
                                color=nextcord.Color.orange())
-        embed.insert_field_at(index=0, name=f"```{ctx.message.content}```",
+        embed.insert_field_at(index=0, name=f"\U00002328` {ctx.message.content}`",
                               value=f"`ⓘ Please make sure you did enter a proper command`",
                               inline=False)
         embed.set_author(name=ctx.message.author,
@@ -131,6 +131,7 @@ if __name__ == "__main__":
                 print("Command in non-command channel")
                 pass
             else:
+                await message.add_reaction("\U0000274C")
                 print("Command in command channel but not a command")
                 if not isinstance(ctx.message.channel, nextcord.DMChannel):
                     await message.delete(delay=None)
