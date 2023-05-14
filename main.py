@@ -104,7 +104,7 @@ if __name__ == "__main__":
         print(timer_stop-timer_start)
 
 
-    async def notCommand(ctx, bot):
+    async def command_error(ctx, bot):
 
         embed = nextcord.Embed(title="Command not found".upper(),
                                color=nextcord.Color.orange())
@@ -134,7 +134,7 @@ if __name__ == "__main__":
                 print("Command in command channel but not a command")
                 if not isinstance(ctx.message.channel, nextcord.DMChannel):
                     await message.delete(delay=None)
-                embed = await notCommand(ctx, bot)
+                embed = await command_error(ctx, bot)
                 await ctx.message.author.send(embed=embed)
 
 
