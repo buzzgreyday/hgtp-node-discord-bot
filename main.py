@@ -74,10 +74,6 @@ if __name__ == "__main__":
                 except Exception as e:
                     logging.critical(repr(e.with_traceback(sys.exc_info())))
                     exit(1)
-            # CREATE EMBEDS PER CLUSTER MODULE
-            # all_data = sorted(all_data, key=lambda x: x["layer"])
-            # all_data = sorted(all_data, key=lambda x: x["host"])
-            # all_data = sorted(all_data, key=lambda x: x["contact"])
             futures.clear()
             process_msg = await discord.update_proces_msg(process_msg, 5, None)
             # Check if notification should be sent
@@ -108,9 +104,9 @@ if __name__ == "__main__":
 
         embed = nextcord.Embed(title="Command not found".upper(),
                                color=nextcord.Color.orange())
-        embed.insert_field_at(index=0, name=f"\U00002328` {ctx.message.content}`",
-                              value=f"`ⓘ Please make sure you did enter a proper command`",
-                              inline=False)
+        embed.add_field(name=f"\U00002328` {ctx.message.content}`",
+                        value=f"`ⓘ Please make sure you did enter a proper command`",
+                        inline=False)
         embed.set_author(name=ctx.message.author,
                          icon_url=bot.get_user(
                              ctx.message.author.id).display_avatar.url)
@@ -134,7 +130,7 @@ if __name__ == "__main__":
                 await message.add_reaction("\U0000274C")
                 print("Command in command channel but not a command")
                 if not isinstance(ctx.message.channel, nextcord.DMChannel):
-                    await message.delete(delay=None)
+                    await message.delete(delay=3)
                 embed = await command_error(ctx, bot)
                 await ctx.message.author.send(embed=embed)
 
@@ -152,8 +148,6 @@ if __name__ == "__main__":
         while True:
             if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
                 await main(None, None, None, configuration)
-            else:
-                print(datetime.time(datetime.utcnow()).strftime("%H:%M:%S"), "SKIPPING...")
             await asyncio.sleep(1)
 
 
