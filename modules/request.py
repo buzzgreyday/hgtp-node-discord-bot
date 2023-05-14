@@ -152,7 +152,8 @@ async def node_cluster_data_from_dynamic_module(process_msg, node_data, configur
         node_data = await module.node_cluster_data(node_data, configuration)
         return node_data, process_msg
     else:
-        return node_data
+        return node_data, process_msg
+
 
 async def preliminary_data(configuration):
     timer_start = time.perf_counter()

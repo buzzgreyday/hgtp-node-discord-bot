@@ -106,10 +106,10 @@ if __name__ == "__main__":
 
     async def notCommand(ctx, bot):
 
-        embed = nextcord.Embed(title=":no_entry: Command Not Found",
-                               color=nextcord.Color.yellow())
-        embed.insert_field_at(index=0, name="\u200B",
-                              value=f"'{ctx.message.content}' was not recognised as a command. Please check you entered the command correctly.",
+        embed = nextcord.Embed(title="Command not found".upper(),
+                               color=nextcord.Color.orange())
+        embed.insert_field_at(index=0, name=f"```{ctx.message.content}```",
+                              value=f"`ⓘ Please make sure you did enter a proper command`",
                               inline=False)
         embed.set_author(name=ctx.message.author,
                          icon_url=bot.get_user(
@@ -121,22 +121,21 @@ if __name__ == "__main__":
     async def on_message(message):
         if message.author == bot.user:
             return
-        try:
-            ctx = await bot.get_context(message)
-            if ctx.valid:
-                await bot.process_commands(message)
+        ctx = await bot.get_context(message)
+        if ctx.valid:
+            print("Command received")
+            await bot.process_commands(message)
+        else:
+            if ctx.message.channel.id in (977357753947402281, 974431346850140204, 1030007676257710080):
+                # IGNORE INTERPRETING MESSAGES IN THESE CHANNELS AS COMMANDS
+                print("Command in non-command channel")
+                pass
             else:
-                if ctx.message.channel.id in (977357753947402281, 974431346850140204, 1030007676257710080) or ctx.message.author.id != 977302927154769971:
-                    # IGNORE INTERPRETING MESSAGES IN THESE CHANNELS AS COMMANDS
-                    pass
-                else:
-                    if isinstance(ctx.message.channel, nextcord.DMChannel):
-                        await message.delete(delay=None)
-                    embed = await notCommand(ctx, bot)
-                    await bot.get_channel(977357753947402281).send(embed=embed)
-                    await ctx.author.send(embed=embed)
-        except nextcord.errors.HTTPException:
-            pass
+                print("Command in command channel but not a command")
+                if not isinstance(ctx.message.channel, nextcord.DMChannel):
+                    await message.delete(delay=None)
+                embed = await notCommand(ctx, bot)
+                await ctx.message.author.send(embed=embed)
 
 
     @bot.command()
