@@ -37,6 +37,7 @@ async def process(dask_client, bot, process_msg, requester, dt_start, latest_tes
     ips = await locate_ips(requester)
     for ip in ips:
         subscriber_futures.append(asyncio.create_task(locate.registered_subscriber_node_data(dask_client, bot, ip, subscriber_dataframe)))
+
     for fut in subscriber_futures:
         subscriber = await fut
         for k, v in subscriber.items():
