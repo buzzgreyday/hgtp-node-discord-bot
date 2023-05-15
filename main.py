@@ -148,14 +148,14 @@ async def on_ready():
 
 @bot.command()
 async def s(ctx, *arguments):
-    ipRegex = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
+
     ips = []
     zero_ports = []
     one_ports = []
 
+    ipRegex = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
     for ip in filter(lambda ip: re.match(ipRegex, ip), arguments):
         ips.append(ip)
-    print(ips)
     for idx, arg in enumerate(map(lambda arg: arg in ("z", "zero", "zeros"), arguments)):
         if arg:
             for zport in arguments[idx+1:]:
