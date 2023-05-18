@@ -18,7 +18,6 @@ from nextcord.ext import commands, tasks
 from os import getenv, path, makedirs
 import yaml
 
-
 """LOAD DISCORD SERVER TOKEN FROM ENVIRONMENT"""
 discord_token = getenv("HGTP_SPIDR_DISCORD_TOKEN")
 
@@ -31,7 +30,8 @@ if not path.exists(configuration["file settings"]["locations"]["log"]):
     makedirs(configuration["file settings"]["locations"]["log"])
 
 """DEFINE LOGGING LEVEL AND LOCATION"""
-logging.basicConfig(filename=configuration["file settings"]["locations"]["log"], filemode='w', format='%(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.basicConfig(filename=configuration["file settings"]["locations"]["log"], filemode='w',
+                    format='%(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 description = '''Bot by hgtp_Michael'''
 intents = nextcord.Intents.all()
@@ -48,7 +48,8 @@ def generate_runtimes() -> list:
 
     start = datetime.strptime(configuration['general']['loop_init_time'], "%H:%M:%S")
     end = (datetime.strptime(configuration['general']['loop_init_time'], "%H:%M:%S") + timedelta(hours=24))
-    return [(start + timedelta(hours=(configuration['general']['loop_interval_minutes']) * i / 60)).strftime("%H:%M:%S") for i in
+    return [(start + timedelta(hours=(configuration['general']['loop_interval_minutes']) * i / 60)).strftime("%H:%M:%S")
+            for i in
             range(int((end - start).total_seconds() / 60.0 / (configuration['general']['loop_interval_minutes'])))]
 
 
@@ -56,7 +57,8 @@ async def main(ctx, process_msg, requester, configuration) -> None:
     data = []
     # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
     process_msg = await discord.update_proces_msg(process_msg, 1, None)
-    configuration, all_supported_clusters_data,  latest_tessellation_version = await request.preliminary_data(configuration)
+    configuration, all_supported_clusters_data, latest_tessellation_version = await request.preliminary_data(
+        configuration)
     await bot.wait_until_ready()
     async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)
@@ -64,7 +66,8 @@ async def main(ctx, process_msg, requester, configuration) -> None:
         dt_start = datetime.utcnow()
         timer_start = time.perf_counter()
         await discord.init_process(bot, requester)
-        futures = await init.process(dask_client, bot, process_msg, requester, dt_start, latest_tessellation_version,  all_supported_clusters_data, configuration)
+        futures = await init.process(dask_client, bot, process_msg, requester, dt_start, latest_tessellation_version,
+                                     all_supported_clusters_data, configuration)
         for async_process in futures:
             try:
                 d, process_msg = await async_process
@@ -86,11 +89,10 @@ async def main(ctx, process_msg, requester, configuration) -> None:
     await asyncio.sleep(3)
     gc.collect()
     timer_stop = time.perf_counter()
-    print(timer_stop-timer_start)
+    print(timer_stop - timer_start)
 
 
 async def command_error(ctx, bot):
-
     embed = nextcord.Embed(title="Command not found".upper(),
                            color=nextcord.Color.orange())
     embed.add_field(name=f"\U00002328` {ctx.message.content}`",
@@ -148,35 +150,39 @@ async def on_ready():
 
 @bot.command()
 async def s(ctx, *arguments):
-
-    ips = []
-    zero_ports = []
-    one_ports = []
+    def check_args(idx, *args):
+        ports = []
+        sliced_args = arguments[idx:]
+        for idx, arg in enumerate(map(lambda arg: arg in args, sliced_args)):
+            if arg:
+                for port in sliced_args[idx + 1:]:
+                    if port.isdigit():
+                        ports.append(port)
+                    else:
+                        break
+                break
+        return ports
 
     ipRegex = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
-    for ip in filter(lambda ip: re.match(ipRegex, ip), arguments):
-        ips.append(ip)
-    for idx, arg in enumerate(map(lambda arg: arg in ("z", "zero", "zeros"), arguments)):
-        if arg:
-            for zport in arguments[idx+1:]:
-                if zport.isdigit():
-                    zero_ports.append(zport)
-                else:
-                    break
-            break
-    for idx, arg in enumerate(map(lambda arg: arg in ("o", "one", "ones"), arguments)):
-        if arg:
-            for oport in arguments[idx+1:]:
-                if oport.isdigit():
-                    one_ports.append(oport)
-                else:
-                    break
-            break
-    print(zero_ports, one_ports)
+
+    ips = list(set(filter(lambda ip: re.match(ipRegex, ip), arguments)))
+    ip_idx = list(set(map(lambda ip: arguments.index(ip), ips)))
+    subscriptions = []
+    for i, idx in enumerate(ip_idx):
+        subscriptions.append({
+            "ip": ips[i],
+            "zero ports": check_args(idx, "z", "zero", "zeros"),
+            "one ports": check_args(idx, "o", "one", "ones")
+        })
+
+    # Check each port and get Node ID
+    # Lastly add contact and name
+
+    print(subscriptions)
 
     print(ctx.message.author, arguments)
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     bot.loop.create_task(loop())
     bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))
