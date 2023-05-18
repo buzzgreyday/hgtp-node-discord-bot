@@ -174,9 +174,10 @@ async def s(ctx, *arguments):
             "one ports": slice_and_check_args(idx, "o", "one", "ones")
         })
     for d in subscriptions:
-        for port in d["zero ports"] + d["one ports"]:
-            node_data = await request.safe(f"{d['ip']}:{port}/node/info", configuration)
-            d["node id"] = node_data["id"]
+        for layer in "zero", "one":
+            for port in d[f"{layer} ports"]:
+                node_data = await request.safe(f"http://{d['ip']}:{port}/node/info", configuration)
+                d[f"{layer} ids"] = node_data["id"] if node_data is not None else None
     # Check each port and get Node ID
     # Lastly add contact and name
 
