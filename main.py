@@ -175,7 +175,7 @@ async def s(ctx, *arguments):
         })
     for d in subscriptions:
         for layer in "zero", "one":
-            for port in d[f"{layer} ports"]:
+            for i, port in enumerate(d[f"{layer} ports"]):
                 node_data = await request.safe(f"http://{d['ip']}:{port}/node/info", configuration)
                 d[f"{layer} ids"] = node_data["id"] if node_data is not None else None
     # Check each port and get Node ID
