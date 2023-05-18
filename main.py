@@ -149,24 +149,24 @@ async def on_ready():
 
 @bot.command()
 async def s(ctx, *arguments):
+    subscriptions = []
+    vals = []
+    ipRegex = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
+
     def slice_and_check_args(idx, *args):
-        ports = []
         sliced_args = arguments[idx:]
         for idx, arg in enumerate(map(lambda arg: arg in args, sliced_args)):
             if arg:
-                for port in sliced_args[idx + 1:]:
-                    if port.isdigit():
-                        ports.append(port)
+                for val in sliced_args[idx + 1:]:
+                    if val.isdigit():
+                        vals.append(val)
                     else:
                         break
                 break
-        return ports
-
-    ipRegex = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
+        return vals
 
     ips = list(set(filter(lambda ip: re.match(ipRegex, ip), arguments)))
     ip_idx = list(set(map(lambda ip: arguments.index(ip), ips)))
-    subscriptions = []
     for i, idx in enumerate(ip_idx):
         subscriptions.append({
             "ip": ips[i],
