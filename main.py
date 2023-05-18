@@ -11,7 +11,7 @@ from datetime import datetime
 from aiofiles import os
 from dask.distributed import Client
 import distributed
-from modules import init, request, write, determine_module
+from modules import init, request, write, determine_module, date_and_time
 from modules.discord import discord
 import nextcord
 from nextcord.ext import commands, tasks
@@ -63,8 +63,7 @@ async def main(ctx, process_msg, requester, configuration) -> None:
     async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)
         logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - DASK CLIENT RUNNING")
-        dt_start = datetime.utcnow()
-        timer_start = time.perf_counter()
+        dt_start, timer_start = date_and_time.start_timing()
         await discord.init_process(bot, requester)
         futures = await init.process(dask_client, bot, process_msg, requester, dt_start, latest_tessellation_version,
                                      all_supported_clusters_data, configuration)
