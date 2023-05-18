@@ -179,7 +179,7 @@ async def s(ctx, *arguments):
                 node_data = await request.safe(f"http://{d['ip']}:{port}/node/info", configuration)
                 d[f"{layer} ids"] = node_data["id"] if node_data is not None else None
     # Check each port and get Node ID
-    # Lastly add contact and name
+    # Lastly add date, time, contact and name
 
     print(subscriptions)
 
