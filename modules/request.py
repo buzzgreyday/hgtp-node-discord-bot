@@ -1,5 +1,5 @@
 from aiofiles import os
-import date_and_time
+import time
 from modules import tessellation, determine_module
 from modules.discord import discord
 import asyncio
@@ -68,6 +68,7 @@ class Request:
                     logging.critical(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST FAILED")
             del resp
             await session.close()
+
 
 async def safe(request_url: str, configuration: dict):
     data = None
@@ -145,7 +146,6 @@ async def node_cluster_data_from_dynamic_module(process_msg, node_data, configur
 
 
 async def preliminary_data(configuration):
-    timer_start = time.perf_counter()
     tasks = []
     cluster_data = []
     latest_tessellation_version = await tessellation.latest_version_github(configuration)
@@ -156,7 +156,5 @@ async def preliminary_data(configuration):
     """RELOAD CONFIGURATION"""
     async with aiofiles.open('data/config.yml', 'r') as file:
         configuration = yaml.safe_load(await file.read())
-    timer_stop = time.perf_counter()
-    print("PRELIMINARIES TOOK:", timer_stop - timer_start)
     return configuration, cluster_data, latest_tessellation_version
 

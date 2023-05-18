@@ -150,10 +150,10 @@ async def on_ready():
 @bot.command()
 async def s(ctx, *arguments):
     subscriptions = []
-    vals = []
     ipRegex = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 
     def slice_and_check_args(idx, *args):
+        vals = []
         sliced_args = arguments[idx:]
         for idx, arg in enumerate(map(lambda arg: arg in args, sliced_args)):
             if arg:
@@ -173,7 +173,10 @@ async def s(ctx, *arguments):
             "zero ports": slice_and_check_args(idx, "z", "zero", "zeros"),
             "one ports": slice_and_check_args(idx, "o", "one", "ones")
         })
-
+    for d in subscriptions:
+        for port in d["zero ports"] + d["one ports"]:
+            print(port)
+            # node_data = await request.safe(f"{d['ip']}:{port}/node/info", configuration)
     # Check each port and get Node ID
     # Lastly add contact and name
 
