@@ -175,8 +175,8 @@ async def s(ctx, *arguments):
         })
     for d in subscriptions:
         for port in d["zero ports"] + d["one ports"]:
-            print(port)
-            # node_data = await request.safe(f"{d['ip']}:{port}/node/info", configuration)
+            node_data = await request.safe(f"{d['ip']}:{port}/node/info", configuration)
+            d["node id"] = node_data["id"]
     # Check each port and get Node ID
     # Lastly add contact and name
 
