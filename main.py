@@ -150,7 +150,7 @@ async def on_ready():
 
 @bot.command()
 async def s(ctx, *arguments):
-    def check_args(idx, *args):
+    def slice_and_check_args(idx, *args):
         ports = []
         sliced_args = arguments[idx:]
         for idx, arg in enumerate(map(lambda arg: arg in args, sliced_args)):
@@ -171,8 +171,8 @@ async def s(ctx, *arguments):
     for i, idx in enumerate(ip_idx):
         subscriptions.append({
             "ip": ips[i],
-            "zero ports": check_args(idx, "z", "zero", "zeros"),
-            "one ports": check_args(idx, "o", "one", "ones")
+            "zero ports": slice_and_check_args(idx, "z", "zero", "zeros"),
+            "one ports": slice_and_check_args(idx, "o", "one", "ones")
         })
 
     # Check each port and get Node ID
