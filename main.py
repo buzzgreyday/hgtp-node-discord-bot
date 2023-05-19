@@ -199,8 +199,6 @@ async def s(ctx, *arguments):
         valid_one, not_valid_one = await slice_and_check_args(idx, ips[i], "o", "one", "ones")
         list_of_subs.append(return_valid_subscriber_dictionary(valid_one))
 
-        # Lastly add date, time, contact and name
-
         # if await os.path.exists(configuration['file settings']['locations']['subscriber data']):
         # await write.subscriber(dask_client, subscription, configuration)
 
