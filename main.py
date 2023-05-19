@@ -185,8 +185,8 @@ async def s(ctx, *arguments):
                         "name": ctx.message.author.name,
                         "contact": ctx.message.author.id,
                         "ip": tpl[0],
-                        "public_l0": tpl[1] if tpl[3] in ("z", "zero", "zeros") else None,
-                        "public_l1": tpl[1] if tpl[3] in ("o", "one", "ones") else None,
+                        "layer": 0 if tpl[3] in ("z", "zero", "zeros") else 1 if tpl[3] in ("o", "one", "ones") else None,
+                        "public_port": tpl[1],
                         "subscribed": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
                         }
 

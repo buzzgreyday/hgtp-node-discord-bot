@@ -17,8 +17,8 @@ async def history(configuration: dict):
 
 async def subscribers(configuration: dict):
     logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - READING SUBSCRIBER DATA AND RETURNING DATAFRAME")
-    if not await os.path.exists(configuration["file settings"]["locations"]["subscribers"]):
-        df = pd.DataFrame(columns=configuration["file settings"]["columns"]["subscribers"])
+    if not await os.path.exists(configuration["file settings"]["locations"]["subscribers_new"]):
+        df = pd.DataFrame(columns=configuration["file settings"]["columns"]["subscribers_new"])
         return dd.from_pandas(df, npartitions=1)
-    elif await os.path.exists(configuration["file settings"]["locations"]["subscribers"]):
-        return dd.read_csv(f'{configuration["file settings"]["locations"]["subscribers"]}', dtype=configuration["file settings"]["dtypes"]["subscribers"])
+    elif await os.path.exists(configuration["file settings"]["locations"]["subscribers_new"]):
+        return dd.read_parquet(configuration["file settings"]["locations"]["subscribers_new"], columns=configuration["file settings"]["columns"]["subscribers_new"])

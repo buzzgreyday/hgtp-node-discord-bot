@@ -36,7 +36,7 @@ async def registered_subscriber_node_data(dask_client, bot, ip: str, subscriber_
         "name": bot.get_user(contact.values[0]),
         "contact": contact.values[0],
         "ip": ip,
-        "public_l0": tuple(await dask_client.compute(subscriber_dataframe.public_l0[subscriber_dataframe.ip == ip])),
-        "public_l1": tuple(await dask_client.compute(subscriber_dataframe.public_l1[subscriber_dataframe.ip == ip]))}
+        "public_l0": tuple(await dask_client.compute(subscriber_dataframe.public_port[(subscriber_dataframe.ip == ip) & (subscriber_dataframe.layer == 0)])),
+        "public_l1": tuple(await dask_client.compute(subscriber_dataframe.public_port[(subscriber_dataframe.ip == ip) & (subscriber_dataframe.layer == 1)]))}
 
     return subscriber

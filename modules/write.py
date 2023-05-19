@@ -21,6 +21,6 @@ async def history(dask_client, node_data, configuration):
 
 async def subscriber(dask_client, list_of_subs, configuration):
     subscriber = dd.from_pandas(pd.DataFrame(list_of_subs), npartitions=1)
-    fut = subscriber.to_parquet(configuration["file settings"]["locations"]["subscribers_new"], append=True, npartitions=1, overwrite=False, compute=False, write_index=False)
+    fut = subscriber.to_parquet(configuration["file settings"]["locations"]["subscribers_new"], append=True, compute=False, write_index=False)
     await dask_client.compute(fut)
 

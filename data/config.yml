@@ -91,8 +91,8 @@ file settings:
     - name
     - contact
     - ip
-    - public_l0
-    - public_l1
+    - public_port
+    - layer
   dtypes:
     history:
       association time: int
@@ -183,8 +183,8 @@ file settings:
       id: str
       ip: str
       name: str
-      public_l0: str
-      public_l1: str
+      public_port: str
+      layer: str
       subscribed: str
   locations:
     archived history: /data/archived/node data

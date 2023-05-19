@@ -40,16 +40,13 @@ async def process(dask_client, bot, process_msg, requester, dt_start, latest_tes
 
     for fut in subscriber_futures:
         subscriber = await fut
-        for k, v in subscriber.items():
-            if k == "public_l0":
-                for port in v:
-                    layer = 0
-                    request_futures.append(asyncio.create_task(check(dask_client, bot, process_msg, requester, subscriber, layer, port, latest_tessellation_version, all_supported_cluster_data, history_dataframe, dt_start, configuration)))
-            elif k == "public_l1":
-                for port in v:
-                    layer = 1
-                    request_futures.append(asyncio.create_task(check(dask_client, bot, process_msg, requester, subscriber, layer, port, latest_tessellation_version, all_supported_cluster_data, history_dataframe, dt_start, configuration)))
-
+        print(subscriber)
+        for port in subscriber["public_l0"]:
+            layer = 0
+            request_futures.append(asyncio.create_task(check(dask_client, bot, process_msg, requester, subscriber, layer, port, latest_tessellation_version, all_supported_cluster_data, history_dataframe, dt_start, configuration)))
+        for port in subscriber["public_l1"]:
+            layer = 1
+            request_futures.append(asyncio.create_task(check(dask_client, bot, process_msg, requester, subscriber, layer, port, latest_tessellation_version, all_supported_cluster_data, history_dataframe, dt_start, configuration)))
     return request_futures
 
 
