@@ -2,5 +2,5 @@ import time
 from datetime import datetime
 
 
-def start_timing():
+def timing():
     return datetime.utcnow(), time.perf_counter()

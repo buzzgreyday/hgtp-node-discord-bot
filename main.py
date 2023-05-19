@@ -62,8 +62,7 @@ async def main(ctx, process_msg, requester, configuration) -> None:
     await bot.wait_until_ready()
     async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)
-        logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - DASK CLIENT RUNNING")
-        dt_start, timer_start = date_and_time.start_timing()
+        dt_start, timer_start = date_and_time.timing()
         await discord.init_process(bot, requester)
         futures = await init.process(dask_client, bot, process_msg, requester, dt_start, latest_tessellation_version,
                                      all_supported_clusters_data, configuration)
@@ -87,9 +86,8 @@ async def main(ctx, process_msg, requester, configuration) -> None:
     await discord.update_request_process_msg(process_msg, 7, None)
     await asyncio.sleep(3)
     gc.collect()
-    timer_stop = time.perf_counter()
+    dt_stop, timer_stop = date_and_time.timing()
     print(timer_stop - timer_start)
-
 
 async def command_error(ctx, bot):
     embed = nextcord.Embed(title="Command not found".upper(),
