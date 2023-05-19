@@ -192,6 +192,8 @@ async def s(ctx, *arguments):
     """async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)"""
     for i, idx in enumerate(ip_idx):
+        # There is "i" number of IP indexes associated with the subscription command. Choose the number "i" IP, indexed
+        # at "idx" in command args
         valid_zero, not_valid_zero = await slice_and_check_args(idx, ips[i], "z", "zero", "zeros")
         list_of_subs.append(return_valid_subscriber_dictionary(valid_zero))
         valid_one, not_valid_one = await slice_and_check_args(idx, ips[i], "o", "one", "ones")
