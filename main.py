@@ -191,10 +191,10 @@ async def s(ctx, *arguments):
         await dask_client.wait_for_workers(n_workers=1)"""
     for i, idx in enumerate(ip_idx):
         valid_zero, not_valid_zero = await slice_and_check_args(idx, ips[i], "z", "zero", "zeros")
-        if valid_zero:
+        if valid_zero is not None:
             list_of_subs.append(return_subscriber_dictionary(valid_zero))
         valid_one, not_valid_one = await slice_and_check_args(idx, ips[i], "o", "one", "ones")
-        if valid_one:
+        if valid_one is not None:
             list_of_subs.append(return_subscriber_dictionary(valid_one))
 
         # Lastly add date, time, contact and name
@@ -202,7 +202,7 @@ async def s(ctx, *arguments):
         # if await os.path.exists(configuration['file settings']['locations']['subscriber data']):
         # await write.subscriber(dask_client, subscription, configuration)
 
-    print(ctx.message.author, arguments)
+    print(list_of_subs)
 
 
 if __name__ == "__main__":
