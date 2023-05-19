@@ -89,6 +89,7 @@ async def main(ctx, process_msg, requester, configuration) -> None:
     dt_stop, timer_stop = date_and_time.timing()
     print(timer_stop - timer_start)
 
+
 async def command_error(ctx, bot):
     embed = nextcord.Embed(title="Command not found".upper(),
                            color=nextcord.Color.orange())
