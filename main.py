@@ -177,18 +177,17 @@ async def s(ctx, *arguments):
         return node_data["id"] if node_data is not None else None
 
     def return_valid_subscriber_dictionary(valid):
-        if valid:
-            for lst in valid:
-                if lst[2] is not None:
-                    return {
-                                "id": lst[2],
-                                "name": ctx.message.author.name,
-                                "contact": ctx.message.author.id,
-                                "ip": lst[0],
-                                "public_l0": lst[1],
-                                "public_l1": None,
-                                "subscribed": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-                            }
+        for lst in valid:
+            if lst[2] is not None:
+                return {
+                            "id": lst[2],
+                            "name": ctx.message.author.name,
+                            "contact": ctx.message.author.id,
+                            "ip": lst[0],
+                            "public_l0": lst[1],
+                            "public_l1": None,
+                            "subscribed": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+                        }
 
     """async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)"""
