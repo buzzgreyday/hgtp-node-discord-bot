@@ -180,13 +180,13 @@ async def s(ctx, *arguments):
         for tpl in valid:
             if tpl[2] is not None:
                 return {
-                            "id": tpl[2],
-                            "name": ctx.message.author.name,
-                            "contact": ctx.message.author.id,
-                            "ip": tpl[0],
-                            "public_l0": tpl[1],
-                            "public_l1": None,
-                            "subscribed": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+                        "id": tpl[2],
+                        "name": ctx.message.author.name,
+                        "contact": ctx.message.author.id,
+                        "ip": tpl[0],
+                        "public_l0": tpl[1],
+                        "public_l1": None,
+                        "subscribed": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
                         }
 
     """async with Client(cluster) as dask_client:
