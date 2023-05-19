@@ -79,7 +79,6 @@ file settings:
     - timestampIndex
     - formerTimestampIndex
     subscribers:
-    - subscribed
     - id
     - name
     - contact
@@ -171,14 +170,14 @@ file settings:
       name: str
       public_l0: str
       public_l1: str
-      subscribed: str
   locations:
     archived history: /data/archived/node data
     cluster modules: modules/clusters
     history: data/node data
     history_new: data/new data
     log: data/logs/bot.log
-    subscribers: data/subscriber data
+    subscribers: data/subscribers.csv
+    new_subscribers: data/subscriber data
 general:
   loop_init_time: '12:25:00'
   loop_interval_minutes: 5

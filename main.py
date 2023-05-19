@@ -159,11 +159,11 @@ async def s(ctx, *arguments):
         sliced_args = arguments[idx:]
         for idx, arg in enumerate(map(lambda arg: arg in args, sliced_args)):
             if arg:
-                for val in sliced_args[idx + 1:]:
-                    if val.isdigit():
-                        node_id = await validate_node(ip, val)
+                for port in sliced_args[idx + 1:]:
+                    if port.isdigit():
+                        node_id = await validate_node(ip, port)
                         if node_id is not None:
-                            valid.append((ip, val, node_id))
+                            valid.append((ip, port, node_id))
                         else:
                             not_valid.append((ip, val, None))
                     else:
@@ -173,7 +173,7 @@ async def s(ctx, *arguments):
 
     async def validate_node(ip, port):
         print("Requesting:", f"http://{str(ip)}:{str(port)}/node/info")
-        node_data = await request.safe(f"http://{str(ip)}:{str(port)}/node/info", configuration)
+        node_data = await request.safe(f"http://{ip}:{port}/{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
         return node_data["id"] if node_data is not None else None
 
     def return_valid_subscriber_dictionary(valid):
