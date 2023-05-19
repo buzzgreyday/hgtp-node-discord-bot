@@ -153,7 +153,7 @@ async def s(ctx, *arguments):
     ip_idx = list(set(map(lambda ip: arguments.index(ip), ips)))
     list_of_subs = []
 
-    async def slice_and_check_args(idx: int, ip: str, *args) -> tuple[list, list]:
+    async def slice_and_check_args(idx: int, ip: str, *args):
         valid = []
         not_valid = []
         sliced_args = arguments[idx:]
@@ -171,23 +171,24 @@ async def s(ctx, *arguments):
                 break
         return valid, not_valid
 
-    async def validate_node(ip, port):
+    async def validate_node(ip: str, port: str):
         print("Requesting:", f"http://{str(ip)}:{str(port)}/node/info")
         node_data = await request.safe(f"http://{ip}:{port}/{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
         return node_data["id"] if node_data is not None else None
 
     def return_valid_subscriber_dictionary(valid):
         if valid:
-            if valid[2] is not None:
-                return {
-                            "id": valid[2],
-                            "name": ctx.message.author,
-                            "contact": ctx.message.author.id,
-                            "ip": valid[0],
-                            "public_l0": valid[1],
-                            "public_l1": None,
-                            "subscribed": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-                        }
+            for lst in valid:
+                if lst[2] is not None:
+                    return {
+                                "id": lst[2],
+                                "name": ctx.message.author.name,
+                                "contact": ctx.message.author.id,
+                                "ip": lst[0],
+                                "public_l0": lst[1],
+                                "public_l1": None,
+                                "subscribed": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+                            }
 
     """async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)"""
