@@ -19,7 +19,7 @@ async def set_active_presence(bot):
         return await bot.change_presence(activity=nextcord.Activity(type=nextcord.ActivityType.watching, name=f'nodes since {datetime.utcnow().strftime("%H:%M")} UTC'), status=nextcord.Status.online)
 
 
-async def send_process_msg(ctx):
+async def send_request_process_msg(ctx):
     msg = await ctx.message.author.send(
         "**`➭ 1. Request added to queue.`**\n"
         "`  2. Process request.`\n"
@@ -28,7 +28,7 @@ async def send_process_msg(ctx):
     return msg
 
 
-async def update_proces_msg(process_msg, process_num, foo):
+async def update_request_process_msg(process_msg, process_num, foo):
     if process_msg is None:
         return None
     elif process_msg is not None:

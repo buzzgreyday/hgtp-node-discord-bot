@@ -56,7 +56,7 @@ def generate_runtimes() -> list:
 async def main(ctx, process_msg, requester, configuration) -> None:
     data = []
     # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
-    process_msg = await discord.update_proces_msg(process_msg, 1, None)
+    process_msg = await discord.update_request_process_msg(process_msg, 1, None)
     configuration, all_supported_clusters_data, latest_tessellation_version = await request.preliminary_data(
         configuration)
     await bot.wait_until_ready()
@@ -75,16 +75,16 @@ async def main(ctx, process_msg, requester, configuration) -> None:
                 logging.critical(repr(e.with_traceback(sys.exc_info())))
                 exit(1)
         futures.clear()
-        process_msg = await discord.update_proces_msg(process_msg, 5, None)
+        process_msg = await discord.update_request_process_msg(process_msg, 5, None)
         # Check if notification should be sent
         data = await determine_module.notify(data, configuration)
-        process_msg = await discord.update_proces_msg(process_msg, 6, None)
+        process_msg = await discord.update_request_process_msg(process_msg, 6, None)
         # If not request received through Discord channel
         if process_msg is None:
             await write.history(dask_client, data, configuration)
     # Write node id, ip, ports to subscriber list, then base code on id
     await init.send(ctx, process_msg, bot, data, configuration)
-    await discord.update_proces_msg(process_msg, 7, None)
+    await discord.update_request_process_msg(process_msg, 7, None)
     await asyncio.sleep(3)
     gc.collect()
     timer_stop = time.perf_counter()
@@ -127,7 +127,7 @@ async def on_message(message):
 
 @bot.command()
 async def r(ctx, *arguments):
-    process_msg = await discord.send_process_msg(ctx)
+    process_msg = await discord.send_request_process_msg(ctx)
     requester = await discord.get_requester(ctx)
     if isinstance(ctx.channel, nextcord.DMChannel):
         await ctx.message.delete(delay=3)
@@ -149,7 +149,6 @@ async def on_ready():
 
 @bot.command()
 async def s(ctx, *arguments):
-    sub_req = []
     ipRegex = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 
     async def slice_and_check_args(idx: int, ip: str, *args) -> tuple[list, list]:
@@ -181,7 +180,6 @@ async def s(ctx, *arguments):
         valid_zero, not_valid_zero = await slice_and_check_args(idx, ips[i], "z", "zero", "zeros")
         valid_one, not_valid_one = await slice_and_check_args(idx, ips[i], "o", "one", "ones")
 
-    # Check each port and get Node ID
     # Lastly add date, time, contact and name
 
         print(valid_zero, not_valid_zero, valid_one, not_valid_one)
