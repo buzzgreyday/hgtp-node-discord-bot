@@ -176,7 +176,7 @@ async def s(ctx, *arguments):
         node_data = await request.safe(f"http://{str(ip)}:{str(port)}/node/info", configuration)
         return node_data["id"] if node_data is not None else None
 
-    def return_subscriber_dictionary(valid):
+    def return_valid_subscriber_dictionary(valid):
         if valid:
             if valid[2] is not None:
                 return {
@@ -193,9 +193,9 @@ async def s(ctx, *arguments):
         await dask_client.wait_for_workers(n_workers=1)"""
     for i, idx in enumerate(ip_idx):
         valid_zero, not_valid_zero = await slice_and_check_args(idx, ips[i], "z", "zero", "zeros")
-        list_of_subs.append(return_subscriber_dictionary(valid_zero))
+        list_of_subs.append(return_valid_subscriber_dictionary(valid_zero))
         valid_one, not_valid_one = await slice_and_check_args(idx, ips[i], "o", "one", "ones")
-        list_of_subs.append(return_subscriber_dictionary(valid_one))
+        list_of_subs.append(return_valid_subscriber_dictionary(valid_one))
 
         # Lastly add date, time, contact and name
 
