@@ -165,7 +165,7 @@ async def s(ctx, *arguments):
                         if node_id is not None:
                             valid.append((ip, port, node_id))
                         else:
-                            not_valid.append((ip, val, None))
+                            not_valid.append((ip, port, None))
                     else:
                         break
                 break
