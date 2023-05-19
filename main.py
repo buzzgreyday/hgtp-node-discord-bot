@@ -177,27 +177,25 @@ async def s(ctx, *arguments):
         return node_data["id"] if node_data is not None else None
 
     def return_subscriber_dictionary(valid):
-        return {
-                    "id": valid[2],
-                    "name": ctx.message.author,
-                    "contact": ctx.message.author.id,
-                    "ip": valid[0],
-                    "public_l0": valid[1],
-                    "public_l1": None,
-                    "subscribed": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-                }
+        if valid:
+            if valid[2] is not None:
+                return {
+                            "id": valid[2],
+                            "name": ctx.message.author,
+                            "contact": ctx.message.author.id,
+                            "ip": valid[0],
+                            "public_l0": valid[1],
+                            "public_l1": None,
+                            "subscribed": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+                        }
 
     """async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)"""
     for i, idx in enumerate(ip_idx):
         valid_zero, not_valid_zero = await slice_and_check_args(idx, ips[i], "z", "zero", "zeros")
-        if valid_zero:
-            if valid_zero[2] is not None:
-                list_of_subs.append(return_subscriber_dictionary(valid_zero))
+        list_of_subs.append(return_subscriber_dictionary(valid_zero))
         valid_one, not_valid_one = await slice_and_check_args(idx, ips[i], "o", "one", "ones")
-        if valid_one:
-            if valid_one[2] is not None:
-                list_of_subs.append(return_subscriber_dictionary(valid_one))
+        list_of_subs.append(return_subscriber_dictionary(valid_one))
 
         # Lastly add date, time, contact and name
 
