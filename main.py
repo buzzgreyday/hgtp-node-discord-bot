@@ -10,6 +10,7 @@ from datetime import datetime
 
 from aiofiles import os
 from dask.distributed import Client
+import dask.dataframe as dd
 import distributed
 from modules import init, request, write, determine_module, date_and_time
 from modules.discord import discord
@@ -189,18 +190,20 @@ async def s(ctx, *arguments):
                         "subscribed": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
                         }
 
-    """async with Client(cluster) as dask_client:
-        await dask_client.wait_for_workers(n_workers=1)"""
-    for i, idx in enumerate(ip_idx):
-        # There is "i" number of IP indexes associated with the subscription command. Choose the number "i" IP, indexed
-        # at "idx" in command args
-        valid_zero, not_valid_zero = await slice_and_check_args(idx, ips[i], "z", "zero", "zeros")
-        list_of_subs.append(return_valid_subscriber_dictionary(valid_zero))
-        valid_one, not_valid_one = await slice_and_check_args(idx, ips[i], "o", "one", "ones")
-        list_of_subs.append(return_valid_subscriber_dictionary(valid_one))
+    async with Client(cluster) as dask_client:
+        await dask_client.wait_for_workers(n_workers=1)
+        for i, idx in enumerate(ip_idx):
+            # There is "i" number of IP indexes associated with the subscription command. Choose the number "i" IP, indexed
+            # at "idx" in command args.
 
-        # if await os.path.exists(configuration['file settings']['locations']['subscriber data']):
-        # await write.subscriber(dask_client, subscription, configuration)
+            # Check if subscription exists
+
+            valid_zero, not_valid_zero = await slice_and_check_args(idx, ips[i], "z", "zero", "zeros")
+            list_of_subs.append(return_valid_subscriber_dictionary(valid_zero))
+            valid_one, not_valid_one = await slice_and_check_args(idx, ips[i], "o", "one", "ones")
+            list_of_subs.append(return_valid_subscriber_dictionary(valid_one))
+            # if await os.path.exists(configuration['file settings']['locations']['subscriber data']):
+            await write.subscriber(dask_client, list_of_subs, configuration)
 
     print(list_of_subs)
 

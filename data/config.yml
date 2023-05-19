@@ -85,6 +85,14 @@ file settings:
     - ip
     - public_l0
     - public_l1
+    subscribers_new:
+    - subscribed
+    - id
+    - name
+    - contact
+    - ip
+    - public_l0
+    - public_l1
   dtypes:
     history:
       association time: int
@@ -170,6 +178,14 @@ file settings:
       name: str
       public_l0: str
       public_l1: str
+    subscribers_new:
+      contact: str
+      id: str
+      ip: str
+      name: str
+      public_l0: str
+      public_l1: str
+      subscribed: str
   locations:
     archived history: /data/archived/node data
     cluster modules: modules/clusters
@@ -177,7 +193,7 @@ file settings:
     history_new: data/new data
     log: data/logs/bot.log
     subscribers: data/subscribers.csv
-    new_subscribers: data/subscriber data
+    subscribers_new: data/subscriber data
 general:
   loop_init_time: '12:25:00'
   loop_interval_minutes: 5
@@ -229,7 +245,7 @@ request:
         - https://l088pympe9.execute-api.us-east-1.amazonaws.com/testnet/validator-nodes
 source ids:
   layer 0:
-    mainnet: 8b0f8889948b35ac122a44d7a597f461a1c813fb74a75aa9af04de7fe4a070e8e68e8ef3c72b3b5952ec4a238827fba580350a655fc445375cf99688d506f9d7
+    mainnet: ec3e25065181aa5bda7fd9ca22a13e2a59688ac0762b5a61022fd42b0943d1d468b86a517222479456d0770d50c99cbd517045a9ba3a4ee1968534e30a785e69
     testnet: 154311944d97be83d18d37fcc3c8e7bb20cd8fa2c97e9e736f402f2614b112aa3d9ff57d6aa27b8aed82fe74b26c98c300e41b67c2c20c8d0cb1458f487adbd8
   layer 1:
     mainnet: 5a8f0f756659be91e8af0b6aa1e2a63a94227680aa4d565e055a37db206f69a3b88479e7f37e8c9c9eca40278ddc98eab2b07f0fc0cf17fdf83ca012082ba827
