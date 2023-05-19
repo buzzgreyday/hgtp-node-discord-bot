@@ -192,10 +192,12 @@ async def s(ctx, *arguments):
     for i, idx in enumerate(ip_idx):
         valid_zero, not_valid_zero = await slice_and_check_args(idx, ips[i], "z", "zero", "zeros")
         if valid_zero is not None:
-            list_of_subs.append(return_subscriber_dictionary(valid_zero))
+            if valid_zero[2] is not None:
+                list_of_subs.append(return_subscriber_dictionary(valid_zero))
         valid_one, not_valid_one = await slice_and_check_args(idx, ips[i], "o", "one", "ones")
         if valid_one is not None:
-            list_of_subs.append(return_subscriber_dictionary(valid_one))
+            if valid_one[2] is not None:
+                list_of_subs.append(return_subscriber_dictionary(valid_one))
 
         # Lastly add date, time, contact and name
 
