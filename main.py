@@ -153,7 +153,7 @@ async def s(ctx, *arguments):
     ip_idx = list(set(map(lambda ip: arguments.index(ip), ips)))
     list_of_subs = []
 
-    async def slice_and_check_args(idx: int, ip: str, *args):
+    async def slice_and_check_args(idx: int, ip: str, *args) -> tuple[list[tuple], list[tuple]]:
         valid = []
         not_valid = []
         sliced_args = arguments[idx:]
@@ -177,14 +177,14 @@ async def s(ctx, *arguments):
         return node_data["id"] if node_data is not None else None
 
     def return_valid_subscriber_dictionary(valid):
-        for lst in valid:
-            if lst[2] is not None:
+        for tpl in valid:
+            if tpl[2] is not None:
                 return {
-                            "id": lst[2],
+                            "id": tpl[2],
                             "name": ctx.message.author.name,
                             "contact": ctx.message.author.id,
-                            "ip": lst[0],
-                            "public_l0": lst[1],
+                            "ip": tpl[0],
+                            "public_l0": tpl[1],
                             "public_l1": None,
                             "subscribed": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
                         }
