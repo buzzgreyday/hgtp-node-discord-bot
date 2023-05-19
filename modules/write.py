@@ -17,3 +17,8 @@ async def history(dask_client, node_data, configuration):
     fut = history_dataframe.to_parquet(configuration["file settings"]["locations"]["history_new"], overwrite=False, compute=False, write_index=False)
     await dask_client.compute(fut)
     logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - Writing history to parquet")
+
+
+async def subscriber(dask_client, subscriber_data, configuration):
+    subscriber_data.from_dict(configuration["file settings"]["locations"]["subscribers"], npartitions=1, orient='columns', dtype=configuration["file settings"]["dtypes"]["subscribers"], columns=configuration["file settings"]["columns"]["subscribers"])
+

@@ -149,6 +149,9 @@ async def on_ready():
 @bot.command()
 async def s(ctx, *arguments):
     ipRegex = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
+    ips = list(set(filter(lambda ip: re.match(ipRegex, ip), arguments)))
+    ip_idx = list(set(map(lambda ip: arguments.index(ip), ips)))
+    list_of_subs = []
 
     async def slice_and_check_args(idx: int, ip: str, *args) -> tuple[list, list]:
         valid = []
@@ -173,15 +176,33 @@ async def s(ctx, *arguments):
         node_data = await request.safe(f"http://{ip}:{port}/node/info", configuration)
         return node_data["id"] if node_data is not None else None
 
-    ips = list(set(filter(lambda ip: re.match(ipRegex, ip), arguments)))
-    ip_idx = list(set(map(lambda ip: arguments.index(ip), ips)))
-    for i, idx in enumerate(ip_idx):
-        valid_zero, not_valid_zero = await slice_and_check_args(idx, ips[i], "z", "zero", "zeros")
-        valid_one, not_valid_one = await slice_and_check_args(idx, ips[i], "o", "one", "ones")
+    def return_subscriber_dictionary(valid):
+        return {
+                    "id": valid[2],
+                    "name": ctx.message.author,
+                    "contact": ctx.message.author.id,
+                    "ip": valid[0],
+                    "public_l0": valid[1],
+                    "public_l1": None,
+                    "subscribed": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+                }
 
-    # Lastly add date, time, contact and name
+    async with Client(cluster) as dask_client:
+        await dask_client.wait_for_workers(n_workers=1)
+        for i, idx in enumerate(ip_idx):
+            valid_zero, not_valid_zero = await slice_and_check_args(idx, ips[i], "z", "zero", "zeros")
+            if valid_zero:
+                list_of_subs.append(return_subscriber_dictionary(valid_zero))
+            valid_one, not_valid_one = await slice_and_check_args(idx, ips[i], "o", "one", "ones")
+            if valid_one:
+                list_of_subs.append(return_subscriber_dictionary(valid_one))
 
-        print(valid_zero, not_valid_zero, valid_one, not_valid_one)
+        # Lastly add date, time, contact and name
+
+            print(valid_zero, not_valid_zero, valid_one, not_valid_one)
+
+        # if await os.path.exists(configuration['file settings']['locations']['subscriber data']):
+        await write.subscriber(dask_client, subscription, configuration)
 
     print(ctx.message.author, arguments)
 

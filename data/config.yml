@@ -79,6 +79,7 @@ file settings:
     - timestampIndex
     - formerTimestampIndex
     subscribers:
+    - subscribed
     - id
     - name
     - contact
@@ -164,6 +165,7 @@ file settings:
       timestampIndex: str
       version: str
     subscribers:
+      subscribed: str
       contact: str
       id: str
       ip: str
@@ -176,7 +178,7 @@ file settings:
     history: data/node data
     history_new: data/new data
     log: data/logs/bot.log
-    subscribers: data/subscribers.csv
+    subscribers: data/subscriber data
 general:
   loop_init_time: '12:25:00'
   loop_interval_minutes: 5
