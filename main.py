@@ -149,39 +149,42 @@ async def on_ready():
 
 @bot.command()
 async def s(ctx, *arguments):
-    subscriptions = []
+    sub_req = []
     ipRegex = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 
-    def slice_and_check_args(idx, *args):
-        vals = []
+    async def slice_and_check_args(idx: int, ip: str, *args) -> tuple[list, list]:
+        valid = []
+        not_valid = []
         sliced_args = arguments[idx:]
         for idx, arg in enumerate(map(lambda arg: arg in args, sliced_args)):
             if arg:
                 for val in sliced_args[idx + 1:]:
                     if val.isdigit():
-                        vals.append(val)
+                        node_id = await validate_node(ip, val)
+                        if node_id is not None:
+                            valid.append((ip, val, node_id))
+                        else:
+                            not_valid.append((ip, val, None))
                     else:
                         break
                 break
-        return vals
+        return valid, not_valid
+
+    async def validate_node(ip, port):
+        print("Requesting:", f"http://{str(ip)}:{str(port)}/node/info")
+        node_data = await request.safe(f"http://{ip}:{port}/node/info", configuration)
+        return node_data["id"] if node_data is not None else None
 
     ips = list(set(filter(lambda ip: re.match(ipRegex, ip), arguments)))
     ip_idx = list(set(map(lambda ip: arguments.index(ip), ips)))
     for i, idx in enumerate(ip_idx):
-        subscriptions.append({
-            "ip": ips[i],
-            "zero ports": slice_and_check_args(idx, "z", "zero", "zeros"),
-            "one ports": slice_and_check_args(idx, "o", "one", "ones")
-        })
-    for d in subscriptions:
-        for layer in "zero", "one":
-            for i, port in enumerate(d[f"{layer} ports"]):
-                node_data = await request.safe(f"http://{d['ip']}:{port}/node/info", configuration)
-                d[f"{layer} ids"] = node_data["id"] if node_data is not None else None
+        valid_zero, not_valid_zero = await slice_and_check_args(idx, ips[i], "z", "zero", "zeros")
+        valid_one, not_valid_one = await slice_and_check_args(idx, ips[i], "o", "one", "ones")
+
     # Check each port and get Node ID
     # Lastly add date, time, contact and name
 
-    print(subscriptions)
+        print(valid_zero, not_valid_zero, valid_one, not_valid_one)
 
     print(ctx.message.author, arguments)
 
