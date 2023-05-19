@@ -158,15 +158,15 @@ async def s(ctx, *arguments):
         valid = []
         not_valid = []
         sliced_args = arguments[idx:]
-        for idx, arg in enumerate(map(lambda arg: arg in args, sliced_args)):
-            if arg:
+        for idx, in_arg in enumerate(map(lambda arg: arg in args, sliced_args)):
+            if in_arg:
                 for port in sliced_args[idx + 1:]:
                     if port.isdigit():
                         node_id = await validate_node(ip, port)
                         if node_id is not None:
-                            valid.append((ip, port, node_id))
+                            valid.append((ip, port, node_id, args[0]))
                         else:
-                            not_valid.append((ip, port, None))
+                            not_valid.append((ip, port, None, args[0]))
                     else:
                         break
                 break
@@ -185,8 +185,8 @@ async def s(ctx, *arguments):
                         "name": ctx.message.author.name,
                         "contact": ctx.message.author.id,
                         "ip": tpl[0],
-                        "public_l0": tpl[1],
-                        "public_l1": None,
+                        "public_l0": tpl[1] if tpl[3] in ("z", "zero", "zeros") else None,
+                        "public_l1": tpl[1] if tpl[3] in ("o", "one", "ones") else None,
                         "subscribed": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
                         }
 
