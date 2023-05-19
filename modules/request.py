@@ -132,12 +132,12 @@ async def supported_clusters(cluster_layer: str, cluster_names: dict, configurat
 async def node_cluster_data_from_dynamic_module(process_msg, node_data, configuration):
 
     if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{node_data['clusterNames']}.py"):
-        process_msg = await discord.update_proces_msg(process_msg, 4, f"{node_data['clusterNames']} layer {node_data['layer']}")
+        process_msg = await discord.update_request_process_msg(process_msg, 4, f"{node_data['clusterNames']} layer {node_data['layer']}")
         module = determine_module.set_module(node_data['clusterNames'], configuration)
         node_data = await module.node_cluster_data(node_data, configuration)
         return node_data, process_msg
     elif await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{node_data['formerClusterNames']}.py"):
-        process_msg = await discord.update_proces_msg(process_msg, 4, f"{node_data['clusterNames']} layer {node_data['layer']}")
+        process_msg = await discord.update_request_process_msg(process_msg, 4, f"{node_data['clusterNames']} layer {node_data['layer']}")
         module = determine_module.set_module(node_data['formerClusterNames'], configuration)
         node_data = await module.node_cluster_data(node_data, configuration)
         return node_data, process_msg
