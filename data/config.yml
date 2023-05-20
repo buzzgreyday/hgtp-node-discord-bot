@@ -182,9 +182,9 @@ file settings:
       contact: str
       id: str
       ip: str
+      layer: str
       name: str
       public_port: str
-      layer: str
       subscribed: str
   locations:
     archived history: /data/archived/node data

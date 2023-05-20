@@ -8,9 +8,10 @@ from modules.discord import discord
 from modules.temporaries import temporaries
 
 
-async def check(dask_client, bot, process_msg, requester: str, subscriber: dict, layer: int, port: int, latest_tessellation_version: str, all_supported_clusters_data: list[dict], history_dataframe, dt_start, configuration: dict) -> tuple:
+async def check(dask_client, bot, process_msg, requester: str, subscriber, layer: int, port: int, latest_tessellation_version: str, all_supported_clusters_data: list[dict], history_dataframe, dt_start, configuration: dict) -> tuple:
     process_msg = await discord.update_request_process_msg(process_msg, 2, None)
     node_data = create.snapshot(requester, subscriber, port, layer, latest_tessellation_version, dt_start)
+    print(node_data)
     node_data = locate.node_cluster(node_data, all_supported_clusters_data)
     historic_node_dataframe = await locate.historic_node_data(dask_client, node_data, history_dataframe)
     historic_node_dataframe = locate.former_historic_node_data(historic_node_dataframe)
@@ -24,29 +25,25 @@ async def check(dask_client, bot, process_msg, requester: str, subscriber: dict,
 
 
 async def process(dask_client, bot, process_msg, requester, dt_start, latest_tessellation_version: str, all_supported_cluster_data: list[dict], configuration: dict) -> list:
-    async def locate_ips(requester):
+    async def locate_ids(requester):
         if requester is None:
-            return list(set(await dask_client.compute(subscriber_dataframe["ip"])))
+            return list(set(await dask_client.compute(subscriber_dataframe["id"])))
         else:
-            return list(set(await dask_client.compute(subscriber_dataframe["ip"][subscriber_dataframe["contact"].astype(dtype=int) == int(requester)])))
+            return list(set(await dask_client.compute(subscriber_dataframe["id"][subscriber_dataframe["contact"].astype(dtype=int) == int(requester)])))
 
     subscriber_futures = []
     request_futures = []
     history_dataframe = await read.history(configuration)
     subscriber_dataframe = await read.subscribers(configuration)
-    ips = await locate_ips(requester)
-    for ip in ips:
-        subscriber_futures.append(asyncio.create_task(locate.registered_subscriber_node_data(dask_client, bot, ip, subscriber_dataframe)))
+    for node_id in await locate_ids(requester):
+        subscriber_futures.append(asyncio.create_task(locate.registered_subscriber_node_data(dask_client, bot, node_id, subscriber_dataframe)))
 
     for fut in subscriber_futures:
         subscriber = await fut
-        print(subscriber)
-        for port in subscriber["public_l0"]:
-            layer = 0
-            request_futures.append(asyncio.create_task(check(dask_client, bot, process_msg, requester, subscriber, layer, port, latest_tessellation_version, all_supported_cluster_data, history_dataframe, dt_start, configuration)))
-        for port in subscriber["public_l1"]:
-            layer = 1
-            request_futures.append(asyncio.create_task(check(dask_client, bot, process_msg, requester, subscriber, layer, port, latest_tessellation_version, all_supported_cluster_data, history_dataframe, dt_start, configuration)))
+        for layer in list(set(subscriber["layer"])):
+            for port in subscriber.public_port[subscriber.layer == layer]:
+
+                request_futures.append(asyncio.create_task(check(dask_client, bot, process_msg, requester, subscriber, layer, port, latest_tessellation_version, all_supported_cluster_data, history_dataframe, dt_start, configuration)))
     return request_futures
 
 

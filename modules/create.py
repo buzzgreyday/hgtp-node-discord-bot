@@ -1,12 +1,12 @@
-def snapshot(requester, subscriber: dict, port: int, layer: int, latest_tessellation_version: str, dt_start):
+def snapshot(requester, subscriber, port: int, layer: int, latest_tessellation_version: str, dt_start):
     return {
-        "name": subscriber["name"],
-        "contact": subscriber["contact"],
-        "host": subscriber["ip"],
+        "name": subscriber["name"][subscriber.public_port == port].values[0],
+        "contact": subscriber["contact"][subscriber.public_port == port].values[0],
+        "host": subscriber["ip"][subscriber.public_port == port].values[0],
         "layer": layer,
         "publicPort": port,
         "p2pPort": None,
-        "id": None,
+        "id": subscriber["id"][subscriber.public_port == port].values[0],
         "nodeWalletAddress": None,
         "nodeWalletBalance": None,
         "clusterNames": None,
