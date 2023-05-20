@@ -3,7 +3,7 @@ from aiofiles import os
 import importlib.util
 import sys
 
-from modules import read, request, merge, create, locate, determine_module
+from modules import read, request, merge, create, locate, determine_module, subscription
 from modules.discord import discord
 from modules.temporaries import temporaries
 
@@ -20,6 +20,7 @@ async def check(dask_client, bot, process_msg, requester: str, subscriber, layer
     process_msg = await discord.update_request_process_msg(process_msg, 3, None)
     node_data, process_msg = await request.node_cluster_data_from_dynamic_module(process_msg, node_data, configuration)
     node_data = temporaries.run(node_data, all_supported_clusters_data)
+    await subscription.update_public_port(dask_client, node_data)
 
     return node_data, process_msg
 
