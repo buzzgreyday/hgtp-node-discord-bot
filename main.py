@@ -12,7 +12,7 @@ from aiofiles import os
 from dask.distributed import Client
 import dask.dataframe as dd
 import distributed
-from modules import init, request, write, determine_module, date_and_time
+from modules import init, request, write, determine_module, date_and_time, read, subscription
 from modules.discord import discord
 import nextcord
 from nextcord.ext import commands, tasks
@@ -56,6 +56,8 @@ def generate_runtimes() -> list:
 
 async def main(ctx, process_msg, requester, configuration) -> None:
     data = []
+    futures = []
+
     # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
     process_msg = await discord.update_request_process_msg(process_msg, 1, None)
     configuration, all_supported_clusters_data, latest_tessellation_version = await request.preliminary_data(
@@ -65,8 +67,13 @@ async def main(ctx, process_msg, requester, configuration) -> None:
         await dask_client.wait_for_workers(n_workers=1)
         dt_start, timer_start = date_and_time.timing()
         await discord.init_process(bot, requester)
-        futures = await init.process(dask_client, bot, process_msg, requester, dt_start, latest_tessellation_version,
-                                     all_supported_clusters_data, configuration)
+        history_dataframe = await read.history(configuration)
+        subscriber_dataframe = await read.subscribers(configuration)
+        for node_id in await subscription.locate_ids(dask_client, requester, subscriber_dataframe):
+            subscriber = await subscription.locate_node(dask_client, subscriber_dataframe, node_id)
+            for layer in list(set(subscriber["layer"])):
+                for port in subscriber.public_port[subscriber.layer == layer]:
+                    futures.append(asyncio.create_task(init.check(dask_client, bot, process_msg, requester, subscriber, port, layer, latest_tessellation_version, history_dataframe, all_supported_clusters_data, dt_start, configuration)))
         for async_process in futures:
             try:
                 d, process_msg = await async_process
@@ -83,7 +90,7 @@ async def main(ctx, process_msg, requester, configuration) -> None:
         if process_msg is None:
             await write.history(dask_client, data, configuration)
     # Write node id, ip, ports to subscriber list, then base code on id
-    await init.send(ctx, process_msg, bot, data, configuration)
+    await discord.send(ctx, process_msg, bot, data, configuration)
     await discord.update_request_process_msg(process_msg, 7, None)
     await asyncio.sleep(3)
     gc.collect()
@@ -158,17 +165,20 @@ async def s(ctx, *arguments):
         valid = []
         not_valid = []
         sliced_args = arguments[idx:]
+        print(sliced_args)
         for idx, in_arg in enumerate(map(lambda arg: arg in args, sliced_args)):
             if in_arg:
-                for port in sliced_args[idx + 1:]:
-                    if port.isdigit():
-                        node_id = await validate_node(ip, port)
+                for val in sliced_args[idx + 1:]:
+                    if val.isdigit():
+                        node_id = await validate_node(ip, val)
                         if node_id is not None:
-                            valid.append((ip, port, node_id, args[0]))
+                            valid.append((ip, val, node_id, args[0]))
                         else:
-                            not_valid.append((ip, port, None, args[0]))
-                    else:
+                            not_valid.append((ip, val, None, args[0]))
+                    if re.match(ipRegex, val):
                         break
+                    else:
+                        continue
                 break
         return valid, not_valid
 

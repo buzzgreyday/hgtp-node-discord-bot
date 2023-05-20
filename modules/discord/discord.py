@@ -1,6 +1,12 @@
+import asyncio
+
 import nextcord
 import logging
 from datetime import datetime
+
+from aiofiles import os
+
+from modules import determine_module
 
 
 async def init_process(bot, requester):
@@ -71,4 +77,23 @@ async def update_request_process_msg(process_msg, process_num, foo):
 
 async def get_requester(ctx):
     return ctx.message.author.id
+
+
+async def send(ctx, process_msg, bot, data, configuration):
+    futures = []
+    for node_data in data:
+        if node_data["notify"] is True:
+            if node_data["state"] != "offline":
+                cluster_name = node_data["clusterNames"]
+            else:
+                cluster_name = node_data["formerClusterNames"]
+            if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{cluster_name}.py"):
+                module = determine_module.set_module(cluster_name, configuration)
+                embed = module.build_embed(node_data)
+                if process_msg is not None:
+                    futures.append((asyncio.create_task(ctx.author.send(embed=embed))))
+                elif process_msg is None:
+                    futures.append(asyncio.create_task(bot.get_channel(977357753947402281).send(embed=embed)))
+    for fut in futures:
+        await fut
 
