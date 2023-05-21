@@ -215,6 +215,17 @@ async def s(ctx, *args):
         await dask_client.wait_for_workers(n_workers=1)
         args = slice_args_per_ip(args)
         args = list(map(lambda arg: clean_args(arg), args))
+        subscriber_dataframe = await read.subscribers(configuration)
+
+        sub_ports = []
+        not_sub_ports = []
+        sub_lst = []
+        not_sub_lst = []
+        for arg in args:
+            ip = arg[0]
+            public_zero_ports = arg[1]
+            public_one_ports = arg[2]
+
         # Check which subscriptions exists and add to a list
         # Check which ip and ports are confirmed valid nodes ad add to list
         # Add non-confirmed nodes to list
