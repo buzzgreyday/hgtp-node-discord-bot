@@ -7,6 +7,7 @@ import re
 import sys
 import time
 from datetime import datetime
+from typing import Tuple, Any, List
 
 from aiofiles import os
 from dask.distributed import Client
@@ -155,32 +156,42 @@ async def on_ready():
 
 
 @bot.command()
-async def s(ctx, *arguments):
+async def s(ctx, *args):
     ipRegex = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
-    ips = list(set(filter(lambda ip: re.match(ipRegex, ip), arguments)))
-    ip_idx = list(set(map(lambda ip: arguments.index(ip), ips)))
-    list_of_subs = []
 
-    async def slice_and_check_args(idx: int, ip: str, *args) -> tuple[list[tuple], list[tuple]]:
-        valid = []
-        not_valid = []
-        sliced_args = arguments[idx:]
-        print(sliced_args)
-        for idx, in_arg in enumerate(map(lambda arg: arg in args, sliced_args)):
-            if in_arg:
-                for val in sliced_args[idx + 1:]:
-                    if val.isdigit():
-                        node_id = await validate_node(ip, val)
-                        if node_id is not None:
-                            valid.append((ip, val, node_id, args[0]))
-                        else:
-                            not_valid.append((ip, val, None, args[0]))
-                    if re.match(ipRegex, val):
-                        break
+    def slice_args_per_ip(args):
+        sliced_args = []
+        ips = list(set(filter(lambda ip: re.match(ipRegex, ip), args)))
+        ip_idx = list(set(map(lambda ip: args.index(ip), ips)))
+        for i in range(0, len(ip_idx)):
+            if i + 1 < len(ip_idx):
+                arg = args[ip_idx[i]: ip_idx[i + 1]]
+                sliced_args.append(arg)
+            else:
+                arg = args[ip_idx[i]:]
+                sliced_args.append(arg)
+        return sliced_args
+
+    def clean_args(arg) -> tuple[str, list[int], list[int]]:
+        ip = None
+        public_zero_ports = []
+        public_one_ports = []
+        for i, val in enumerate(arg):
+            if re.match(ipRegex, val):
+                ip = val
+            elif val in ("z", "zero"):
+                for port in arg[i + 1:]:
+                    if port.isdigit():
+                        public_zero_ports.append(port)
                     else:
-                        continue
-                break
-        return valid, not_valid
+                        break
+            elif val in ("o", "one"):
+                for port in arg[i + 1:]:
+                    if port.isdigit():
+                        public_one_ports.append(port)
+                    else:
+                        break
+        return ip, public_zero_ports, public_one_ports
 
     async def validate_node(ip: str, port: str):
         print("Requesting:", f"http://{str(ip)}:{str(port)}/node/info")
@@ -202,20 +213,14 @@ async def s(ctx, *arguments):
 
     async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)
-        for i, idx in enumerate(ip_idx):
-            # There is "i" number of IP indexes associated with the subscription command. Choose the number "i" IP, indexed
-            # at "idx" in command args.
+        args = slice_args_per_ip(args)
+        args = list(map(lambda arg: clean_args(arg), args))
+        # Check which subscriptions exists and add to a list
+        # Check which ip and ports are confirmed valid nodes ad add to list
+        # Add non-confirmed nodes to list
 
-            # Check if subscription exists
-
-            valid_zero, not_valid_zero = await slice_and_check_args(idx, ips[i], "z", "zero", "zeros")
-            list_of_subs.append(return_valid_subscriber_dictionary(valid_zero))
-            valid_one, not_valid_one = await slice_and_check_args(idx, ips[i], "o", "one", "ones")
-            list_of_subs.append(return_valid_subscriber_dictionary(valid_one))
-            # if await os.path.exists(configuration['file settings']['locations']['subscriber data']):
-            await write.subscriber(dask_client, list_of_subs, configuration)
-
-    print(list_of_subs)
+        print(args)
+        # await write.subscriber(dask_client, list_of_subs, configuration)
 
 
 if __name__ == "__main__":

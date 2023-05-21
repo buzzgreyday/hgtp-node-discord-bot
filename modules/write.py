@@ -3,6 +3,9 @@ from datetime import datetime
 
 import pandas as pd
 import dask.dataframe as dd
+from aiofiles import os
+
+from modules import read
 
 
 async def history(dask_client, node_data, configuration):
@@ -21,6 +24,13 @@ async def history(dask_client, node_data, configuration):
 
 async def subscriber(dask_client, list_of_subs, configuration):
     subscriber = dd.from_pandas(pd.DataFrame(list_of_subs), npartitions=1)
-    fut = subscriber.to_parquet(configuration["file settings"]["locations"]["subscribers_new"], append=True, compute=False, write_index=False)
-    await dask_client.compute(fut)
+    if await os.path.exists(configuration['file settings']['locations']['subscribers_new']):
+        subscriber_dataframe = await read.subscribers(configuration)
+        subscriber_dataframe = subscriber_dataframe.append(subscriber)
+        subscriber_dataframe["contact"] = subscriber_dataframe["contact"].astype(str)
+    else:
+        subscriber_dataframe = subscriber
+    print(await dask_client.compute(subscriber_dataframe))
+    # fut = subscriber_dataframe.to_parquet(configuration["file settings"]["locations"]["subscribers_new"], overwrite=True, compute=False, write_index=False)
+    # await dask_client.compute(fut)
 
