@@ -157,6 +157,9 @@ async def on_ready():
 
 @bot.command()
 async def s(ctx, *args):
+    subscriber = []
+    subscribed = []
+    not_subscribed = []
     ipRegex = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 
     def slice_args_per_ip(args):
@@ -216,21 +219,35 @@ async def s(ctx, *args):
         args = slice_args_per_ip(args)
         args = list(map(lambda arg: clean_args(arg), args))
         subscriber_dataframe = await read.subscribers(configuration)
-
-        sub_ports = []
-        not_sub_ports = []
-        sub_lst = []
-        not_sub_lst = []
+        subscriber_dataframe = await dask_client.compute(subscriber_dataframe)
         for arg in args:
-            ip = arg[0]
-            public_zero_ports = arg[1]
-            public_one_ports = arg[2]
+            sub = {
+                "ip": arg[0],
+                "zero": arg[1],
+                "one": arg[2]
+            }
+            print(sub)
+            for txt_layer in ("zero", "one"):
+                int_layer = 0 if txt_layer == "zero" else 1
+                subscriber_dataframe = subscriber_dataframe[subscriber_dataframe["ip"] == sub["ip"]]
+                for port in sub[txt_layer]:
+                    subscriber_dataframe = subscriber_dataframe[(subscriber_dataframe["public_port"] == port) & (subscriber_dataframe["layer"] == int_layer)]
+                    if len(subscriber_dataframe[((subscriber_dataframe["public_port"] == port) & (subscriber_dataframe["layer"] == int_layer))]) == 0:
+                        sub[txt_layer].remove(port)
+                        not_subscribed.append(port)
+                    else:
+                        sub[txt_layer].remove(port)
+                        subscribed.append(port)
+                sub[f"subscribe {txt_layer}"] = subscribed
+                sub[f"subscribed {txt_layer}"] = not_subscribed
+
+            print(sub)
 
         # Check which subscriptions exists and add to a list
         # Check which ip and ports are confirmed valid nodes ad add to list
         # Add non-confirmed nodes to list
 
-        print(args)
+        print(subscribed, not_subscribed, subscriber)
         # await write.subscriber(dask_client, list_of_subs, configuration)
 
 
