@@ -1,14 +1,11 @@
 import logging
 from datetime import datetime
-
-import pandas as pd
 import dask.dataframe as dd
+import pandas as pd
 from aiofiles import os
 
-from modules import read
 
-
-async def history(dask_client, node_data, configuration):
+async def write(dask_client, node_data, configuration):
     history_dataframe = dd.from_pandas(pd.DataFrame(node_data), npartitions=1)
     history_dataframe["publicPort"] = history_dataframe["publicPort"].astype(float)
     history_dataframe["clusterAssociationTime"] = history_dataframe["clusterAssociationTime"].astype(float)
@@ -22,15 +19,11 @@ async def history(dask_client, node_data, configuration):
     logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - Writing history to parquet")
 
 
-async def subscriber(dask_client, list_of_subs, configuration):
-    subscriber = dd.from_pandas(pd.DataFrame(list_of_subs), npartitions=1)
-    if await os.path.exists(configuration['file settings']['locations']['subscribers_new']):
-        subscriber_dataframe = await read.subscribers(configuration)
-        subscriber_dataframe = subscriber_dataframe.append(subscriber)
-        subscriber_dataframe["contact"] = subscriber_dataframe["contact"].astype(str)
-    else:
-        subscriber_dataframe = subscriber
-    print(await dask_client.compute(subscriber_dataframe))
-    # fut = subscriber_dataframe.to_parquet(configuration["file settings"]["locations"]["subscribers_new"], overwrite=True, compute=False, write_index=False)
-    # await dask_client.compute(fut)
-
+async def read(configuration: dict):
+    if not await os.path.exists(configuration["file settings"]["locations"]["history_new"]):
+        logging.warning(f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE DATA NOT FOUND, RETURN BLANK DATAFRAME WITH COLUMNS")
+        df = pd.DataFrame(columns=configuration["file settings"]["columns"]["history_new"])
+        return dd.from_pandas(df, npartitions=1)
+    elif await os.path.exists(configuration["file settings"]["locations"]["history_new"]):
+        logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE DATA FOUND, RETURN READ DATAFRAME")
+        return dd.read_parquet(configuration["file settings"]["locations"]["history_new"], columns=configuration["file settings"]["columns"]["history_new"])

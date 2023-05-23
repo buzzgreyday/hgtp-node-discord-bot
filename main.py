@@ -9,11 +9,12 @@ import time
 from datetime import datetime
 from typing import Tuple, Any, List
 
+import pandas as pd
 from aiofiles import os
 from dask.distributed import Client
 import dask.dataframe as dd
 import distributed
-from modules import init, request, write, determine_module, date_and_time, read, subscription
+from modules import init, request, write, determine_module, date_and_time, subscription, history
 from modules.discord import discord
 import nextcord
 from nextcord.ext import commands, tasks
@@ -68,8 +69,8 @@ async def main(ctx, process_msg, requester, configuration) -> None:
         await dask_client.wait_for_workers(n_workers=1)
         dt_start, timer_start = date_and_time.timing()
         await discord.init_process(bot, requester)
-        history_dataframe = await read.history(configuration)
-        subscriber_dataframe = await read.subscribers(configuration)
+        history_dataframe = await history.read(configuration)
+        subscriber_dataframe = await subscription.read(configuration)
         for node_id in await subscription.locate_ids(dask_client, requester, subscriber_dataframe):
             subscriber = await subscription.locate_node(dask_client, subscriber_dataframe, node_id)
             for layer in list(set(subscriber["layer"])):
@@ -89,7 +90,7 @@ async def main(ctx, process_msg, requester, configuration) -> None:
         process_msg = await discord.update_request_process_msg(process_msg, 6, None)
         # If not request received through Discord channel
         if process_msg is None:
-            await write.history(dask_client, data, configuration)
+            await history.write(dask_client, data, configuration)
     # Write node id, ip, ports to subscriber list, then base code on id
     await discord.send(ctx, process_msg, bot, data, configuration)
     await discord.update_request_process_msg(process_msg, 7, None)
@@ -157,9 +158,9 @@ async def on_ready():
 
 @bot.command()
 async def s(ctx, *args):
-    subscriber = []
-    subscribed = []
-    not_subscribed = []
+    subscriptions = []
+    existing_subscriptions = []
+    invalid_subscriptions = []
     ipRegex = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 
     def slice_args_per_ip(args):
@@ -175,10 +176,11 @@ async def s(ctx, *args):
                 sliced_args.append(arg)
         return sliced_args
 
-    def clean_args(arg) -> tuple[str, list[int], list[int]]:
+    def clean_args(arg) -> tuple[list[Any], list[Any], str | None]:
         ip = None
         public_zero_ports = []
         public_one_ports = []
+
         for i, val in enumerate(arg):
             if re.match(ipRegex, val):
                 ip = val
@@ -194,61 +196,47 @@ async def s(ctx, *args):
                         public_one_ports.append(port)
                     else:
                         break
-        return ip, public_zero_ports, public_one_ports
+        return public_zero_ports, public_one_ports, ip
 
-    async def validate_node(ip: str, port: str):
+    async def validate_subscriber(ip: str, port: str):
         print("Requesting:", f"http://{str(ip)}:{str(port)}/node/info")
         node_data = await request.safe(f"http://{ip}:{port}/{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
         return node_data["id"] if node_data is not None else None
 
-    def return_valid_subscriber_dictionary(valid):
-        for tpl in valid:
-            if tpl[2] is not None:
-                return {
-                        "id": tpl[2],
-                        "name": ctx.message.author.name,
-                        "contact": ctx.message.author.id,
-                        "ip": tpl[0],
-                        "layer": 0 if tpl[3] in ("z", "zero", "zeros") else 1 if tpl[3] in ("o", "one", "ones") else None,
-                        "public_port": tpl[1],
-                        "subscribed": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-                        }
-
     async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)
-        args = slice_args_per_ip(args)
-        args = list(map(lambda arg: clean_args(arg), args))
-        subscriber_dataframe = await read.subscribers(configuration)
-        subscriber_dataframe = await dask_client.compute(subscriber_dataframe)
-        for arg in args:
-            sub = {
-                "ip": arg[0],
-                "zero": arg[1],
-                "one": arg[2]
-            }
-            print(sub)
-            for txt_layer in ("zero", "one"):
-                int_layer = 0 if txt_layer == "zero" else 1
-                subscriber_dataframe = subscriber_dataframe[subscriber_dataframe["ip"] == sub["ip"]]
-                for port in sub[txt_layer]:
-                    subscriber_dataframe = subscriber_dataframe[(subscriber_dataframe["public_port"] == port) & (subscriber_dataframe["layer"] == int_layer)]
-                    if len(subscriber_dataframe[((subscriber_dataframe["public_port"] == port) & (subscriber_dataframe["layer"] == int_layer))]) == 0:
-                        sub[txt_layer].remove(port)
-                        not_subscribed.append(port)
+        subscriber_dataframe = await subscription.read(configuration)
+        print(await dask_client.compute(subscriber_dataframe))
+        for arg in list(map(lambda arg: clean_args(arg), slice_args_per_ip(args))):
+            # for each possible layer
+            for i in (0, 1):
+                # check for each layer port subscription
+                for port in arg[i]:
+                    if len(await dask_client.compute(subscriber_dataframe[(subscriber_dataframe["ip"] == arg[2]) & (subscriber_dataframe["public_port"] == port) & (subscriber_dataframe["layer"] == i)])) == 0 or len(subscriber_dataframe) == 0:
+                        print(f"NO SUBSCRIPTION FOUND FOR IP {arg[2]} PORT {port}")
+                        subscriptions.append([i, arg[2], port])
                     else:
-                        sub[txt_layer].remove(port)
-                        subscribed.append(port)
-                sub[f"subscribe {txt_layer}"] = subscribed
-                sub[f"subscribed {txt_layer}"] = not_subscribed
-
-            print(sub)
+                        print(f"SUBSCRIPTION FOUND FOR IP {arg[2]} PORT {port}")
+                        existing_subscriptions.append([i, arg[2], port])
+        for i, sub_data in enumerate(subscriptions):
+            identity = await validate_subscriber(sub_data[1], sub_data[2])
+            if identity is None:
+                invalid_subscriptions.append(sub_data.append(identity))
+                subscriptions.pop(i)
+            else:
+                sub_data.append(identity)
+        print(subscriptions, invalid_subscriptions, existing_subscriptions)
 
         # Check which subscriptions exists and add to a list
         # Check which ip and ports are confirmed valid nodes ad add to list
         # Add non-confirmed nodes to list
-
-        print(subscribed, not_subscribed, subscriber)
-        # await write.subscriber(dask_client, list_of_subs, configuration)
+        new_dataframe = dd.from_pandas(pd.DataFrame(), npartitions=1)
+        for sub_data in subscriptions:
+            new_dataframe = new_dataframe.append({"subscribed": datetime.utcnow(), "name": ctx.message.author, "contact": ctx.message.author.id, "id": sub_data[3], "ip": sub_data[1], "public_port": sub_data[2], "layer": sub_data[0]})
+        # new_dataframe = dd.from_pandas(new_dataframe,  npartitions=1)
+        subscriber_dataframe = subscriber_dataframe.append(new_dataframe)
+        await subscription.write(dask_client, subscriber_dataframe, configuration)
+        print(subscriber_dataframe)
 
 
 if __name__ == "__main__":
