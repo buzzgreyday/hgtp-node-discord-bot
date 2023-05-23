@@ -5,6 +5,22 @@ import pandas as pd
 from aiofiles import os
 
 
+class Clean:
+    def __init__(self, value):
+        self._value = value
+
+    def make_lower(self) -> str | None:
+        self._value = Clean(self._value).make_none()
+        if self._value is not None:
+            return self._value.lower()
+
+    def make_none(self) -> str | None:
+        if len(self._value) != 0:
+            return self._value.values[0]
+        else:
+            return None
+
+
 async def node_data(dask_client, node_data: dict, history_dataframe):
 
     # history_node_dataframe = await dask_client.compute(history_dataframe[(history_dataframe["host"] == node_data["host"]) & (history_dataframe["publicPort"] == node_data["publicPort"])])

@@ -4,7 +4,14 @@ import aiofiles
 import yaml
 from aiofiles import os
 
-from modules import determine_module, tessellation
+from modules import determine_module, request
+
+
+async def latest_version_github(configuration):
+    data = await request.safe(
+        f"{configuration['request']['url']['github']['api repo url']}/"
+        f"{configuration['request']['url']['github']['url endings']['tessellation']['latest release']}", configuration)
+    return data["tag_name"][1:]
 
 
 async def supported_clusters(cluster_layer: str, cluster_names: dict, configuration: dict) -> list:
@@ -23,7 +30,7 @@ async def supported_clusters(cluster_layer: str, cluster_names: dict, configurat
 async def get(configuration):
     tasks = []
     cluster_data = []
-    latest_tessellation_version = await tessellation.latest_version_github(configuration)
+    latest_tessellation_version = await latest_version_github(configuration)
     for cluster_layer, cluster_names in list(configuration["request"]["url"]["clusters"]["load balancer"].items()):
         tasks.append(asyncio.create_task(supported_clusters(cluster_layer, cluster_names, configuration)))
     for task in tasks:

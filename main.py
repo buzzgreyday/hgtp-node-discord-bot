@@ -14,7 +14,7 @@ from aiofiles import os
 from dask.distributed import Client
 import dask.dataframe as dd
 import distributed
-from modules import init, request, write, determine_module, date_and_time, subscription, history, preliminaries
+from modules import init, request, write, determine_module, dt, subscription, history, preliminaries
 from modules.discord import discord
 import nextcord
 from nextcord.ext import commands, tasks
@@ -67,7 +67,7 @@ async def main(ctx, process_msg, requester, configuration) -> None:
     await bot.wait_until_ready()
     async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)
-        dt_start, timer_start = date_and_time.timing()
+        dt_start, timer_start = dt.timing()
         await discord.init_process(bot, requester)
         history_dataframe = await history.read(configuration)
         subscriber_dataframe = await subscription.read(configuration)
@@ -96,7 +96,7 @@ async def main(ctx, process_msg, requester, configuration) -> None:
     await discord.update_request_process_msg(process_msg, 7, None)
     await asyncio.sleep(3)
     gc.collect()
-    dt_stop, timer_stop = date_and_time.timing()
+    dt_stop, timer_stop = dt.timing()
     print(timer_stop - timer_start)
 
 
