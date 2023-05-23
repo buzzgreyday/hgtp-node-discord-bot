@@ -14,7 +14,7 @@ from aiofiles import os
 from dask.distributed import Client
 import dask.dataframe as dd
 import distributed
-from modules import init, request, write, determine_module, date_and_time, subscription, history
+from modules import init, request, write, determine_module, date_and_time, subscription, history, preliminaries
 from modules.discord import discord
 import nextcord
 from nextcord.ext import commands, tasks
@@ -62,7 +62,7 @@ async def main(ctx, process_msg, requester, configuration) -> None:
 
     # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
     process_msg = await discord.update_request_process_msg(process_msg, 1, None)
-    configuration, all_supported_clusters_data, latest_tessellation_version = await request.preliminary_data(
+    configuration, all_supported_clusters_data, latest_tessellation_version = await preliminaries.get(
         configuration)
     await bot.wait_until_ready()
     async with Client(cluster) as dask_client:
