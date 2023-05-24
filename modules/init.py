@@ -1,4 +1,4 @@
-from modules import subscription, node, history
+from modules import subscription, node, history, rewards
 from modules.discord import discord
 from modules.temporaries import temporaries
 
@@ -14,7 +14,7 @@ async def check(dask_client, bot, process_msg, requester, subscriber, port, laye
     # node_data = node.merge_general_cluster_data(node_data, cluster_data)
     process_msg = await discord.update_request_process_msg(process_msg, 3, None)
     node_data, process_msg = await node.get_cluster_module_data(process_msg, node_data, configuration)
-    node_data = temporaries.run(node_data, cluster_data)
+    node_data = rewards.check(node_data, configuration)
     await subscription.update_public_port(dask_client, node_data)
 
     return node_data, process_msg
