@@ -151,6 +151,7 @@ def check_rewards(node_data: dict, cluster):
 
     # if (cluster["layer"] == f"layer {node_data['layer']}") and (cluster["cluster name"] == node_data["clusterNames"]):
     # if (cluster["cluster name"] == node_data["clusterNames"]) or (cluster["cluster name"] == node_data["formerClusterNames"]):
+    print(cluster["recently rewarded"])
     if str(node_data["nodeWalletAddress"]) in cluster["recently rewarded"]:
         node_data["rewardState"] = True
         if node_data["rewardTrueCount"] is None:
