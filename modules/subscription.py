@@ -24,8 +24,8 @@ async def locate_ids(dask_client, requester, subscriber_dataframe):
             subscriber_dataframe["id"][subscriber_dataframe["contact"].astype(dtype=int) == int(requester)])))
 
 
-async def locate_node(dask_client, subscriber_dataframe, node_id):
-    return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == node_id])
+async def locate_node(dask_client, subscriber_dataframe, id_):
+    return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])
 
 
 async def write(dask_client, dataframe, configuration):

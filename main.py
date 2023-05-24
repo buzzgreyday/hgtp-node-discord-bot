@@ -66,8 +66,8 @@ async def main(ctx, process_msg, requester, configuration) -> None:
         await discord.init_process(bot, requester)
         history_dataframe = await history.read(configuration)
         subscriber_dataframe = await subscription.read(configuration)
-        for node_id in await subscription.locate_ids(dask_client, requester, subscriber_dataframe):
-            subscriber = await subscription.locate_node(dask_client, subscriber_dataframe, node_id)
+        for id_ in await subscription.locate_ids(dask_client, requester, subscriber_dataframe):
+            subscriber = await subscription.locate_node(dask_client, subscriber_dataframe, id_)
             for layer in list(set(subscriber["layer"])):
                 for port in subscriber.public_port[subscriber.layer == layer]:
                     futures.append(asyncio.create_task(init.check(dask_client, bot, process_msg, requester, subscriber, port, layer, latest_tessellation_version, history_dataframe, all_supported_clusters_data, dt_start, configuration)))
