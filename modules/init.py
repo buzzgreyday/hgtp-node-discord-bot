@@ -1,4 +1,5 @@
 from modules import subscription, node, history, rewards, determine_module
+from modules.clusters import mainnet
 from modules.discord import discord
 
 
@@ -11,11 +12,10 @@ async def check(dask_client, bot, process_msg, requester, subscriber, port, laye
     historic_node_dataframe = await history.node_data(dask_client, node_data, history_dataframe)
     historic_node_dataframe = history.former_node_data(historic_node_dataframe)
     node_data = history.merge(node_data, historic_node_dataframe)
-    node_data = node.merge_general_cluster_data(node_data, cluster_data)
+    node_data = node.merge_general_cluster_data(node_data, cluster_data, cluster_data_idx, cluster_idx)
     process_msg = await discord.update_request_process_msg(process_msg, 3, None)
     node_data, process_msg = await node.get_cluster_module_data(process_msg, node_data, configuration)
-    if determine_module.set_module(node_data['clusterNames'], configuration) in ("mainnet", "testnet"):
-        node_data = rewards.check(node_data, configuration)
+    node_data = mainnet.check_rewards(node_data, cluster_data)
     await subscription.update_public_port(dask_client, node_data)
 
     return node_data, process_msg
