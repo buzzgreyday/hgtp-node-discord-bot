@@ -1,9 +1,4 @@
-import asyncio
-from aiofiles import os
-import importlib.util
-import sys
-
-from modules import request, merge, locate, determine_module, subscription, node, history
+from modules import subscription, node, history
 from modules.discord import discord
 from modules.temporaries import temporaries
 
