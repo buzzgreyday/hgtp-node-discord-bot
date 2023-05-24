@@ -147,31 +147,28 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
     return node_data
 
 
-def check_rewards(node_data: dict, cluster_data: list):
-    for lst_of_clusters in cluster_data:
-        for cluster in lst_of_clusters:
-            # if (cluster["layer"] == f"layer {node_data['layer']}") and (cluster["cluster name"] == node_data["clusterNames"]):
-            # if (cluster["cluster name"] == node_data["clusterNames"]) or (cluster["cluster name"] == node_data["formerClusterNames"]):
-            if str(node_data["nodeWalletAddress"]) in cluster["recently rewarded"]:
-                node_data["rewardState"] = True
-                if node_data["rewardTrueCount"] is None:
-                    former_reward_count = 0
-                else:
-                    former_reward_count = node_data["rewardTrueCount"]
-                node_data["rewardTrueCount"] = former_reward_count + 1
-                if node_data["rewardFalseCount"] is None:
-                    node_data["rewardFalseCount"] = 0
-                break
-            elif str(node_data["nodeWalletAddress"]) not in cluster["recently rewarded"]:
-                node_data["rewardState"] = False
-                if node_data["rewardFalseCount"] is None:
-                    former_reward_count = 0
-                else:
-                    former_reward_count = node_data["rewardFalseCount"]
-                node_data["rewardFalseCount"] = former_reward_count + 1
-                if node_data["rewardTrueCount"] is None:
-                    node_data["rewardTrueCount"] = 0
-        break
+def check_rewards(node_data: dict, cluster):
+
+    # if (cluster["layer"] == f"layer {node_data['layer']}") and (cluster["cluster name"] == node_data["clusterNames"]):
+    # if (cluster["cluster name"] == node_data["clusterNames"]) or (cluster["cluster name"] == node_data["formerClusterNames"]):
+    if str(node_data["nodeWalletAddress"]) in cluster["recently rewarded"]:
+        node_data["rewardState"] = True
+        if node_data["rewardTrueCount"] is None:
+            former_reward_count = 0
+        else:
+            former_reward_count = node_data["rewardTrueCount"]
+        node_data["rewardTrueCount"] = former_reward_count + 1
+        if node_data["rewardFalseCount"] is None:
+            node_data["rewardFalseCount"] = 0
+    elif str(node_data["nodeWalletAddress"]) not in cluster["recently rewarded"]:
+        node_data["rewardState"] = False
+        if node_data["rewardFalseCount"] is None:
+            former_reward_count = 0
+        else:
+            former_reward_count = node_data["rewardFalseCount"]
+        node_data["rewardFalseCount"] = former_reward_count + 1
+        if node_data["rewardTrueCount"] is None:
+            node_data["rewardTrueCount"] = 0
 
     return node_data
 

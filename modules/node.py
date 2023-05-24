@@ -4,18 +4,17 @@ from modules import determine_module
 from modules.discord import discord
 
 
-def locate_cluster_data_position(node_data, cluster_data):
+def locate_cluster_data(node_data, cluster_data):
     for cluster_data_idx, lst_of_clusters in enumerate(cluster_data):
         for cluster_idx, cluster in enumerate(lst_of_clusters):
             if int(node_data['layer']) == int(cluster["layer"].split(' ')[-1]):
                 for peer in cluster["peer data"]:
                     if (peer["ip"] == node_data["host"]) and (peer["id"] == node_data["id"]):
-                        return cluster_data_idx, cluster_idx
+                        return cluster
 
 
-def merge_cluster_data(node_data, cluster_data, cluster_data_idx, cluster_idx):
-    clusters = cluster_data[cluster_data_idx]
-    cluster = clusters[cluster_idx]
+def merge_cluster_data(node_data, cluster):
+
     """for lst_of_clusters in cluster_data:
         for cluster in lst_of_clusters:"""
     if int(node_data['layer']) == int(cluster["layer"].split(' ')[-1]):
@@ -78,9 +77,7 @@ def data_template(requester, subscriber, port: int, layer: int, latest_tessellat
     }
 
 
-def merge_general_cluster_data(node_data, cluster_data, cluster_data_idx, cluster_idx):
-    clusters = cluster_data[cluster_data_idx]
-    cluster = clusters[cluster_idx]
+def merge_general_cluster_data(node_data, cluster):
     """for lst_of_clusters in cluster_data:
         for cluster in lst_of_clusters:"""
     if cluster["layer"] == f"layer {node_data['layer']}":
