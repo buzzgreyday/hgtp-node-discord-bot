@@ -4,7 +4,7 @@ from modules import determine_module
 from modules.discord import discord
 
 
-def locate_cluster_data(node_data, cluster_data):
+def merge_cluster_data(node_data, cluster_data):
     for lst_of_clusters in cluster_data:
         for cluster in lst_of_clusters:
             if int(node_data['layer']) == int(cluster["layer"].split(' ')[-1]):

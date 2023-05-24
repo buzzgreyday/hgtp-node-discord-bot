@@ -7,7 +7,7 @@ async def check(dask_client, bot, process_msg, requester, subscriber, port, laye
                 history_dataframe, cluster_data: list[dict], dt_start, configuration: dict) -> tuple:
     process_msg = await discord.update_request_process_msg(process_msg, 2, None)
     node_data = node.data_template(requester, subscriber, port, layer, latest_tessellation_version, dt_start)
-    node_data = node.locate_cluster_data(node_data, cluster_data)
+    node_data = node.merge_cluster_data(node_data, cluster_data)
     historic_node_dataframe = await history.node_data(dask_client, node_data, history_dataframe)
     historic_node_dataframe = history.former_node_data(historic_node_dataframe)
     node_data = history.merge(node_data, historic_node_dataframe)
