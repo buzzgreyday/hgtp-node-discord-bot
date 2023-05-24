@@ -151,6 +151,7 @@ def check_rewards(node_data: dict, cluster):
 
     # if (cluster["layer"] == f"layer {node_data['layer']}") and (cluster["cluster name"] == node_data["clusterNames"]):
     # if (cluster["cluster name"] == node_data["clusterNames"]) or (cluster["cluster name"] == node_data["formerClusterNames"]):
+    print(cluster["recently rewarded"])
     if str(node_data["nodeWalletAddress"]) in cluster["recently rewarded"]:
         node_data["rewardState"] = True
         if node_data["rewardTrueCount"] is None:
@@ -359,12 +360,19 @@ def build_general_cluster_state(node_data):
 
 def build_general_node_wallet(node_data):
     def wallet_field(field_symbol, reward_percentage, field_info):
-        return f"{field_symbol} **WALLET**\n" \
+        if node_data["layer"] == 1:
+            return f"{field_symbol} **WALLET**\n" \
                f"```\n" \
                f"Address: {node_data['nodeWalletAddress']}\n" \
-               f"Balance: {node_data['nodeWalletBalance']/100000000} ＄DAG\n" \
-               f"Reward frequency: {round(float(reward_percentage), 2)}%```" \
+               f"Balance: {node_data['nodeWalletBalance']/100000000} ＄DAG```" \
                f"{field_info}"
+        else:
+            return f"{field_symbol} **WALLET**\n" \
+                   f"```\n" \
+                   f"Address: {node_data['nodeWalletAddress']}\n" \
+                   f"Balance: {node_data['nodeWalletBalance']/100000000} ＄DAG\n" \
+                   f"Reward frequency: {round(float(reward_percentage), 2)}%```" \
+                   f"{field_info}"
 
     def field_from_wallet_conditions():
         if node_data["rewardTrueCount"] == 0:
@@ -375,15 +383,24 @@ def build_general_node_wallet(node_data):
             reward_percentage = float(node_data['rewardTrueCount']) * 100 / float(node_data['rewardFalseCount'])
         if node_data["nodeWalletBalance"] >= 250000 * 100000000:
             if node_data["rewardState"] is False:
-                field_symbol = ":red_square:"
+                # TEMPROARY FIC SINCE MAINNET LAYER ONE DOESN'T SUPPORT REWARDS
+                if node_data["layer"] == 1:
+                    field_symbol = ":green_square:"
+                else:
+                    field_symbol = ":red_square:"
                 if node_data["formerRewardState"] is True:
                     field_info = f":red_circle:` The wallet recently stopped receiving rewards`"
                     red_color_trigger = True
                     return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
                 else:
-                    field_info = f":red_circle:` The wallet doesn't receive rewards`"
-                    red_color_trigger = True
-                    return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
+                    # TEMPROARY FIC SINCE MAINNET LAYER ONE DOESN'T SUPPORT REWARDS
+                    if node_data["layer"] == 1:
+                        field_info = f"`ⓘ Layer one doesn't generate rewards. Please refer to the layer 0 report.`"
+                        return wallet_field(field_symbol, reward_percentage, field_info), False, False
+                    else:
+                        field_info = f":red_circle:` The wallet doesn't receive rewards`"
+                        red_color_trigger = True
+                        return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
             elif node_data["rewardState"] is True:
                 field_symbol = ":green_square:"
                 if node_data["formerRewardState"] is False:
@@ -600,8 +617,12 @@ def mark_notify(d, configuration):
         d["lastNotifiedTimestamp"] = d["timestampIndex"]
     if d["lastNotifiedTimestamp"] is not None:
         if d["rewardState"] is False and ((datetime.strptime(d["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ").second - datetime.strptime(d["lastNotifiedTimestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").second) >= timedelta(minutes=10).seconds):
-            d["notify"] = True
-            d["lastNotifiedTimestamp"] = d["timestampIndex"]
+            # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
+            if d["layer"] == 1:
+                d["notify"] = False
+            else:
+                d["notify"] = True
+                d["lastNotifiedTimestamp"] = d["timestampIndex"]
         elif (d["version"] != d["clusterVersion"]) and ((datetime.strptime(d["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ").second - datetime.strptime(d["lastNotifiedTimestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").second) >= timedelta(hours=6).seconds):
             d["notify"] = True
             d["lastNotifiedTimestamp"] = d["timestampIndex"]
