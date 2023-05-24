@@ -4,11 +4,11 @@ import sys
 
 
 async def notify(data, configuration):
-    for i, d in enumerate(data):
+    for idx, d in enumerate(data):
         if await os.path.exists(
                 f"{configuration['file settings']['locations']['cluster modules']}/{d['clusterNames']}.py"):
             module = set_module(d['clusterNames'], configuration)
-            data[i] = module.mark_notify(d, configuration)
+            data[idx] = module.mark_notify(d, configuration)
     return data
 
 
