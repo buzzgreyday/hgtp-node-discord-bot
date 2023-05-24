@@ -22,8 +22,6 @@ class Clean:
 
 
 async def node_data(dask_client, node_data: dict, history_dataframe):
-
-    # history_node_dataframe = await dask_client.compute(history_dataframe[(history_dataframe["host"] == node_data["host"]) & (history_dataframe["publicPort"] == node_data["publicPort"])])
     if node_data["publicPort"] is not None:
         return await dask_client.compute(history_dataframe[(history_dataframe["host"] == node_data["host"]) & (history_dataframe["publicPort"] == float(node_data["publicPort"]))])
     else:

@@ -68,9 +68,9 @@ async def main(ctx, process_msg, requester, configuration) -> None:
         subscriber_dataframe = await subscription.read(configuration)
         for id_ in await subscription.locate_ids(dask_client, requester, subscriber_dataframe):
             subscriber = await subscription.locate_node(dask_client, subscriber_dataframe, id_)
-            for layer in list(set(subscriber["layer"])):
-                for port in subscriber.public_port[subscriber.layer == layer]:
-                    futures.append(asyncio.create_task(init.check(dask_client, bot, process_msg, requester, subscriber, port, layer, latest_tessellation_version, history_dataframe, all_supported_clusters_data, dt_start, configuration)))
+            for L in list(set(subscriber["layer"])):
+                for port in subscriber.public_port[subscriber.layer == L]:
+                    futures.append(asyncio.create_task(init.check(dask_client, bot, process_msg, requester, subscriber, port, L, latest_tessellation_version, history_dataframe, all_supported_clusters_data, dt_start, configuration)))
         for async_process in futures:
             try:
                 d, process_msg = await async_process

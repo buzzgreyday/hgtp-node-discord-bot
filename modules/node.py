@@ -4,10 +4,18 @@ from modules import determine_module
 from modules.discord import discord
 
 
-def locate_cluster(node_data, all_supported_clusters_data):
-    for lst in all_supported_clusters_data:
-        for cluster in lst:
+def locate_cluster_data(node_data, cluster_data):
+    for lst_of_clusters in cluster_data:
+        for cluster in lst_of_clusters:
             if int(node_data['layer']) == int(cluster["layer"].split(' ')[-1]):
+                # vvv THIS WAS TAKEN FROM MERGE BELOW
+                if cluster["cluster name"] == node_data["clusterNames"]:
+                    node_data["clusterPeerCount"] = cluster["peer count"]
+                    node_data["clusterState"] = cluster["state"]
+                if cluster["cluster name"] == node_data["formerClusterNames"]:
+                    node_data["formerClusterPeerCount"] = cluster["peer count"]
+                    node_data["formerClusterState"] = cluster["state"]
+                # ^^^ TO HERE
                 for peer in cluster["peer data"]:
                     # LATER INCLUDE ID WHEN SUBSCRIBING
                     if (peer["ip"] == node_data["host"]) and (peer["id"] == node_data["id"]):
@@ -67,10 +75,10 @@ def data_template(requester, subscriber, port: int, layer: int, latest_tessellat
     }
 
 
-def merge_general_cluster_data(node_data, all_supported_clusters_data):
+"""def merge_general_cluster_data(node_data, cluster_data):
 
-    for lst in all_supported_clusters_data:
-        for cluster in lst:
+    for lst_of_clusters in cluster_data:
+        for cluster in lst_of_clusters:
             if cluster["layer"] == f"layer {node_data['layer']}":
                 if cluster["cluster name"] == node_data["clusterNames"]:
                     node_data["clusterPeerCount"] = cluster["peer count"]
@@ -79,7 +87,7 @@ def merge_general_cluster_data(node_data, all_supported_clusters_data):
                     node_data["formerClusterPeerCount"] = cluster["peer count"]
                     node_data["formerClusterState"] = cluster["state"]
 
-    return node_data
+    return node_data"""
 
 
 async def get_cluster_module_data(process_msg, node_data, configuration):
