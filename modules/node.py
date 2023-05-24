@@ -4,28 +4,31 @@ from modules import determine_module
 from modules.discord import discord
 
 
-def merge_cluster_data(node_data, cluster_data):
-    for lst_of_clusters in cluster_data:
-        for cluster in lst_of_clusters:
+def locate_cluster_data_position(node_data, cluster_data):
+    for cluster_data_idx, lst_of_clusters in enumerate(cluster_data):
+        for cluster_idx, cluster in enumerate(lst_of_clusters):
             if int(node_data['layer']) == int(cluster["layer"].split(' ')[-1]):
-                # vvv THIS WAS TAKEN FROM MERGE BELOW
-                if cluster["cluster name"] == node_data["clusterNames"]:
-                    node_data["clusterPeerCount"] = cluster["peer count"]
-                    node_data["clusterState"] = cluster["state"]
-                if cluster["cluster name"] == node_data["formerClusterNames"]:
-                    node_data["formerClusterPeerCount"] = cluster["peer count"]
-                    node_data["formerClusterState"] = cluster["state"]
-                # ^^^ TO HERE
                 for peer in cluster["peer data"]:
-                    # LATER INCLUDE ID WHEN SUBSCRIBING
                     if (peer["ip"] == node_data["host"]) and (peer["id"] == node_data["id"]):
-                        node_data["clusterNames"] = cluster["cluster name"].lower()
-                        node_data["latestClusterSession"] = cluster["cluster session"]
-                        node_data["clusterVersion"] = cluster["version"]
-                        # Because we know the IP and ID, we can auto-recognize changing publicPort and later update
-                        # the subscription based on the node_data values
-                        if node_data["publicPort"] != peer["publicPort"]:
-                            node_data["publicPort"] = peer["publicPort"]
+                        return cluster_data_idx, cluster_idx
+
+
+def merge_cluster_data(node_data, cluster_data, cluster_data_idx, cluster_idx):
+    lst_of_clusters = cluster_data[cluster_data_idx]
+    cluster = lst_of_clusters[cluster_idx]
+    """for lst_of_clusters in cluster_data:
+        for cluster in lst_of_clusters:"""
+    if int(node_data['layer']) == int(cluster["layer"].split(' ')[-1]):
+        for peer in cluster["peer data"]:
+            # LATER INCLUDE ID WHEN SUBSCRIBING
+            if (peer["ip"] == node_data["host"]) and (peer["id"] == node_data["id"]):
+                node_data["clusterNames"] = cluster["cluster name"].lower()
+                node_data["latestClusterSession"] = cluster["cluster session"]
+                node_data["clusterVersion"] = cluster["version"]
+                # Because we know the IP and ID, we can auto-recognize changing publicPort and later update
+                # the subscription based on the node_data values
+                if node_data["publicPort"] != peer["publicPort"]:
+                    node_data["publicPort"] = peer["publicPort"]
     return node_data
 
 
@@ -75,7 +78,7 @@ def data_template(requester, subscriber, port: int, layer: int, latest_tessellat
     }
 
 
-"""def merge_general_cluster_data(node_data, cluster_data):
+def merge_general_cluster_data(node_data, cluster_data):
 
     for lst_of_clusters in cluster_data:
         for cluster in lst_of_clusters:
@@ -87,7 +90,7 @@ def data_template(requester, subscriber, port: int, layer: int, latest_tessellat
                     node_data["formerClusterPeerCount"] = cluster["peer count"]
                     node_data["formerClusterState"] = cluster["state"]
 
-    return node_data"""
+    return node_data
 
 
 async def get_cluster_module_data(process_msg, node_data, configuration):

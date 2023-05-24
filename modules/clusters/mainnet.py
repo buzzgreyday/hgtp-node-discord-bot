@@ -147,9 +147,9 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
     return node_data
 
 
-def check_rewards(node_data: dict, all_supported_clusters_data: list):
-    for lst in all_supported_clusters_data:
-        for cluster in lst:
+def check_rewards(node_data: dict, cluster_data: list):
+    for lst_of_clusters in cluster_data:
+        for cluster in lst_of_clusters:
             # if (cluster["layer"] == f"layer {node_data['layer']}") and (cluster["cluster name"] == node_data["clusterNames"]):
             # if (cluster["cluster name"] == node_data["clusterNames"]) or (cluster["cluster name"] == node_data["formerClusterNames"]):
             if str(node_data["nodeWalletAddress"]) in cluster["recently rewarded"]:

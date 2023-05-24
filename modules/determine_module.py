@@ -5,6 +5,7 @@ import sys
 
 async def notify(data, configuration):
     for idx, d in enumerate(data):
+        print(d)
         if await os.path.exists(
                 f"{configuration['file settings']['locations']['cluster modules']}/{d['clusterNames']}.py"):
             module = set_module(d['clusterNames'], configuration)
