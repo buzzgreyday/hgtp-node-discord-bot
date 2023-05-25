@@ -9,7 +9,7 @@ import pandas as pd
 from dask import distributed
 from dask.distributed import Client
 import dask.dataframe as dd
-from modules import init, determine_module, dt, subscription, history, preliminaries
+from modules import determine_module, dt, subscription, history, preliminaries, node
 from modules.discord import discord
 import nextcord
 from nextcord.ext import commands
@@ -70,7 +70,7 @@ async def main(ctx, process_msg, requester, configuration) -> None:
             subscriber = await subscription.locate_node(dask_client, subscriber_dataframe, id_)
             for L in list(set(subscriber["layer"])):
                 for port in subscriber.public_port[subscriber.layer == L]:
-                    futures.append(asyncio.create_task(init.check(dask_client, bot, process_msg, requester, subscriber, port, L, latest_tessellation_version, history_dataframe, all_supported_clusters_data, dt_start, configuration)))
+                    futures.append(asyncio.create_task(node.check(dask_client, bot, process_msg, requester, subscriber, port, L, latest_tessellation_version, history_dataframe, all_supported_clusters_data, dt_start, configuration)))
         for async_process in futures:
             try:
                 d, process_msg = await async_process

@@ -1,7 +1,6 @@
 import logging
 import re
 from datetime import datetime
-from typing import Any
 
 import pandas as pd
 from aiofiles import os
@@ -11,6 +10,7 @@ import dask.dataframe as dd
 from modules import request
 
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
+
 
 async def update_public_port(dask_client, node_data):
     pass
@@ -58,7 +58,7 @@ def slice_args_per_ip(args):
     return sliced_args
 
 
-def clean_args(arg) -> tuple[list[Any], list[Any], str | None]:
+def clean_args(arg) -> tuple[list[int | None], list[int | None], str | None]:
     ip = None
     public_zero_ports = []
     public_one_ports = []
