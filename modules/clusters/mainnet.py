@@ -605,7 +605,7 @@ def build_embed(node_data):
 
 
 def mark_notify(d, configuration):
-    # The hardcoded values should be adjustable in config.yml
+    # The hardcoded values should be adjustable in config_new.yml
     if d["clusterConnectivity"] in ["new association", "new dissociation"]:
         d["notify"] = True
         d["lastNotifiedTimestamp"] = d["timestampIndex"]

@@ -1,2 +1,6 @@
 /data/node data/part.0.parquet
 /data/new data/part.0.parquet
+/venv/
+/data/subscriber data/
+/data/subscribers.csv
+/data/logs/
