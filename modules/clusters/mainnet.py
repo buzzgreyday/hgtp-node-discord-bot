@@ -98,7 +98,10 @@ async def request_snapshot(request_url, configuration):
     data = await api.safe_request(request_url, configuration)
     if data is not None:
         ordinal = data["data"]["ordinal"]
-        timestamp = datetime.strptime(data["data"]["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        try:
+            timestamp = datetime.strptime(data["data"]["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        except ValueError:
+            timestamp = datetime.strptime(data["data"]["timestamp"], "%Y-%m-%dT%H:%M:%SZ")
         return ordinal, timestamp
     elif data is None:
         ordinal = None
