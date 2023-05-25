@@ -7,7 +7,7 @@ from modules.discord import discord
 def locate_node(node_data, all_cluster_data):
     for cluster_data_idx, lst_of_clusters in enumerate(all_cluster_data):
         for cluster_idx, cluster in enumerate(lst_of_clusters):
-            if int(node_data['layer']) == int(cluster["layer"].split(' ')[-1]):
+            if node_data['layer'] == cluster["layer"]:
                 for peer in cluster["peer data"]:
                     if (peer["ip"] == node_data["host"]) and (peer["id"] == node_data["id"]):
                         return cluster
