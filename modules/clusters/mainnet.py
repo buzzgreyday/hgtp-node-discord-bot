@@ -74,14 +74,16 @@ async def request_cluster_data(url, layer, name, configuration):
 
 async def locate_rewarded_addresses(layer, name, configuration):
     try:
+        print(f"{configuration['modules'][name][layer]['be']['url'][0]}/"
+              f"{configuration['modules'][name][layer]['be']['info']['latest snapshot']}")
         latest_ordinal, latest_timestamp = \
             await request_snapshot(
-                f"{configuration['modules'][name][layer]['be']['url']}"
+                f"{configuration['modules'][name][layer]['be']['url'][0]}/"
                 f"{configuration['modules'][name][layer]['be']['info']['latest snapshot']}", configuration)
         tasks = []
         for ordinal in range(latest_ordinal-50, latest_ordinal):
             tasks.append(asyncio.create_task(request_reward_addresses_per_snapshot(
-                f"{configuration['modules'][name][layer]['be']['url']}"
+                f"{configuration['modules'][name][layer]['be']['url'][0]}/"
                 f"{configuration['modules'][name][layer]['be']['info']['reward snapshot']}", configuration
             )))
         addresses = []
