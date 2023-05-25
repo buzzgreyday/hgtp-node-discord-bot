@@ -127,9 +127,10 @@ red_color_trigger = False
 
 async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict, dict]:
     if node_data['publicPort'] is not None:
+        print(f"{configuration['modules'][node_data['clusterNames']][node_data['layer']]['info']['node']}")
         node_info_data = await api.safe_request(
             f"http://{node_data['host']}:{node_data['publicPort']}/"
-            f"{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
+            f"{configuration['modules'][node_data['clusterNames']][node_data['layer']]['info']['node']}", configuration)
         node_data["state"] = "offline" if node_info_data is None else node_info_data["state"].lower()
         # CHECK IF Public_Port has changed
         if node_info_data is not None:
@@ -138,10 +139,10 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
         if node_data["state"] != "offline":
             cluster_data = await api.safe_request(
                 f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
-                f"{str(configuration['request']['url']['clusters']['url endings']['cluster info'])}", configuration)
+                f"{configuration['modules'][node_data['clusterNames']][node_data['layer']]['info']['node']}", configuration)
             metrics_data = await api.safe_request(
                 f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
-                f"{str(configuration['request']['url']['clusters']['url endings']['metrics info'])}", configuration)
+                f"{configuration['modules'][node_data['clusterNames']][node_data['layer']]['info']['metrics']}", configuration)
             node_data["id"] = node_info_data["id"]
             node_data["nodeWalletAddress"] = encode.id_to_dag_address(node_data["id"])
             node_data["nodePeerCount"] = len(cluster_data) if cluster_data is not None else 0
