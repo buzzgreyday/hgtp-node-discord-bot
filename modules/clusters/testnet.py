@@ -148,7 +148,6 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
             node_data["nodePeerCount"] = len(cluster_data) if cluster_data is not None else 0
             # WILL FAIL IF = NONE
             node_data.update(metrics_data)
-
         node_data = await request_wallet_data(node_data, configuration)
         node_data = set_connectivity_specific_node_data_values(node_data)
         node_data = set_association_time(node_data)
@@ -184,18 +183,10 @@ def check_rewards(node_data: dict, cluster_data):
 
 
 async def request_wallet_data(node_data, configuration):
-    for be_layer, be_names in configuration["request"]["url"]["block explorer"].items():
-        if (node_data['clusterNames'] or node_data['formerClusterNames']) in list(be_names.keys()):
-            for be_name, be_url in be_names.items():
-                if be_name.lower() == (node_data['clusterNames'] or node_data['formerClusterNames']):
-                    wallet_data = await api.safe_request(f"{be_url}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
-                    if wallet_data is not None:
-                        node_data["nodeWalletBalance"] = wallet_data["data"]["balance"]
 
-        else:
-            wallet_data = await api.safe_request(f"{configuration['request']['url']['block explorer']['layer 0']['mainnet']}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
-            if wallet_data is not None:
-                node_data["nodeWalletBalance"] = wallet_data["data"]["balance"]
+    wallet_data = await api.safe_request(f"{configuration['modules'][node_data['clusterNames']][0]['be']['url'][0]}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
+    if wallet_data is not None:
+        node_data["nodeWalletBalance"] = wallet_data["data"]["balance"]
 
     return node_data
 
