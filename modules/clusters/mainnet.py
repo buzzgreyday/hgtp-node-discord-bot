@@ -71,15 +71,16 @@ async def request_cluster_data(url, layer, name, configuration):
 
 
 async def locate_rewarded_addresses(layer, name, configuration):
+    """layer 1 doesn't have a block explorer: defaulting to 0"""
     try:
         latest_ordinal, latest_timestamp = \
             await request_snapshot(
-                f"{configuration['modules'][name][layer]['be']['url'][0]}/"
-                f"{configuration['modules'][name][layer]['be']['info']['latest snapshot']}", configuration)
+                f"{configuration['modules'][name][0]['be']['url'][0]}/"
+                f"{configuration['modules'][name][0]['be']['info']['latest snapshot']}", configuration)
         tasks = []
         for ordinal in range(latest_ordinal-50, latest_ordinal):
             tasks.append(asyncio.create_task(request_reward_addresses_per_snapshot(
-                f"{configuration['modules'][name][layer]['be']['url'][0]}/"
+                f"{configuration['modules'][name][0]['be']['url'][0]}/"
                 f"global-snapshots/{ordinal}/rewards", configuration
             )))
         addresses = []
@@ -377,23 +378,23 @@ def build_general_node_wallet(node_data):
         if node_data["nodeWalletBalance"] >= 250000 * 100000000:
             if node_data["rewardState"] is False:
                 # TEMPROARY FIC SINCE MAINNET LAYER ONE DOESN'T SUPPORT REWARDS
-                if node_data["layer"] == 1:
+                """if node_data["layer"] == 1:
                     field_symbol = ":green_square:"
-                else:
-                    field_symbol = ":red_square:"
+                else:"""
+                field_symbol = ":red_square:"
                 if node_data["formerRewardState"] is True:
                     field_info = f":red_circle:` The wallet recently stopped receiving rewards`"
                     red_color_trigger = True
                     return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
                 else:
                     # TEMPROARY FIC SINCE MAINNET LAYER ONE DOESN'T SUPPORT REWARDS
-                    if node_data["layer"] == 1:
+                    """if node_data["layer"] == 1:
                         field_info = f"`ⓘ Layer one doesn't generate rewards. Please refer to the layer 0 report.`"
                         return wallet_field(field_symbol, reward_percentage, field_info), False, False
-                    else:
-                        field_info = f":red_circle:` The wallet doesn't receive rewards`"
-                        red_color_trigger = True
-                        return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
+                    else:"""
+                    field_info = f":red_circle:` The wallet doesn't receive rewards`"
+                    red_color_trigger = True
+                    return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
             elif node_data["rewardState"] is True:
                 field_symbol = ":green_square:"
                 if node_data["formerRewardState"] is False:
@@ -611,11 +612,11 @@ def mark_notify(d, configuration):
     if d["lastNotifiedTimestamp"] is not None:
         if d["rewardState"] is False and ((datetime.strptime(d["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ").second - datetime.strptime(d["lastNotifiedTimestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").second) >= timedelta(minutes=10).seconds):
             # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
-            if d["layer"] == 1:
+            """if d["layer"] == 1:
                 d["notify"] = False
-            else:
-                d["notify"] = True
-                d["lastNotifiedTimestamp"] = d["timestampIndex"]
+            else:"""
+            d["notify"] = True
+            d["lastNotifiedTimestamp"] = d["timestampIndex"]
         elif (d["version"] != d["clusterVersion"]) and ((datetime.strptime(d["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ").second - datetime.strptime(d["lastNotifiedTimestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").second) >= timedelta(hours=6).seconds):
             d["notify"] = True
             d["lastNotifiedTimestamp"] = d["timestampIndex"]
