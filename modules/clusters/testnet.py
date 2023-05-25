@@ -30,15 +30,16 @@ from modules import api, encode
 # ---------------------------------------------------------------------------------------------------------------------
 
 
-async def request_cluster_data(lb_url, cluster_layer, cluster_name, configuration):
+async def request_cluster_data(url, layer, name, configuration):
+    print(f"{url}/{configuration['modules'][name][layer]['info']['cluster']}", f"{url}/{configuration['modules'][name][layer]['info']['node']}")
     cluster_resp = await api.safe_request(
-        f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['cluster info']}", configuration)
+        f"{url}/{configuration['modules'][name][layer]['info']['cluster']}", configuration)
     node_resp = await api.safe_request(
-        f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
-    latest_ordinal, latest_timestamp, addresses = await locate_rewarded_addresses(cluster_layer, cluster_name, configuration)
+        f"{url}/{configuration['modules'][name][layer]['info']['node']}", configuration)
+    latest_ordinal, latest_timestamp, addresses = await locate_rewarded_addresses(layer, name, configuration)
 
     if node_resp is None:
-        cluster_state = "offline" ; cluster_id = await all.locate_id_offline(cluster_layer, cluster_name, configuration) ; cluster_session = None
+        cluster_state = "offline" ; cluster_id = await all.locate_id_offline(layer, name, configuration) ; cluster_session = None
         cluster_version = None ; cluster_host = None ; cluster_port = None
     else:
         print(node_resp)
@@ -46,8 +47,8 @@ async def request_cluster_data(lb_url, cluster_layer, cluster_name, configuratio
         cluster_version = str(node_resp["version"]) ; cluster_host = node_resp["host"] ; cluster_port = node_resp["publicPort"]
 
     cluster = {
-        "layer": cluster_layer,
-        "cluster name": cluster_name,
+        "layer": layer,
+        "cluster name": name,
         "state": cluster_state,
         "id": cluster_id,
         "host": cluster_host,
@@ -71,17 +72,17 @@ async def request_cluster_data(lb_url, cluster_layer, cluster_name, configuratio
 #     YOU MIGHT ALSO BE ABLE TO IMPROVE ON THE TRY/EXCEPT BLOCK LENGTH.
 
 
-async def locate_rewarded_addresses(cluster_layer, cluster_name, configuration):
+async def locate_rewarded_addresses(layer, name, configuration):
     try:
         latest_ordinal, latest_timestamp = \
             await request_snapshot(
-                f"{configuration['request']['url']['block explorer'][cluster_layer][cluster_name]}"
-                f"/global-snapshots/latest", configuration)
+                f"{configuration['modules'][name][layer]['be']['url']}"
+                f"{configuration['modules'][name][layer]['be']['info']['latest snapshot']}", configuration)
         tasks = []
         for ordinal in range(latest_ordinal-50, latest_ordinal):
             tasks.append(asyncio.create_task(request_reward_addresses_per_snapshot(
-                f"{configuration['request']['url']['block explorer'][cluster_layer][cluster_name]}"
-                f"/global-snapshots/{ordinal}/rewards", configuration
+                f"{configuration['modules'][name][layer]['be']['url']}"
+                f"{configuration['modules'][name][layer]['be']['info']['reward snapshot']}", configuration
             )))
         addresses = []
         for task in tasks:

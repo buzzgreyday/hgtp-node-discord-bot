@@ -8,32 +8,35 @@ from modules import determine_module, api
 
 
 async def latest_version_github(configuration):
+    print(f"{configuration['tessellation']['github']['url']}/"
+        f"{configuration['tessellation']['github']['releases']['latest']}")
     data = await api.safe_request(
-        f"{configuration['request']['url']['github']['api repo url']}/"
-        f"{configuration['request']['url']['github']['url endings']['tessellation']['latest release']}", configuration)
+        f"{configuration['tessellation']['github']['url']}/"
+        f"{configuration['tessellation']['github']['releases']['latest']}", configuration)
+    print(data["tag_name"][1:])
     return data["tag_name"][1:]
 
 
-async def supported_clusters(cluster_layer: str, cluster_names: dict, configuration: dict) -> list:
-
-    all_clusters_data = []
-    for cluster_name, cluster_info in cluster_names.items():
-        for lb_url in cluster_info["url"]:
-            if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{cluster_name}.py"):
-                module = determine_module.set_module(cluster_name, configuration)
-                cluster = await module.request_cluster_data(lb_url, cluster_layer, cluster_name, configuration)
-                all_clusters_data.append(cluster)
-    del lb_url, cluster_name, cluster_info
-    return all_clusters_data
-
+async def supported_clusters(name: str, layers: list, configuration: dict) -> list:
+    data = []
+    for L in layers:
+        url = configuration["modules"][name][L]["url"][0]
+        if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{name}.py"):
+            module = determine_module.set_module(name, configuration)
+            cluster = await module.request_cluster_data(url, L, name, configuration)
+            data.append(cluster)
+            print(data)
+    return data
 
 
 async def cluster_data(configuration):
     tasks = []
-    cluster_data = []
-    for cluster_layer, cluster_names in list(configuration["request"]["url"]["clusters"]["load balancer"].items()):
-        tasks.append(asyncio.create_task(supported_clusters(cluster_layer, cluster_names, configuration)))
+    all_cluster_data = []
+    for cluster in list(configuration["modules"].items()):
+        name = cluster[0]
+        layers = cluster[1]
+        tasks.append(asyncio.create_task(supported_clusters(name, layers, configuration)))
     for task in tasks:
-        cluster_data.append(await task)
-
-    return cluster_data
+        all_cluster_data.append(await task)
+    print(all_cluster_data)
+    return all_cluster_data

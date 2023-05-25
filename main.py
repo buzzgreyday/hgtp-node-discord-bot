@@ -20,7 +20,7 @@ import yaml
 discord_token = getenv("HGTP_SPIDR_DISCORD_TOKEN")
 
 """LOAD CONFIGURATION"""
-with open('data/config.yml', 'r') as file:
+with open('data/config_new.yml', 'r') as file:
     _configuration = yaml.safe_load(file)
 
 """CREATE NON-EXISTENT FOLDER STRUCTURE"""
@@ -57,7 +57,7 @@ async def main(ctx, process_msg, requester, _configuration) -> None:
 
     # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
     process_msg = await discord.update_request_process_msg(process_msg, 1, None)
-    # Reload config
+    # Reload Config
     _configuration = await config.load()
     latest_tessellation_version = await preliminaries.latest_version_github(_configuration)
     all_cluster_data = await preliminaries.cluster_data(_configuration)

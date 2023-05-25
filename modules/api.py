@@ -10,7 +10,7 @@ class Request:
         self.url = url
 
     async def json(self, configuration):
-        timeout = aiohttp.ClientTimeout(total=configuration["request"]["timeout"])
+        timeout = aiohttp.ClientTimeout(total=configuration["general"]["request timeout (sec)"])
         async with aiohttp.ClientSession() as session:
             async with session.get(self.url, timeout=timeout) as resp:
                 if resp.status == 200:
@@ -43,7 +43,7 @@ class Request:
                     break
             return results
 
-        timeout = aiohttp.ClientTimeout(total=configuration["request"]["timeout"])
+        timeout = aiohttp.ClientTimeout(total=configuration["general"]["request timeout (sec)"])
         async with aiohttp.ClientSession() as session:
             async with session.get(self.url, timeout=timeout) as resp:
                 if resp.status == 200:
@@ -86,22 +86,22 @@ async def safe_request(request_url: str, configuration: dict):
 
             else:
                 data = await Request(request_url).json(configuration)
-            if retry_count >= configuration['request']['max retry count'] or data == 503:
+            if retry_count >= configuration['general']['request retry (count)'] or data == 503:
                 data = None
                 break
             elif data is not None:
                 break
             else:
                 retry_count += 1
-                await asyncio.sleep(configuration['request']['retry sleep'])
+                await asyncio.sleep(configuration['general']['request retry interval (sec)'])
         except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientOSError,
                 aiohttp.client_exceptions.ServerDisconnectedError) as e:
-            if retry_count >= configuration['request']['max retry count']:
+            if retry_count >= configuration['general']['request retry (count)']:
                 data = None
                 break
             retry_count += 1
-            await asyncio.sleep(configuration['request']['retry sleep'])
-            logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - CLUSTER @ {request_url} UNREACHABLE - TRIED {retry_count}/{configuration['request']['max retry count']}")
+            await asyncio.sleep(configuration['general']['request retry interval (sec)'])
+            logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - CLUSTER @ {request_url} UNREACHABLE - TRIED {retry_count}/{configuration['general']['request retry (count)']}")
         except (aiohttp.client_exceptions.ClientConnectorError, aiohttp.client_exceptions.InvalidURL):
             data = None
             break

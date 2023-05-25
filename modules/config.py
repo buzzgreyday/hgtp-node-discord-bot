@@ -3,5 +3,5 @@ import yaml
 
 
 async def load():
-    async with aiofiles.open('data/config.yml', 'r') as file:
+    async with aiofiles.open('data/config_new.yml', 'r') as file:
         return yaml.safe_load(await file.read())
