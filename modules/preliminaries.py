@@ -27,15 +27,13 @@ async def supported_clusters(cluster_layer: str, cluster_names: dict, configurat
     return all_clusters_data
 
 
-async def get(configuration):
+
+async def cluster_data(configuration):
     tasks = []
     cluster_data = []
-    latest_tessellation_version = await latest_version_github(configuration)
     for cluster_layer, cluster_names in list(configuration["request"]["url"]["clusters"]["load balancer"].items()):
         tasks.append(asyncio.create_task(supported_clusters(cluster_layer, cluster_names, configuration)))
     for task in tasks:
         cluster_data.append(await task)
-    """RELOAD CONFIGURATION"""
-    async with aiofiles.open('data/config.yml', 'r') as file:
-        configuration = yaml.safe_load(await file.read())
-    return configuration, cluster_data, latest_tessellation_version
+
+    return cluster_data

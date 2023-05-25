@@ -9,7 +9,7 @@ import pandas as pd
 from dask import distributed
 from dask.distributed import Client
 import dask.dataframe as dd
-from modules import determine_module, dt, subscription, history, preliminaries, node
+from modules import determine_module, dt, subscription, history, preliminaries, node, config
 from modules.discord import discord
 import nextcord
 from nextcord.ext import commands
@@ -21,14 +21,14 @@ discord_token = getenv("HGTP_SPIDR_DISCORD_TOKEN")
 
 """LOAD CONFIGURATION"""
 with open('data/config.yml', 'r') as file:
-    configuration = yaml.safe_load(file)
+    _configuration = yaml.safe_load(file)
 
 """CREATE NON-EXISTENT FOLDER STRUCTURE"""
-if not path.exists(configuration["file settings"]["locations"]["log"]):
-    makedirs(configuration["file settings"]["locations"]["log"])
+if not path.exists(_configuration["file settings"]["locations"]["log"]):
+    makedirs(_configuration["file settings"]["locations"]["log"])
 
 """DEFINE LOGGING LEVEL AND LOCATION"""
-logging.basicConfig(filename=configuration["file settings"]["locations"]["log"], filemode='w',
+logging.basicConfig(filename=_configuration["file settings"]["locations"]["log"], filemode='w',
                     format='%(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 description = '''Bot by hgtp_Michael'''
@@ -44,33 +44,35 @@ bot = commands.Bot(command_prefix='!', description=description, intents=intents)
 def generate_runtimes() -> list:
     from datetime import datetime, timedelta
 
-    start = datetime.strptime(configuration['general']['loop_init_time'], "%H:%M:%S")
-    end = (datetime.strptime(configuration['general']['loop_init_time'], "%H:%M:%S") + timedelta(hours=24))
-    return [(start + timedelta(hours=(configuration['general']['loop_interval_minutes']) * i / 60)).strftime("%H:%M:%S")
+    start = datetime.strptime(_configuration['general']['loop_init_time'], "%H:%M:%S")
+    end = (datetime.strptime(_configuration['general']['loop_init_time'], "%H:%M:%S") + timedelta(hours=24))
+    return [(start + timedelta(hours=(_configuration['general']['loop_interval_minutes']) * i / 60)).strftime("%H:%M:%S")
             for i in
-            range(int((end - start).total_seconds() / 60.0 / (configuration['general']['loop_interval_minutes'])))]
+            range(int((end - start).total_seconds() / 60.0 / (_configuration['general']['loop_interval_minutes'])))]
 
 
-async def main(ctx, process_msg, requester, configuration) -> None:
+async def main(ctx, process_msg, requester, _configuration) -> None:
     data = []
     futures = []
 
     # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
     process_msg = await discord.update_request_process_msg(process_msg, 1, None)
-    configuration, all_supported_clusters_data, latest_tessellation_version = await preliminaries.get(
-        configuration)
+    # Reload config
+    _configuration = await config.load()
+    latest_tessellation_version = await preliminaries.latest_version_github(_configuration)
+    all_cluster_data = await preliminaries.cluster_data(_configuration)
     await bot.wait_until_ready()
     async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)
         dt_start, timer_start = dt.timing()
         await discord.init_process(bot, requester)
-        history_dataframe = await history.read(configuration)
-        subscriber_dataframe = await subscription.read(configuration)
+        history_dataframe = await history.read(_configuration)
+        subscriber_dataframe = await subscription.read(_configuration)
         for id_ in await subscription.locate_ids(dask_client, requester, subscriber_dataframe):
             subscriber = await subscription.locate_node(dask_client, subscriber_dataframe, id_)
             for L in list(set(subscriber["layer"])):
                 for port in subscriber.public_port[subscriber.layer == L]:
-                    futures.append(asyncio.create_task(node.check(dask_client, bot, process_msg, requester, subscriber, port, L, latest_tessellation_version, history_dataframe, all_supported_clusters_data, dt_start, configuration)))
+                    futures.append(asyncio.create_task(node.check(dask_client, bot, process_msg, requester, subscriber, port, L, latest_tessellation_version, history_dataframe, all_cluster_data, dt_start, _configuration)))
         for async_process in futures:
             try:
                 d, process_msg = await async_process
@@ -81,13 +83,13 @@ async def main(ctx, process_msg, requester, configuration) -> None:
         futures.clear()
         process_msg = await discord.update_request_process_msg(process_msg, 5, None)
         # Check if notification should be sent
-        data = await determine_module.notify(data, configuration)
+        data = await determine_module.notify(data, _configuration)
         process_msg = await discord.update_request_process_msg(process_msg, 6, None)
         # If not request received through Discord channel
         if process_msg is None:
-            await history.write(dask_client, data, configuration)
+            await history.write(dask_client, data, _configuration)
     # Write node id, ip, ports to subscriber list, then base code on id
-    await discord.send(ctx, process_msg, bot, data, configuration)
+    await discord.send(ctx, process_msg, bot, data, _configuration)
     await discord.update_request_process_msg(process_msg, 7, None)
     await asyncio.sleep(3)
     gc.collect()
@@ -135,14 +137,14 @@ async def r(ctx, *arguments):
     requester = await discord.get_requester(ctx)
     if isinstance(ctx.channel, nextcord.DMChannel):
         await ctx.message.delete(delay=3)
-    await main(ctx, process_msg, requester, configuration)
+    await main(ctx, process_msg, requester, _configuration)
 
 
 async def loop():
     times = generate_runtimes()
     while True:
         if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
-            await main(None, None, None, configuration)
+            await main(None, None, None, _configuration)
         await asyncio.sleep(1)
 
 
@@ -159,7 +161,7 @@ async def s(ctx, *args):
 
     async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)
-        subscriber_dataframe = await subscription.read(configuration)  # Load the dataframe using the read function
+        subscriber_dataframe = await subscription.read(_configuration)  # Load the dataframe using the read function
 
         for arg in list(map(lambda arg: subscription.clean_args(arg), subscription.slice_args_per_ip(args))):
             # for each possible layer
@@ -177,7 +179,7 @@ async def s(ctx, *args):
                         existing_subscriptions.append([L, arg[2], port])
 
         for idx, sub_data in enumerate(subscriptions):
-            identity = await subscription.validate_subscriber(sub_data[1], sub_data[2], configuration)
+            identity = await subscription.validate_subscriber(sub_data[1], sub_data[2], _configuration)
             if identity is None:
                 invalid_subscriptions.append(sub_data.append(identity))
                 subscriptions.pop(idx)
@@ -195,7 +197,7 @@ async def s(ctx, *args):
         else:
             subscriber_dataframe = subscriber_dataframe.append(new_dataframe)
 
-        await subscription.write(dask_client, subscriber_dataframe, configuration)
+        await subscription.write(dask_client, subscriber_dataframe, _configuration)
 
 
 if __name__ == "__main__":
