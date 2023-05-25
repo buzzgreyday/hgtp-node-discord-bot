@@ -15,7 +15,7 @@ import nextcord
 import numpy
 
 from modules.clusters import all
-from modules import request, encode
+from modules import api, encode
 
 """
     SECTION 1: PRELIMINARIES
@@ -29,13 +29,13 @@ from modules import request, encode
 #   WE ALSO CHECK FOR REWARDS.
 # ---------------------------------------------------------------------------------------------------------------------
 
+
 async def request_cluster_data(lb_url, cluster_layer, cluster_name, configuration):
-    cluster_resp = await request.safe(
+    cluster_resp = await api.safe_request(
         f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['cluster info']}", configuration)
-    node_resp = await request.safe(
+    node_resp = await api.safe_request(
         f"{lb_url}/{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
-    latest_ordinal, latest_timestamp, addresses = await locate_rewarded_addresses(cluster_layer, cluster_name,
-                                                                                          configuration)
+    latest_ordinal, latest_timestamp, addresses = await locate_rewarded_addresses(cluster_layer, cluster_name, configuration)
 
     if node_resp is None:
         cluster_state = "offline" ; cluster_id = await all.locate_id_offline(cluster_layer, cluster_name, configuration) ; cluster_session = None
@@ -70,6 +70,7 @@ async def request_cluster_data(lb_url, cluster_layer, cluster_name, configuratio
 # (!) YOU COULD MAKE 50 (MAGIC NUMBER) VARIABLE IN THE CONFIG YAML.
 #     YOU MIGHT ALSO BE ABLE TO IMPROVE ON THE TRY/EXCEPT BLOCK LENGTH.
 
+
 async def locate_rewarded_addresses(cluster_layer, cluster_name, configuration):
     try:
         latest_ordinal, latest_timestamp = \
@@ -92,8 +93,9 @@ async def locate_rewarded_addresses(cluster_layer, cluster_name, configuration):
 # IN THE FUNCTIOM ABOVE WE NEED TO REQUEST SNAPSHOT DATA, BEFORE BEING ABLE TO KNOW WHICH REWARD SNAPSHOTS WE WANT TO
 # CHECK AGAINST. THIS IS DONE IN THE FUNCTION BELOW.
 
+
 async def request_snapshot(request_url, configuration):
-    data = await request.safe(request_url, configuration)
+    data = await api.safe_request(request_url, configuration)
     if data is not None:
         ordinal = data["data"]["ordinal"]
         timestamp = datetime.strptime(data["data"]["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -103,8 +105,9 @@ async def request_snapshot(request_url, configuration):
         timestamp = None
         return ordinal, timestamp
 
+
 async def request_reward_addresses_per_snapshot(request_url, configuration):
-    data = await request.safe(request_url, configuration)
+    data = await api.safe_request(request_url, configuration)
     return list(data_dictionary["destination"] for data_dictionary in data["data"])
 
 """
@@ -117,9 +120,10 @@ async def request_reward_addresses_per_snapshot(request_url, configuration):
 yellow_color_trigger = False
 red_color_trigger = False
 
+
 async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict, dict]:
     if node_data['publicPort'] is not None:
-        node_info_data = await request.safe(
+        node_info_data = await api.safe_request(
             f"http://{node_data['host']}:{node_data['publicPort']}/"
             f"{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
         node_data["state"] = "offline" if node_info_data is None else node_info_data["state"].lower()
@@ -128,10 +132,10 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
             node_data["nodeClusterSession"] = node_info_data["clusterSession"]
             node_data["version"] = node_info_data["version"]
         if node_data["state"] != "offline":
-            cluster_data = await request.safe(
+            cluster_data = await api.safe_request(
                 f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
                 f"{str(configuration['request']['url']['clusters']['url endings']['cluster info'])}", configuration)
-            metrics_data = await request.safe(
+            metrics_data = await api.safe_request(
                 f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
                 f"{str(configuration['request']['url']['clusters']['url endings']['metrics info'])}", configuration)
             node_data["id"] = node_info_data["id"]
@@ -147,12 +151,12 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
     return node_data
 
 
-def check_rewards(node_data: dict, cluster):
+def check_rewards(node_data: dict, cluster_data):
 
     # if (cluster["layer"] == f"layer {node_data['layer']}") and (cluster["cluster name"] == node_data["clusterNames"]):
     # if (cluster["cluster name"] == node_data["clusterNames"]) or (cluster["cluster name"] == node_data["formerClusterNames"]):
-    print(cluster["recently rewarded"])
-    if str(node_data["nodeWalletAddress"]) in cluster["recently rewarded"]:
+    print(cluster_data["recently rewarded"])
+    if str(node_data["nodeWalletAddress"]) in cluster_data["recently rewarded"]:
         node_data["rewardState"] = True
         if node_data["rewardTrueCount"] is None:
             former_reward_count = 0
@@ -161,7 +165,7 @@ def check_rewards(node_data: dict, cluster):
         node_data["rewardTrueCount"] = former_reward_count + 1
         if node_data["rewardFalseCount"] is None:
             node_data["rewardFalseCount"] = 0
-    elif str(node_data["nodeWalletAddress"]) not in cluster["recently rewarded"]:
+    elif str(node_data["nodeWalletAddress"]) not in cluster_data["recently rewarded"]:
         node_data["rewardState"] = False
         if node_data["rewardFalseCount"] is None:
             former_reward_count = 0
@@ -179,12 +183,12 @@ async def request_wallet_data(node_data, configuration):
         if (node_data['clusterNames'] or node_data['formerClusterNames']) in list(be_names.keys()):
             for be_name, be_url in be_names.items():
                 if be_name.lower() == (node_data['clusterNames'] or node_data['formerClusterNames']):
-                    wallet_data = await request.safe(f"{be_url}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
+                    wallet_data = await api.safe_request(f"{be_url}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
                     if wallet_data is not None:
                         node_data["nodeWalletBalance"] = wallet_data["data"]["balance"]
 
         else:
-            wallet_data = await request.safe(f"{configuration['request']['url']['block explorer']['layer 0']['mainnet']}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
+            wallet_data = await api.safe_request(f"{configuration['request']['url']['block explorer']['layer 0']['mainnet']}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
             if wallet_data is not None:
                 node_data["nodeWalletBalance"] = wallet_data["data"]["balance"]
 

@@ -57,7 +57,7 @@ async def read(configuration: dict):
         return dd.read_parquet(configuration["file settings"]["locations"]["history_new"], columns=configuration["file settings"]["columns"]["history_new"])
 
 
-def merge(node_data: dict, historic_node_dataframe) -> dict:
+def merge_data(node_data: dict, cluster_data, historic_node_dataframe) -> dict:
     # Might need refactoring when metagraphs is coming
     if not historic_node_dataframe.empty:
         node_data["formerClusterNames"] = Clean(historic_node_dataframe["clusterNames"]).make_lower()
@@ -73,4 +73,9 @@ def merge(node_data: dict, historic_node_dataframe) -> dict:
             node_data["cpuCount"] = float(historic_node_dataframe["cpuCount"])
             node_data["diskSpaceTotal"] = float(historic_node_dataframe["diskSpaceTotal"])
             node_data["diskSpaceFree"] = float(historic_node_dataframe["diskSpaceFree"])
+
+    if cluster_data["cluster name"] == node_data["formerClusterNames"]:
+        node_data["formerClusterPeerCount"] = cluster_data["peer count"]
+        node_data["formerClusterState"] = cluster_data["state"]
+
     return node_data

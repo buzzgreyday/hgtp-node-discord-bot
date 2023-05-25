@@ -4,11 +4,11 @@ import aiofiles
 import yaml
 from aiofiles import os
 
-from modules import determine_module, request
+from modules import determine_module, api
 
 
 async def latest_version_github(configuration):
-    data = await request.safe(
+    data = await api.safe_request(
         f"{configuration['request']['url']['github']['api repo url']}/"
         f"{configuration['request']['url']['github']['url endings']['tessellation']['latest release']}", configuration)
     return data["tag_name"][1:]

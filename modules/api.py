@@ -62,7 +62,7 @@ class Request:
             await session.close()
 
 
-async def safe(request_url: str, configuration: dict):
+async def safe_request(request_url: str, configuration: dict):
     data = None
     retry_count = 0
     run_again = True
