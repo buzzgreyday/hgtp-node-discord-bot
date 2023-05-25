@@ -84,7 +84,7 @@ async def locate_rewarded_addresses(layer, name, configuration):
         for ordinal in range(latest_ordinal-50, latest_ordinal):
             tasks.append(asyncio.create_task(request_reward_addresses_per_snapshot(
                 f"{configuration['modules'][name][layer]['be']['url'][0]}/"
-                f"{configuration['modules'][name][layer]['be']['info']['reward snapshot']}", configuration
+                f"global-snapshots/{ordinal}/rewards", configuration
             )))
         addresses = []
         for task in tasks:
@@ -110,6 +110,7 @@ async def request_snapshot(request_url, configuration):
 
 
 async def request_reward_addresses_per_snapshot(request_url, configuration):
+    print(request_url)
     data = await api.safe_request(request_url, configuration)
     return list(data_dictionary["destination"] for data_dictionary in data["data"])
 

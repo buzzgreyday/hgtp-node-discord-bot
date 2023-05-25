@@ -125,8 +125,11 @@ modules:
         cluster: cluster/info
         metrics: metrics
         node: node/info
-      be url:
-        - https://be-mainnet.constellationnetwork.io
+      be:
+        url:
+          - https://be-mainnet.constellationnetwork.io
+        info:
+          latest snapshot: global-snapshots/latest
       id: 8b0f8889948b35ac122a44d7a597f461a1c813fb74a75aa9af04de7fe4a070e8e68e8ef3c72b3b5952ec4a238827fba580350a655fc445375cf99688d506f9d7
       rewards: True
     1:
@@ -151,7 +154,6 @@ modules:
           - https://be-testnet.constellationnetwork.io
         info:
           latest snapshot: global-snapshots/latest
-          reward snapshot: global-snapshots/{ordinal}/rewards
       id: 154311944d97be83d18d37fcc3c8e7bb20cd8fa2c97e9e736f402f2614b112aa3d9ff57d6aa27b8aed82fe74b26c98c300e41b67c2c20c8d0cb1458f487adbd8
       rewards: True
     1:
