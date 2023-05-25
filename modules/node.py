@@ -4,7 +4,7 @@ from modules.discord import discord
 
 def merge_data(node_data, cluster_data):
 
-    if int(node_data['layer']) == int(cluster_data["layer"].split(' ')[-1]):
+    if node_data['layer'] == cluster_data["layer"]:
         for peer in cluster_data["peer data"]:
             # LATER INCLUDE ID WHEN SUBSCRIBING
             if (peer["ip"] == node_data["host"]) and (peer["id"] == node_data["id"]):
