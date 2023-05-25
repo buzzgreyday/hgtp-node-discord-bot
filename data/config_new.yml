@@ -103,71 +103,66 @@ file settings:
     history_new: data/new data
     log: data/logs/bot.log
     subscribers_new: data/subscriber data
-
 general:
   loop_init_time: '12:25:00'
   loop_interval_minutes: 5
   name: Hgtp Node Spidr
   public release: false
-  version: 5-dev-alpha
-  # OLD REQUEST
   request retry (count): 3
   request retry interval (sec): 1
   request timeout (sec): 6
-
+  version: 5-dev-alpha
 modules:
   mainnet:
     0:
-      # OLD LOAD BALANCER VALUE:
-      url:
-        - https://l0-lb-mainnet.constellationnetwork.io
-      info:
-        cluster: cluster/info
-        metrics: metrics
-        node: node/info
       be:
-        url:
-          - https://be-mainnet.constellationnetwork.io
         info:
           latest snapshot: global-snapshots/latest
-      id: 8b0f8889948b35ac122a44d7a597f461a1c813fb74a75aa9af04de7fe4a070e8e68e8ef3c72b3b5952ec4a238827fba580350a655fc445375cf99688d506f9d7
-      rewards: True
-    1:
-      url:
-        - https://l1-lb-mainnet.constellationnetwork.io
+        url:
+        - https://be-mainnet.constellationnetwork.io
+      id: b34e87be784c61fe0b3a93460fb923eccfd39edf7031127dbefe2546c45d7c70b17e90b8baf0e05125065da4206cbc36ff99cc33293aa232d8def138c31a2fd1
       info:
         cluster: cluster/info
         metrics: metrics
         node: node/info
+      rewards: true
+      url:
+      - https://l0-lb-mainnet.constellationnetwork.io
+    1:
       id: 5a8f0f756659be91e8af0b6aa1e2a63a94227680aa4d565e055a37db206f69a3b88479e7f37e8c9c9eca40278ddc98eab2b07f0fc0cf17fdf83ca012082ba827
-      rewards: False
+      info:
+        cluster: cluster/info
+        metrics: metrics
+        node: node/info
+      rewards: false
+      url:
+      - https://l1-lb-mainnet.constellationnetwork.io
   testnet:
     0:
-      url:
-        - https://l0-lb-testnet.constellationnetwork.io
-      info:
-        cluster: cluster/info
-        metrics: metrics
-        node: node/info
       be:
-        url:
-          - https://be-testnet.constellationnetwork.io
         info:
           latest snapshot: global-snapshots/latest
+        url:
+        - https://be-testnet.constellationnetwork.io
       id: 154311944d97be83d18d37fcc3c8e7bb20cd8fa2c97e9e736f402f2614b112aa3d9ff57d6aa27b8aed82fe74b26c98c300e41b67c2c20c8d0cb1458f487adbd8
-      rewards: True
-    1:
-      url:
-        - https://l1-lb-testnet.constellationnetwork.io
       info:
         cluster: cluster/info
         metrics: metrics
         node: node/info
+      rewards: true
+      url:
+      - https://l0-lb-testnet.constellationnetwork.io
+    1:
       id: cd6362aeee3ffb3b209bb3f1459848624e8bd9e66cb22e82a8cb7c08d02a833e74e3becc1fce804b1233773e24baf178f17e2c9611c39758abe8cb2ad4d20558
-      rewards: False
-
+      info:
+        cluster: cluster/info
+        metrics: metrics
+        node: node/info
+      rewards: false
+      url:
+      - https://l1-lb-testnet.constellationnetwork.io
 tessellation:
   github:
-    url: https://api.github.com
     releases:
-        latest: repos/constellation-labs/tessellation/releases/latest
+      latest: repos/constellation-labs/tessellation/releases/latest
+    url: https://api.github.com

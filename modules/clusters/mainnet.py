@@ -235,7 +235,6 @@ def set_connectivity_specific_node_data_values(node_data):
 def set_association_time(node_data):
     if node_data["formerTimestampIndex"] is not None:
         # LINE BELOW IS TEMPORARY
-        # node_data["formerTimestampIndex"] = datetime.fromtimestamp(node_data["formerTimestampIndex"]).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         time_difference = (datetime.strptime(node_data["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ") - datetime.strptime(node_data["formerTimestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ")).seconds
     else:
         time_difference = datetime.strptime(node_data["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ").second
