@@ -31,7 +31,6 @@ from modules import api, encode
 
 
 async def request_cluster_data(url, layer, name, configuration):
-    print(f"{url}/{configuration['modules'][name][layer]['info']['cluster']}", f"{url}/{configuration['modules'][name][layer]['info']['node']}")
     cluster_resp = await api.safe_request(
         f"{url}/{configuration['modules'][name][layer]['info']['cluster']}", configuration)
     node_resp = await api.safe_request(
@@ -42,10 +41,9 @@ async def request_cluster_data(url, layer, name, configuration):
         cluster_state = "offline" ; cluster_id = await all.locate_id_offline(layer, name, configuration) ; cluster_session = None
         cluster_version = None ; cluster_host = None ; cluster_port = None
     else:
-        print(node_resp)
         cluster_state = str(node_resp['state']).lower() ; cluster_id = node_resp["id"] ; cluster_session = node_resp["clusterSession"]
         cluster_version = str(node_resp["version"]) ; cluster_host = node_resp["host"] ; cluster_port = node_resp["publicPort"]
-
+    print(len(cluster_resp))
     cluster = {
         "layer": layer,
         "cluster name": name,
@@ -74,8 +72,6 @@ async def request_cluster_data(url, layer, name, configuration):
 
 async def locate_rewarded_addresses(layer, name, configuration):
     try:
-        print(f"{configuration['modules'][name][layer]['be']['url'][0]}/"
-              f"{configuration['modules'][name][layer]['be']['info']['latest snapshot']}")
         latest_ordinal, latest_timestamp = \
             await request_snapshot(
                 f"{configuration['modules'][name][layer]['be']['url'][0]}/"
@@ -110,7 +106,6 @@ async def request_snapshot(request_url, configuration):
 
 
 async def request_reward_addresses_per_snapshot(request_url, configuration):
-    print(request_url)
     data = await api.safe_request(request_url, configuration)
     return list(data_dictionary["destination"] for data_dictionary in data["data"])
 
@@ -127,7 +122,6 @@ red_color_trigger = False
 
 async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict, dict]:
     if node_data['publicPort'] is not None:
-        print(f"{configuration['modules'][node_data['clusterNames']][node_data['layer']]['info']['node']}")
         node_info_data = await api.safe_request(
             f"http://{node_data['host']}:{node_data['publicPort']}/"
             f"{configuration['modules'][node_data['clusterNames']][node_data['layer']]['info']['node']}", configuration)
@@ -139,7 +133,7 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
         if node_data["state"] != "offline":
             cluster_data = await api.safe_request(
                 f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
-                f"{configuration['modules'][node_data['clusterNames']][node_data['layer']]['info']['node']}", configuration)
+                f"{configuration['modules'][node_data['clusterNames']][node_data['layer']]['info']['cluster']}", configuration)
             metrics_data = await api.safe_request(
                 f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
                 f"{configuration['modules'][node_data['clusterNames']][node_data['layer']]['info']['metrics']}", configuration)
@@ -159,7 +153,6 @@ def check_rewards(node_data: dict, cluster_data):
 
     # if (cluster["layer"] == f"layer {node_data['layer']}") and (cluster["cluster name"] == node_data["clusterNames"]):
     # if (cluster["cluster name"] == node_data["clusterNames"]) or (cluster["cluster name"] == node_data["formerClusterNames"]):
-    print(cluster_data["recently rewarded"])
     if str(node_data["nodeWalletAddress"]) in cluster_data["recently rewarded"]:
         node_data["rewardState"] = True
         if node_data["rewardTrueCount"] is None:
