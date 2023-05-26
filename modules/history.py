@@ -74,9 +74,9 @@ def merge_data(node_data: dict, cluster_data, historic_node_dataframe) -> dict:
             node_data["cpuCount"] = float(historic_node_dataframe["cpuCount"])
             node_data["diskSpaceTotal"] = float(historic_node_dataframe["diskSpaceTotal"])
             node_data["diskSpaceFree"] = float(historic_node_dataframe["diskSpaceFree"])
-
-        if cluster_data["cluster name"] == node_data["formerClusterNames"]:
-            node_data["formerClusterPeerCount"] = cluster_data["peer count"]
-            node_data["formerClusterState"] = cluster_data["state"]
+        if cluster_data is not None:
+            if cluster_data["cluster name"] == node_data["formerClusterNames"]:
+                node_data["formerClusterPeerCount"] = cluster_data["peer count"]
+                node_data["formerClusterState"] = cluster_data["state"]
 
     return node_data

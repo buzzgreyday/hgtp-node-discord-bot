@@ -31,7 +31,7 @@ def build_general_node_state(node_data):
     if node_data["state"] != "offline":
         field_symbol = ":yellow_square:"
         field_info = f"`ⓘ  The node is not connected to any known cluster and no previous cluster data exists. Therfore the info shown is limited`"
-        node_state = node_data['state'].title()
+        node_state = "Dissociated"
         yellow_color_trigger = True
         return node_state_field(), False, yellow_color_trigger
     elif node_data["state"] == "offline":
