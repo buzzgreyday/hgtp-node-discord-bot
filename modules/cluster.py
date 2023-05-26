@@ -32,10 +32,10 @@ def locate_node(node_data: dict, all_cluster_data: List[dict]):
     """This function loops through all cluster data supported by the bot and returns the relevant cluster data"""
 
     for cluster in all_cluster_data:
+        if cluster["layer"] == node_data["layer"]:
+            if locate_node_binary(node_data, cluster["peer data"]):
 
-        if locate_node_binary(node_data, cluster["peer data"]):
-
-            return cluster
+                return cluster
 
 
 async def get_module_data(process_msg, node_data, configuration):

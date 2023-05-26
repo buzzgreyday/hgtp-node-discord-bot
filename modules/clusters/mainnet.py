@@ -355,9 +355,9 @@ def build_general_node_wallet(node_data):
                    f"{field_info}"
 
     def field_from_wallet_conditions():
-        if node_data["rewardTrueCount"] == 0:
+        if node_data["rewardTrueCount"] in (0, None):
             reward_percentage = 0
-        elif node_data["rewardFalseCount"] == 0:
+        elif node_data["rewardFalseCount"] in (0, None):
             reward_percentage = 100
         else:
             reward_percentage = float(node_data['rewardTrueCount']) * 100 / float(node_data['rewardFalseCount'])
