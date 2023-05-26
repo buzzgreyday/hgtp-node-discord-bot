@@ -390,9 +390,15 @@ def build_general_node_wallet(node_data):
                     field_info = f":coin:` The wallet receives rewards`"
                     return wallet_field(field_symbol, reward_percentage, field_info), False, False
             elif node_data["rewardState"] is None:
-                field_symbol = ":yellow_square:"
-                field_info = f"`ⓘ  Unknown reward state - please report`"
-                yellow_color_trigger = True
+                if node_data["layer"] == 1:
+                    field_symbol = ":green_square:"
+                    field_info = f"`ⓘ  {MODULE} layer one does not currently distribute rewards. Please refer to the " \
+                                 f"layer 0 report`"
+                    yellow_color_trigger = False
+                else:
+                    field_symbol = ":yellow_square:"
+                    field_info = f"`ⓘ  Unknown reward state - please report`"
+                    yellow_color_trigger = True
                 return wallet_field(field_symbol, reward_percentage, field_info), False, yellow_color_trigger
         else:
             if (node_data["clusterNames"] or node_data["formerClusterNames"]) != "testnet":

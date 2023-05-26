@@ -7,6 +7,7 @@ from datetime import datetime
 from aiofiles import os
 
 from modules import determine_module
+from modules.discord import defaults
 
 
 async def init_process(bot, requester):
@@ -84,18 +85,20 @@ async def send(ctx, process_msg, bot, data, configuration):
     for node_data in data:
         if node_data["notify"] is True:
             if node_data["state"] != "offline":
-                cluster_name = node_data["clusterNames"]
+                name = node_data["clusterNames"]
             else:
-                cluster_name = node_data["formerClusterNames"]
-            if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{cluster_name}.py"):
-                module = determine_module.set_module(cluster_name, configuration)
+                name = node_data["formerClusterNames"]
+            if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{name}.py"):
+                module = determine_module.set_module(name, configuration)
                 embed = module.build_embed(node_data)
-                if process_msg is not None:
-                    futures.append((asyncio.create_task(ctx.author.send(embed=embed))))
-                elif process_msg is None:
-                    futures.append(asyncio.create_task(bot.get_channel(977357753947402281).send(embed=embed)))
             else:
                 print("YOU NEED TO BUILD A DEFAULT FUNCTION FOR BUILDING EMBEDS, WHEN NONE!")
+                defaults.build_embed(node_data)
+            if process_msg is not None:
+                futures.append((asyncio.create_task(ctx.author.send(embed=embed))))
+            elif process_msg is None:
+                futures.append(asyncio.create_task(bot.get_channel(977357753947402281).send(embed=embed)))
+
     for fut in futures:
         await fut
 
