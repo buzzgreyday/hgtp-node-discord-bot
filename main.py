@@ -76,6 +76,7 @@ async def main(ctx, process_msg, requester, _configuration) -> None:
     await asyncio.sleep(3)
     gc.collect()
     dt_stop, timer_stop = dt.timing()
+    await dask_client.close()
     print(timer_stop - timer_start)
 
 

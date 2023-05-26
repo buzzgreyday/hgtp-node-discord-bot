@@ -120,7 +120,7 @@ modules:
           latest snapshot: global-snapshots/latest
         url:
         - https://be-mainnet.constellationnetwork.io
-      id: ec3e25065181aa5bda7fd9ca22a13e2a59688ac0762b5a61022fd42b0943d1d468b86a517222479456d0770d50c99cbd517045a9ba3a4ee1968534e30a785e69
+      id: 8b0f8889948b35ac122a44d7a597f461a1c813fb74a75aa9af04de7fe4a070e8e68e8ef3c72b3b5952ec4a238827fba580350a655fc445375cf99688d506f9d7
       info:
         cluster: cluster/info
         metrics: metrics

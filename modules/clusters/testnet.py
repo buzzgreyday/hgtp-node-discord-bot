@@ -364,23 +364,24 @@ def build_general_node_wallet(node_data):
         if node_data["nodeWalletBalance"] >= 250000 * 100000000:
             if node_data["rewardState"] is False:
                 # TEMPROARY FIC SINCE MAINNET LAYER ONE DOESN'T SUPPORT REWARDS
-                """if node_data["layer"] == 1:
+                if node_data["layer"] == 1:
                     field_symbol = ":green_square:"
-                else:"""
-                field_symbol = ":red_square:"
+                else:
+                    field_symbol = ":red_square:"
                 if node_data["formerRewardState"] is True:
                     field_info = f":red_circle:` The wallet recently stopped receiving rewards`"
                     red_color_trigger = True
                     return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
                 else:
                     # TEMPROARY FIC SINCE MAINNET LAYER ONE DOESN'T SUPPORT REWARDS
-                    """if node_data["layer"] == 1:
-                        field_info = f"`ⓘ Layer one doesn't generate rewards. Please refer to the layer 0 report.`"
+                    if node_data["layer"] == 1:
+                        field_info = f"`ⓘ  {MODULE} layer one does not currently distribute rewards. Please refer to the " \
+                                     f"layer 0 report`"
                         return wallet_field(field_symbol, reward_percentage, field_info), False, False
-                    else:"""
-                    field_info = f":red_circle:` The wallet doesn't receive rewards`"
-                    red_color_trigger = True
-                    return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
+                    else:
+                        field_info = f":red_circle:` The wallet doesn't receive rewards`"
+                        red_color_trigger = True
+                        return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
             elif node_data["rewardState"] is True:
                 field_symbol = ":green_square:"
                 if node_data["formerRewardState"] is False:

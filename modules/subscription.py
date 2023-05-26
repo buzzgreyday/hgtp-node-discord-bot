@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import re
+import shutil
 import sys
 from datetime import datetime
 
@@ -57,8 +58,9 @@ async def write(dask_client, dataframe, configuration):
     fut = dataframe.to_parquet(f'{configuration["file settings"]["locations"]["subscribers_new"]}/temp',
                                append=False, overwrite=True, compute=False, write_index=False)
     await dask_client.compute(fut)
-    await os.replace(f'{configuration["file settings"]["locations"]["subscribers_new"]}/temp/part.0.parquet',
-                     f'{configuration["file settings"]["locations"]["subscribers_new"]}/part.0.parquet')
+    await os.replace(f'{configuration["file settings"]["locations"]["subscribers_new"]}/part.0.parquet',
+                     f'{configuration["file settings"]["locations"]["subscribers_new"]}/temp/part.0.parquet')
+    shutil.rmtree(f'{configuration["file settings"]["locations"]["subscribers_new"]}/temp')
 
 
 async def read(configuration: dict):
