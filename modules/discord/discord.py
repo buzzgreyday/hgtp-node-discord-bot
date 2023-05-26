@@ -45,17 +45,17 @@ async def update_request_process_msg(process_msg, process_num, foo):
                                           "`  3. Send report(s).`")
         elif process_num == 2:
             return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
-                                          "**`➭ 2. Processing:`**\n"
+                                          "**`➭ 2. Preparing:`**\n"
                                           "**`   ➥ Historic node data...`**\n"
                                           "`  3. Send report(s).`")
         elif process_num == 3:
             return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
-                                          "**`➭ 2. Processing:`**\n"
+                                          "**`➭ 2. Preparing:`**\n"
                                           "**`   ➥ API node data...`**\n"
                                           "`  3. Send report(s).`")
         elif process_num == 4:
             return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
-                                          "**`➭ 2. Processing:`**\n"
+                                          "**`➭ 2. Preparing:`**\n"
                                           f"**`   ➥ {foo.title()} node data...`**\n"
                                           "`  3. Send report(s).`")
         elif process_num == 5:

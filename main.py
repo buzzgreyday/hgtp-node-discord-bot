@@ -11,13 +11,10 @@ from dask.distributed import Client
 import dask.dataframe as dd
 from modules import determine_module, dt, subscription, history, preliminaries, node, config
 from modules.discord import discord
+from modules.discord.services import bot, discord_token
 import nextcord
-from nextcord.ext import commands
-from os import getenv, path, makedirs
+from os import path, makedirs
 import yaml
-
-"""LOAD DISCORD SERVER TOKEN FROM ENVIRONMENT"""
-discord_token = getenv("HGTP_SPIDR_DISCORD_TOKEN")
 
 """LOAD CONFIGURATION"""
 with open('data/config_new.yml', 'r') as file:
@@ -31,14 +28,8 @@ if not path.exists(_configuration["file settings"]["locations"]["log"]):
 logging.basicConfig(filename=_configuration["file settings"]["locations"]["log"], filemode='w',
                     format='%(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-description = '''Bot by hgtp_Michael'''
-intents = nextcord.Intents.all()
-intents.members = True
-
 cluster = distributed.LocalCluster(asynchronous=True, n_workers=1, threads_per_worker=2, memory_limit='4GB',
                                    processes=True, silence_logs=logging.CRITICAL)
-
-bot = commands.Bot(command_prefix='!', description=description, intents=intents)
 
 
 def generate_runtimes() -> list:
@@ -71,19 +62,7 @@ async def main(ctx, process_msg, requester, _configuration) -> None:
         await discord.init_process(bot, requester)
         history_dataframe = await history.read(_configuration)
         subscriber_dataframe = await subscription.read(_configuration)
-        for id_ in await subscription.locate_ids(dask_client, requester, subscriber_dataframe):
-            subscriber = await subscription.locate_node(dask_client, subscriber_dataframe, id_)
-            for L in list(set(subscriber["layer"])):
-                for port in subscriber.public_port[subscriber.layer == L]:
-                    futures.append(asyncio.create_task(node.check(dask_client, bot, process_msg, requester, subscriber, port, L, latest_tessellation_version, history_dataframe, all_cluster_data, dt_start, _configuration)))
-        for async_process in futures:
-            try:
-                d, process_msg = await async_process
-                data.append(d)
-            except Exception as e:
-                logging.critical(repr(e.with_traceback(sys.exc_info())))
-                exit(1)
-        futures.clear()
+        data = await subscription.check(dask_client, latest_tessellation_version, requester, subscriber_dataframe, history_dataframe, all_cluster_data, dt_start, process_msg, _configuration)
         process_msg = await discord.update_request_process_msg(process_msg, 5, None)
         # Check if notification should be sent
         data = await determine_module.notify(data, _configuration)

@@ -12,10 +12,11 @@ import asyncio
 from datetime import datetime, timedelta
 
 import nextcord
-import numpy
 
 from modules.clusters import all
 from modules import api, encode
+
+MODULE = "mainnet"
 
 """
     SECTION 1: PRELIMINARIES
@@ -59,7 +60,6 @@ async def request_cluster_data(url, layer, name, configuration):
         "peer data": sorted(cluster_resp, key=lambda d: d['id'])
     }
     await all.update_config_with_latest_values(cluster, configuration)
-    del node_resp
     return cluster
 
 # THE ABOVE FUNCTION ALSO REQUEST THE MOST RECENT REWARDED ADDRESSES. THIS FUNCTION LOCATES THESE ADDRESSES BY
@@ -124,10 +124,11 @@ red_color_trigger = False
 
 
 async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict, dict]:
+    
     if node_data['publicPort'] is not None:
         node_info_data = await api.safe_request(
             f"http://{node_data['host']}:{node_data['publicPort']}/"
-            f"{configuration['modules'][node_data['clusterNames']][node_data['layer']]['info']['node']}", configuration)
+            f"{configuration['modules']['mainnet'][node_data['layer']]['info']['node']}", configuration)
         node_data["state"] = "offline" if node_info_data is None else node_info_data["state"].lower()
         # CHECK IF Public_Port has changed
         if node_info_data is not None:
@@ -136,10 +137,10 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
         if node_data["state"] != "offline":
             cluster_data = await api.safe_request(
                 f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
-                f"{configuration['modules'][node_data['clusterNames']][node_data['layer']]['info']['cluster']}", configuration)
+                f"{configuration['modules']['mainnet'][node_data['layer']]['info']['cluster']}", configuration)
             metrics_data = await api.safe_request(
                 f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
-                f"{configuration['modules'][node_data['clusterNames']][node_data['layer']]['info']['metrics']}", configuration)
+                f"{configuration['modules']['mainnet'][node_data['layer']]['info']['metrics']}", configuration)
             node_data["id"] = node_info_data["id"]
             node_data["nodeWalletAddress"] = encode.id_to_dag_address(node_data["id"])
             node_data["nodePeerCount"] = len(cluster_data) if cluster_data is not None else 0
@@ -180,7 +181,7 @@ def check_rewards(node_data: dict, cluster_data):
 
 async def request_wallet_data(node_data, configuration):
 
-    wallet_data = await api.safe_request(f"{configuration['modules'][node_data['clusterNames']][0]['be']['url'][0]}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
+    wallet_data = await api.safe_request(f"{configuration['modules']['mainnet'][0]['be']['url'][0]}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
     if wallet_data is not None:
         node_data["nodeWalletBalance"] = wallet_data["data"]["balance"]
 
@@ -196,37 +197,19 @@ async def request_wallet_data(node_data, configuration):
 
 def set_connectivity_specific_node_data_values(node_data):
 
-    if node_data["formerClusterConnectivity"] is not None:
-        if node_data["clusterNames"] != node_data["formerClusterNames"]:
-            if node_data["formerClusterConnectivity"] in ["association", "new association"]:
-                node_data["clusterConnectivity"] = "new dissociation"
-            elif node_data["formerClusterConnectivity"] in ["disociation", "new dissociation"]:
-                node_data["clusterConnectivity"] = "new associated"
-        elif node_data["clusterNames"] == node_data["formerClusterNames"]:
-            if node_data["formerClusterConnectivity"] in ["dissociation", "new dissociation"]:
-                node_data["clusterConnectivity"] = "dissociated"
-            elif node_data["formerClusterConnectivity"] in ["association", "new association"]:
-                node_data["clusterConnectivity"] = "associated"
-    elif node_data["formerClusterConnectivity"] is None:
-        if node_data["clusterNames"] is None:
-            if node_data["formerClusterNames"] is not None:
-                node_data["clusterConnectivity"] = "new dissociation"
-            elif node_data["formerClusterNames"] is None:
-                node_data["clusterConnectivity"] = "dissociated"
+    former_name = node_data["formerClusterNames"]
+    curr_name = node_data["clusterNames"]
+    session = node_data["nodeClusterSession"]
+    latest_session = node_data["latestClusterSession"]
 
-        elif node_data["clusterNames"] is not None:
-            if node_data["formerClusterNames"] is None:
-                print("Error")
-                if node_data["nodeClusterSession"] == node_data["latestClusterSession"]:
-                    node_data["clusterConnectivity"] = "new association"
-                elif node_data["nodeClusterSession"] != node_data["latestClusterSession"]:
-                    node_data["clusterConnectivity"] = "dissociated"
-
-            elif node_data["formerClusterNames"] is not None:
-                if node_data["nodeClusterSession"] == node_data["latestClusterSession"]:
-                    node_data["clusterConnectivity"] = "associated"
-                elif node_data["nodeClusterSession"] != node_data["latestClusterSession"]:
-                    node_data["clusterConnectivity"] = "dissociated"
+    if MODULE == curr_name and MODULE != former_name and session == latest_session:
+        node_data["clusterConnectivity"] = "new association"
+    elif former_name == curr_name and MODULE == former_name and session == latest_session:
+        node_data["clusterConnectivity"] = "association"
+    elif MODULE != curr_name and MODULE == former_name and session != latest_session:
+        node_data["clusterConnectivity"] = "new dissociation"
+    elif MODULE != curr_name and MODULE != former_name and session != latest_session:
+        node_data["clusterConnectivity"] = "dissociation"
 
     return node_data
 
@@ -312,7 +295,7 @@ def build_general_node_state(node_data):
 
 def build_general_cluster_state(node_data):
     def general_cluster_state_field():
-        return f"{field_symbol} **{str(node_data['clusterNames']).upper()} CLUSTER**\n" \
+        return f"{field_symbol} **MAINNET CLUSTER**\n" \
                f"```\n" \
                f"Peers:   {node_data['clusterPeerCount']}\n" \
                f"Assoc.:  {timedelta(seconds=float(node_data['clusterAssociationTime'])).days} days {association_percent()}%\n" \
@@ -333,7 +316,7 @@ def build_general_cluster_state(node_data):
         field_symbol = ":green_square:"
         field_info = f"`ⓘ  Association with the cluster was recently established`"
         return general_cluster_state_field(), False, yellow_color_trigger
-    elif node_data["clusterConnectivity"] == "associated":
+    elif node_data["clusterConnectivity"] == "association":
         field_symbol = ":green_square:"
         field_info = f"`ⓘ  The node is consecutively associated with the cluster`"
         return general_cluster_state_field(), False, yellow_color_trigger
@@ -342,7 +325,7 @@ def build_general_cluster_state(node_data):
         field_info = f"`ⓘ  The node was recently dissociated from the cluster`"
         red_color_trigger = True
         return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
-    elif node_data["clusterConnectivity"] == "dissociated":
+    elif node_data["clusterConnectivity"] == "dissociation":
         field_symbol = ":red_square:"
         field_info = f"`ⓘ  The node is consecutively dissociated from the cluster`"
         red_color_trigger = True
@@ -351,6 +334,8 @@ def build_general_cluster_state(node_data):
         field_symbol = ":yellow_square:"
         field_info = f""
         return general_cluster_state_field(), False, yellow_color_trigger
+    else:
+        print(node_data["clusterConnectivity"])
 
 
 def build_general_node_wallet(node_data):

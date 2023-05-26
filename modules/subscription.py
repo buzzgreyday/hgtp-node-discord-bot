@@ -1,15 +1,40 @@
+import asyncio
 import logging
 import re
+import sys
 from datetime import datetime
 
 import pandas as pd
 from aiofiles import os
 
+
 import dask.dataframe as dd
 
-from modules import api
+from modules import node
+from modules.discord.services import bot
 
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
+
+
+async def check(dask_client, latest_tessellation_version, requester, subscriber_dataframe, history_dataframe, all_cluster_data, dt_start, process_msg, _configuration):
+    futures = []
+    data = []
+    for id_ in await locate_ids(dask_client, requester, subscriber_dataframe):
+        subscriber = await locate_node(dask_client, subscriber_dataframe, id_)
+        for L in list(set(subscriber["layer"])):
+            for port in subscriber.public_port[subscriber.layer == L]:
+                futures.append(asyncio.create_task(
+                    node.check(dask_client, bot, process_msg, requester, subscriber, port, L,
+                               latest_tessellation_version, history_dataframe, all_cluster_data, dt_start,
+                               _configuration)))
+    for async_process in futures:
+        try:
+            d, process_msg = await async_process
+            data.append(d)
+        except Exception as e:
+            logging.critical(repr(e.with_traceback(sys.exc_info())))
+            exit(1)
+    return data
 
 
 async def update_public_port(dask_client, node_data):

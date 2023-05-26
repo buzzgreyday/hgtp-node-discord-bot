@@ -3,11 +3,9 @@ from modules.discord import discord
 
 
 def merge_data(node_data, cluster_data):
-    print("layer:", bool(node_data['layer'] == cluster_data["layer"]))
     if node_data['layer'] == cluster_data["layer"]:
         for peer in cluster_data["peer data"]:
             # LATER INCLUDE ID WHEN SUBSCRIBING
-            print("ip", peer["ip"], node_data["host"], "id:", peer["id"], node_data["id"], "\n", bool((peer["ip"] == node_data["host"]) and (peer["id"] == node_data["id"], "\n\n")))
             if (peer["ip"] == node_data["host"]) and (peer["id"] == node_data["id"]):
                 node_data["clusterNames"] = cluster_data["cluster name"].lower()
                 node_data["latestClusterSession"] = cluster_data["cluster session"]
@@ -77,14 +75,15 @@ async def check(dask_client, bot, process_msg, requester, subscriber, port, laye
     cluster_data = cluster.locate_node(node_data, all_cluster_data)
     loc_timer_stop = dt.timing()[1]
     print("LOCATE NODE:", loc_timer_stop - loc_timer_start)
-    exit(0)
     node_data = merge_data(node_data, cluster_data)
     historic_node_dataframe = await history.node_data(dask_client, node_data, history_dataframe)
-    # historic_node_dataframe = history.former_node_data(historic_node_dataframe)
+    historic_node_dataframe = history.former_node_data(historic_node_dataframe)
     node_data = history.merge_data(node_data, cluster_data, historic_node_dataframe)
     process_msg = await discord.update_request_process_msg(process_msg, 3, None)
     node_data, process_msg = await cluster.get_module_data(process_msg, node_data, configuration)
-    node_data = determine_module.set_module(node_data["clusterNames"], configuration).check_rewards(node_data, cluster_data)
+    name = node_data["clusterNames"] if node_data["clusterNames"] is not None else node_data["formerClusterNames"]
+    if name is not None and configuration["modules"][name][node_data["layer"]]["rewards"]:
+        node_data = determine_module.set_module(node_data["clusterNames"], configuration).check_rewards(node_data, cluster_data)
     await subscription.update_public_port(dask_client, node_data)
 
     return node_data, process_msg
