@@ -108,5 +108,5 @@ def clean_args(arg) -> tuple[list[int | None], list[int | None], str | None]:
 
 async def validate_subscriber(ip: str, port: str, configuration):
     print("Requesting:", f"http://{str(ip)}:{str(port)}/node/info")
-    node_data = await api.safe(f"http://{ip}:{port}/{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
+    node_data = await api.safe_request(f"http://{ip}:{port}/{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
     return node_data["id"] if node_data is not None else None
