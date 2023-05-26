@@ -1,12 +1,13 @@
 import asyncio
+import os
+import glob
 import logging
 import re
-import shutil
 import sys
 from datetime import datetime
 
+import aiofiles.os
 import pandas as pd
-from aiofiles import os
 
 
 import dask.dataframe as dd
@@ -55,19 +56,18 @@ async def locate_node(dask_client, subscriber_dataframe, id_):
 
 
 async def write(dask_client, dataframe, configuration):
-    fut = dataframe.to_parquet(f'{configuration["file settings"]["locations"]["subscribers_new"]}/temp',
-                               append=False, overwrite=True, compute=False, write_index=False)
+
+    # Write the updated DataFrame to the temporary location
+    fut = dataframe.to_parquet(configuration["file settings"]["locations"]["subscribers_new"],
+                               overwrite=True, append=False, compute=False, write_index=False)
     await dask_client.compute(fut)
-    await os.replace(f'{configuration["file settings"]["locations"]["subscribers_new"]}/part.0.parquet',
-                     f'{configuration["file settings"]["locations"]["subscribers_new"]}/temp/part.0.parquet')
-    shutil.rmtree(f'{configuration["file settings"]["locations"]["subscribers_new"]}/temp')
 
 
 async def read(configuration: dict):
     logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - READING SUBSCRIBER DATA AND RETURNING DATAFRAME")
-    if not await os.path.exists(configuration["file settings"]["locations"]["subscribers_new"]):
+    if not await aiofiles.os.path.exists(configuration["file settings"]["locations"]["subscribers_new"]):
         return dd.from_pandas(pd.DataFrame(columns=configuration["file settings"]["columns"]["subscribers_new"]), npartitions=1)
-    elif await os.path.exists(configuration["file settings"]["locations"]["subscribers_new"]):
+    elif await aiofiles.os.path.exists(configuration["file settings"]["locations"]["subscribers_new"]):
         return dd.read_parquet(configuration["file settings"]["locations"]["subscribers_new"])
 
 

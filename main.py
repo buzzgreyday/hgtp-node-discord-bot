@@ -145,7 +145,6 @@ async def s(ctx, *args):
     async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)
         subscriber_dataframe = await subscription.read(_configuration)  # Load the dataframe using the read function
-
         for arg in list(map(lambda arg: subscription.clean_args(arg), subscription.slice_args_per_ip(args))):
             # for each possible layer
             for L in (0, 1):
@@ -174,13 +173,14 @@ async def s(ctx, *args):
         for sub_data in subscriptions:
             data.append({"public_port": int(sub_data[2]), "layer": int(sub_data[0]), "ip": str(sub_data[1]), "id": str(sub_data[3]), "name": str(ctx.message.author), "contact": int(ctx.message.author.id)})
         new_dataframe = dd.from_pandas(pd.DataFrame(data), npartitions=1)
-        print(await dask_client.compute(new_dataframe))
         if len(await dask_client.compute(subscriber_dataframe)) == 0:
             subscriber_dataframe = new_dataframe
         else:
             subscriber_dataframe = subscriber_dataframe.append(new_dataframe)
+        print(await dask_client.compute(subscriber_dataframe.reset_index(drop=True)))
 
-        await subscription.write(dask_client, subscriber_dataframe, _configuration)
+        await subscription.write(dask_client, subscriber_dataframe.reset_index(drop=True), _configuration)
+        await dask_client.close()
 
 
 if __name__ == "__main__":
