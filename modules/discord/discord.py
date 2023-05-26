@@ -93,7 +93,7 @@ async def send(ctx, process_msg, bot, data, configuration):
                 embed = module.build_embed(node_data)
             else:
                 print("YOU NEED TO BUILD A DEFAULT FUNCTION FOR BUILDING EMBEDS, WHEN NONE!")
-                defaults.build_embed(node_data)
+                embed = defaults.build_embed(node_data)
             if process_msg is not None:
                 futures.append((asyncio.create_task(ctx.author.send(embed=embed))))
             elif process_msg is None:
