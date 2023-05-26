@@ -84,7 +84,7 @@ file settings:
       p2pPort: float
       publicPort: float
       rewardFalseCount: float
-      rewardState: float
+      rewardState: bool
       rewardTrueCount: float
       state: str
       timestampIndex: str
