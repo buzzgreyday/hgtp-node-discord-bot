@@ -52,19 +52,22 @@ def generate_runtimes() -> list:
 
 
 async def main(ctx, process_msg, requester, _configuration) -> None:
+    dt_start, timer_start = dt.timing()
     data = []
     futures = []
 
     # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
     process_msg = await discord.update_request_process_msg(process_msg, 1, None)
     # Reload Config
+    pre_timer_start = dt.timing()[1]
     _configuration = await config.load()
     latest_tessellation_version = await preliminaries.latest_version_github(_configuration)
     all_cluster_data = await preliminaries.cluster_data(_configuration)
+    pre_timer_stop = dt.timing()[1]
+    print("PRELIMINARIES TIME:", pre_timer_stop-pre_timer_start)
     await bot.wait_until_ready()
     async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)
-        dt_start, timer_start = dt.timing()
         await discord.init_process(bot, requester)
         history_dataframe = await history.read(_configuration)
         subscriber_dataframe = await subscription.read(_configuration)

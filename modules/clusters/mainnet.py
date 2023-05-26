@@ -43,7 +43,6 @@ async def request_cluster_data(url, layer, name, configuration):
     else:
         cluster_state = str(node_resp['state']).lower() ; cluster_id = node_resp["id"] ; cluster_session = node_resp["clusterSession"]
         cluster_version = str(node_resp["version"]) ; cluster_host = node_resp["host"] ; cluster_port = node_resp["publicPort"]
-    print(len(cluster_resp))
     cluster = {
         "layer": layer,
         "cluster name": name,
@@ -57,7 +56,7 @@ async def request_cluster_data(url, layer, name, configuration):
         "latest ordinal": latest_ordinal,
         "latest ordinal timestamp": latest_timestamp,
         "recently rewarded": addresses,
-        "peer data": cluster_resp
+        "peer data": sorted(cluster_resp, key=lambda d: d['id'])
     }
     await all.update_config_with_latest_values(cluster, configuration)
     del node_resp

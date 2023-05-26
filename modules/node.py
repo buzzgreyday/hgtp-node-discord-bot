@@ -1,4 +1,4 @@
-from modules import subscription, history, determine_module, cluster
+from modules import subscription, history, determine_module, cluster, dt
 from modules.discord import discord
 
 
@@ -73,7 +73,11 @@ async def check(dask_client, bot, process_msg, requester, subscriber, port, laye
                 history_dataframe, all_cluster_data: list[dict], dt_start, configuration: dict) -> tuple:
     process_msg = await discord.update_request_process_msg(process_msg, 2, None)
     node_data = data_template(requester, subscriber, port, layer, latest_tessellation_version, dt_start)
+    loc_timer_start = dt.timing()[1]
     cluster_data = cluster.locate_node(node_data, all_cluster_data)
+    loc_timer_stop = dt.timing()[1]
+    print("LOCATE NODE:", loc_timer_stop - loc_timer_start)
+    exit(0)
     node_data = merge_data(node_data, cluster_data)
     historic_node_dataframe = await history.node_data(dask_client, node_data, history_dataframe)
     # historic_node_dataframe = history.former_node_data(historic_node_dataframe)
