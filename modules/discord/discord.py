@@ -94,6 +94,8 @@ async def send(ctx, process_msg, bot, data, configuration):
                     futures.append((asyncio.create_task(ctx.author.send(embed=embed))))
                 elif process_msg is None:
                     futures.append(asyncio.create_task(bot.get_channel(977357753947402281).send(embed=embed)))
+            else:
+                print("YOU NEED TO BUILD A DEFAULT FUNCTION FOR BUILDING EMBEDS, WHEN NONE!")
     for fut in futures:
         await fut
 

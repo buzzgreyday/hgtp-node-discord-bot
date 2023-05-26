@@ -10,7 +10,7 @@ from aiofiles import os
 
 import dask.dataframe as dd
 
-from modules import node
+from modules import node, api
 from modules.discord.services import bot
 
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
@@ -108,5 +108,5 @@ def clean_args(arg) -> tuple[list[int | None], list[int | None], str | None]:
 
 async def validate_subscriber(ip: str, port: str, configuration):
     print("Requesting:", f"http://{str(ip)}:{str(port)}/node/info")
-    node_data = await request.safe(f"http://{ip}:{port}/{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
+    node_data = await api.safe(f"http://{ip}:{port}/{configuration['request']['url']['clusters']['url endings']['node info']}", configuration)
     return node_data["id"] if node_data is not None else None
