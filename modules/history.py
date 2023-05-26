@@ -41,6 +41,7 @@ async def write(dask_client, node_data, configuration):
     history_dataframe["formerTimestampIndex"] = history_dataframe["formerTimestampIndex"].astype(str)
     history_dataframe["rewardTrueCount"] = history_dataframe["rewardTrueCount"].astype(float)
     history_dataframe["rewardFalseCount"] = history_dataframe["rewardFalseCount"].astype(float)
+    history_dataframe["rewardState"] = history_dataframe["rewardState"].astype(bool)
 
     fut = history_dataframe.to_parquet(configuration["file settings"]["locations"]["history_new"], overwrite=False, compute=False, write_index=False)
     await dask_client.compute(fut)
