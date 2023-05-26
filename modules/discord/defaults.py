@@ -133,15 +133,6 @@ def build_embed(node_data):
     if (red_color_trigger is True or yellow_color_trigger is True) and not embed_created:
         embed = determine_color_and_create_embed(yellow_color_trigger, red_color_trigger)
         embed_created = True
-    cluster_state, red_color_trigger, yellow_color_trigger = build_general_cluster_state(node_data)
-    if (red_color_trigger is True or yellow_color_trigger is True) and not embed_created:
-        embed = determine_color_and_create_embed(yellow_color_trigger, red_color_trigger)
-        embed_created = True
-    if node_data["nodeWalletAddress"] is not None:
-        node_wallet, red_color_trigger, yellow_color_trigger = build_general_node_wallet(node_data)
-        if (red_color_trigger is True or yellow_color_trigger is True) and not embed_created:
-            embed = determine_color_and_create_embed(yellow_color_trigger, red_color_trigger)
-            embed_created = True
     if node_data["version"] is not None:
         node_version, red_color_trigger, yellow_color_trigger = build_system_node_version(node_data)
         if (red_color_trigger is True or yellow_color_trigger is True) and not embed_created:
@@ -160,9 +151,6 @@ def build_embed(node_data):
         embed = determine_color_and_create_embed(yellow_color_trigger, red_color_trigger)
     embed.set_author(name=node_data["name"])
     embed.add_field(name="\u200B", value=node_state)
-    embed.add_field(name=f"\u200B", value=cluster_state)
-    if node_data["nodeWalletAddress"] is not None:
-        embed.add_field(name=f"\u200B", value=node_wallet, inline=False)
     if node_data["version"] is not None:
         embed.add_field(name="\u200B", value=node_version, inline=False)
     if node_data["1mSystemLoadAverage"] is not None:
