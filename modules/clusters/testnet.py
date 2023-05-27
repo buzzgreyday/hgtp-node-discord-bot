@@ -15,7 +15,7 @@ import nextcord
 import numpy
 
 from modules.clusters import all
-from modules import api, encode
+from modules import api, encode, config, cluster
 
 MODULE = "testnet"
 """
@@ -39,12 +39,12 @@ async def request_cluster_data(url, layer, name, configuration):
     latest_ordinal, latest_timestamp, addresses = await locate_rewarded_addresses(layer, name, configuration)
 
     if node_resp is None:
-        cluster_state = "offline" ; cluster_id = await all.locate_id_offline(layer, name, configuration) ; cluster_session = None
+        cluster_state = "offline" ; cluster_id = await cluster.locate_id_offline(layer, name, configuration) ; cluster_session = None
         cluster_version = None ; cluster_host = None ; cluster_port = None
     else:
         cluster_state = str(node_resp['state']).lower() ; cluster_id = node_resp["id"] ; cluster_session = node_resp["clusterSession"]
         cluster_version = str(node_resp["version"]) ; cluster_host = node_resp["host"] ; cluster_port = node_resp["publicPort"]
-    cluster = {
+    cluster_data = {
         "layer": layer,
         "cluster name": name,
         "state": cluster_state,
@@ -59,9 +59,9 @@ async def request_cluster_data(url, layer, name, configuration):
         "recently rewarded": addresses,
         "peer data": sorted(cluster_resp, key=lambda d: d['id'])
     }
-    await all.update_config_with_latest_values(cluster, configuration)
+    await config.update_config_with_latest_values(cluster_data, configuration)
     del node_resp
-    return cluster
+    return cluster_data
 
 # THE ABOVE FUNCTION ALSO REQUEST THE MOST RECENT REWARDED ADDRESSES. THIS FUNCTION LOCATES THESE ADDRESSES BY
 # REQUESTING THE RELEVANT API'S.

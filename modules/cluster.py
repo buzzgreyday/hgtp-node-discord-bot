@@ -28,6 +28,10 @@ def locate_node_binary(node_data: dict, peer_data: List[dict]):
     return False
 
 
+async def locate_id_offline(layer, name, configuration):
+    return configuration["modules"][name][layer]["id"]
+
+
 def locate_node(node_data: dict, all_cluster_data: List[dict]):
     """This function loops through all cluster data supported by the bot and returns the relevant cluster data"""
 
