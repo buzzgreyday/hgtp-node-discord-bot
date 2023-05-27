@@ -21,23 +21,19 @@ def build_general_node_state(node_data):
     def node_state_field():
         return f"{field_symbol} **NODE**\n" \
                f"```\n" \
-               f"Peers: {node_data['nodePeerCount']}\n" \
                f"ID: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
                f"IP: {node_data['host']}\n" \
                f"Subscribed Port: {node_data['publicPort']}\n" \
-               f"State: {node_state}```" \
                f"{field_info}"
 
     if node_data["state"] != "offline":
         field_symbol = ":yellow_square:"
         field_info = f"`ⓘ  The node is not connected to any known cluster and no previous cluster data exists. Therfore the info shown is limited`"
-        node_state = "Dissociated"
         yellow_color_trigger = True
         return node_state_field(), False, yellow_color_trigger
     elif node_data["state"] == "offline":
         field_symbol = f":red_square:"
         field_info = f"`ⓘ  The node is offline and no previous cluster data exists. Therefore the info shown is limited`"
-        node_state = "Offline"
         red_color_trigger = True
         return node_state_field(), red_color_trigger, False
 
