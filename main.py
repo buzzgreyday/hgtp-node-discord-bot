@@ -150,14 +150,10 @@ async def s(ctx, *args):
             for L in (0, 1):
                 # check for each layer port subscription
                 for port in arg[L]:
-                    print(arg[2], port, L)
                     filtered_df = await dask_client.compute(subscriber_dataframe[(subscriber_dataframe["ip"] == arg[2]) & (subscriber_dataframe["public_port"] == port) & (subscriber_dataframe["layer"] == L)])
-                    print(filtered_df)
                     if len(filtered_df) == 0:
-                        print(f"NO SUBSCRIPTION FOUND FOR IP {arg[2]} PORT {port}")
                         subscriptions.append([L, arg[2], port])
                     else:
-                        print(f"SUBSCRIPTION FOUND FOR IP {arg[2]} PORT {port}")
                         existing_subscriptions.append([L, arg[2], port])
 
         for idx, sub_data in enumerate(subscriptions):
