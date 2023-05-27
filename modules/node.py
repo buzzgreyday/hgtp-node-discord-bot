@@ -82,7 +82,7 @@ async def check(dask_client, bot, process_msg, requester, subscriber, port, laye
     historic_node_dataframe = history.former_node_data(historic_node_dataframe)
     node_data = history.merge_data(node_data, cluster_data, historic_node_dataframe)
     process_msg = await discord.update_request_process_msg(process_msg, 3, None)
-    """HERE YOU ALSO NEED A DEFAULT CLUSTER MODULE?"""
+    # HERE YOU ALSO NEED A DEFAULT CLUSTER MODULE? THINK ABOUT WHAT SUCH A MODULE COULD CONTRIBUTE WITH
     node_data, process_msg = await cluster.get_module_data(process_msg, node_data, configuration)
     name = node_data["clusterNames"] if node_data["clusterNames"] is not None else node_data["formerClusterNames"]
     if name is not None and configuration["modules"][name][node_data["layer"]]["rewards"]:
