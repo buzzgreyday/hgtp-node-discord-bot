@@ -23,7 +23,7 @@ def build_general_node_state(node_data):
                f"```\n" \
                f"ID: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
                f"IP: {node_data['host']}\n" \
-               f"Subscribed Port: {node_data['publicPort']}\n" \
+               f"Subscribed Port: {node_data['publicPort']}´´´" \
                f"{field_info}"
 
     if node_data["state"] != "offline":
