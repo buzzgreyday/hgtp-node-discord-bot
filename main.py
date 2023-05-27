@@ -61,7 +61,9 @@ async def main(ctx, process_msg, requester, _configuration) -> None:
         await discord.init_process(bot, requester)
         history_dataframe = await history.read(_configuration)
         subscriber_dataframe = await subscription.read(_configuration)
+        print(dask_client.compute(subscriber_dataframe))
         data = await subscription.check(dask_client, latest_tessellation_version, requester, subscriber_dataframe, history_dataframe, all_cluster_data, dt_start, process_msg, _configuration)
+        print(data)
         process_msg = await discord.update_request_process_msg(process_msg, 5, None)
         # Check if notification should be sent
         data = await determine_module.notify(data, _configuration)

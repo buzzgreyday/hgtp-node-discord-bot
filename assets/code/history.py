@@ -34,6 +34,7 @@ def former_node_data(historic_node_dataframe):
 
 
 async def write(dask_client, node_data, configuration):
+    print(node_data)
     history_dataframe = dd.from_pandas(pd.DataFrame(node_data), npartitions=1)
     history_dataframe["publicPort"] = history_dataframe["publicPort"].astype(float)
     history_dataframe["clusterAssociationTime"] = history_dataframe["clusterAssociationTime"].astype(float)

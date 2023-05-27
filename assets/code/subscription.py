@@ -23,6 +23,7 @@ async def check(dask_client, latest_tessellation_version, requester, subscriber_
     for id_ in await locate_ids(dask_client, requester, subscriber_dataframe):
         subscriber = await locate_node(dask_client, subscriber_dataframe, id_)
         for L in list(set(subscriber["layer"])):
+            print(L)
             for port in subscriber.public_port[subscriber.layer == L]:
                 futures.append(asyncio.create_task(
                     node.check(dask_client, bot, process_msg, requester, subscriber, port, L,
@@ -69,6 +70,7 @@ async def write(dask_client, dataframe, configuration):
 async def read(configuration: dict):
     logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - READING SUBSCRIBER DATA AND RETURNING DATAFRAME")
     if not await os.path.exists(configuration["file settings"]["locations"]["subscribers_new"]):
+        print("SUB NOT EXISTS")
         return dd.from_pandas(pd.DataFrame(columns=configuration["file settings"]["columns"]["subscribers_new"]), npartitions=1)
     elif await os.path.exists(configuration["file settings"]["locations"]["subscribers_new"]):
         return dd.read_parquet(configuration["file settings"]["locations"]["subscribers_new"])
