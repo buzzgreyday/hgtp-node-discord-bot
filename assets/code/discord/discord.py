@@ -6,8 +6,8 @@ from datetime import datetime
 
 from aiofiles import os
 
-from modules import determine_module
-from modules.discord import defaults
+from assets.code import determine_module
+from assets.code.discord import defaults
 
 
 async def init_process(bot, requester):
@@ -92,7 +92,6 @@ async def send(ctx, process_msg, bot, data, configuration):
                 module = determine_module.set_module(name, configuration)
                 embed = module.build_embed(node_data)
             else:
-                print("YOU NEED TO BUILD A DEFAULT FUNCTION FOR BUILDING EMBEDS, WHEN NONE!")
                 embed = defaults.build_embed(node_data)
             if process_msg is not None:
                 futures.append((asyncio.create_task(ctx.author.send(embed=embed))))

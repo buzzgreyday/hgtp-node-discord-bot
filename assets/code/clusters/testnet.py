@@ -13,11 +13,9 @@ from datetime import datetime, timedelta
 
 import nextcord
 
-from modules.clusters import all
-from modules import api, encode, cluster, config
+from assets.code import config, cluster, api, encode
 
-MODULE = "mainnet"
-
+MODULE = "testnet"
 """
     SECTION 1: PRELIMINARIES
 """
@@ -60,6 +58,7 @@ async def request_cluster_data(url, layer, name, configuration):
         "peer data": sorted(cluster_resp, key=lambda d: d['id'])
     }
     await config.update_config_with_latest_values(cluster_data, configuration)
+    del node_resp
     return cluster_data
 
 # THE ABOVE FUNCTION ALSO REQUEST THE MOST RECENT REWARDED ADDRESSES. THIS FUNCTION LOCATES THESE ADDRESSES BY
@@ -124,11 +123,10 @@ red_color_trigger = False
 
 
 async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict, dict]:
-    
     if node_data['publicPort'] is not None:
         node_info_data = await api.safe_request(
             f"http://{node_data['host']}:{node_data['publicPort']}/"
-            f"{configuration['modules']['mainnet'][node_data['layer']]['info']['node']}", configuration)
+            f"{configuration['modules']['testnet'][node_data['layer']]['info']['node']}", configuration)
         node_data["state"] = "offline" if node_info_data is None else node_info_data["state"].lower()
         # CHECK IF Public_Port has changed
         if node_info_data is not None:
@@ -137,10 +135,10 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
         if node_data["state"] != "offline":
             cluster_data = await api.safe_request(
                 f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
-                f"{configuration['modules']['mainnet'][node_data['layer']]['info']['cluster']}", configuration)
+                f"{configuration['modules']['testnet'][node_data['layer']]['info']['cluster']}", configuration)
             metrics_data = await api.safe_request(
                 f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
-                f"{configuration['modules']['mainnet'][node_data['layer']]['info']['metrics']}", configuration)
+                f"{configuration['modules']['testnet'][node_data['layer']]['info']['metrics']}", configuration)
             node_data["id"] = node_info_data["id"]
             node_data["nodeWalletAddress"] = encode.id_to_dag_address(node_data["id"])
             node_data["nodePeerCount"] = len(cluster_data) if cluster_data is not None else 0
@@ -181,7 +179,7 @@ def check_rewards(node_data: dict, cluster_data):
 
 async def request_wallet_data(node_data, configuration):
 
-    wallet_data = await api.safe_request(f"{configuration['modules']['mainnet'][0]['be']['url'][0]}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
+    wallet_data = await api.safe_request(f"{configuration['modules']['testnet'][0]['be']['url'][0]}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
     if wallet_data is not None:
         node_data["nodeWalletBalance"] = wallet_data["data"]["balance"]
 
@@ -295,7 +293,7 @@ def build_general_node_state(node_data):
 
 def build_general_cluster_state(node_data):
     def general_cluster_state_field():
-        return f"{field_symbol} **MAINNET CLUSTER**\n" \
+        return f"{field_symbol} **TESTNET CLUSTER**\n" \
                f"```\n" \
                f"Peers:   {node_data['clusterPeerCount']}\n" \
                f"Assoc.:  {timedelta(seconds=float(node_data['clusterAssociationTime'])).days} days {association_percent()}%\n" \

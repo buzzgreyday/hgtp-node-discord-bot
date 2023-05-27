@@ -106,7 +106,3 @@ async def safe_request(request_url: str, configuration: dict):
             data = None
             break
     return data
-
-
-
-

@@ -1,19 +1,18 @@
 import asyncio
-import os
-import glob
 import logging
 import re
+import shutil
 import sys
 from datetime import datetime
 
-import aiofiles.os
+from aiofiles import os
 import pandas as pd
 
 
 import dask.dataframe as dd
 
-from modules import node, api
-from modules.discord.services import bot
+from assets.code import node, api
+from assets.code.discord.services import bot
 
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 
@@ -56,18 +55,22 @@ async def locate_node(dask_client, subscriber_dataframe, id_):
 
 
 async def write(dask_client, dataframe, configuration):
+    dataframe = dataframe.repartition(npartitions=1)
 
-    # Write the updated DataFrame to the temporary location
-    fut = dataframe.to_parquet(configuration["file settings"]["locations"]["subscribers_new"],
-                               overwrite=True, append=False, compute=False, write_index=False)
+    fut = dataframe.to_parquet(f'{configuration["file settings"]["locations"]["subscribers temp"]}',
+                               overwrite=True, compute=False, write_index=False)
     await dask_client.compute(fut)
+    if await os.path.exists(f'{configuration["file settings"]["locations"]["subscribers_new"]}'):
+        shutil.rmtree(f'{configuration["file settings"]["locations"]["subscribers_new"]}')
+    await os.rename(f'{configuration["file settings"]["locations"]["subscribers temp"]}', f'{configuration["file settings"]["locations"]["subscribers_new"]}')
+    # Write the updated DataFrame to the temporary location
 
 
 async def read(configuration: dict):
     logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - READING SUBSCRIBER DATA AND RETURNING DATAFRAME")
-    if not await aiofiles.os.path.exists(configuration["file settings"]["locations"]["subscribers_new"]):
+    if not await os.path.exists(configuration["file settings"]["locations"]["subscribers_new"]):
         return dd.from_pandas(pd.DataFrame(columns=configuration["file settings"]["columns"]["subscribers_new"]), npartitions=1)
-    elif await aiofiles.os.path.exists(configuration["file settings"]["locations"]["subscribers_new"]):
+    elif await os.path.exists(configuration["file settings"]["locations"]["subscribers_new"]):
         return dd.read_parquet(configuration["file settings"]["locations"]["subscribers_new"])
 
 

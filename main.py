@@ -2,22 +2,21 @@
 import asyncio
 import gc
 import logging
-import sys
 from datetime import datetime
 
 import pandas as pd
 from dask import distributed
 from dask.distributed import Client
 import dask.dataframe as dd
-from modules import determine_module, dt, subscription, history, preliminaries, node, config
-from modules.discord import discord
-from modules.discord.services import bot, discord_token
+from assets.code import config, determine_module, history, subscription, dt, preliminaries
+from assets.code.discord import discord
+from assets.code.discord.services import bot, discord_token
 import nextcord
 from os import path, makedirs
 import yaml
 
 """LOAD CONFIGURATION"""
-with open('data/config_new.yml', 'r') as file:
+with open('config_new.yml', 'r') as file:
     _configuration = yaml.safe_load(file)
 
 """CREATE NON-EXISTENT FOLDER STRUCTURE"""

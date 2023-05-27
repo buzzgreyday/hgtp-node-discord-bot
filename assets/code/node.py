@@ -1,5 +1,5 @@
-from modules import subscription, history, determine_module, cluster, dt
-from modules.discord import discord
+from assets.code import determine_module, history, subscription, cluster, dt
+from assets.code.discord import discord
 
 
 def merge_data(node_data, cluster_data):

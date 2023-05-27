@@ -3,8 +3,8 @@ from aiofiles import os
 from typing import List
 
 # Project module imports
-from modules import determine_module
-from modules.discord import discord
+from assets.code import determine_module
+from assets.code.discord import discord
 
 
 def locate_node_binary(node_data: dict, peer_data: List[dict]):

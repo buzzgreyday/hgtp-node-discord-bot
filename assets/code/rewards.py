@@ -1,4 +1,4 @@
-from modules import determine_module
+from assets.code import determine_module
 
 
 async def check(node_data, configuration):

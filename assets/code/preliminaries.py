@@ -1,10 +1,8 @@
 import asyncio
 
-import aiofiles
-import yaml
 from aiofiles import os
 
-from modules import determine_module, api
+from assets.code import determine_module, api
 
 
 async def latest_version_github(configuration):
