@@ -102,7 +102,7 @@ file settings:
     cluster modules: assets/code/cluster modules
     historic temp: assets/data/historic/temp
     history_new: assets/data/historic/latest
-    log: assets/data/logs/bot.log
+    log: assets/data/logs/bot/exec.log
     subscribers temp: assets/data/users/temp
     subscribers_new: assets/data/users/db
 general:
