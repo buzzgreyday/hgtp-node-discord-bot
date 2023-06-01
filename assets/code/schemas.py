@@ -22,23 +22,6 @@ class NodeMetrics(BaseModel):
     disk_space_total: float = None
 
 
-    def find_in_text(strings: list | tuple):
-        results = []
-
-        for line in text.split('\n'):
-            if not line.startswith('#'):
-                for i, item in enumerate(strings):
-                    idx = text.find(item)
-                    line_start = text[idx:].split('\n')
-                    value = line_start[0].split(' ')[1]
-                    results.append(value)
-                    del (value, line_start, idx)
-                    if i >= len(strings):
-                        break
-                break
-        return results
-
-
 class Node(NodeBase, NodeMetrics):
     p2p_port: int = None
     wallet_address: str = None
