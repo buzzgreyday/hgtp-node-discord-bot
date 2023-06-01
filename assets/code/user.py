@@ -11,7 +11,7 @@ import pandas as pd
 
 import dask.dataframe as dd
 
-from assets.code import node, api
+from assets.code import node, api, schemas
 from assets.code.discord.services import bot
 
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
@@ -24,7 +24,7 @@ async def check(dask_client, latest_tessellation_version, requester, subscriber_
         subscriber = await locate_node(dask_client, subscriber_dataframe, id_)
         for L in list(set(subscriber["layer"])):
             print(L)
-            for port in subscriber.public_port[subscriber.layer == L]:
+            for port in list(set(subscriber.public_port[subscriber.layer == L])):
                 futures.append(asyncio.create_task(
                     node.check(dask_client, bot, process_msg, requester, subscriber, port, L,
                                latest_tessellation_version, history_dataframe, all_cluster_data, dt_start,
@@ -39,7 +39,7 @@ async def check(dask_client, latest_tessellation_version, requester, subscriber_
     return data
 
 
-async def update_public_port(dask_client, node_data):
+async def update_public_port(dask_client, node_data: schemas.Node):
     pass
 
 

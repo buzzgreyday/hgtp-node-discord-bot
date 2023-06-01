@@ -8,7 +8,7 @@ import pandas as pd
 from dask import distributed
 from dask.distributed import Client
 import dask.dataframe as dd
-from assets.code import config, determine_module, history, subscription, dt, preliminaries
+from assets.code import config, determine_module, history, user, dt, preliminaries
 from assets.code.discord import discord
 from assets.code.discord.services import bot, discord_token
 import nextcord
@@ -60,10 +60,8 @@ async def main(ctx, process_msg, requester, _configuration) -> None:
         await dask_client.wait_for_workers(n_workers=1)
         await discord.init_process(bot, requester)
         history_dataframe = await history.read(_configuration)
-        subscriber_dataframe = await subscription.read(_configuration)
-        print(dask_client.compute(subscriber_dataframe))
-        data = await subscription.check(dask_client, latest_tessellation_version, requester, subscriber_dataframe, history_dataframe, all_cluster_data, dt_start, process_msg, _configuration)
-        print(data)
+        subscriber_dataframe = await user.read(_configuration)
+        data = await user.check(dask_client, latest_tessellation_version, requester, subscriber_dataframe, history_dataframe, all_cluster_data, dt_start, process_msg, _configuration)
         process_msg = await discord.update_request_process_msg(process_msg, 5, None)
         # Check if notification should be sent
         data = await determine_module.notify(data, _configuration)
@@ -145,8 +143,8 @@ async def s(ctx, *args):
 
     async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)
-        subscriber_dataframe = await subscription.read(_configuration)  # Load the dataframe using the read function
-        for arg in list(map(lambda arg: subscription.clean_args(arg), subscription.slice_args_per_ip(args))):
+        subscriber_dataframe = await user.read(_configuration)  # Load the dataframe using the read function
+        for arg in list(map(lambda arg: user.clean_args(arg), user.slice_args_per_ip(args))):
             # for each possible layer
             for L in (0, 1):
                 # check for each layer port subscription
@@ -158,7 +156,7 @@ async def s(ctx, *args):
                         existing_subscriptions.append([L, arg[2], port])
 
         for idx, sub_data in enumerate(subscriptions):
-            identity = await subscription.validate_subscriber(sub_data[1], sub_data[2], _configuration)
+            identity = await user.validate_subscriber(sub_data[1], sub_data[2], _configuration)
             if identity is None:
                 invalid_subscriptions.append(sub_data.append(identity))
                 subscriptions.pop(idx)
@@ -176,7 +174,7 @@ async def s(ctx, *args):
             subscriber_dataframe = subscriber_dataframe.append(new_dataframe)
         print(await dask_client.compute(subscriber_dataframe.reset_index(drop=True)))
 
-        await subscription.write(dask_client, subscriber_dataframe.reset_index(drop=True), _configuration)
+        await user.write(dask_client, subscriber_dataframe.reset_index(drop=True), _configuration)
         await dask_client.close()
 
 

@@ -1,102 +1,104 @@
 file settings:
   columns:
     history_new:
-    - name
+    - one_m_system_load_average
+    - cluster_association_time
+    - cluster_connectivity
+    - cluster_dissociation_time
+    - cluster_name
+    - cluster_peer_count
+    - cluster_state
+    - cluster_version
     - contact
-    - host
-    - layer
-    - publicPort
-    - p2pPort
+    - cpu_count
+    - disk_space_free
+    - disk_space_total
+    - former_cluster_association_time
+    - former_cluster_connectivity
+    - former_cluster_dissociation_time
+    - former_cluster_name
+    - former_cluster_peer_count
+    - former_reward_state
+    - former_timestamp_index
+    - ip
     - id
-    - nodeWalletAddress
-    - nodeWalletBalance
-    - clusterNames
-    - formerClusterNames
-    - state
-    - clusterState
-    - clusterConnectivity
-    - formerClusterConnectivity
-    - rewardState
-    - rewardTrueCount
-    - rewardFalseCount
-    - formerRewardState
-    - clusterAssociationTime
-    - formerClusterAssociationTime
-    - clusterDissociationTime
-    - formerClusterDissociationTime
-    - nodeClusterSession
-    - latestClusterSession
-    - nodePeerCount
-    - clusterPeerCount
-    - formerClusterPeerCount
-    - version
-    - clusterVersion
-    - latestVersion
-    - cpuCount
-    - diskSpaceTotal
-    - diskSpaceFree
-    - 1mSystemLoadAverage
-    - lastNotifiedTimestamp
+    - last_notified_timestamp
+    - latest_cluster_session
+    - latest_version
+    - layer
+    - name
+    - node_cluster_session
+    - node_peer_count
+    - wallet_address
+    - wallet_balance
     - notify
-    - timestampIndex
-    - formerTimestampIndex
+    - p2p_port
+    - public_port
+    - reward_false_count
+    - reward_state
+    - reward_true_count
+    - state
+    - timestamp_index
+    - version
     subscribers_new:
-    - subscribed
+    - date
     - id
     - name
     - contact
     - ip
     - public_port
     - layer
+    - type
   dtypes:
     history_new:
-      1mSystemLoadAverage: float
-      clusterAssociationTime: float
-      clusterConnectivity: str
-      clusterDissociationTime: float
-      clusterNames: str
-      clusterPeerCount: float
-      clusterState: str
-      clusterVersion: str
+      cluster_association_time: float
+      cluster_connectivity: str
+      cluster_dissociation_time: float
+      cluster_name: str
+      cluster_peer_count: float
+      cluster_state: str
+      cluster_version: str
       contact: str
-      cpuCount: float
-      diskSpaceFree: float
-      diskSpaceTotal: float
-      formerClusterAssociationTime: float
-      formerClusterConnectivity: str
-      formerClusterDissociationTime: float
-      formerClusterNames: str
-      formerClusterPeerCount: float
-      formerRewardState: str
-      formerTimestampIndex: str
-      host: str
+      cpu_count: float
+      disk_space_free: float
+      disk_space_total: float
+      former_cluster_association_time: str
+      former_cluster_connectivity: str
+      former_cluster_dissociation_time: float
+      former_cluster_name: str
+      former_cluster_peer_count: float
+      former_reward_state: bool
+      former_timestamp_index: datetime64[ns]
       id: str
-      lastNotifiedTimestamp: str
-      latestClusterSession: str
-      latestVersion: str
+      ip: str
+      last_notified_timestamp: datetime64[ns]
+      latest_cluster_session: float
+      latest_version: str
       layer: float
       name: str
-      nodeClusterSession: str
-      nodePeerCount: float
-      nodeWalletAddress: str
-      nodeWalletBalance: float
-      notify: str
-      p2pPort: float
-      publicPort: float
-      rewardFalseCount: float
-      rewardState: bool
-      rewardTrueCount: float
+      node_cluster_session: str
+      node_peer_count: float
+      notify: bool
+      one_m_system_load_average: float
+      p2p_port: float
+      public_port: float
+      reward_false_count: float
+      reward_state: bool
+      reward_true_count: float
       state: str
-      timestampIndex: str
+      timestamp_index: datetime64[ns]
       version: str
+      wallet_address: str
+      wallet_balance: float
     subscribers_new:
       contact: str
+      date: str
       id: str
       ip: str
       layer: str
       name: str
-      public_port: str
-      subscribed: str
+      public_port: int
+      type: str
   locations:
     archived history: assets/data/historic/archived
     cluster modules: assets/code/cluster modules
@@ -109,11 +111,15 @@ general:
   loop_init_time: '12:25:00'
   loop_interval_minutes: 5
   name: Hgtp Node Spidr
+  notifications:
+    free disk space sleep (hours): 6
+    free disk space threshold (percentage): 10
+    reward state sleep (minutes): 10
   public release: false
   request retry (count): 3
   request retry interval (sec): 1
   request timeout (sec): 6
-  version: 5-dev-alpha
+  version: 5-alpha.1
 modules:
   mainnet:
     0:
@@ -131,7 +137,7 @@ modules:
       url:
       - https://l0-lb-mainnet.constellationnetwork.io
     1:
-      id: 5a8f0f756659be91e8af0b6aa1e2a63a94227680aa4d565e055a37db206f69a3b88479e7f37e8c9c9eca40278ddc98eab2b07f0fc0cf17fdf83ca012082ba827
+      id: 3f5ac775fa4f20dba1f5912562789b9c3ea38df28c347c2fe81800d07a494b6e0d263db1b1d08b58750fb34d503c6f84c50f7db26b14eaeb41c732e4eac4fb54
       info:
         cluster: cluster/info
         metrics: metrics
@@ -146,7 +152,7 @@ modules:
           latest snapshot: global-snapshots/latest
         url:
         - https://be-testnet.constellationnetwork.io
-      id: 154311944d97be83d18d37fcc3c8e7bb20cd8fa2c97e9e736f402f2614b112aa3d9ff57d6aa27b8aed82fe74b26c98c300e41b67c2c20c8d0cb1458f487adbd8
+      id: 7e88d70fa4cbd694edf2c77234206caa76b8d669163098a83a2fbdb8bf9c648c7e0c034499928b42065665426e2e221dc2c999e1c38c72e488cc6e2a98894fe7
       info:
         cluster: cluster/info
         metrics: metrics

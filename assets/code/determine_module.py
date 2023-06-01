@@ -1,14 +1,18 @@
 import importlib.util
+from typing import List
+
 from aiofiles import os
 import sys
 
+from assets.code import schemas
 
-async def notify(data, configuration):
+
+async def notify(data: List[schemas.Node], configuration):
     for idx, d in enumerate(data):
         print(d)
         if await os.path.exists(
-                f"{configuration['file settings']['locations']['cluster modules']}/{d['clusterNames']}.py"):
-            module = set_module(d['clusterNames'], configuration)
+                f"{configuration['file settings']['locations']['cluster modules']}/{d.cluster_name}.py"):
+            module = set_module(d.cluster_name, configuration)
             data[idx] = module.mark_notify(d, configuration)
     return data
 

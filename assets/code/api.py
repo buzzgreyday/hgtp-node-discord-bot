@@ -4,6 +4,8 @@ from aiohttp import client_exceptions
 from datetime import datetime
 import logging
 
+from assets.code import schemas
+
 
 class Request:
     def __init__(self, url):
@@ -36,6 +38,7 @@ class Request:
                         idx = text.find(item)
                         line_start = text[idx:].split('\n')
                         value = line_start[0].split(' ')[1]
+                        print(value)
                         results.append(value)
                         del (value, line_start, idx)
                         if i >= len(strings):
@@ -63,7 +66,6 @@ class Request:
 
 
 async def safe_request(request_url: str, configuration: dict):
-    data = None
     retry_count = 0
     run_again = True
     while run_again:
@@ -73,17 +75,16 @@ async def safe_request(request_url: str, configuration: dict):
                            'system_cpu_count{application=',
                            'system_load_average_1m{application=',
                            'disk_free_bytes{application=',
-                           'disk_total_bytes{application=',
+                           'disk_total_bytes{application='
                            )
                 strings = await Request(request_url).text(strings, configuration)
-                data = {
-                    "clusterAssociationTime": strings[0],
-                    "cpuCount": strings[1],
-                    "1mSystemLoadAverage": strings[2],
-                    "diskSpaceFree": strings[3],
-                    "diskSpaceTotal": strings[4]
-                }
-
+                data = schemas.NodeMetrics(
+                    cluster_association_time=strings[0],
+                    cpu_count=strings[1],
+                    one_m_system_load_average=strings[2],
+                    disk_space_free=strings[3],
+                    disk_space_total=strings[4]
+                )
             else:
                 data = await Request(request_url).json(configuration)
             if retry_count >= configuration['general']['request retry (count)'] or data == 503:

@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 
 import nextcord
 
-from assets.code import config, cluster, api, encode
+from assets.code import config, cluster, api, encode, schemas
 
 MODULE = "mainnet"
 
@@ -38,28 +38,28 @@ async def request_cluster_data(url, layer, name, configuration):
     latest_ordinal, latest_timestamp, addresses = await locate_rewarded_addresses(layer, name, configuration)
 
     if node_resp is None:
-        cluster_state = "offline" ; cluster_id = await cluster.locate_id_offline(layer, name, configuration) ; cluster_session = None
-        cluster_version = None ; cluster_host = None ; cluster_port = None
+        cluster_data = schemas.Cluster(layer=layer,
+                                       name=name,
+                                       id=await cluster.locate_id_offline(layer, name, configuration))
     else:
-        cluster_state = str(node_resp['state']).lower() ; cluster_id = node_resp["id"] ; cluster_session = node_resp["clusterSession"]
-        cluster_version = str(node_resp["version"]) ; cluster_host = node_resp["host"] ; cluster_port = node_resp["publicPort"]
-    cluster_data = {
-        "layer": layer,
-        "cluster name": name,
-        "state": cluster_state,
-        "id": cluster_id,
-        "host": cluster_host,
-        "public port": cluster_port,
-        "version": cluster_version,
-        "peer count": len(cluster_resp),
-        "cluster session": cluster_session,
-        "latest ordinal": latest_ordinal,
-        "latest ordinal timestamp": latest_timestamp,
-        "recently rewarded": addresses,
-        "peer data": sorted(cluster_resp, key=lambda d: d['id'])
-    }
+        cluster_data = schemas.Cluster(layer=layer,
+                                       name=name,
+                                       contact=None,
+                                       state=node_resp["state"].lower(),
+                                       id=node_resp["id"],
+                                       session=node_resp["clusterSession"],
+                                       version=node_resp["version"],
+                                       ip=node_resp["host"],
+                                       public_port=node_resp["publicPort"],
+                                       peer_count=len(cluster_resp),
+                                       latest_ordinal=latest_ordinal,
+                                       latest_timestamp=latest_timestamp,
+                                       recently_rewarded=addresses,
+                                       peer_data=sorted(cluster_resp, key=lambda d: d['id'])
+                                       )
+
     await config.update_config_with_latest_values(cluster_data, configuration)
-    return cluster_data
+    return cluster_data.dict()
 
 # THE ABOVE FUNCTION ALSO REQUEST THE MOST RECENT REWARDED ADDRESSES. THIS FUNCTION LOCATES THESE ADDRESSES BY
 # REQUESTING THE RELEVANT API'S.
@@ -122,29 +122,33 @@ yellow_color_trigger = False
 red_color_trigger = False
 
 
-async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict, dict]:
+async def node_cluster_data(node_data: schemas.Node, configuration: dict) -> schemas.Node:
     
-    if node_data['publicPort'] is not None:
+    if node_data.public_port is not None:
         node_info_data = await api.safe_request(
-            f"http://{node_data['host']}:{node_data['publicPort']}/"
-            f"{configuration['modules']['mainnet'][node_data['layer']]['info']['node']}", configuration)
-        node_data["state"] = "offline" if node_info_data is None else node_info_data["state"].lower()
+            f"http://{node_data.ip}:{node_data.public_port}/"
+            f"{configuration['modules'][MODULE][node_data.layer]['info']['node']}", configuration)
+        node_data.state = "offline" if node_info_data is None else node_info_data["state"].lower()
         # CHECK IF Public_Port has changed
         if node_info_data is not None:
-            node_data["nodeClusterSession"] = node_info_data["clusterSession"]
-            node_data["version"] = node_info_data["version"]
-        if node_data["state"] != "offline":
+            node_data.node_cluster_session = node_info_data["clusterSession"]
+            node_data.version = node_info_data["version"]
+        if node_data.state != "offline":
             cluster_data = await api.safe_request(
-                f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
-                f"{configuration['modules']['mainnet'][node_data['layer']]['info']['cluster']}", configuration)
+                f"http://{node_data.ip}:{node_data.public_port}/"
+                f"{configuration['modules'][MODULE][node_data.layer]['info']['cluster']}", configuration)
             metrics_data = await api.safe_request(
-                f"http://{str(node_data['host'])}:{str(node_data['publicPort'])}/"
-                f"{configuration['modules']['mainnet'][node_data['layer']]['info']['metrics']}", configuration)
-            node_data["id"] = node_info_data["id"]
-            node_data["nodeWalletAddress"] = encode.id_to_dag_address(node_data["id"])
-            node_data["nodePeerCount"] = len(cluster_data) if cluster_data is not None else 0
+                f"http://{node_data.ip}:{node_data.public_port}/"
+                f"{configuration['modules'][MODULE][node_data.layer]['info']['metrics']}", configuration)
+            node_data.id = node_info_data["id"]
+            node_data.wallet_address = encode.id_to_dag_address(node_data.id)
+            node_data.node_peer_count = len(cluster_data) if cluster_data is not None else 0
             # WILL FAIL IF = NONE
-            node_data.update(metrics_data)
+            node_data.cluster_association_time = metrics_data.cluster_association_time,
+            node_data.cpu_count = metrics_data.cpu_count,
+            node_data.one_m_system_load_average = metrics_data.one_m_system_load_average,
+            node_data.disk_space_free = metrics_data.disk_space_free,
+            node_data.disk_space_total = metrics_data.disk_space_total
         node_data = await request_wallet_data(node_data, configuration)
         node_data = set_connectivity_specific_node_data_values(node_data)
         node_data = set_association_time(node_data)
@@ -152,37 +156,31 @@ async def node_cluster_data(node_data: dict, configuration: dict) -> tuple[dict,
     return node_data
 
 
-def check_rewards(node_data: dict, cluster_data):
+def check_rewards(node_data: schemas.Node, cluster_data):
 
     # if (cluster["layer"] == f"layer {node_data['layer']}") and (cluster["cluster name"] == node_data["clusterNames"]):
     # if (cluster["cluster name"] == node_data["clusterNames"]) or (cluster["cluster name"] == node_data["formerClusterNames"]):
-    if str(node_data["nodeWalletAddress"]) in cluster_data["recently rewarded"]:
-        node_data["rewardState"] = True
-        if node_data["rewardTrueCount"] is None:
-            former_reward_count = 0
-        else:
-            former_reward_count = node_data["rewardTrueCount"]
-        node_data["rewardTrueCount"] = former_reward_count + 1
-        if node_data["rewardFalseCount"] is None:
-            node_data["rewardFalseCount"] = 0
-    elif str(node_data["nodeWalletAddress"]) not in cluster_data["recently rewarded"]:
-        node_data["rewardState"] = False
-        if node_data["rewardFalseCount"] is None:
-            former_reward_count = 0
-        else:
-            former_reward_count = node_data["rewardFalseCount"]
-        node_data["rewardFalseCount"] = former_reward_count + 1
-        if node_data["rewardTrueCount"] is None:
-            node_data["rewardTrueCount"] = 0
+    if node_data.wallet_address in cluster_data["recently_rewarded"]:
+        node_data.reward_state = True
+        former_reward_count = 0 if node_data.reward_true_count is None else node_data.reward_true_count
+        node_data.reward_true_count = former_reward_count + 1
+        if node_data.reward_false_count is None:
+            node_data.reward_false_count = 0
+    elif node_data.wallet_address not in cluster_data["recently_rewarded"]:
+        node_data.reward_state = False
+        former_reward_count = 0 if node_data.reward_false_count is None else node_data.reward_false_count
+        node_data.reward_false_count = former_reward_count + 1
+        if node_data.reward_true_count is None:
+            node_data.reward_true_count = 0
 
     return node_data
 
 
-async def request_wallet_data(node_data, configuration):
+async def request_wallet_data(node_data: schemas.Node, configuration) -> schemas.Node:
 
-    wallet_data = await api.safe_request(f"{configuration['modules']['mainnet'][0]['be']['url'][0]}/addresses/{node_data['nodeWalletAddress']}/balance", configuration)
+    wallet_data = await api.safe_request(f"{configuration['modules']['mainnet'][0]['be']['url'][0]}/addresses/{node_data.wallet_address}/balance", configuration)
     if wallet_data is not None:
-        node_data["nodeWalletBalance"] = wallet_data["data"]["balance"]
+        node_data.wallet_balance = wallet_data["data"]["balance"]
 
     return node_data
 
@@ -194,47 +192,50 @@ async def request_wallet_data(node_data, configuration):
 # ---------------------------------------------------------------------------------------------------------------------
 
 
-def set_connectivity_specific_node_data_values(node_data):
+def set_connectivity_specific_node_data_values(node_data: schemas.Node):
 
-    former_name = node_data["formerClusterNames"]
-    curr_name = node_data["clusterNames"]
-    session = node_data["nodeClusterSession"]
-    latest_session = node_data["latestClusterSession"]
+    former_name = node_data.former_cluster_name
+    curr_name = node_data.cluster_name
+    session = node_data.node_cluster_session
+    latest_session = node_data.latest_cluster_session
 
     if MODULE == curr_name and MODULE != former_name and session == latest_session:
-        node_data["clusterConnectivity"] = "new association"
+        node_data.cluster_connectivity = "new association"
     elif former_name == curr_name and MODULE == former_name and session == latest_session:
-        node_data["clusterConnectivity"] = "association"
+        node_data.cluster_connectivity = "association"
     elif MODULE != curr_name and MODULE == former_name and session != latest_session:
-        node_data["clusterConnectivity"] = "new dissociation"
+        node_data.cluster_connectivity = "new dissociation"
     elif MODULE != curr_name and MODULE != former_name and session != latest_session:
-        node_data["clusterConnectivity"] = "dissociation"
+        node_data.cluster_connectivity = "dissociation"
 
     return node_data
 
 
-def set_association_time(node_data):
-    if node_data["formerTimestampIndex"] is not None:
+def set_association_time(node_data: schemas.Node):
+    if node_data.former_timestamp_index is not None:
         # LINE BELOW IS TEMPORARY
-        time_difference = (datetime.strptime(node_data["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ") - datetime.strptime(node_data["formerTimestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ")).seconds
+        time_difference = (node_data.timestamp_index - node_data.former_timestamp_index).seconds
     else:
-        time_difference = datetime.strptime(node_data["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ").second
+        time_difference = node_data.timestamp_index.second
 
-    for connectivity_type in ("association", "dissociation"):
-        if node_data[f'cluster{connectivity_type.title()}Time'] is None:
-            node_data[f'cluster{connectivity_type.title()}Time'] = 0
-        if node_data[f'formerCluster{connectivity_type.title()}Time'] is None:
-            node_data[f'formerCluster{connectivity_type.title()}Time'] = 0
+    if node_data.cluster_association_time is None:
+        node_data.cluster_association_time = 0
+    if node_data.former_cluster_association_time is None:
+        node_data.former_cluster_association_time = 0
+    if node_data.cluster_dissociation_time is None:
+        node_data.cluster_dissociation_time = 0
+    if node_data.former_cluster_dissociation_time is None:
+        node_data.former_cluster_dissociation_time = 0
 
-    if node_data["clusterConnectivity"] == "association":
-        node_data["clusterAssociationTime"] = time_difference + node_data["formerClusterAssociationTime"]
-        node_data["clusterDissociationTime"] = node_data["formerClusterDissociationTime"]
-    elif node_data["clusterConnectivity"] == "disociation":
-        node_data["clusterDissociationTime"] = time_difference + node_data["formerClusterDissociationTime"]
-        node_data["clusterAssociationTime"] = node_data["formerClusterAssociationTime"]
-    elif node_data["clusterConnectivity"] in ["new association", "new dissociation"]:
-        node_data["clusterAssociationTime"] = node_data["formerClusterAssociationTime"]
-        node_data["clusterDissociationTime"] = node_data["formerClusterDissociationTime"]
+    if node_data.cluster_connectivity == "association":
+        node_data.cluster_association_time = time_difference + node_data.former_cluster_association_time
+        node_data.cluster_dissociation_time = node_data.former_cluster_dissociation_time
+    elif node_data.cluster_connectivity == "disociation":
+        node_data.cluster_dissociation_time = time_difference + node_data.former_cluster_dissociation_time
+        node_data.cluster_association_time = node_data.former_cluster_association_time
+    elif node_data.cluster_connectivity in ("new association", "new dissociation"):
+        node_data.cluster_association_time = node_data.former_cluster_association_time
+        node_data.cluster_dissociation_time = node_data.former_cluster_dissociation_time
 
     return node_data
 
@@ -596,36 +597,36 @@ def build_embed(node_data):
 """
 
 
-def mark_notify(d, configuration):
+def mark_notify(d: schemas.Node, configuration):
     # The hardcoded values should be adjustable in config_new.yml
-    if d["clusterConnectivity"] in ["new association", "new dissociation"]:
-        d["notify"] = True
-        d["lastNotifiedTimestamp"] = d["timestampIndex"]
-    if d["lastNotifiedTimestamp"] is not None:
-        if d["rewardState"] is False and ((datetime.strptime(d["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ").second - datetime.strptime(d["lastNotifiedTimestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").second) >= timedelta(minutes=10).seconds):
+    if d.cluster_connectivity in ["new association", "new dissociation"]:
+        d.notify = True
+        d.last_notified_timestamp = d.timestamp_index
+    if d.last_notified_timestamp is not None:
+        if d.reward_state is False and (d.timestamp_index.second - d.last_notified_timestamp.second >= timedelta(minutes=configuration["general"]["notifications"]["reward state notify sleep (minutes)"]).seconds):
             # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
             """if d["layer"] == 1:
                 d["notify"] = False
             else:"""
-            d["notify"] = True
-            d["lastNotifiedTimestamp"] = d["timestampIndex"]
-        elif (d["version"] != d["clusterVersion"]) and ((datetime.strptime(d["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ").second - datetime.strptime(d["lastNotifiedTimestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").second) >= timedelta(hours=6).seconds):
-            d["notify"] = True
-            d["lastNotifiedTimestamp"] = d["timestampIndex"]
-        elif d['diskSpaceFree'] and d['diskSpaceTotal'] is not None:
-            if (0 <= float(d['diskSpaceFree'])*100/float(d['diskSpaceTotal']) <= 10) and ((datetime.strptime(d["timestampIndex"], "%Y-%m-%dT%H:%M:%S.%fZ").second - datetime.strptime(d["lastNotifiedTimestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").second) >= timedelta(hours=6).seconds):
-                d["notify"] = True
-                d["lastNotifiedTimestamp"] = d["timestampIndex"]
+            d.notify = True
+            d.last_notified_timestamp = d.timestamp_index
+        elif (d.version != d.cluster_version) and (d.timestamp_index.second - d.last_notified_timestamp.second >= timedelta(hours=6).seconds):
+            d.notify = True
+            d.last_notified_timestamp = d.timestamp_index
+        elif d.disk_space_free and d.disk_space_total is not None:
+            if (0 <= float(d.disk_space_free)*100/float(d.disk_space_total) <= configuration["general"]["notifications"]["free disk space threshold (percentage)"]) and (d.timestamp_index.second - d.last_notified_timestamp.second) >= timedelta(hours=configuration["general"]["notifications"]["free disk space sleep (hours)"]).seconds:
+                d.notify = True
+                d.last_notified_timestamp = d.timestamp_index
     # IF NO FORMER DATA
     else:
-        if d["rewardState"] is False:
-            d["notify"] = True
-            d["lastNotifiedTimestamp"] = d["timestampIndex"]
-        elif d["version"] != d["clusterVersion"]:
-            d["notify"] = True
-            d["lastNotifiedTimestamp"] = d["timestampIndex"]
-        elif 0 <= float(d['diskSpaceFree'])*100/float(d['diskSpaceTotal']) <= 10:
-            d["notify"] = True
-            d["lastNotifiedTimestamp"] = d["timestampIndex"]
+        if d.reward_state is False:
+            d.notify = True
+            d.last_notified_timestamp = d.timestamp_index
+        elif d.version != d.cluster_version:
+            d.notify = True
+            d.last_notified_timestamp = d.timestamp_index
+        elif 0 <= float(d.disk_space_free)*100/float(d.disk_space_total) <= configuration["general"]["notifications"]["free disk space threshold (percentage)"]:
+            d.notify = True
+            d.last_notified_timestamp = d.timestamp_index
     return d
 
