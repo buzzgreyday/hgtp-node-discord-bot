@@ -22,28 +22,11 @@ class NodeMetrics(BaseModel):
     disk_space_total: float = None
 
     @classmethod
-    def find_in_text(cls, text):
-        results = []
+    def from_txt(cls, text):
         comprehension = ['process_uptime_seconds{application=', 'system_cpu_count{application=', 'system_load_average_1m{application=', 'disk_free_bytes{application=', 'disk_total_bytes{application=']
-        values = [float(line.split(" ")[1]) for line in text.split("\n") for item in comprehension if line.startswith(comprehension[comprehension.index(item)])]
-        print(list(values))
-        return cls(cluster_association_time=list(values)[0], cpu_count=list(values)[1], one_m_system_load_average=list(values)[2], disk_space_free=list(values)[3], disk_space_total=list(values)[4])
+        values = list(float(line.split(" ")[1]) for line in text.split("\n") for item in comprehension if line.startswith(comprehension[comprehension.index(item)]))
+        return cls(cluster_association_time=values[0], cpu_count=values[1], one_m_system_load_average=values[2], disk_space_free=values[3], disk_space_total=values[4])
 
-        """for line in text.split('\n'):
-            if not line.startswith('#'):
-                for i, item in enumerate(('process_uptime_seconds{application=', 'system_cpu_count{application=', 'system_load_average_1m{application=', 'disk_free_bytes{application=', 'disk_total_bytes{application=')):
-                    list_of_idx = [text.find(item for item in comprehension)]
-                    print(list_of_idx)
-                    idx = text.find(item)
-                    line_start = text[idx:].split('\n')
-                    value = line_start[0].split(' ')[1]
-                    print(value)
-                    results.append(value)
-                    del (value, line_start, idx)
-                    if i >= len(strings):
-                        break
-                break
-        return cls.cluster_association_time, cls.cpu_count, cls.one_m_system_load_average, cls.disk_space_free, cls.disk_space_total"""
 
 class Node(NodeBase, NodeMetrics):
     p2p_port: int = None
