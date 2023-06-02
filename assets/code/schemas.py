@@ -1,7 +1,7 @@
-from typing import ClassVar, List
+from typing import List
+import datetime as dt
 
 from pydantic import BaseModel
-import datetime as dt
 
 
 class NodeBase(BaseModel):
