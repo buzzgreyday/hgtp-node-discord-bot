@@ -8,43 +8,32 @@ from assets.code import schemas
 
 
 class Request:
+
     def __init__(self, url):
         self.url = url
 
     async def json(self, configuration):
-        timeout = aiohttp.ClientTimeout(total=configuration["general"]["request timeout (sec)"])
         async with aiohttp.ClientSession() as session:
-            async with session.get(self.url, timeout=timeout) as resp:
+            async with session.get(
+                    self.url,
+                    timeout=aiohttp.ClientTimeout(total=configuration["general"]["request timeout (sec)"])) as resp:
+
                 if resp.status == 200:
                     data = await resp.json()
                     logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST SUCCEEDED")
                     return data
+
                 elif resp.status == 503:
                     logging.debug(
                         f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST FAILED: SERVICE UNAVAILABLE")
                     return 503
+
                 else:
                     logging.critical(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST FAILED")
             del resp
             await session.close()
 
-    async def text(self, strings: list | tuple, configuration: dict):
-        """async def find_in_text(text, strings: list | tuple):
-            results = []
-
-            for line in text.split('\n'):
-                if not line.startswith('#'):
-                    for i, item in enumerate(strings):
-                        idx = text.find(item)
-                        line_start = text[idx:].split('\n')
-                        value = line_start[0].split(' ')[1]
-                        print(value)
-                        results.append(value)
-                        del (value, line_start, idx)
-                        if i >= len(strings):
-                            break
-                    break
-            return results"""
+    async def text(self, configuration: dict):
 
         timeout = aiohttp.ClientTimeout(total=configuration["general"]["request timeout (sec)"])
         async with aiohttp.ClientSession() as session:
@@ -53,10 +42,9 @@ class Request:
                     text = await resp.text()
                     logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST SUCCEEDED")
 
-                    obj = schemas.NodeMetrics.find_in_text(text)
-                    print(obj)
+                    obj = schemas.NodeMetrics.from_txt(text)
                     del text
-                    # return strings
+                    return obj
                 elif resp.status == 503:
                     logging.debug(
                         f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST FAILED: SERVICE UNAVAILABLE")
@@ -69,51 +57,25 @@ class Request:
 
 async def safe_request(request_url: str, configuration: dict):
     retry_count = 0
-    run_again = True
-    while run_again:
+    while True:
         try:
             if "metrics" in request_url.split("/"):
-                strings = ('process_uptime_seconds{application=',
-                           'system_cpu_count{application=',
-                           'system_load_average_1m{application=',
-                           'disk_free_bytes{application=',
-                           'disk_total_bytes{application='
-                           )
-                strings = await Request(request_url).text(strings, configuration)
-                schemas.NodeMetrics.find_in_text(strings)
-                """strings = ('process_uptime_seconds{application=',
-                           'system_cpu_count{application=',
-                           'system_load_average_1m{application=',
-                           'disk_free_bytes{application=',
-                           'disk_total_bytes{application='
-                           )"""
-                strings = await Request(request_url).text(strings, configuration)
-                """data = schemas.NodeMetrics(
-                    cluster_association_time=strings[0],
-                    cpu_count=strings[1],
-                    one_m_system_load_average=strings[2],
-                    disk_space_free=strings[3],
-                    disk_space_total=strings[4]
-                )"""
+                data = await Request(request_url).text(configuration)
             else:
                 data = await Request(request_url).json(configuration)
             if retry_count >= configuration['general']['request retry (count)'] or data == 503:
-                data = None
-                break
+                return None
             elif data is not None:
-                break
+                return data
             else:
                 retry_count += 1
                 await asyncio.sleep(configuration['general']['request retry interval (sec)'])
         except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientOSError,
                 aiohttp.client_exceptions.ServerDisconnectedError) as e:
             if retry_count >= configuration['general']['request retry (count)']:
-                data = None
-                break
+                return None
             retry_count += 1
             await asyncio.sleep(configuration['general']['request retry interval (sec)'])
             logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - CLUSTER @ {request_url} UNREACHABLE - TRIED {retry_count}/{configuration['general']['request retry (count)']}")
         except (aiohttp.client_exceptions.ClientConnectorError, aiohttp.client_exceptions.InvalidURL):
-            data = None
-            break
-    return data
+            return None

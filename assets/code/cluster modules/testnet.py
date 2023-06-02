@@ -15,7 +15,7 @@ import nextcord
 
 from assets.code import config, cluster, api, encode, schemas
 
-MODULE = "testnet"
+MODULE = "mainnet"
 
 """
     SECTION 1: PRELIMINARIES
@@ -144,11 +144,12 @@ async def node_cluster_data(node_data: schemas.Node, configuration: dict) -> sch
             node_data.wallet_address = encode.id_to_dag_address(node_data.id)
             node_data.node_peer_count = len(cluster_data) if cluster_data is not None else 0
             # WILL FAIL IF = NONE
-            node_data.cluster_association_time = metrics_data.cluster_association_time,
-            node_data.cpu_count = metrics_data.cpu_count,
-            node_data.one_m_system_load_average = metrics_data.one_m_system_load_average,
-            node_data.disk_space_free = metrics_data.disk_space_free,
-            node_data.disk_space_total = metrics_data.disk_space_free
+            node_data.cluster_association_time = metrics_data.cluster_association_time
+            node_data.cpu_count = metrics_data.cpu_count
+            node_data.one_m_system_load_average = metrics_data.one_m_system_load_average
+            node_data.disk_space_free = metrics_data.disk_space_free
+            node_data.disk_space_total = metrics_data.disk_space_total
+            print(node_data)
         node_data = await request_wallet_data(node_data, configuration)
         node_data = set_connectivity_specific_node_data_values(node_data)
         node_data = set_association_time(node_data)
