@@ -29,7 +29,7 @@ class Request:
             await session.close()
 
     async def text(self, strings: list | tuple, configuration: dict):
-        async def find_in_text(text, strings: list | tuple):
+        """async def find_in_text(text, strings: list | tuple):
             results = []
 
             for line in text.split('\n'):
@@ -44,7 +44,7 @@ class Request:
                         if i >= len(strings):
                             break
                     break
-            return results
+            return results"""
 
         timeout = aiohttp.ClientTimeout(total=configuration["general"]["request timeout (sec)"])
         async with aiohttp.ClientSession() as session:
@@ -52,9 +52,11 @@ class Request:
                 if resp.status == 200:
                     text = await resp.text()
                     logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST SUCCEEDED")
-                    strings = await find_in_text(text, strings)
+
+                    obj = schemas.NodeMetrics.find_in_text(text)
+                    print(obj)
                     del text
-                    return strings
+                    # return strings
                 elif resp.status == 503:
                     logging.debug(
                         f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST FAILED: SERVICE UNAVAILABLE")
@@ -78,13 +80,21 @@ async def safe_request(request_url: str, configuration: dict):
                            'disk_total_bytes{application='
                            )
                 strings = await Request(request_url).text(strings, configuration)
-                data = schemas.NodeMetrics(
+                schemas.NodeMetrics.find_in_text(strings)
+                """strings = ('process_uptime_seconds{application=',
+                           'system_cpu_count{application=',
+                           'system_load_average_1m{application=',
+                           'disk_free_bytes{application=',
+                           'disk_total_bytes{application='
+                           )"""
+                strings = await Request(request_url).text(strings, configuration)
+                """data = schemas.NodeMetrics(
                     cluster_association_time=strings[0],
                     cpu_count=strings[1],
                     one_m_system_load_average=strings[2],
                     disk_space_free=strings[3],
                     disk_space_total=strings[4]
-                )
+                )"""
             else:
                 data = await Request(request_url).json(configuration)
             if retry_count >= configuration['general']['request retry (count)'] or data == 503:
