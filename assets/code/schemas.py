@@ -1,12 +1,18 @@
-from typing import List
+import re
+from typing import List, Tuple
 import datetime as dt
 
+import pydantic
 from pydantic import BaseModel
 
 
+IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
+
+
 class NodeBase(BaseModel):
+
     name: str
-    id: str
+    id: str = None
     ip: str
     public_port: int
     layer: int
@@ -15,17 +21,17 @@ class NodeBase(BaseModel):
 
 class NodeMetrics(BaseModel):
 
-    cluster_association_time: float = None
-    cpu_count: float = None
+    cluster_association_time: int = None
+    cpu_count: int = None
     one_m_system_load_average: float = None
-    disk_space_free: float = None
-    disk_space_total: float = None
+    disk_space_free: int = None
+    disk_space_total: int = None
 
     @classmethod
     def from_txt(cls, text):
         comprehension = ['process_uptime_seconds{application=', 'system_cpu_count{application=', 'system_load_average_1m{application=', 'disk_free_bytes{application=', 'disk_total_bytes{application=']
-        values = list(float(line.split(" ")[1]) for line in text.split("\n") for item in comprehension if line.startswith(comprehension[comprehension.index(item)]))
-        return cls(cluster_association_time=values[0], cpu_count=values[1], one_m_system_load_average=values[2], disk_space_free=values[3], disk_space_total=values[4])
+        values = list(float(line.split(" ")[1]) for line in text.split("\n") for item in comprehension if line.startswith(item))
+        return cls(cluster_association_time=int(values[0]), cpu_count=int(values[1]), one_m_system_load_average=values[2], disk_space_free=int(values[3]), disk_space_total=int(values[4]))
 
 
 class Node(NodeBase, NodeMetrics):
@@ -73,6 +79,41 @@ class Cluster(NodeBase):
 
 class UserCreate(NodeBase):
     date: dt.datetime
+
+    @classmethod
+    def discord(cls, name: str, contact: int, id_: str, *args) -> List:
+        subs = []
+        """First the arguments are sliced per ip"""
+        print(args)
+        ips = list(set(filter(lambda ip: re.match(IP_REGEX, ip), args)))
+        ip_idx = list(set(map(lambda ip: args.index(ip), ips)))
+        for idx in range(0, len(ip_idx)):
+            arg = args[ip_idx[idx]:ip_idx[idx + 1]] if idx + 1 < len(ip_idx) else args[ip_idx[idx]:]
+            print(arg)
+            """Then we clean the arguments"""
+            ip = None
+            for i, val in enumerate(arg):
+                if re.match(IP_REGEX, val):
+                    ip = val
+                elif val.lower() in ("z", "zero", "l0"):
+                    for port in arg[i + 1:]:
+                        if port.isdigit():
+                            subs.append(cls(name=name, contact=contact, id=id_, ip=ip, public_port=port, layer=0, date=dt.datetime.utcnow()))
+                        else:
+                            break
+                elif val.lower() in ("o", "one", "l1"):
+                    for port in arg[i + 1:]:
+                        if port.isdigit():
+                            subs.append(cls(name=name, contact=contact, id=id_, ip=ip, public_port=port, layer=1, date=dt.datetime.utcnow()))
+                        else:
+                            break
+
+        return subs
+
+
+
+
+
 
 
 

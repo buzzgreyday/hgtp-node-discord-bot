@@ -8,7 +8,7 @@ import pandas as pd
 from dask import distributed
 from dask.distributed import Client
 import dask.dataframe as dd
-from assets.code import config, determine_module, history, user, dt, preliminaries
+from assets.code import config, determine_module, history, user, dt, preliminaries, schemas
 from assets.code.discord import discord
 from assets.code.discord.services import bot, discord_token
 import nextcord
@@ -143,6 +143,9 @@ async def s(ctx, *args):
 
     async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)
+        subscribers = schemas.UserCreate.discord(str(ctx.message.author), int(ctx.message.author.id), "h87dh8as7hd78sahd87hsa87hd887h8sa7hd87h87h87sha87dh8sadh", *args)
+        print(subscribers)
+        exit(0)
         subscriber_dataframe = await user.read(_configuration)  # Load the dataframe using the read function
         for arg in list(map(lambda arg: user.clean_args(arg), user.slice_args_per_ip(args))):
             # for each possible layer
