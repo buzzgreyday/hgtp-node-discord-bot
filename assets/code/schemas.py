@@ -119,8 +119,8 @@ class UserCreate(NodeBase):
         subscription_exists = []
 
         print(args)
-        ips = list(set(filter(lambda ip: re.match(IP_REGEX, ip), args)))
-        ip_idx = list(set(map(lambda ip: args.index(ip), ips)))
+        ips = {ip for ip in args if re.match(IP_REGEX, ip)}
+        ip_idx = [args.index(ip) for ip in ips]
         for idx in range(0, len(ip_idx)):
             # Split arguments into lists before each IP
             arg = args[ip_idx[idx]:ip_idx[idx + 1]] if idx + 1 < len(ip_idx) else args[ip_idx[idx]:]
@@ -133,16 +133,14 @@ class UserCreate(NodeBase):
                     for port in arg[i + 1:]:
                         if port.isdigit():
                             # Check if port is subscribed?
-                            id_ = await UserCreate.get_id(ip, port, configuration)
-                            subscribe.append(cls(name=name, contact=contact, id=id_, ip=ip, public_port=port, layer=0,
+                            subscribe.append(cls(name=name, contact=contact, id=await UserCreate.get_id(ip, port, configuration), ip=ip, public_port=port, layer=0,
                                              date=dt.datetime.utcnow(), type="discord"))
                         else:
                             break
                 elif val.lower() in ("o", "one", "l1"):
                     for port in arg[i + 1:]:
                         if port.isdigit():
-                            id_ = await UserCreate.get_id(ip, port, configuration)
-                            subscribe.append(cls(name=name, contact=contact, id=id_, ip=ip, public_port=port, layer=1,
+                            subscribe.append(cls(name=name, contact=contact, id=await UserCreate.get_id(ip, port, configuration), ip=ip, public_port=port, layer=1,
                                              date=dt.datetime.utcnow(), type="discord"))
                         else:
                             break
