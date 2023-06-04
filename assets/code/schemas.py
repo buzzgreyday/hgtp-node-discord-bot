@@ -86,8 +86,10 @@ class UserEnum(str, Enum):
 
 
 class UserCreate(NodeBase):
+    """This class can create a user object which can be subscribed using different methods and transformations"""
     date: dt.datetime
-    type: UserEnum
+    # UserRead should be UserEnum
+    type: str
 
     @staticmethod
     async def get_id(ip: str, port: str, configuration):
