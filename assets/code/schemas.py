@@ -11,6 +11,8 @@ IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4]
 
 
 class NodeBase(BaseModel):
+    """This class is the base from which any node related object inherits, it's also the base for user data"""
+
     name: str
     id: str = None
     ip: str
@@ -20,6 +22,8 @@ class NodeBase(BaseModel):
 
 
 class NodeMetrics(BaseModel):
+    """These node metrics can be set by accessing the "from_text(text)" classmethod using main- or testnet text resp"""
+
     cluster_association_time: int = None
     cpu_count: int = None
     one_m_system_load_average: float = None
@@ -28,6 +32,8 @@ class NodeMetrics(BaseModel):
 
     @classmethod
     def from_txt(cls, text):
+        """Only mainnet or testnet is currently supported"""
+
         comprehension = ['process_uptime_seconds{application=', 'system_cpu_count{application=',
                          'system_load_average_1m{application=', 'disk_free_bytes{application=',
                          'disk_total_bytes{application=']
@@ -38,6 +44,8 @@ class NodeMetrics(BaseModel):
 
 
 class Node(NodeBase, NodeMetrics):
+    """The base model for every user node check"""
+
     p2p_port: int = None
     wallet_address: str = None
     wallet_balance: float = None
@@ -70,6 +78,8 @@ class Node(NodeBase, NodeMetrics):
 
 
 class Cluster(NodeBase):
+    """The base model for every cluster data, this object is created pre-user node checks"""
+
     state: str = "offline"
     peer_count: int = 0
     session: int = None
@@ -81,11 +91,13 @@ class Cluster(NodeBase):
 
 
 class UserEnum(str, Enum):
+    """Should be used in UserRead"""
     discord = "discord"
 
 
 class UserCreate(NodeBase):
     """This class can create a user object which can be subscribed using different methods and transformations"""
+
     date: dt.datetime
     # UserRead should be UserEnum
     type: str
