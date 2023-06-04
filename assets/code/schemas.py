@@ -114,7 +114,10 @@ class UserCreate(NodeBase):
     async def discord(cls, configuration, name: str, contact: int, *args) -> List:
         """Takes a line of arguments from a Discord message and returns a list of subscribable user objects"""
 
-        subs = []
+        subscribe = []
+        unreachable = []
+        subscription_exists = []
+
         print(args)
         ips = list(set(filter(lambda ip: re.match(IP_REGEX, ip), args)))
         ip_idx = list(set(map(lambda ip: args.index(ip), ips)))
@@ -129,18 +132,19 @@ class UserCreate(NodeBase):
                 elif val.lower() in ("z", "zero", "l0"):
                     for port in arg[i + 1:]:
                         if port.isdigit():
+                            # Check if port is subscribed?
                             id_ = await UserCreate.get_id(ip, port, configuration)
-                            subs.append(cls(name=name, contact=contact, id=id_, ip=ip, public_port=port, layer=0,
-                                            date=dt.datetime.utcnow(), type="discord"))
+                            subscribe.append(cls(name=name, contact=contact, id=id_, ip=ip, public_port=port, layer=0,
+                                             date=dt.datetime.utcnow(), type="discord"))
                         else:
                             break
                 elif val.lower() in ("o", "one", "l1"):
                     for port in arg[i + 1:]:
                         if port.isdigit():
                             id_ = await UserCreate.get_id(ip, port, configuration)
-                            subs.append(cls(name=name, contact=contact, id=id_, ip=ip, public_port=port, layer=1,
-                                            date=dt.datetime.utcnow(), type="discord"))
+                            subscribe.append(cls(name=name, contact=contact, id=id_, ip=ip, public_port=port, layer=1,
+                                             date=dt.datetime.utcnow(), type="discord"))
                         else:
                             break
 
-        return subs
+        return subscribe
