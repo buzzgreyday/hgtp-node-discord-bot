@@ -1,9 +1,8 @@
 import re
 from enum import Enum
-from typing import List, Tuple
+from typing import List
 import datetime as dt
 
-import pydantic
 from pydantic import BaseModel
 
 from assets.code import api
