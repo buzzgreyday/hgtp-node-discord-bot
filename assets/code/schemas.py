@@ -127,19 +127,17 @@ class UserCreate(NodeBase):
             print(arg)
             for i, val in enumerate(arg):
                 if val.lower() in ("z", "zero", "l0"):
-                    ip = arg[0]
                     for port in arg[i + 1:]:
                         if port.isdigit():
                             # Check if port is subscribed?
-                            subscribe.append(cls(name=name, contact=contact, id=await UserCreate.get_id(ip, port, configuration), ip=ip, public_port=port, layer=0,
+                            subscribe.append(cls(name=name, contact=contact, id=await UserCreate.get_id(arg[0], port, configuration), ip=arg[0], public_port=port, layer=0,
                                              date=dt.datetime.utcnow(), type="discord"))
                         else:
                             break
                 elif val.lower() in ("o", "one", "l1"):
-                    ip = arg[0]
                     for port in arg[i + 1:]:
                         if port.isdigit():
-                            subscribe.append(cls(name=name, contact=contact, id=await UserCreate.get_id(ip, port, configuration), ip=ip, public_port=port, layer=1,
+                            subscribe.append(cls(name=name, contact=contact, id=await UserCreate.get_id(arg[0], port, configuration), ip=arg[0], public_port=port, layer=1,
                                              date=dt.datetime.utcnow(), type="discord"))
                         else:
                             break
