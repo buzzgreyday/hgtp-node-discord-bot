@@ -145,7 +145,7 @@ async def s(ctx, *args):
         subscriber_dataframe = await user.read(_configuration)  # Load the dataframe using the read function
         # The class below creates a list of user objects. These should be subscibed.
         subscribers = await schemas.UserCreate.discord(_configuration, str(ctx.message.author), int(ctx.message.author.id), *args)
-        # Check if data exists or ID is Noneschemas.UserCreate.validate
+        # Check if data exists or ID is None schemas.UserCreate.validate
         new_dataframe = dd.from_pandas(pd.DataFrame(list(data.dict() for data in subscribers)), npartitions=1)
         if len(await dask_client.compute(subscriber_dataframe)) == 0:
             subscriber_dataframe = new_dataframe
