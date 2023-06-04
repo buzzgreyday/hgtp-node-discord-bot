@@ -1,16 +1,17 @@
 import re
+from enum import Enum
 from typing import List, Tuple
 import datetime as dt
 
 import pydantic
 from pydantic import BaseModel
 
+from assets.code import api
 
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 
 
 class NodeBase(BaseModel):
-
     name: str
     id: str = None
     ip: str
@@ -20,7 +21,6 @@ class NodeBase(BaseModel):
 
 
 class NodeMetrics(BaseModel):
-
     cluster_association_time: int = None
     cpu_count: int = None
     one_m_system_load_average: float = None
@@ -29,9 +29,13 @@ class NodeMetrics(BaseModel):
 
     @classmethod
     def from_txt(cls, text):
-        comprehension = ['process_uptime_seconds{application=', 'system_cpu_count{application=', 'system_load_average_1m{application=', 'disk_free_bytes{application=', 'disk_total_bytes{application=']
-        values = list(float(line.split(" ")[1]) for line in text.split("\n") for item in comprehension if line.startswith(item))
-        return cls(cluster_association_time=int(values[0]), cpu_count=int(values[1]), one_m_system_load_average=values[2], disk_space_free=int(values[3]), disk_space_total=int(values[4]))
+        comprehension = ['process_uptime_seconds{application=', 'system_cpu_count{application=',
+                         'system_load_average_1m{application=', 'disk_free_bytes{application=',
+                         'disk_total_bytes{application=']
+        values = list(
+            float(line.split(" ")[1]) for line in text.split("\n") for item in comprehension if line.startswith(item))
+        return cls(cluster_association_time=int(values[0]), cpu_count=int(values[1]),
+                   one_m_system_load_average=values[2], disk_space_free=int(values[3]), disk_space_total=int(values[4]))
 
 
 class Node(NodeBase, NodeMetrics):
@@ -77,20 +81,33 @@ class Cluster(NodeBase):
     peer_data: List = []
 
 
+class UserEnum(str, Enum):
+    discord: "discord"
+
+
 class UserCreate(NodeBase):
     date: dt.datetime
+    type: UserEnum
+
+    @staticmethod
+    async def get_id(ip: str, port: str, configuration):
+        """Will need refactoring before metagraph release. Some other way to validate node?"""
+
+        print("Requesting:", f"http://{str(ip)}:{str(port)}/node/info")
+        node_data = await api.safe_request(f"http://{ip}:{port}/node/info", configuration)
+        return str(node_data["id"]) if node_data is not None else None
 
     @classmethod
-    def discord(cls, name: str, contact: int, id_: str, *args) -> List:
+    async def discord(cls, configuration, name: str, contact: int, *args) -> List:
+        """Takes a line of arguments from a Discord message and returns a list of subscribable user objects"""
+
         subs = []
-        """First the arguments are sliced per ip"""
         print(args)
         ips = list(set(filter(lambda ip: re.match(IP_REGEX, ip), args)))
         ip_idx = list(set(map(lambda ip: args.index(ip), ips)))
         for idx in range(0, len(ip_idx)):
             arg = args[ip_idx[idx]:ip_idx[idx + 1]] if idx + 1 < len(ip_idx) else args[ip_idx[idx]:]
             print(arg)
-            """Then we clean the arguments"""
             ip = None
             for i, val in enumerate(arg):
                 if re.match(IP_REGEX, val):
@@ -98,22 +115,18 @@ class UserCreate(NodeBase):
                 elif val.lower() in ("z", "zero", "l0"):
                     for port in arg[i + 1:]:
                         if port.isdigit():
-                            subs.append(cls(name=name, contact=contact, id=id_, ip=ip, public_port=port, layer=0, date=dt.datetime.utcnow()))
+                            id_ = await UserCreate.get_id(ip, port, configuration)
+                            subs.append(cls(name=name, contact=contact, id=id_, ip=ip, public_port=port, layer=0,
+                                            date=dt.datetime.utcnow(), type="discord"))
                         else:
                             break
                 elif val.lower() in ("o", "one", "l1"):
                     for port in arg[i + 1:]:
                         if port.isdigit():
-                            subs.append(cls(name=name, contact=contact, id=id_, ip=ip, public_port=port, layer=1, date=dt.datetime.utcnow()))
+                            id_ = await UserCreate.get_id(ip, port, configuration)
+                            subs.append(cls(name=name, contact=contact, id=id_, ip=ip, public_port=port, layer=1,
+                                            date=dt.datetime.utcnow(), type="discord"))
                         else:
                             break
 
         return subs
-
-
-
-
-
-
-
-

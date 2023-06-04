@@ -132,45 +132,21 @@ async def loop():
 
 @bot.event
 async def on_ready():
+    """Prints a message to the logs when connection to Discord is established (bot is running)"""
     logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - CONNECTION TO DISCORD ESTABLISHED")
 
 
 @bot.command()
 async def s(ctx, *args):
-    subscriptions = []
-    existing_subscriptions = []
-    invalid_subscriptions = []
+    """This function takes arguments from the Discord context (message) and create a new subscription for the user"""
 
     async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)
-        subscribers = schemas.UserCreate.discord(str(ctx.message.author), int(ctx.message.author.id), "h87dh8as7hd78sahd87hsa87hd887h8sa7hd87h87h87sha87dh8sadh", *args)
-        print(subscribers)
-        exit(0)
+
+        # The class below creates a list of user objects. These should be subscibed.
+        subscribers = await schemas.UserCreate.discord(_configuration, str(ctx.message.author), int(ctx.message.author.id), *args)
+        new_dataframe = dd.from_pandas(pd.DataFrame(list(data.dict() for data in subscribers)), npartitions=1)
         subscriber_dataframe = await user.read(_configuration)  # Load the dataframe using the read function
-        for arg in list(map(lambda arg: user.clean_args(arg), user.slice_args_per_ip(args))):
-            # for each possible layer
-            for L in (0, 1):
-                # check for each layer port subscription
-                for port in arg[L]:
-                    filtered_df = await dask_client.compute(subscriber_dataframe[(subscriber_dataframe["ip"] == arg[2]) & (subscriber_dataframe["public_port"] == port) & (subscriber_dataframe["layer"] == L)])
-                    if len(filtered_df) == 0:
-                        subscriptions.append([L, arg[2], port])
-                    else:
-                        existing_subscriptions.append([L, arg[2], port])
-
-        for idx, sub_data in enumerate(subscriptions):
-            identity = await user.validate_subscriber(sub_data[1], sub_data[2], _configuration)
-            if identity is None:
-                invalid_subscriptions.append(sub_data.append(identity))
-                subscriptions.pop(idx)
-            else:
-                sub_data.append(identity)
-
-        print(subscriptions, invalid_subscriptions, existing_subscriptions)
-        data = []
-        for sub_data in subscriptions:
-            data.append({"public_port": int(sub_data[2]), "layer": int(sub_data[0]), "ip": str(sub_data[1]), "id": str(sub_data[3]), "name": str(ctx.message.author), "contact": int(ctx.message.author.id)})
-        new_dataframe = dd.from_pandas(pd.DataFrame(data), npartitions=1)
         if len(await dask_client.compute(subscriber_dataframe)) == 0:
             subscriber_dataframe = new_dataframe
         else:
