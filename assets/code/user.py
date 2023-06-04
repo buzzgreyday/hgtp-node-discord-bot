@@ -70,7 +70,8 @@ async def write(dask_client, dataframe, configuration):
 async def read(configuration: dict):
     logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - READING SUBSCRIBER DATA AND RETURNING DATAFRAME")
     if not await os.path.exists(configuration["file settings"]["locations"]["subscribers_new"]):
-        print("SUB NOT EXISTS")
+        print("NO USER DATABASE EXISTS")
         return dd.from_pandas(pd.DataFrame(columns=configuration["file settings"]["columns"]["subscribers_new"]), npartitions=1)
     elif await os.path.exists(configuration["file settings"]["locations"]["subscribers_new"]):
+        print("USER DATABASE EXISTS")
         return dd.read_parquet(configuration["file settings"]["locations"]["subscribers_new"])
