@@ -34,11 +34,11 @@ class NodeMetrics(BaseModel):
     def from_txt(cls, text):
         """Only mainnet or testnet is currently supported"""
 
-        comprehension = ['process_uptime_seconds{application=', 'system_cpu_count{application=',
-                         'system_load_average_1m{application=', 'disk_free_bytes{application=',
-                         'disk_total_bytes{application=']
+        lst = ['process_uptime_seconds{application=', 'system_cpu_count{application=',
+               'system_load_average_1m{application=', 'disk_free_bytes{application=',
+               'disk_total_bytes{application=']
         values = list(
-            float(line.split(" ")[1]) for line in text.split("\n") for item in comprehension if line.startswith(item))
+            float(line.split(" ")[1]) for line in text.split("\n") for item in lst if line.startswith(item))
         return cls(cluster_association_time=int(values[0]), cpu_count=int(values[1]),
                    one_m_system_load_average=values[2], disk_space_free=int(values[3]), disk_space_total=int(values[4]))
 
@@ -125,11 +125,9 @@ class UserCreate(NodeBase):
             # Split arguments into lists before each IP
             arg = args[ip_idx[idx]:ip_idx[idx + 1]] if idx + 1 < len(ip_idx) else args[ip_idx[idx]:]
             print(arg)
-            ip = None
             for i, val in enumerate(arg):
-                if re.match(IP_REGEX, val):
-                    ip = val
-                elif val.lower() in ("z", "zero", "l0"):
+                if val.lower() in ("z", "zero", "l0"):
+                    ip = arg[0]
                     for port in arg[i + 1:]:
                         if port.isdigit():
                             # Check if port is subscribed?
@@ -138,6 +136,7 @@ class UserCreate(NodeBase):
                         else:
                             break
                 elif val.lower() in ("o", "one", "l1"):
+                    ip = arg[0]
                     for port in arg[i + 1:]:
                         if port.isdigit():
                             subscribe.append(cls(name=name, contact=contact, id=await UserCreate.get_id(ip, port, configuration), ip=ip, public_port=port, layer=1,
