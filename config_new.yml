@@ -95,7 +95,7 @@ file settings:
       date: str
       id: str
       ip: str
-      layer: str
+      layer: int
       name: str
       public_port: int
       type: str

@@ -82,7 +82,7 @@ class Cluster(NodeBase):
 
 
 class UserEnum(str, Enum):
-    discord: "discord"
+    discord = "discord"
 
 
 class UserCreate(NodeBase):
