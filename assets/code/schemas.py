@@ -108,6 +108,7 @@ class UserCreate(NodeBase):
         ips = list(set(filter(lambda ip: re.match(IP_REGEX, ip), args)))
         ip_idx = list(set(map(lambda ip: args.index(ip), ips)))
         for idx in range(0, len(ip_idx)):
+            # Split arguments into lists before each IP
             arg = args[ip_idx[idx]:ip_idx[idx + 1]] if idx + 1 < len(ip_idx) else args[ip_idx[idx]:]
             print(arg)
             ip = None
