@@ -138,22 +138,43 @@ async def on_ready():
 
 @bot.command()
 async def s(ctx, *args):
-    """This function takes arguments from the Discord context (message) and create a new subscription for the user"""
+    """This function treats a Discord message (context) as a line of arguments and attempts to create a new user subscription"""
 
     async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)
         subscriber_dataframe = await user.read(_configuration)  # Load the dataframe using the read function
         # The class below creates a list of user objects. These should be subscibed.
-        subscribers = await schemas.UserCreate.discord(_configuration, str(ctx.message.author), int(ctx.message.author.id), *args)
+        user_data = await schemas.User.discord(_configuration, "subscribe", str(ctx.message.author), int(ctx.message.author.id), *args)
         # Check if data exists or ID is None schemas.UserCreate.validate
-        new_dataframe = dd.from_pandas(pd.DataFrame(list(data.dict() for data in subscribers)), npartitions=1)
+        new_dataframe = dd.from_pandas(pd.DataFrame(list(data.dict() for data in user_data)), npartitions=1)
         if len(await dask_client.compute(subscriber_dataframe)) == 0:
             subscriber_dataframe = new_dataframe
         else:
             subscriber_dataframe = subscriber_dataframe.append(new_dataframe)
         print(await dask_client.compute(subscriber_dataframe.reset_index(drop=True)))
-
         await user.write(dask_client, subscriber_dataframe.reset_index(drop=True), _configuration)
+
+        await dask_client.close()
+
+
+@bot.command()
+async def u(ctx, *args):
+    """This function treats a Discord message (context) as a line of arguments and attempts to unsubscribe the user"""
+
+    async with Client(cluster) as dask_client:
+        await dask_client.wait_for_workers(n_workers=1)
+        subscriber_dataframe = await user.read(_configuration)  # Load the dataframe using the read function
+        # The class below creates a list of user objects. These should be unsubscibed.
+        user_data = await schemas.User.discord(_configuration, "unsubscribe", str(ctx.message.author), int(ctx.message.author.id), *args)
+
+        for dict_ in user_data:
+            # subscriber_dataframe = subscriber_dataframe.reset_index()
+            subscriber_dataframe = await dask_client.compute(subscriber_dataframe)
+            print(subscriber_dataframe)
+            subscriber_dataframe = subscriber_dataframe.drop(subscriber_dataframe[(subscriber_dataframe.name == dict_.name) & (subscriber_dataframe.contact == dict_.contact) & (subscriber_dataframe.ip == dict_.ip) & (subscriber_dataframe.public_port == dict_.public_port) & (subscriber_dataframe.type == "discord")].index)
+            print(subscriber_dataframe)
+            subscriber_dataframe = await dd.from_pandas(subscriber_dataframe, npartitions=1)
+        await user.write(dask_client, subscriber_dataframe, _configuration)
         await dask_client.close()
 
 

@@ -95,7 +95,7 @@ class UserEnum(str, Enum):
     discord = "discord"
 
 
-class UserCreate(NodeBase):
+class User(NodeBase):
     """This class can create a user object which can be subscribed using different methods and transformations"""
 
     date: dt.datetime
@@ -111,10 +111,10 @@ class UserCreate(NodeBase):
         return str(node_data["id"]) if node_data is not None else None
 
     @classmethod
-    async def discord(cls, configuration, name: str, contact: int, *args) -> List:
-        """Takes a line of arguments from a Discord message and returns a list of subscribable user objects"""
+    async def discord(cls, configuration, mode: str, name: str, contact: int, *args) -> List:
+        """Treats a Discord message as a line of arguments and returns a list of subscribable user objects"""
 
-        subscribe = []
+        user_data = []
         unreachable = []
         subscription_exists = []
 
@@ -126,20 +126,29 @@ class UserCreate(NodeBase):
             arg = args[ip_idx[idx]:ip_idx[idx + 1]] if idx + 1 < len(ip_idx) else args[ip_idx[idx]:]
             print(arg)
             for i, val in enumerate(arg):
-                if val.lower() in ("z", "zero", "l0"):
+                if val.lower() in ("z", "-z", "zero", "l0", "-l0"):
                     for port in arg[i + 1:]:
                         if port.isdigit():
                             # Check if port is subscribed?
-                            subscribe.append(cls(name=name, contact=contact, id=await UserCreate.get_id(arg[0], port, configuration), ip=arg[0], public_port=port, layer=0,
+                            if mode == "subscribe":
+                                id_ = await User.get_id(arg[0], port, configuration)
+                            else:
+                                id_ = None
+                            user_data.append(cls(name=name, contact=contact, id=id_, ip=arg[0], public_port=port, layer=0,
                                              date=dt.datetime.utcnow(), type="discord"))
                         else:
                             break
-                elif val.lower() in ("o", "one", "l1"):
+                elif val.lower() in ("o", "-o", "one", "l1", "-l1"):
                     for port in arg[i + 1:]:
                         if port.isdigit():
-                            subscribe.append(cls(name=name, contact=contact, id=await UserCreate.get_id(arg[0], port, configuration), ip=arg[0], public_port=port, layer=1,
-                                             date=dt.datetime.utcnow(), type="discord"))
+                            if mode == "subscribe":
+                                id_ = await User.get_id(arg[0], port, configuration)
+                            else:
+                                id_ = None
+                            user_data.append(
+                                cls(name=name, contact=contact, id=id_, ip=arg[0], public_port=port, layer=1,
+                                    date=dt.datetime.utcnow(), type="discord"))
                         else:
                             break
 
-        return subscribe
+        return user_data
