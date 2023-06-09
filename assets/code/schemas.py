@@ -102,6 +102,8 @@ class User(NodeBase):
     # UserRead should be UserEnum
     type: str
 
+    # VALIDATE ID VALUE, CREATE CUSTOM EXCEPTION!
+
     @staticmethod
     async def get_id(ip: str, port: str, mode, configuration):
         """Will need refactoring before metagraph release. Some other way to validate node?"""
@@ -131,16 +133,13 @@ class User(NodeBase):
                     for port in arg[i + 1:]:
                         if port.isdigit():
                             # Check if port is subscribed?
-                            user_data.append(cls(name=name, contact=contact, id=await User.get_id(arg[0], port, mode, configuration), ip=arg[0], public_port=port, layer=0,
-                                             date=dt.datetime.utcnow(), type="discord"))
+                            user_data.append(cls(name=name, contact=contact, id=await User.get_id(arg[0], port, mode, configuration), ip=arg[0], public_port=port, layer=0, date=dt.datetime.utcnow(), type="discord"))
                         else:
                             break
                 elif val.lower() in ("o", "-o", "one", "l1", "-l1"):
                     for port in arg[i + 1:]:
                         if port.isdigit():
-                            user_data.append(
-                                cls(name=name, contact=contact, id=await User.get_id(arg[0], port, mode, configuration), ip=arg[0], public_port=port, layer=1,
-                                    date=dt.datetime.utcnow(), type="discord"))
+                            user_data.append(cls(name=name, contact=contact, id=await User.get_id(arg[0], port, mode, configuration), ip=arg[0], public_port=port, layer=1, date=dt.datetime.utcnow(), type="discord"))
                         else:
                             break
 
