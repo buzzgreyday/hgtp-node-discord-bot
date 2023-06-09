@@ -103,20 +103,21 @@ class User(NodeBase):
     type: str
 
     @staticmethod
-    async def get_id(ip: str, port: str, configuration):
+    async def get_id(ip: str, port: str, mode, configuration):
         """Will need refactoring before metagraph release. Some other way to validate node?"""
+        if mode == "subscribe":
+            print("Requesting:", f"http://{str(ip)}:{str(port)}/node/info")
+            node_data = await api.safe_request(f"http://{ip}:{port}/node/info", configuration)
+            return str(node_data["id"]) if node_data is not None else None
+        else:
+            return None
 
-        print("Requesting:", f"http://{str(ip)}:{str(port)}/node/info")
-        node_data = await api.safe_request(f"http://{ip}:{port}/node/info", configuration)
-        return str(node_data["id"]) if node_data is not None else None
 
     @classmethod
     async def discord(cls, configuration, mode: str, name: str, contact: int, *args) -> List:
         """Treats a Discord message as a line of arguments and returns a list of subscribable user objects"""
 
         user_data = []
-        unreachable = []
-        subscription_exists = []
 
         print(args)
         ips = {ip for ip in args if re.match(IP_REGEX, ip)}
@@ -130,23 +131,15 @@ class User(NodeBase):
                     for port in arg[i + 1:]:
                         if port.isdigit():
                             # Check if port is subscribed?
-                            if mode == "subscribe":
-                                id_ = await User.get_id(arg[0], port, configuration)
-                            else:
-                                id_ = None
-                            user_data.append(cls(name=name, contact=contact, id=id_, ip=arg[0], public_port=port, layer=0,
+                            user_data.append(cls(name=name, contact=contact, id=await User.get_id(arg[0], port, mode, configuration), ip=arg[0], public_port=port, layer=0,
                                              date=dt.datetime.utcnow(), type="discord"))
                         else:
                             break
                 elif val.lower() in ("o", "-o", "one", "l1", "-l1"):
                     for port in arg[i + 1:]:
                         if port.isdigit():
-                            if mode == "subscribe":
-                                id_ = await User.get_id(arg[0], port, configuration)
-                            else:
-                                id_ = None
                             user_data.append(
-                                cls(name=name, contact=contact, id=id_, ip=arg[0], public_port=port, layer=1,
+                                cls(name=name, contact=contact, id=await User.get_id(arg[0], port, mode, configuration), ip=arg[0], public_port=port, layer=1,
                                     date=dt.datetime.utcnow(), type="discord"))
                         else:
                             break
