@@ -166,13 +166,9 @@ async def u(ctx, *args):
         subscriber_dataframe = await user.read(_configuration)  # Load the dataframe using the read function
         # The class below creates a list of user objects. These should be unsubscibed.
         user_data = await schemas.User.discord(_configuration, "unsubscribe", str(ctx.message.author), int(ctx.message.author.id), *args)
-
+        subscriber_dataframe = await dask_client.compute(subscriber_dataframe)
         for dict_ in user_data:
-            # subscriber_dataframe = subscriber_dataframe.reset_index()
-            subscriber_dataframe = await dask_client.compute(subscriber_dataframe)
-            print(subscriber_dataframe)
             subscriber_dataframe = subscriber_dataframe.drop(subscriber_dataframe[(subscriber_dataframe.name == dict_.name) & (subscriber_dataframe.contact == dict_.contact) & (subscriber_dataframe.ip == dict_.ip) & (subscriber_dataframe.public_port == dict_.public_port) & (subscriber_dataframe.type == "discord")].index)
-            print(subscriber_dataframe)
             subscriber_dataframe = await dd.from_pandas(subscriber_dataframe, npartitions=1)
         await user.write(dask_client, subscriber_dataframe, _configuration)
         await dask_client.close()
