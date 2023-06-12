@@ -68,7 +68,7 @@ async def main(ctx, process_msg, requester, _configuration) -> None:
         process_msg = await discord.update_request_process_msg(process_msg, 6, None)
         # If not request received through Discord channel
         if process_msg is None:
-            await history.write(dask_client, data, _configuration)
+            await history.write(dask_client, history_dataframe, data, _configuration)
     # Write node id, ip, ports to subscriber list, then base code on id
     await discord.send(ctx, process_msg, bot, data, _configuration)
     await discord.update_request_process_msg(process_msg, 7, None)

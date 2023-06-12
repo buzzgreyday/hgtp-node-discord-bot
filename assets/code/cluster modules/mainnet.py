@@ -256,35 +256,35 @@ def build_title(node_data):
         return f"layer {node_data['layer']} node ({node_data['host']}) {title_ending}"
 
 
-def build_general_node_state(node_data):
+def build_general_node_state(node_data: schemas.Node):
     def node_state_field():
-        if node_data["id"] is not None:
+        if node_data.id is not None:
             return f"{field_symbol} **NODE**\n" \
                    f"```\n" \
-                   f"Peers: {node_data['nodePeerCount']}\n" \
-                   f"ID: {node_data['id'][:6]}...{node_data['id'][-6:]}\n" \
-                   f"IP: {node_data['host']}\n" \
-                   f"Subscribed Port: {node_data['publicPort']}\n" \
+                   f"Peers: {node_data.node_peer_count}\n" \
+                   f"ID: {node_data.id[:6]}...{node_data.id[-6:]}\n" \
+                   f"IP: {node_data.ip}\n" \
+                   f"Subscribed Port: {node_data.public_port}\n" \
                    f"State: {node_state}```" \
                    f"{field_info}"
-        elif node_data["id"] is None:
+        elif node_data.id is None:
             return f"{field_symbol} **NODE**\n" \
                    f"```\n" \
-                   f"Peers: {node_data['nodePeerCount']}\n" \
-                   f"IP: {node_data['host']}\n" \
-                   f"Subscribed Port: {node_data['publicPort']}\n" \
+                   f"Peers: {node_data.node_peer_count}\n" \
+                   f"IP: {node_data.ip}\n" \
+                   f"Subscribed Port: {node_data.public_port}\n" \
                    f"State: {node_state}```" \
                    f"{field_info}"
 
-    if node_data["state"] != "offline":
+    if node_data.state != "offline":
         field_symbol = ":green_square:"
-        if node_data["clusterPeerCount"] in (None, 0):
+        if node_data in (None, 0):
             field_info = f"`ⓘ  The node is not connected to any known cluster`"
         else:
-            field_info = f"`ⓘ  Connected to {node_data['nodePeerCount']*100/node_data['clusterPeerCount']}% of the cluster peers`"
-        node_state = node_data['state'].title()
+            field_info = f"`ⓘ  Connected to {node_data.node_peer_count*100/node_data.cluster_peer_count}% of the cluster peers`"
+        node_state = node_data.state.title()
         return node_state_field(), False, yellow_color_trigger
-    elif node_data["state"] == "offline":
+    elif node_data.state == "offline":
         field_symbol = f":red_square:"
         field_info = f"`ⓘ  The node is connected to 0% of the previously associated cluster`"
         node_state = "Offline"
@@ -292,52 +292,52 @@ def build_general_node_state(node_data):
         return node_state_field(), red_color_trigger, yellow_color_trigger
 
 
-def build_general_cluster_state(node_data):
+def build_general_cluster_state(node_data: schemas.Node):
     def general_cluster_state_field():
         return f"{field_symbol} **MAINNET CLUSTER**\n" \
                f"```\n" \
-               f"Peers:   {node_data['clusterPeerCount']}\n" \
-               f"Assoc.:  {timedelta(seconds=float(node_data['clusterAssociationTime'])).days} days {association_percent()}%\n" \
-               f"Dissoc.: {timedelta(seconds=float(node_data['clusterDissociationTime'])).days} days {100.00-association_percent()}%```" \
+               f"Peers:   {node_data.cluster_peer_count}\n" \
+               f"Assoc.:  {timedelta(seconds=float(node_data.cluster_association_time)).days} days {association_percent()}%\n" \
+               f"Dissoc.: {timedelta(seconds=float(node_data.cluster_dissociation_time)).days} days {100.00-association_percent()}%```" \
                f"{field_info}"
 
     def association_percent():
-        if node_data["clusterAssociationTime"] and node_data["clusterDissociationTime"] not in (0, None):
-            return round(float(node_data['clusterAssociationTime'])*100/float(node_data['clusterAssociationTime'])+float(node_data['clusterDissociationTime']), 2)
-        elif node_data["clusterAssociationTime"] not in (0, None) and node_data["clusterDissociationTime"] == 0:
-            return round(float(node_data['clusterAssociationTime'])*100/float(node_data['clusterAssociationTime'])+float(0.0), 2)
-        elif node_data["clusterAssociationTime"] in (0, None) and node_data["clusterDissociationTime"] not in (0, None):
-            return round(float(node_data['clusterAssociationTime'])*100/float(0.0)+float(node_data['clusterDissociationTime']), 2)
+        if node_data.cluster_association_time and node_data.cluster_dissociation_time not in (0, None):
+            return round(float(node_data.cluster_association_time)*100/float(node_data.cluster_association_time)+float(node_data.cluster_dissociation_time), 2)
+        elif node_data.cluster_association_time not in (0, None) and node_data.cluster_dissociation_time == 0:
+            return round(float(node_data.cluster_association_time)*100/float(node_data.cluster_association_time)+float(0.0), 2)
+        elif node_data.cluster_association_time in (0, None) and node_data.cluster_dissociation_time not in (0, None):
+            return round(float(node_data.cluster_association_time)*100/float(0.0)+float(node_data.cluster_dissociation_time), 2)
         else:
             return 0
 
-    if node_data["clusterConnectivity"] == "new association":
+    if node_data.cluster_connectivity == "new association":
         field_symbol = ":green_square:"
         field_info = f"`ⓘ  Association with the cluster was recently established`"
         return general_cluster_state_field(), False, yellow_color_trigger
-    elif node_data["clusterConnectivity"] == "association":
+    elif node_data.cluster_connectivity == "association":
         field_symbol = ":green_square:"
         field_info = f"`ⓘ  The node is consecutively associated with the cluster`"
         return general_cluster_state_field(), False, yellow_color_trigger
-    elif node_data["clusterConnectivity"] == "new dissociation":
+    elif node_data.cluster_connectivity == "new dissociation":
         field_symbol = ":red_square:"
         field_info = f"`ⓘ  The node was recently dissociated from the cluster`"
         red_color_trigger = True
         return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
-    elif node_data["clusterConnectivity"] == "dissociation":
+    elif node_data.cluster_connectivity == "dissociation":
         field_symbol = ":red_square:"
         field_info = f"`ⓘ  The node is consecutively dissociated from the cluster`"
         red_color_trigger = True
         return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
-    elif node_data["clusterConnectivity"] is None:
+    elif node_data.cluster_connectivity is None:
         field_symbol = ":yellow_square:"
         field_info = f""
         return general_cluster_state_field(), False, yellow_color_trigger
     else:
-        print(node_data["clusterConnectivity"])
+        print(node_data.cluster_connectivity)
 
 
-def build_general_node_wallet(node_data):
+def build_general_node_wallet(node_data: schemas.Node):
     def wallet_field(field_symbol, reward_percentage, field_info):
         if node_data["layer"] == 1:
             return f"{field_symbol} **WALLET**\n" \

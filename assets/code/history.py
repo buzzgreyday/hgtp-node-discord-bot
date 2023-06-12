@@ -35,20 +35,26 @@ def former_node_data(historic_node_dataframe):
         historic_node_dataframe["timestamp_index"] == historic_node_dataframe["timestamp_index"].max()]
 
 
-async def write(dask_client, node_data: schemas.Node, configuration):
-    history_dataframe = dd.from_pandas(pd.DataFrame(node_data.dict()), npartitions=1)
-    """history_dataframe["publicPort"] = history_dataframe["publicPort"].astype(float)
-    history_dataframe["clusterAssociationTime"] = history_dataframe["clusterAssociationTime"].astype(float)
-    history_dataframe["clusterAssociationTime"] = history_dataframe["clusterAssociationTime"].astype(float)
-    history_dataframe["clusterDissociationTime"] = history_dataframe["clusterDissociationTime"].astype(float)
-    history_dataframe["formerTimestampIndex"] = history_dataframe["formerTimestampIndex"].astype(str)
-    history_dataframe["rewardTrueCount"] = history_dataframe["rewardTrueCount"].astype(float)
-    history_dataframe["rewardFalseCount"] = history_dataframe["rewardFalseCount"].astype(float)
-    history_dataframe["rewardState"] = history_dataframe["rewardState"].astype(bool)"""
+async def write(dask_client, history_dataframe, node_data: schemas.Node, configuration):
+    print(node_data)
+    if node_data is not None:
+        new_history_dataframe = dd.from_pandas(pd.DataFrame(node_data.dict()), npartitions=1)
+        if len(await dask_client.compute(history_dataframe)) == 0:
+            history_dataframe = new_history_dataframe
+        else:
+            history_dataframe = history_dataframe.append(new_history_dataframe)
+        """history_dataframe["publicPort"] = history_dataframe["publicPort"].astype(float)
+        history_dataframe["clusterAssociationTime"] = history_dataframe["clusterAssociationTime"].astype(float)
+        history_dataframe["clusterAssociationTime"] = history_dataframe["clusterAssociationTime"].astype(float)
+        history_dataframe["clusterDissociationTime"] = history_dataframe["clusterDissociationTime"].astype(float)
+        history_dataframe["formerTimestampIndex"] = history_dataframe["formerTimestampIndex"].astype(str)
+        history_dataframe["rewardTrueCount"] = history_dataframe["rewardTrueCount"].astype(float)
+        history_dataframe["rewardFalseCount"] = history_dataframe["rewardFalseCount"].astype(float)
+        history_dataframe["rewardState"] = history_dataframe["rewardState"].astype(bool)"""
 
-    fut = history_dataframe.to_parquet(configuration["file settings"]["locations"]["history_new"], overwrite=False, compute=False, write_index=False)
-    await dask_client.compute(fut)
-    logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - Writing history to parquet")
+        fut = history_dataframe.to_parquet(configuration["file settings"]["locations"]["history_new"], overwrite=False, compute=False, write_index=False)
+        await dask_client.compute(fut)
+        logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - Writing history to parquet")
 
 
 async def read(configuration: dict):
