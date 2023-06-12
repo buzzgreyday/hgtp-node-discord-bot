@@ -339,41 +339,41 @@ def build_general_cluster_state(node_data: schemas.Node):
 
 def build_general_node_wallet(node_data: schemas.Node):
     def wallet_field(field_symbol, reward_percentage, field_info):
-        if node_data["layer"] == 1:
+        if node_data.layer == 1:
             return f"{field_symbol} **WALLET**\n" \
                f"```\n" \
-               f"Address: {node_data['nodeWalletAddress']}\n" \
-               f"Balance: {node_data['nodeWalletBalance']/100000000} ＄DAG```" \
+               f"Address: {node_data.wallet_address}\n" \
+               f"Balance: {node_data.wallet_balance/100000000} ＄DAG```" \
                f"{field_info}"
         else:
             return f"{field_symbol} **WALLET**\n" \
                    f"```\n" \
-                   f"Address: {node_data['nodeWalletAddress']}\n" \
-                   f"Balance: {node_data['nodeWalletBalance']/100000000} ＄DAG\n" \
+                   f"Address: {node_data.wallet_address}\n" \
+                   f"Balance: {node_data.wallet_balance/100000000} ＄DAG\n" \
                    f"Reward frequency: {round(float(reward_percentage), 2)}%```" \
                    f"{field_info}"
 
     def field_from_wallet_conditions():
-        if node_data["rewardTrueCount"] in (0, None):
+        if node_data.reward_true_count in (0, None):
             reward_percentage = 0
-        elif node_data["rewardFalseCount"] in (0, None):
+        elif node_data.reward_false_count in (0, None):
             reward_percentage = 100
         else:
-            reward_percentage = float(node_data['rewardTrueCount']) * 100 / float(node_data['rewardFalseCount'])
-        if node_data["nodeWalletBalance"] >= 250000 * 100000000:
-            if node_data["rewardState"] is False:
+            reward_percentage = float(node_data.reward_true_count) * 100 / float(node_data.reward_false_count)
+        if node_data.wallet_balance >= 250000 * 100000000:
+            if node_data.reward_state is False:
                 # TEMPROARY FIC SINCE MAINNET LAYER ONE DOESN'T SUPPORT REWARDS
-                if node_data["layer"] == 1:
+                if node_data.layer == 1:
                     field_symbol = ":green_square:"
                 else:
                     field_symbol = ":red_square:"
-                if node_data["formerRewardState"] is True:
+                if node_data.former_reward_state is True:
                     field_info = f":red_circle:` The wallet recently stopped receiving rewards`"
                     red_color_trigger = True
                     return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
                 else:
                     # TEMPROARY FIC SINCE MAINNET LAYER ONE DOESN'T SUPPORT REWARDS
-                    if node_data["layer"] == 1:
+                    if node_data.layer == 1:
                         field_info = f"`ⓘ  {MODULE} layer one does not currently distribute rewards. Please refer to the " \
                                      f"layer 0 report`"
                         return wallet_field(field_symbol, reward_percentage, field_info), False, False
@@ -381,16 +381,16 @@ def build_general_node_wallet(node_data: schemas.Node):
                         field_info = f":red_circle:` The wallet doesn't receive rewards`"
                         red_color_trigger = True
                         return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
-            elif node_data["rewardState"] is True:
+            elif node_data.reward_state is True:
                 field_symbol = ":green_square:"
-                if node_data["formerRewardState"] is False:
+                if node_data.former_reward_state is False:
                     field_info = f":coin:` The wallet recently started receiving rewards`"
                     return wallet_field(field_symbol, reward_percentage, field_info), False, False
                 else:
                     field_info = f":coin:` The wallet receives rewards`"
                     return wallet_field(field_symbol, reward_percentage, field_info), False, False
-            elif node_data["rewardState"] is None:
-                if node_data["layer"] == 1:
+            elif node_data.reward_state is None:
+                if node_data.layer == 1:
                     field_symbol = ":green_square:"
                     field_info = f"`ⓘ  {MODULE} layer one does not currently distribute rewards. Please refer to the " \
                                  f"layer 0 report`"
@@ -401,15 +401,15 @@ def build_general_node_wallet(node_data: schemas.Node):
                     yellow_color_trigger = True
                 return wallet_field(field_symbol, reward_percentage, field_info), False, yellow_color_trigger
         else:
-            if (node_data["clusterNames"] or node_data["formerClusterNames"]) != "testnet":
+            if (node_data.cluster_name or node_data.former_cluster_name) != "testnet":
                 field_symbol = ":red_square:"
                 field_info = f"`⚠ The wallet doesn't hold sufficient collateral`"
                 red_color_trigger = True
                 return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
             else:
-                if node_data["rewardState"] is True:
+                if node_data.reward_state is True:
                     field_symbol = ":green_square:"
-                    if node_data["formerRewardState"] is False:
+                    if node_data.former_reward_state is False:
                         field_info = f":coin:` The wallet recently started receiving rewards`\n" \
                                      f"`ⓘ  No minimum collateral required`"
                         return wallet_field(field_symbol, reward_percentage, field_info), False, False
@@ -419,9 +419,9 @@ def build_general_node_wallet(node_data: schemas.Node):
 
                         return wallet_field(field_symbol, reward_percentage, field_info), False, False
 
-                elif node_data["rewardState"] is False:
+                elif node_data.reward_state is False:
                     field_symbol = ":red_square:"
-                    if node_data["formerRewardState"] is True:
+                    if node_data.former_reward_state is True:
                         field_info = f":red_circle:` The wallet recently stopped receiving rewards`\n" \
                                      f"`ⓘ  No minimum collateral required`"
 
@@ -441,7 +441,7 @@ def build_general_node_wallet(node_data: schemas.Node):
                     yellow_color_trigger = True
                     return wallet_field(field_symbol, reward_percentage, field_info), False, yellow_color_trigger
 
-    if node_data["nodeWalletAddress"] is not None:
+    if node_data.wallet_address is not None:
         field_content, red_color_trigger, yellow_color_trigger = field_from_wallet_conditions()
         return field_content, red_color_trigger, yellow_color_trigger
     else:
@@ -449,7 +449,7 @@ def build_general_node_wallet(node_data: schemas.Node):
                f"`ⓘ  No data available`", False, False
 
 
-def build_system_node_version(node_data):
+def build_system_node_version(node_data: schemas.Node):
 
     def version_field():
         return f"{field_symbol} **TESSELLATION**\n" \
