@@ -45,14 +45,13 @@ async def write(dask_client, history_dataframe, data: List[schemas.Node], config
             history_dataframe = new_history_dataframe
         else:
             history_dataframe = history_dataframe.append(new_history_dataframe)
-        history_dataframe["publicPort"] = history_dataframe["publicPort"].astype(float)
-        history_dataframe["clusterAssociationTime"] = history_dataframe["clusterAssociationTime"].astype(float)
-        history_dataframe["clusterAssociationTime"] = history_dataframe["clusterAssociationTime"].astype(float)
-        history_dataframe["clusterDissociationTime"] = history_dataframe["clusterDissociationTime"].astype(float)
-        history_dataframe["formerTimestampIndex"] = history_dataframe["formerTimestampIndex"].astype(str)
-        history_dataframe["rewardTrueCount"] = history_dataframe["rewardTrueCount"].astype(float)
-        history_dataframe["rewardFalseCount"] = history_dataframe["rewardFalseCount"].astype(float)
-        history_dataframe["rewardState"] = history_dataframe["rewardState"].astype(bool)
+        history_dataframe.public_port = history_dataframe.public_port.astype(float)
+        history_dataframe.cluster_association_time = history_dataframe.cluster_association_time.astype(float)
+        history_dataframe.cluster_dissociation_time = history_dataframe.cluster_dissociation_time.astype(float)
+        history_dataframe.former_timestamp_index = history_dataframe.former_timestamp_index.astype(str)
+        history_dataframe.reward_true_count = history_dataframe.reward_true_count.astype(float)
+        history_dataframe.reward_false_count = history_dataframe.reward_false_count.astype(float)
+        history_dataframe.reward_state = history_dataframe.reward_state.astype(bool)
 
         fut = history_dataframe.to_parquet(configuration["file settings"]["locations"]["history_new"], overwrite=False, compute=False, write_index=False)
         await dask_client.compute(fut)
