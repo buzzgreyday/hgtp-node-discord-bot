@@ -87,7 +87,7 @@ def merge_data(node_data: schemas.Node, cluster_data, historic_node_dataframe) -
         if cluster_data is not None:
             print(cluster_data)
             if cluster_data["name"] == node_data.former_cluster_name:
-                node_data.former_cluster_peer_count = cluster_data["peer count"]
+                node_data.former_cluster_peer_count = cluster_data["peer_count"]
                 node_data.former_cluster_state = cluster_data["state"]
 
     return node_data
