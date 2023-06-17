@@ -7,7 +7,7 @@ def merge_data(node_data: schemas.Node, cluster_data):
         pass
     elif node_data.layer == cluster_data["layer"]:
         for peer in cluster_data["peer_data"]:
-            if (peer["ip"] == node_data.ip) and (peer["id"] == node_data.id):
+            if (peer["ip"] == node_data.ip) or (peer["id"] == node_data.id):
                 node_data.cluster_name = cluster_data["name"].lower()
                 node_data.latest_cluster_session = cluster_data["session"]
                 node_data.cluster_version = cluster_data["version"]

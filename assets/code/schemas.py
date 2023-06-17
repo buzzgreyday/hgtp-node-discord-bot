@@ -37,10 +37,15 @@ class NodeMetrics(BaseModel):
         lst = ['process_uptime_seconds{application=', 'system_cpu_count{application=',
                'system_load_average_1m{application=', 'disk_free_bytes{application=',
                'disk_total_bytes{application=']
-        values = list(
-            float(line.split(" ")[1]) for line in text.split("\n") for item in lst if line.startswith(item))
-        return cls(cluster_association_time=int(values[0]), cpu_count=int(values[1]),
-                   one_m_system_load_average=values[2], disk_space_free=int(values[3]), disk_space_total=int(values[4]))
+        for line in text.split("\n"):
+            for idx, item in enumerate(lst):
+                if type(item) != str:
+                    continue
+                elif line.startswith(item):
+                    lst[idx] = float(line.split(" ")[1])
+                    print(lst)
+        return cls(cluster_association_time=int(lst[0]), cpu_count=int(lst[1]),
+                   one_m_system_load_average=lst[2], disk_space_free=int(lst[3]), disk_space_total=int(lst[4]))
 
 
 class Node(NodeBase, NodeMetrics):

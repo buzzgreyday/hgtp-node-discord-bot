@@ -576,7 +576,7 @@ def build_embed(node_data: schemas.Node):
             embed = determine_color_and_create_embed(yellow_color_trigger, red_color_trigger)
     if not embed_created:
         embed = determine_color_and_create_embed(yellow_color_trigger, red_color_trigger)
-    embed.set_author(name=node_data["name"])
+    embed.set_author(name=node_data.name)
     embed.add_field(name="\u200B", value=node_state)
     embed.add_field(name=f"\u200B", value=cluster_state)
     if node_data.wallet_address is not None:

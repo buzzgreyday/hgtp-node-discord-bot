@@ -11,14 +11,15 @@ from assets.code.discord import discord
 def locate_node_binary(node_data: schemas.Node, peer_data: List[dict]):
     """This function does a binary search to see if the Node ID is a peer in a cluster supported by the bot."""
     start = 0
-    end = len(peer_data)
+    end = len(peer_data) - 1
 
-    while start < end:
+    while start <= end:
 
         mid = (start + end) // 2
         peer = peer_data[mid]
-
+        print(peer)
         if peer["id"] == node_data.id:
+            print("NODE ID FOUND")
             return True
 
         if node_data.id < peer["id"]:
@@ -39,7 +40,7 @@ def locate_node(node_data: schemas.Node, all_cluster_data: List[dict]):
     for cluster in all_cluster_data:
         if cluster["layer"] == node_data.layer:
             if locate_node_binary(node_data, cluster["peer_data"]):
-
+                print("NODE FOUND")
                 return cluster
 
 

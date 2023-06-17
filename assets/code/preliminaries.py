@@ -15,6 +15,7 @@ async def latest_version_github(configuration):
 async def supported_clusters(name: str, layer: int, configuration: dict) -> list:
     url = configuration["modules"][name][layer]["url"][0]
     if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{name}.py"):
+        print(f"{configuration['file settings']['locations']['cluster modules']}/{name}.py")
         module = determine_module.set_module(name, configuration)
         cluster = await module.request_cluster_data(url, layer, name, configuration)
         return cluster

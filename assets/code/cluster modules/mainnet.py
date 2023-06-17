@@ -57,8 +57,8 @@ async def request_cluster_data(url, layer, name, configuration):
                                        recently_rewarded=addresses,
                                        peer_data=sorted(cluster_resp, key=lambda d: d['id'])
                                        )
-
     await config.update_config_with_latest_values(cluster_data, configuration)
+    print(cluster_data)
     return cluster_data.dict()
 
 # THE ABOVE FUNCTION ALSO REQUEST THE MOST RECENT REWARDED ADDRESSES. THIS FUNCTION LOCATES THESE ADDRESSES BY
@@ -576,7 +576,7 @@ def build_embed(node_data: schemas.Node):
             embed = determine_color_and_create_embed(yellow_color_trigger, red_color_trigger)
     if not embed_created:
         embed = determine_color_and_create_embed(yellow_color_trigger, red_color_trigger)
-    embed.set_author(name=node_data["name"])
+    embed.set_author(name=node_data.name)
     embed.add_field(name="\u200B", value=node_state)
     embed.add_field(name=f"\u200B", value=cluster_state)
     if node_data.wallet_address is not None:
