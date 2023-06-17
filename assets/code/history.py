@@ -85,7 +85,8 @@ def merge_data(node_data: schemas.Node, cluster_data, historic_node_dataframe) -
             node_data.disk_space_total = float(historic_node_dataframe["disk_space_total"])
             node_data.disk_space_free = float(historic_node_dataframe["disk_space_free"])
         if cluster_data is not None:
-            if cluster_data["cluster_name"] == node_data.former_cluster_name:
+            print(cluster_data)
+            if cluster_data["name"] == node_data.former_cluster_name:
                 node_data.former_cluster_peer_count = cluster_data["peer count"]
                 node_data.former_cluster_state = cluster_data["state"]
 
