@@ -43,7 +43,6 @@ class NodeMetrics(BaseModel):
                     continue
                 elif line.startswith(item):
                     lst[idx] = float(line.split(" ")[1])
-                    print(lst)
         return cls(cluster_association_time=int(lst[0]), cpu_count=int(lst[1]),
                    one_m_system_load_average=lst[2], disk_space_free=int(lst[3]), disk_space_total=int(lst[4]))
 
@@ -113,7 +112,6 @@ class User(NodeBase):
     async def get_id(ip: str, port: str, mode, configuration):
         """Will need refactoring before metagraph release. Some other way to validate node?"""
         if mode == "subscribe":
-            print("Requesting:", f"http://{str(ip)}:{str(port)}/node/info")
             node_data = await api.safe_request(f"http://{ip}:{port}/node/info", configuration)
             return str(node_data["id"]) if node_data is not None else None
         else:
@@ -126,13 +124,11 @@ class User(NodeBase):
 
         user_data = []
 
-        print(args)
         ips = {ip for ip in args if re.match(IP_REGEX, ip)}
         ip_idx = [args.index(ip) for ip in ips]
         for idx in range(0, len(ip_idx)):
             # Split arguments into lists before each IP
             arg = args[ip_idx[idx]:ip_idx[idx + 1]] if idx + 1 < len(ip_idx) else args[ip_idx[idx]:]
-            print(arg)
             for i, val in enumerate(arg):
                 if val.lower() in ("z", "-z", "zero", "l0", "-l0"):
                     for port in arg[i + 1:]:

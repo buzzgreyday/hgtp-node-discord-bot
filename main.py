@@ -76,7 +76,7 @@ async def main(ctx, process_msg, requester, _configuration) -> None:
     gc.collect()
     dt_stop, timer_stop = dt.timing()
     await dask_client.close()
-    print(timer_stop - timer_start)
+    print("ALL PROCESSES RAN IN:", timer_stop - timer_start, "SECONDS")
 
 
 async def command_error(ctx, bot):
@@ -151,7 +151,6 @@ async def s(ctx, *args):
             subscriber_dataframe = new_dataframe
         else:
             subscriber_dataframe = subscriber_dataframe.append(new_dataframe)
-        print(await dask_client.compute(subscriber_dataframe.reset_index(drop=True)))
         await user.write(dask_client, subscriber_dataframe.reset_index(drop=True), _configuration)
 
         await dask_client.close()

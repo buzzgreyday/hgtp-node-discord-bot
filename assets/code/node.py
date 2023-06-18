@@ -89,7 +89,6 @@ async def check(dask_client, bot, process_msg, requester, subscriber, port, laye
     node_data = merge_data(node_data, cluster_data)
     historic_node_dataframe = await history.node_data(dask_client, node_data, history_dataframe)
     historic_node_dataframe = history.former_node_data(historic_node_dataframe)
-    node_data = history.merge_data(node_data, cluster_data, historic_node_dataframe)
     process_msg = await discord.update_request_process_msg(process_msg, 3, None)
     # HERE YOU ALSO NEED A DEFAULT CLUSTER MODULE? THINK ABOUT WHAT SUCH A MODULE COULD CONTRIBUTE WITH
     node_data, process_msg = await cluster.get_module_data(process_msg, node_data, configuration)
