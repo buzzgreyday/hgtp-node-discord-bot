@@ -12,6 +12,7 @@ import asyncio
 from datetime import datetime, timedelta
 
 import nextcord
+import pandas as pd
 
 from assets.code import config, cluster, api, encode, schemas
 
@@ -213,7 +214,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node):
 def set_association_time(node_data: schemas.Node):
     if node_data.former_timestamp_index is not None:
         # LINE BELOW IS TEMPORARY
-        time_difference = (node_data.timestamp_index - node_data.former_timestamp_index).seconds
+        time_difference = (pd.Timestamp(node_data.timestamp_index) - pd.Timestamp(node_data.former_timestamp_index)).seconds
     else:
         time_difference = node_data.timestamp_index.second
 
