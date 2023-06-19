@@ -8,12 +8,15 @@ import pandas as pd
 from dask import distributed
 from dask.distributed import Client
 import dask.dataframe as dd
-from assets.code import config, determine_module, history, user, dt, preliminaries, schemas
+from assets.code.schemas import User
+from assets.code import config, determine_module, history, user, dt, preliminaries
 from assets.code.discord import discord
 from assets.code.discord.services import bot, discord_token
+from assets.code.database import api
 import nextcord
 from os import path, makedirs
 import yaml
+import uvicorn
 
 """LOAD CONFIGURATION"""
 with open('config_new.yml', 'r') as file:
@@ -144,7 +147,8 @@ async def s(ctx, *args):
         await dask_client.wait_for_workers(n_workers=1)
         subscriber_dataframe = await user.read(_configuration)  # Load the dataframe using the read function
         # The class below creates a list of user objects. These should be subscibed.
-        user_data = await schemas.User.discord(_configuration, "subscribe", str(ctx.message.author), int(ctx.message.author.id), *args)
+        user_data = await User.discord(_configuration, "subscribe", str(ctx.message.author), int(ctx.message.author.id), *args)
+        await user.write_db(user_data)
         # Check if data exists or ID is None schemas.UserCreate.validate
         new_dataframe = dd.from_pandas(pd.DataFrame(list(data.dict() for data in user_data)), npartitions=1)
         if len(await dask_client.compute(subscriber_dataframe)) == 0:
@@ -164,7 +168,7 @@ async def u(ctx, *args):
         await dask_client.wait_for_workers(n_workers=1)
         subscriber_dataframe = await user.read(_configuration)  # Load the dataframe using the read function
         # The class below creates a list of user objects. These should be unsubscibed.
-        user_data = await schemas.User.discord(_configuration, "unsubscribe", str(ctx.message.author), int(ctx.message.author.id), *args)
+        user_data = await User.discord(_configuration, "unsubscribe", str(ctx.message.author), int(ctx.message.author.id), *args)
         subscriber_dataframe = await dask_client.compute(subscriber_dataframe)
         for dict_ in user_data:
             subscriber_dataframe = subscriber_dataframe.drop(subscriber_dataframe[(subscriber_dataframe.name == dict_.name) & (subscriber_dataframe.contact == dict_.contact) & (subscriber_dataframe.ip == dict_.ip) & (subscriber_dataframe.public_port == dict_.public_port) & (subscriber_dataframe.type == "discord")].index)
@@ -174,5 +178,6 @@ async def u(ctx, *args):
 
 
 if __name__ == "__main__":
+    uvicorn.run(api, host="127.0.0.1", port=8000)
     bot.loop.create_task(loop())
     bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))

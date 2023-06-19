@@ -117,7 +117,6 @@ class User(NodeBase):
         else:
             return None
 
-
     @classmethod
     async def discord(cls, configuration, mode: str, name: str, contact: int, *args) -> List:
         """Treats a Discord message as a line of arguments and returns a list of subscribable user objects"""
@@ -134,14 +133,29 @@ class User(NodeBase):
                     for port in arg[i + 1:]:
                         if port.isdigit():
                             # Check if port is subscribed?
-                            user_data.append(cls(name=name, contact=contact, id=await User.get_id(arg[0], port, mode, configuration), ip=arg[0], public_port=port, layer=0, date=dt.datetime.utcnow(), type="discord"))
+                            user_data.append(
+                                cls(name=name, contact=contact, id=await User.get_id(arg[0], port, mode, configuration),
+                                    ip=arg[0], public_port=port, layer=0, date=dt.datetime.utcnow(), type="discord"))
                         else:
                             break
                 elif val.lower() in ("o", "-o", "one", "l1", "-l1"):
                     for port in arg[i + 1:]:
                         if port.isdigit():
-                            user_data.append(cls(name=name, contact=contact, id=await User.get_id(arg[0], port, mode, configuration), ip=arg[0], public_port=port, layer=1, date=dt.datetime.utcnow(), type="discord"))
+                            user_data.append(
+                                cls(name=name, contact=contact, id=await User.get_id(arg[0], port, mode, configuration),
+                                    ip=arg[0], public_port=port, layer=1, date=dt.datetime.utcnow(), type="discord"))
                         else:
                             break
 
         return user_data
+
+    @classmethod
+    async def Create(cls, data):
+        cls.name = data.name
+        cls.id = data.id
+        cls.ip = data.ip
+        cls.public_port = data.public_port
+        cls.layer = data.layer
+        cls.contact = data.contact
+        cls.date = data.date
+        cls.type = data.type

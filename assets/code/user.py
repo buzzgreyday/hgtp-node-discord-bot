@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import re
 import shutil
 import sys
 from datetime import datetime
@@ -12,7 +11,7 @@ import pandas as pd
 
 import dask.dataframe as dd
 
-from assets.code import node, api, schemas
+from assets.code import node, schemas, database
 from assets.code.discord.services import bot
 
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
@@ -65,6 +64,10 @@ async def write(dask_client, dataframe, configuration):
         shutil.rmtree(f'{configuration["file settings"]["locations"]["subscribers_new"]}')
     await os.rename(f'{configuration["file settings"]["locations"]["subscribers temp"]}', f'{configuration["file settings"]["locations"]["subscribers_new"]}')
     # Write the updated DataFrame to the temporary location
+
+
+def write_db(data: List[schemas.User]):
+    pass
 
 
 async def read(configuration: dict):

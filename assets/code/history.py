@@ -53,7 +53,7 @@ async def write(dask_client, history_dataframe, data: List[schemas.Node], config
         history_dataframe.reward_false_count = history_dataframe.reward_false_count.astype(float)
         history_dataframe.reward_state = history_dataframe.reward_state.astype(bool)
 
-        fut = history_dataframe.to_parquet(configuration["file settings"]["locations"]["history_new"], overwrite=False, compute=False, write_index=False)
+        fut = history_dataframe.to_parquet(configuration["file settings"]["locations"]["history_new"], overwrite=True, compute=False, write_index=False)
         await dask_client.compute(fut)
         logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - Writing history to parquet")
 
