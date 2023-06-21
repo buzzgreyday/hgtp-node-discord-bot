@@ -15,9 +15,6 @@ SessionLocal = async_sessionmaker(engine)
 api = FastAPI()
 
 
-SQLBase.metadata.create_all(engine)
-
-
 async def get_db():
     async with engine.begin as conn:
         await conn.run_sync(SQLBase.metadata.create_all)
