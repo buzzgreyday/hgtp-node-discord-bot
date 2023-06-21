@@ -6,7 +6,7 @@ from sqlalchemy import select
 from fastapi import FastAPI, Depends
 from assets.code.schemas import User as UserModel
 
-engine = create_async_engine("sqlite+aiosqlite:///assets/data/users/db/user.db", connect_args={"check_same_thread": False})
+engine = create_async_engine("sqlite+aiosqlite:///assets/data/db/db.sqlite3", connect_args={"check_same_thread": False})
 
 SessionLocal = async_sessionmaker(engine)
 
