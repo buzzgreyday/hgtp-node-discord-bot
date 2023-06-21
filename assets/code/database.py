@@ -1,29 +1,33 @@
+import datetime
+
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import Column, String, Integer, DateTime
 from fastapi import FastAPI, Depends
 from assets.code.schemas import User as UserModel
-# from assets.code.schemas import SQLUserData
 
 engine = create_async_engine("sqlite+aiosqlite:///assets/data/users/db/user.db", connect_args={"check_same_thread": False})
-SQLBase = declarative_base()
 
 SessionLocal = async_sessionmaker(engine)
 
 api = FastAPI()
 
 
+class SQLBase(DeclarativeBase):
+    pass
+
+
 class User(SQLBase):
     __tablename__ = "users"
 
-    name = Column(String)
-    id = Column(String)
-    ip = Column(String)
-    public_port = Column(Integer)
-    layer = Column(Integer)
-    contact = Column(String)
-    date = Column(DateTime, primary_key=True)
-    type = Column(String)
+    name: Mapped[str]
+    id: Mapped[str]
+    ip: Mapped[str]
+    public_port: Mapped[int]
+    layer: Mapped[int]
+    contact: Mapped[str]
+    date: Mapped[datetime.datetime] = mapped_column(primary_key=True)
+    type: Mapped[str]
 
 
 async def get_db():
