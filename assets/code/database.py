@@ -23,8 +23,8 @@ async def get_db():
 
 
 @api.post("/user")
-async def index(user: User, db: AsyncSession = Depends(get_db)):
-    db_user = User.Create(user)
+async def index(db_user: User, db: AsyncSession = Depends(get_db)):
+    # db_user = User.Create(user)
     db.add(db_user)
     await db.commit()
     await db.refresh(db_user)
