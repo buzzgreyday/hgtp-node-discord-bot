@@ -22,7 +22,7 @@ class User(SQLBase):
     public_port = Column(Integer)
     layer = Column(Integer)
     contact = Column(String)
-    date = Column(DateTime)
+    date = Column(DateTime, primary_key=True)
     type = Column(String)
 
 
