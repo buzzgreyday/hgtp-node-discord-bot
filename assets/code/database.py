@@ -1,8 +1,5 @@
-from sqlalchemy import Column, String, Integer, Float, DateTime, MetaData
-from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
 from fastapi import FastAPI, Depends
 from assets.code.schemas import User
 # from assets.code.schemas import SQLUserData
