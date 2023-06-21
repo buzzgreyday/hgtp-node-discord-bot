@@ -4,6 +4,7 @@ from typing import List
 import datetime as dt
 
 from pydantic import BaseModel
+from sqlalchemy import Column, String, Integer, Float, DateTime
 
 from assets.code import api
 
@@ -101,7 +102,6 @@ class UserEnum(str, Enum):
 
 class User(NodeBase):
     """This class can create a user object which can be subscribed using different methods and transformations"""
-
     date: dt.datetime
     # UserRead should be UserEnum
     type: str
@@ -149,7 +149,7 @@ class User(NodeBase):
 
         return user_data
 
-    @classmethod
+    """@classmethod
     async def Create(cls, data):
         cls.name = data.name
         cls.id = data.id
@@ -158,4 +158,4 @@ class User(NodeBase):
         cls.layer = data.layer
         cls.contact = data.contact
         cls.date = data.date
-        cls.type = data.type
+        cls.type = data.type"""
