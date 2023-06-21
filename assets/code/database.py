@@ -2,7 +2,7 @@ import datetime
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy import Column, String, Integer, DateTime
+from sqlalchemy import select
 from fastapi import FastAPI, Depends
 from assets.code.schemas import User as UserModel
 
@@ -60,5 +60,6 @@ async def index(data: UserModel, db: AsyncSession = Depends(get_db)):
 
 @api.get("/user")
 async def get_users(db: AsyncSession = Depends(get_db)):
-    users = db.query(User).all()
+    results = await db.execute(select(User))
+    users = results.scalars().all()
     return {"users": users}
