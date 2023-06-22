@@ -3,8 +3,8 @@ from enum import Enum
 from typing import List
 import datetime as dt
 
+import uuid as uuid
 from pydantic import BaseModel
-from sqlalchemy import Column, String, Integer, Float, DateTime
 
 from assets.code import api
 
@@ -105,6 +105,7 @@ class User(NodeBase):
     date: dt.datetime
     # UserRead should be UserEnum
     type: str
+    uuid: str
 
     # VALIDATE ID VALUE, CREATE CUSTOM EXCEPTION!
 

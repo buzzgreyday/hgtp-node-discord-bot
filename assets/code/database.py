@@ -1,10 +1,12 @@
 import datetime
 
+import uuid as uuid
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import select
 from fastapi import FastAPI, Depends
 from assets.code.schemas import User as UserModel
+
 
 engine = create_async_engine("sqlite+aiosqlite:///assets/data/db/db.sqlite3", connect_args={"check_same_thread": False})
 
@@ -20,13 +22,14 @@ class SQLBase(DeclarativeBase):
 class User(SQLBase):
     __tablename__ = "users"
 
+    uuid: Mapped[str] = mapped_column(default=uuid.uuid4, index=True, nullable=False, primary_key=True)
     name: Mapped[str]
     id: Mapped[str]
     ip: Mapped[str]
     public_port: Mapped[int]
     layer: Mapped[int]
     contact: Mapped[str]
-    date: Mapped[datetime.datetime] = mapped_column(primary_key=True)
+    date: Mapped[datetime.datetime]
     type: Mapped[str]
 
 
