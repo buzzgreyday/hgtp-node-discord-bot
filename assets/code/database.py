@@ -73,7 +73,6 @@ async def get_all_users(db: AsyncSession = Depends(get_db)):
 async def get_node(db: AsyncSession = Depends(get_db)):
     results = await db.execute(select(User).where((User.ip == "111.111.111.111") & (User.public_port == 9000)))
     node = results.scalars().all()
-    print(pd.DataFrame(node))
     return {"node": node}
 
 
@@ -81,7 +80,6 @@ async def get_node(db: AsyncSession = Depends(get_db)):
 async def get_nodes(db: AsyncSession = Depends(get_db)):
     results = await db.execute(select(User).where(User.contact == "tester"))
     nodes = results.scalars().all()
-    print(pd.DataFrame(nodes))
     return {"node": nodes}
 """
 SELECT *
