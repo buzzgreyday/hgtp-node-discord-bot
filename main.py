@@ -2,6 +2,7 @@
 import asyncio
 import gc
 import logging
+import threading
 from datetime import datetime
 
 import pandas as pd
@@ -177,7 +178,15 @@ async def u(ctx, *args):
         await dask_client.close()
 
 
+def run_uvicorn():
+    uvicorn.run(api, host="127.0.0.1", port=8000)
+
+
 if __name__ == "__main__":
+
     bot.loop.create_task(loop())
-    # uvicorn.run(api, host="127.0.0.1", port=8000)
+
+    # Create a thread for running uvicorn
+    uvicorn_thread = threading.Thread(target=run_uvicorn)
+    uvicorn_thread.start()
     bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))
