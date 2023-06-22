@@ -148,7 +148,7 @@ async def s(ctx, *args):
         subscriber_dataframe = await user.read(_configuration)  # Load the dataframe using the read function
         # The class below creates a list of user objects. These should be subscibed.
         user_data = await User.discord(_configuration, "subscribe", str(ctx.message.author), int(ctx.message.author.id), *args)
-        await user.write_db(user_data)
+        # await user.write_db(user_data)
         # Check if data exists or ID is None schemas.UserCreate.validate
         new_dataframe = dd.from_pandas(pd.DataFrame(list(data.dict() for data in user_data)), npartitions=1)
         if len(await dask_client.compute(subscriber_dataframe)) == 0:
@@ -179,5 +179,5 @@ async def u(ctx, *args):
 
 if __name__ == "__main__":
     bot.loop.create_task(loop())
-    uvicorn.run(api, host="127.0.0.1", port=8000)
+    # uvicorn.run(api, host="127.0.0.1", port=8000)
     bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))
