@@ -107,6 +107,7 @@ file settings:
     log: assets/data/logs/bot/exec.log
     subscribers temp: assets/data/users/temp
     subscribers_new: assets/data/users/db
+    db: assets/data/db/db.sqlite3
 general:
   loop_init_time: '12:25:00'
   loop_interval_minutes: 5
