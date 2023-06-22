@@ -136,7 +136,7 @@ class User(NodeBase):
                             # Check if port is subscribed?
                             user_data.append(
                                 cls(name=name, contact=contact, id=await User.get_id(arg[0], port, mode, configuration),
-                                    ip=arg[0], public_port=port, layer=0, date=dt.datetime.utcnow(), type="discord", uuid=uuid.uuid4))
+                                    ip=arg[0], public_port=port, layer=0, date=dt.datetime.utcnow(), type="discord", uuid=str(uuid.uuid4())))
                         else:
                             break
                 elif val.lower() in ("o", "-o", "one", "l1", "-l1"):
@@ -145,7 +145,7 @@ class User(NodeBase):
 
                             user_data.append(
                                 cls(name=name, contact=contact, id=await User.get_id(arg[0], port, mode, configuration),
-                                    ip=arg[0], public_port=port, layer=1, date=dt.datetime.utcnow(), type="discord", uuid=uuid.uuid4))
+                                    ip=arg[0], public_port=port, layer=1, date=dt.datetime.utcnow(), type="discord", uuid=str(uuid.uuid4())))
                         else:
                             break
 
