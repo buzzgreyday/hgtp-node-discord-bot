@@ -34,14 +34,10 @@ class User(SQLBase):
     type: Mapped[str]
 
 
-async def get_db():
-    async with engine.begin() as conn:
-        await conn.run_sync(SQLBase.metadata.create_all)
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        await db.close()
+async def get_db() -> AsyncSession:
+    async with async_sessionmaker(bind=engine, class_=AsyncSession)() as session:
+        yield session
+
 
 
 @api.post("/user")
