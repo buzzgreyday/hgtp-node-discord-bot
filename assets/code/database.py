@@ -45,7 +45,7 @@ async def get_db():
 
 
 @api.post("/user")
-async def index(data: UserModel, db: AsyncSession = Depends(get_db)):
+async def create_user(data: UserModel, db: AsyncSession = Depends(get_db)):
     db_user = User(
                    name=data.name,
                    id=data.id,
@@ -78,15 +78,7 @@ async def get_node(db: AsyncSession = Depends(get_db)):
 
 @api.get("/nodes")
 async def get_nodes(db: AsyncSession = Depends(get_db)):
-    results = await db.execute(select(User).where(User.contact == "tester"))
+    results = await db.execute(select(User).where(User.contact == "1232194987235423"))
     nodes = results.scalars().all()
     return {"node": nodes}
-"""
-SELECT *
-FROM table1
-WHERE EXISTS (SELECT *
-              FROM table2
-              WHERE Lead_Key = @Lead_Key
-                        AND table1.CM_PLAN_ID = table2.CM_PLAN_ID
-                        AND table1.Individual_ID = table2.Individual_ID)
-"""
+
