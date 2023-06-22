@@ -81,4 +81,3 @@ async def get_nodes(db: AsyncSession = Depends(get_db)):
     results = await db.execute(select(User).where(User.contact == "1232194987235423"))
     nodes = results.scalars().all()
     return {"node": nodes}
-
