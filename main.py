@@ -178,6 +178,6 @@ async def u(ctx, *args):
 
 
 if __name__ == "__main__":
-    uvicorn.run(api, host="127.0.0.1", port=8000)
     bot.loop.create_task(loop())
+    uvicorn.run(api, host="127.0.0.1", port=8000)
     bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))
