@@ -66,8 +66,10 @@ async def write(dask_client, dataframe, configuration):
     # Write the updated DataFrame to the temporary location
 
 
-def write_db(data: List[schemas.User]):
-    pass
+async def write_db(data: List[schemas.User]):
+    for d in data:
+        print(d)
+        await database.create_user(d)
 
 
 async def read(configuration: dict):

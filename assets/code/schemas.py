@@ -104,7 +104,7 @@ class User(NodeBase):
     """This class can create a user object which can be subscribed using different methods and transformations"""
     date: dt.datetime
     # UserRead should be UserEnum
-    type: str
+    type: List[str]
     uuid: str
 
     # VALIDATE ID VALUE, CREATE CUSTOM EXCEPTION!
