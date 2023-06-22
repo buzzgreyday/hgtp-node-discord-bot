@@ -104,7 +104,7 @@ class User(NodeBase):
     """This class can create a user object which can be subscribed using different methods and transformations"""
     date: dt.datetime
     # UserRead should be UserEnum
-    type: List[str]
+    type: str
     uuid: str
 
     # VALIDATE ID VALUE, CREATE CUSTOM EXCEPTION!
@@ -136,15 +136,16 @@ class User(NodeBase):
                             # Check if port is subscribed?
                             user_data.append(
                                 cls(name=name, contact=contact, id=await User.get_id(arg[0], port, mode, configuration),
-                                    ip=arg[0], public_port=port, layer=0, date=dt.datetime.utcnow(), type="discord"))
+                                    ip=arg[0], public_port=port, layer=0, date=dt.datetime.utcnow(), type="discord", uuid=uuid.uuid4))
                         else:
                             break
                 elif val.lower() in ("o", "-o", "one", "l1", "-l1"):
                     for port in arg[i + 1:]:
                         if port.isdigit():
+
                             user_data.append(
                                 cls(name=name, contact=contact, id=await User.get_id(arg[0], port, mode, configuration),
-                                    ip=arg[0], public_port=port, layer=1, date=dt.datetime.utcnow(), type="discord"))
+                                    ip=arg[0], public_port=port, layer=1, date=dt.datetime.utcnow(), type="discord", uuid=uuid.uuid4))
                         else:
                             break
 
