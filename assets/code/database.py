@@ -22,7 +22,7 @@ class SQLBase(DeclarativeBase):
 class User(SQLBase):
     __tablename__ = "users"
 
-    uuid: Mapped[str] = mapped_column(default=uuid.uuid4, index=True, nullable=False, primary_key=True)
+    uuid: Mapped[str] = mapped_column(default=lambda: str(uuid.uuid4()), index=True, nullable=False, primary_key=True)
     name: Mapped[str]
     id: Mapped[str]
     ip: Mapped[str]
@@ -66,3 +66,13 @@ async def get_users(db: AsyncSession = Depends(get_db)):
     results = await db.execute(select(User))
     users = results.scalars().all()
     return {"users": users}
+
+"""
+SELECT *
+FROM table1
+WHERE EXISTS (SELECT *
+              FROM table2
+              WHERE Lead_Key = @Lead_Key
+                        AND table1.CM_PLAN_ID = table2.CM_PLAN_ID
+                        AND table1.Individual_ID = table2.Individual_ID)
+"""
