@@ -8,7 +8,7 @@ async def update_config_with_latest_values(cluster: schemas.Cluster, configurati
 
     if configuration["modules"][cluster.name][cluster.layer]["id"] != cluster.id:
         configuration["modules"][cluster.name][cluster.layer]["id"] = cluster.id
-        async with aiofiles.open("config_new.yml", "w") as file:
+        async with aiofiles.open("config.yml", "w") as file:
             await file.write(yaml.dump(configuration))
 
 

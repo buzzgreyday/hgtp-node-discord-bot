@@ -38,7 +38,6 @@ async def get_db() -> AsyncSession:
         yield session
 
 
-
 @api.post("/user")
 async def create_user(data: UserModel, db: AsyncSession = Depends(get_db)):
     db_user = User(
@@ -58,10 +57,17 @@ async def create_user(data: UserModel, db: AsyncSession = Depends(get_db)):
 
 
 @api.get("/user")
-async def get_all_users(db: AsyncSession = Depends(get_db)):
+async def get_users(db: AsyncSession = Depends(get_db)):
     results = await db.execute(select(User))
     users = results.scalars().all()
     return {"users": users}
+
+
+@api.get("/user")
+async def get_user_ids(db: AsyncSession = Depends(get_db)):
+    results = await db.execute(select(User).column("id"))
+    ids = results.scalars().all()
+    return {"ids": ids}
 
 
 @api.get("/node")

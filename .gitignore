@@ -2,3 +2,4 @@
 /subscribers.csv
 /assets/data/logs/
 /assets/data/historic/latest/part.0.parquet
+/assets/data/db/db.sqlite3

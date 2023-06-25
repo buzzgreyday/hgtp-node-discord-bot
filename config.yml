@@ -101,7 +101,7 @@ file settings:
       type: str
   locations:
     archived history: assets/data/historic/archived
-    cluster modules: assets/code/cluster modules
+    cluster modules: assets/src/cluster modules
     db: assets/data/db/db.sqlite3
     historic temp: assets/data/historic/temp
     history_new: assets/data/historic/latest

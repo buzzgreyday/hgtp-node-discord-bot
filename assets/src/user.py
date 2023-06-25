@@ -45,7 +45,8 @@ async def update_public_port(dask_client, node_data: schemas.Node):
 
 async def locate_ids(dask_client, requester, subscriber_dataframe):
     if requester is None:
-        return list(set(await dask_client.compute(subscriber_dataframe["id"])))
+        # return list(set(await dask_client.compute(subscriber_dataframe["id"])))
+        return list(set(await database.get_user_ids))
     else:
         return list(set(await dask_client.compute(
             subscriber_dataframe["id"][subscriber_dataframe["contact"].astype(dtype=int) == int(requester)])))
@@ -71,6 +72,10 @@ async def write_db(data: List[schemas.User]):
     for d in data:
         print(d)
         await database.create_user(d)
+
+
+async def read_db(configuration: dict):
+    logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - GETTING SUBSCRIBER FROM DATABASE")
 
 
 async def read(configuration: dict):
