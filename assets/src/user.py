@@ -46,6 +46,7 @@ async def update_public_port(dask_client, node_data: schemas.Node):
 async def locate_ids(dask_client, requester, subscriber_dataframe):
     if requester is None:
         # return list(set(await dask_client.compute(subscriber_dataframe["id"])))
+        print(list(set(await database.get_user_ids)))
         return list(set(await database.get_user_ids))
     else:
         return list(set(await dask_client.compute(
