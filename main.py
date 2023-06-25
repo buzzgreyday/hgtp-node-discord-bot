@@ -20,7 +20,7 @@ import yaml
 import uvicorn
 
 """LOAD CONFIGURATION"""
-with open('config_new.yml', 'r') as file:
+with open('config.yml', 'r') as file:
     _configuration = yaml.safe_load(file)
 
 """CREATE NON-EXISTENT FOLDER STRUCTURE"""

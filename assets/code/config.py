@@ -13,5 +13,5 @@ async def update_config_with_latest_values(cluster: schemas.Cluster, configurati
 
 
 async def load():
-    async with aiofiles.open('config_new.yml', 'r') as file:
+    async with aiofiles.open('config.yml', 'r') as file:
         return yaml.safe_load(await file.read())
