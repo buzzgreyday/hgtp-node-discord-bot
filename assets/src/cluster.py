@@ -1,11 +1,10 @@
 # Third-party imports
-import pydantic
 from aiofiles import os
 from typing import List
 
 # Project module imports
-from assets.code import determine_module, schemas
-from assets.code.discord import discord
+from assets.src import schemas, determine_module
+from assets.src.discord import discord
 
 
 def locate_node_binary(node_data: schemas.Node, peer_data: List[dict]):

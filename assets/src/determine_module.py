@@ -4,7 +4,7 @@ from typing import List
 from aiofiles import os
 import sys
 
-from assets.code import schemas
+from assets.src import schemas
 
 
 async def notify(data: List[schemas.Node], configuration):

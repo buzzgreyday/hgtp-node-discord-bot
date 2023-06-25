@@ -4,7 +4,7 @@ from aiohttp import client_exceptions
 from datetime import datetime
 import logging
 
-from assets.code import schemas
+from assets.src import schemas
 
 
 class Request:

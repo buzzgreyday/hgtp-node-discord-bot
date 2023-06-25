@@ -6,7 +6,7 @@ import dask.dataframe as dd
 import pandas as pd
 from aiofiles import os
 
-from assets.code import schemas
+from assets.src import schemas
 
 
 class Clean:

@@ -9,11 +9,11 @@ import pandas as pd
 from dask import distributed
 from dask.distributed import Client
 import dask.dataframe as dd
-from assets.code.schemas import User
-from assets.code import config, determine_module, history, user, dt, preliminaries
-from assets.code.discord import discord
-from assets.code.discord.services import bot, discord_token
-from assets.code.database import api
+from assets.src.schemas import User
+from assets.src import history, config, dt, preliminaries, user, determine_module
+from assets.src.discord import discord
+from assets.src.discord.services import bot, discord_token
+from assets.src.database import api
 import nextcord
 from os import path, makedirs
 import yaml

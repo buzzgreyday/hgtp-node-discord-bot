@@ -1,7 +1,7 @@
 import aiofiles
 import yaml
 
-from assets.code import schemas
+from assets.src import schemas
 
 
 async def update_config_with_latest_values(cluster: schemas.Cluster, configuration):

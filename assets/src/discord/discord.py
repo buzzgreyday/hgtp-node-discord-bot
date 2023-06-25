@@ -7,8 +7,8 @@ from datetime import datetime
 
 from aiofiles import os
 
-from assets.code import determine_module, schemas
-from assets.code.discord import defaults
+from assets.src import schemas, determine_module
+from assets.src.discord import defaults
 
 
 async def init_process(bot, requester):

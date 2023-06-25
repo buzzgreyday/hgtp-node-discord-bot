@@ -11,13 +11,14 @@ import pandas as pd
 
 import dask.dataframe as dd
 
-from assets.code import node, schemas, database
-from assets.code.discord.services import bot
+from assets.src import schemas, database, node
+from assets.src.discord.services import bot
 
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 
 
-async def check(dask_client, latest_tessellation_version, requester, subscriber_dataframe, history_dataframe, all_cluster_data, dt_start, process_msg, _configuration) -> List[schemas.Node]:
+async def check(dask_client, latest_tessellation_version, requester, subscriber_dataframe, history_dataframe, all_cluster_data, dt_start, process_msg, _configuration) -> List[
+    schemas.Node]:
     futures = []
     data = []
     for id_ in await locate_ids(dask_client, requester, subscriber_dataframe):

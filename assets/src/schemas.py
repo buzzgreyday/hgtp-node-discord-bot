@@ -6,7 +6,7 @@ import datetime as dt
 import uuid as uuid
 from pydantic import BaseModel
 
-from assets.code import api
+from assets.src import api
 
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 

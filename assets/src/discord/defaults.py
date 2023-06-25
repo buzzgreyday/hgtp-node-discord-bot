@@ -1,6 +1,6 @@
 import nextcord
 
-from assets.code import schemas
+from assets.src import schemas
 
 yellow_color_trigger = False
 red_color_trigger = False

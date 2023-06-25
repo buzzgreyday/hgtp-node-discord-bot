@@ -14,9 +14,9 @@ from datetime import datetime, timedelta
 import nextcord
 import pandas as pd
 
-from assets.code import config, cluster, api, encode, schemas
+from assets.src import schemas, encode, config, cluster, api
 
-MODULE = "mainnet"
+MODULE = "testnet"
 
 """
     SECTION 1: PRELIMINARIES

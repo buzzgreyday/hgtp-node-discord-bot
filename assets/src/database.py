@@ -6,8 +6,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import select
 from fastapi import FastAPI, Depends
 
-from assets.code.schemas import User as UserModel
-
+from assets.src.schemas import User as UserModel
 
 engine = create_async_engine("sqlite+aiosqlite:///assets/data/db/db.sqlite3", connect_args={"check_same_thread": False})
 
