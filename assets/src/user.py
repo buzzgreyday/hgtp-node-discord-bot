@@ -22,7 +22,7 @@ async def check(dask_client, latest_tessellation_version, requester, subscriber_
     schemas.Node]:
     futures = []
     data = []
-    for id_ in await locate_ids(dask_client, requester, subscriber_dataframe):
+    for id_ in await locate_ids(dask_client, requester, subscriber_dataframe, _configuration):
         print(id_)
         subscriber = await locate_node(dask_client, subscriber_dataframe, id_)
         for L in list(set(subscriber["layer"])):
@@ -45,10 +45,10 @@ async def update_public_port(dask_client, node_data: schemas.Node):
     pass
 
 
-async def locate_ids(dask_client, requester, subscriber_dataframe):
+async def locate_ids(dask_client, requester, subscriber_dataframe, _configuration):
 
     if requester is None:
-        ids = await api.Request("128.0.0.1:8000/ids").json(await config.load())
+        ids = await api.Request("128.0.0.1:8000/ids").json(_configuration)
         print(ids)
         return list(set(ids))
         # return list(set(await dask_client.compute(subscriber_dataframe["id"])))
