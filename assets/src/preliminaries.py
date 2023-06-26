@@ -28,5 +28,4 @@ async def cluster_data(configuration):
             tasks.append(asyncio.create_task(supported_clusters(name, layer, configuration)))
     for task in tasks:
         all_cluster_data.append(await task)
-    print(all_cluster_data)
     return all_cluster_data

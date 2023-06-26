@@ -12,6 +12,7 @@ import pandas as pd
 import dask.dataframe as dd
 
 from assets.src import schemas, database, node
+from assets.src.database import get_user_ids
 from assets.src.discord.services import bot
 
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
@@ -44,6 +45,7 @@ async def update_public_port(dask_client, node_data: schemas.Node):
 
 
 async def locate_ids(dask_client, requester, subscriber_dataframe):
+
     if requester is None:
         return list(set(await dask_client.compute(subscriber_dataframe["id"])))
     else:
