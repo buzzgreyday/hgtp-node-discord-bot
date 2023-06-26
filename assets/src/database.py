@@ -64,7 +64,7 @@ async def get_users(db: AsyncSession = Depends(get_db)):
 
 
 @api.get("/ids")
-async def get_user_ids(db: AsyncSession = Depends(get_db)):
+async def get_user_ids(db: AsyncSession = Depends(get_db)) -> dict:
     results = await db.execute(select(User.id))
     ids = results.scalars().all()
     return {"ids": ids}
