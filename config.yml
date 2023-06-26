@@ -138,7 +138,7 @@ modules:
       url:
       - https://l0-lb-mainnet.constellationnetwork.io
     1:
-      id: 5a8f0f756659be91e8af0b6aa1e2a63a94227680aa4d565e055a37db206f69a3b88479e7f37e8c9c9eca40278ddc98eab2b07f0fc0cf17fdf83ca012082ba827
+      id: 1d64061fb8eea8a5ca7dce1247dc53204ea744a2dabbcb69b3232e971407a85abc3770d73f229c3c9ddd076f1efa243e8c45f24b29b7a54041c24062fe2d84be
       info:
         cluster: cluster/info
         metrics: metrics
@@ -162,7 +162,7 @@ modules:
       url:
       - https://l0-lb-testnet.constellationnetwork.io
     1:
-      id: cd6362aeee3ffb3b209bb3f1459848624e8bd9e66cb22e82a8cb7c08d02a833e74e3becc1fce804b1233773e24baf178f17e2c9611c39758abe8cb2ad4d20558
+      id: b39a8a03ff985ca5b49a8102da5f0467be15d8fea2d98ef341429465c7b1610601cef50dfe64d1938cfba5a0696a85c463f85adda31052785286d5c31d26b369
       info:
         cluster: cluster/info
         metrics: metrics

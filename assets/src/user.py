@@ -11,7 +11,7 @@ import pandas as pd
 
 import dask.dataframe as dd
 
-from assets.src import schemas, database, node
+from assets.src import schemas, database, node, api, config
 from assets.src.database import get_user_ids
 from assets.src.discord.services import bot
 
@@ -23,6 +23,7 @@ async def check(dask_client, latest_tessellation_version, requester, subscriber_
     futures = []
     data = []
     for id_ in await locate_ids(dask_client, requester, subscriber_dataframe):
+        print(id_)
         subscriber = await locate_node(dask_client, subscriber_dataframe, id_)
         for L in list(set(subscriber["layer"])):
             for port in list(set(subscriber.public_port[subscriber.layer == L])):
@@ -47,7 +48,9 @@ async def update_public_port(dask_client, node_data: schemas.Node):
 async def locate_ids(dask_client, requester, subscriber_dataframe):
 
     if requester is None:
-        return list(set(await ))
+        ids = await api.Request("128.0.0.1:8000/ids").json(await config.load())
+        print(ids)
+        return list(set(ids))
         # return list(set(await dask_client.compute(subscriber_dataframe["id"])))
     else:
         return list(set(await dask_client.compute(

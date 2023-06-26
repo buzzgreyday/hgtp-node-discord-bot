@@ -12,7 +12,7 @@ class Request:
     def __init__(self, url):
         self.url = url
 
-    async def json(self, configuration):
+    async def json(self, configuration: dict):
         async with aiohttp.ClientSession() as session:
             async with session.get(
                     self.url,
