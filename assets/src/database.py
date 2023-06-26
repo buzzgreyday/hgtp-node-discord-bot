@@ -71,8 +71,8 @@ async def get_user_ids(db: AsyncSession = Depends(get_db)):
 
 
 @api.get("/node")
-async def get_node(db: AsyncSession = Depends(get_db)):
-    results = await db.execute(select(User).where((User.ip == "111.111.111.111") & (User.public_port == 9000)))
+async def get_node(ip: str, public_port: int, db: AsyncSession = Depends(get_db)):
+    results = await db.execute(select(User).where((User.ip == ip) & (User.public_port == public_port)))
     node = results.scalars().all()
     return {"node": node}
 
