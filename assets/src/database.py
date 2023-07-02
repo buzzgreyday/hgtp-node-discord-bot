@@ -1,4 +1,5 @@
 import datetime
+
 import uuid as uuid
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
@@ -17,6 +18,12 @@ api = FastAPI()
 
 class SQLBase(DeclarativeBase):
     pass
+
+
+@api.on_event("startup")
+async def startup():
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLBase.metadata.create_all)
 
 
 class User(SQLBase):
@@ -41,14 +48,15 @@ async def get_db() -> AsyncSession:
 @api.post("/user")
 async def create_user(data: UserModel, db: AsyncSession = Depends(get_db)):
     db_user = User(
-                   name=data.name,
-                   id=data.id,
-                   ip=data.ip,
-                   public_port=data.public_port,
-                   layer=data.layer,
-                   contact=data.contact,
-                   date=data.date,
-                   type=data.type
+        name=data.name,
+        id=data.id,
+        ip=data.ip,
+        public_port=data.public_port,
+        layer=data.layer,
+        contact=data.contact,
+        date=data.date,
+        type=data.type,
+        uuid=data.uuid
     )
     db.add(db_user)
     await db.commit()
@@ -63,22 +71,30 @@ async def get_users(db: AsyncSession = Depends(get_db)):
     return {"users": users}
 
 
-@api.get("/ids")
+@api.get("/user/ids")
 async def get_user_ids(db: AsyncSession = Depends(get_db)) -> dict:
     results = await db.execute(select(User.id))
     ids = results.scalars().all()
     return {"ids": ids}
 
 
-@api.get("/node")
+@api.get("/user/node")
 async def get_node(ip: str, public_port: int, db: AsyncSession = Depends(get_db)):
     results = await db.execute(select(User).where((User.ip == ip) & (User.public_port == public_port)))
     node = results.scalars().all()
     return {"node": node}
 
 
-@api.get("/nodes")
-async def get_nodes(db: AsyncSession = Depends(get_db)):
-    results = await db.execute(select(User).where(User.contact == "1232194987235423"))
+@api.get("/user/node/id/{id_}")
+async def get_nodes(id_, db: AsyncSession = Depends(get_db)):
+    print(id_)
+    results = await db.execute(select(User).where(User.id == id_))
     nodes = results.scalars().all()
-    return {"node": nodes}
+    return {id_: nodes}
+
+
+@api.get("/user/node/contact/{contact}")
+async def get_contact_node_id(contact, db: AsyncSession = Depends(get_db)):
+    results = await db.execute(select(User).where(User.contact == contact))
+    nodes = results.scalars().all()
+    return {contact: nodes}

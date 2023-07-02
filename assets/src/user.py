@@ -24,7 +24,8 @@ async def check(dask_client, latest_tessellation_version, requester, subscriber_
     data = []
     for id_ in await locate_ids(dask_client, requester, subscriber_dataframe, _configuration):
         print(id_)
-        subscriber = await locate_node(dask_client, subscriber_dataframe, id_)
+        subscriber = await locate_node(dask_client, dict, id_)
+        print(subscriber)
         for L in list(set(subscriber["layer"])):
             for port in list(set(subscriber.public_port[subscriber.layer == L])):
                 futures.append(asyncio.create_task(
@@ -46,19 +47,22 @@ async def update_public_port(dask_client, node_data: schemas.Node):
 
 
 async def locate_ids(dask_client, requester, subscriber_dataframe, _configuration):
-
+    print(requester)
     if requester is None:
-        ids = await api.Request("128.0.0.1:8000/ids").json(_configuration)
+        ids = await api.Request("127.0.0.1:8000/ids").json(_configuration)
         print(ids)
         return list(set(ids))
         # return list(set(await dask_client.compute(subscriber_dataframe["id"])))
     else:
-        return list(set(await dask_client.compute(
-            subscriber_dataframe["id"][subscriber_dataframe["contact"].astype(dtype=int) == int(requester)])))
+        """return list(set(await dask_client.compute(
+            subscriber_dataframe["id"][subscriber_dataframe["contact"].astype(dtype=int) == int(requester)])))"""
+        return await api.Request(f"127.0.0.1:8000/user/node/contact/{requester}").json(_configuration)
 
 
-async def locate_node(dask_client, subscriber_dataframe, id_):
-    return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])
+async def locate_node(dask_client, _configuration, id_):
+    # Locate every subscription where ID is id_
+    # return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])
+    return await api.Request(f"127.0.0.1:8000/user/node/id/{id_}").json(_configuration)
 
 
 async def write(dask_client, dataframe, configuration):
