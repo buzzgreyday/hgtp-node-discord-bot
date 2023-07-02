@@ -78,7 +78,7 @@ async def get_user_ids(db: AsyncSession = Depends(get_db)) -> dict:
     return {"ids": ids}
 
 
-@api.get("/user/node")
+@api.get("/user/node/{ip}:{public_port}")
 async def get_node(ip: str, public_port: int, db: AsyncSession = Depends(get_db)):
     results = await db.execute(select(User).where((User.ip == ip) & (User.public_port == public_port)))
     node = results.scalars().all()
@@ -87,7 +87,6 @@ async def get_node(ip: str, public_port: int, db: AsyncSession = Depends(get_db)
 
 @api.get("/user/node/id/{id_}")
 async def get_nodes(id_, db: AsyncSession = Depends(get_db)):
-    print(id_)
     results = await db.execute(select(User).where(User.id == id_))
     nodes = results.scalars().all()
     return {id_: nodes}
