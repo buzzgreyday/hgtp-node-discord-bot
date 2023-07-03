@@ -78,7 +78,7 @@ async def write(dask_client, dataframe, configuration):
 
 async def write_db(data: List[schemas.User]):
     for d in data:
-        await database.create_user(d.name, d.id, d.ip, d.public_port, d.layer, d.contact)
+        pass
 
 
 async def read_db(configuration: dict):
