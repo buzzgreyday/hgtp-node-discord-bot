@@ -11,8 +11,7 @@ import pandas as pd
 
 import dask.dataframe as dd
 
-from assets.src import schemas, database, node, api, config
-from assets.src.database import get_user_ids
+from assets.src import schemas, database, node, api
 from assets.src.discord.services import bot
 
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
@@ -79,8 +78,7 @@ async def write(dask_client, dataframe, configuration):
 
 async def write_db(data: List[schemas.User]):
     for d in data:
-        print(d)
-        await database.create_user(d)
+        await database.create_user(d.name, d.id, d.ip, d.public_port, d.layer, d.contact)
 
 
 async def read_db(configuration: dict):

@@ -11,7 +11,7 @@ from assets.src.schemas import User as UserModel
 
 engine = create_async_engine("sqlite+aiosqlite:///assets/data/db/db.sqlite3", connect_args={"check_same_thread": False})
 
-SessionLocal = async_sessionmaker(engine)
+SessionLocal = async_sessionmaker(engine, class_=AsyncSession)
 
 api = FastAPI()
 
@@ -41,27 +41,8 @@ class User(SQLBase):
 
 
 async def get_db() -> AsyncSession:
-    async with async_sessionmaker(bind=engine, class_=AsyncSession)() as session:
+    async with SessionLocal() as session:
         yield session
-
-
-@api.post("/user")
-async def create_user(data: UserModel, db: AsyncSession = Depends(get_db)):
-    db_user = User(
-        name=data.name,
-        id=data.id,
-        ip=data.ip,
-        public_port=data.public_port,
-        layer=data.layer,
-        contact=data.contact,
-        date=data.date,
-        type=data.type,
-        uuid=data.uuid
-    )
-    db.add(db_user)
-    await db.commit()
-    await db.refresh(db_user)
-    return db_user
 
 
 @api.get("/user")
@@ -78,7 +59,7 @@ async def get_user_ids(db: AsyncSession = Depends(get_db)) -> dict:
     return {"ids": ids}
 
 
-@api.get("/user/node/{ip}:{public_port}")
+@api.get("/user/node/{ip}/{public_port}")
 async def get_node(ip: str, public_port: int, db: AsyncSession = Depends(get_db)):
     results = await db.execute(select(User).where((User.ip == ip) & (User.public_port == public_port)))
     node = results.scalars().all()

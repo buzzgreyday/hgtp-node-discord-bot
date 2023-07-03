@@ -10,10 +10,10 @@ from dask import distributed
 from dask.distributed import Client
 import dask.dataframe as dd
 from assets.src.schemas import User
-from assets.src import history, config, dt, preliminaries, user, determine_module
+from assets.src import history, config, dt, preliminaries, user, determine_module, api
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
-from assets.src.database import api
+from assets.src.database import api as database_api
 import nextcord
 from os import path, makedirs
 import yaml
@@ -149,14 +149,14 @@ async def s(ctx, *args):
         subscriber_dataframe = await user.read(_configuration)  # Load the dataframe using the read function
         # The class below creates a list of user objects. These should be subscibed.
         user_data = await User.discord(_configuration, "subscribe", str(ctx.message.author), int(ctx.message.author.id), *args)
-        await user.write_db(user_data)
-        # Check if data exists or ID is None schemas.UserCreate.validate
-        new_dataframe = dd.from_pandas(pd.DataFrame(list(data.dict() for data in user_data)), npartitions=1)
-        if len(await dask_client.compute(subscriber_dataframe)) == 0:
-            subscriber_dataframe = new_dataframe
-        else:
-            subscriber_dataframe = subscriber_dataframe.append(new_dataframe)
-        await user.write(dask_client, subscriber_dataframe.reset_index(drop=True), _configuration)
+        for data in user_data:
+            result = await api.Request(f"http://127.0.0.1:8000/user/node/{data.ip}/{data.public_port}").json(_configuration)
+            print(result["node"])
+            if not result["node"]:
+                print("NO CURRENT SUBSCRIPTION EXISTS")
+                await user.write_db(user_data)
+            else:
+                print("A SUBSCRIPTION ALREADY EXISTS")
 
         await dask_client.close()
 
@@ -179,7 +179,7 @@ async def u(ctx, *args):
 
 
 def run_uvicorn():
-    uvicorn.run(api, host="127.0.0.1", port=8000)
+    uvicorn.run(database_api, host="127.0.0.1", port=8000)
 
 
 if __name__ == "__main__":
