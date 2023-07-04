@@ -57,7 +57,7 @@ async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
                       "contact": data.contact,
                       "date": datetime.datetime.utcnow(),
                       "type": data.type,
-                      "uuid": str(lambda: uuid.uuid4())})
+                      "uuid": None})
     data = User(**data_dict)
     db.add(data)
     await db.commit()
