@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import select
 from fastapi import FastAPI, Depends
+from fastapi.encoders import jsonable_encoder
 
 from assets.src.schemas import User as UserModel
 
@@ -43,6 +44,25 @@ class User(SQLBase):
 async def get_db() -> AsyncSession:
     async with SessionLocal() as session:
         yield session
+
+
+@api.post("/user/create")
+async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
+    data_dict = data.dict()
+    data_dict.update({"name": data.name,
+                      "id": data.id,
+                      "ip": data.ip,
+                      "public_port": data.public_port,
+                      "layer": data.layer,
+                      "contact": data.contact,
+                      "date": datetime.datetime.utcnow(),
+                      "type": data.type,
+                      "uuid": str(lambda: uuid.uuid4())})
+    data = User(**data_dict)
+    db.add(data)
+    await db.commit()
+    await db.refresh(data)
+    return jsonable_encoder(data_dict)
 
 
 @api.get("/user")

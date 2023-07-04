@@ -11,6 +11,7 @@ import pandas as pd
 
 import dask.dataframe as dd
 
+import assets.src.database
 from assets.src import schemas, database, node, api
 from assets.src.discord.services import bot
 
@@ -77,8 +78,10 @@ async def write(dask_client, dataframe, configuration):
 
 
 async def write_db(data: List[schemas.User]):
-    for d in data:
-        pass
+    async with database.SessionLocal() as session:
+        db = session
+        for d in data:
+            await database.post_user(data=d, db=db)
 
 
 async def read_db(configuration: dict):
