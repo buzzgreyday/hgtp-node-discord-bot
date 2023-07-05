@@ -146,6 +146,7 @@ async def s(ctx, *args):
 
     async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)
+        # Clean data
         user_data = await User.discord(_configuration, "subscribe", str(ctx.message.author), int(ctx.message.author.id), *args)
         await user.write_db(user_data)
         await dask_client.close()

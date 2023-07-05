@@ -48,15 +48,11 @@ async def get_db() -> AsyncSession:
 
 @api.post("/user/create")
 async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
-    print("UserModel list:", data)
     data_dict = data.dict()
-    print("UserData list dict:", data_dict)
     user = User(**data_dict)
-    print("User Object", user)
     result = await db.execute(select(User).where((User.ip == data.ip) & (User.public_port == data.public_port)))
     # You only need one result that matches
     result = result.fetchone()
-    print("Fetch Result:", result)
     if result:
         print("RECORD ALREADY EXISTS")
     else:
