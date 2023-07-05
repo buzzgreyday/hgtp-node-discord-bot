@@ -146,17 +146,19 @@ async def s(ctx, *args):
 
     async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)
-        subscriber_dataframe = await user.read(_configuration)  # Load the dataframe using the read function
+        # subscriber_dataframe = await user.read(_configuration)  # Load the dataframe using the read function
         # The class below creates a list of user objects. These should be subscibed.
         user_data = await User.discord(_configuration, "subscribe", str(ctx.message.author), int(ctx.message.author.id), *args)
-        for data in user_data:
-            result = await api.Request(f"http://127.0.0.1:8000/user/node/{data.ip}/{data.public_port}").json(_configuration)
-            print(result["node"])
-            if not result["node"]:
-                print("NO CURRENT SUBSCRIPTION EXISTS")
-                await user.write_db(user_data)
-            else:
-                print("A SUBSCRIPTION ALREADY EXISTS")
+        print("UserModel list:", user_data)
+        # for data in user_data:
+        #    print("UserModel:", data)
+
+            # result = await api.Request(f"http://127.0.0.1:8000/user/node/{data.ip}/{data.public_port}").json(_configuration)
+            # if not result["node"]:
+            #     print("NO CURRENT SUBSCRIPTION EXISTS")
+        await user.write_db(user_data)
+            # else:
+            #     print("A SUBSCRIPTION ALREADY EXISTS")
 
         await dask_client.close()
 

@@ -48,20 +48,30 @@ async def get_db() -> AsyncSession:
 
 @api.post("/user/create")
 async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
+    print("UserModel list:", data)
     data_dict = data.dict()
-    data_dict.update({"name": data.name,
-                      "id": data.id,
-                      "ip": data.ip,
-                      "public_port": data.public_port,
-                      "layer": data.layer,
-                      "contact": data.contact,
-                      "date": datetime.datetime.utcnow(),
-                      "type": data.type,
-                      "uuid": None})
-    data = User(**data_dict)
-    db.add(data)
-    await db.commit()
-    await db.refresh(data)
+    print("UserData list dict:", data_dict)
+    user = User(**data_dict)
+    print("User Object", user)
+    result = await db.execute(select(User).where((User.ip == data.ip) & (User.public_port == data.public_port)))
+    # You only need one result that matches
+    result = result.fetchone()
+    print("Fetch Result:", result)
+    if result:
+        print("RECORD ALREADY EXISTS")
+    else:
+        data_dict.update({"name": data.name,
+                          "id": data.id,
+                          "ip": data.ip,
+                          "public_port": data.public_port,
+                          "layer": data.layer,
+                          "contact": data.contact,
+                          "date": datetime.datetime.utcnow(),
+                          "type": data.type,
+                          "uuid": None})
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
     return jsonable_encoder(data_dict)
 
 
