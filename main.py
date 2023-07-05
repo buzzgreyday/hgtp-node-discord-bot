@@ -2,6 +2,7 @@
 import asyncio
 import gc
 import logging
+import multiprocessing
 import threading
 from datetime import datetime
 
@@ -46,6 +47,7 @@ def generate_runtimes() -> list:
 
 
 async def main(ctx, process_msg, requester, _configuration) -> None:
+    print("RUN CHECK PROCESS")
     dt_start, timer_start = dt.timing()
     data = []
     futures = []
@@ -128,7 +130,9 @@ async def r(ctx, *arguments):
 
 async def loop():
     times = generate_runtimes()
+    print(times)
     while True:
+        print(datetime.time(datetime.utcnow()).strftime("%H:%M:%S"))
         if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
             await main(None, None, None, _configuration)
         await asyncio.sleep(1)
