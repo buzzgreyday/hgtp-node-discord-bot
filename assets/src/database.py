@@ -93,8 +93,8 @@ async def get_node(ip: str, public_port: int, db: AsyncSession = Depends(get_db)
     return {"node": node}
 
 
-@api.get("/user/node/id/{id_}")
-async def get_nodes(id_, db: AsyncSession = Depends(get_db)):
+@api.get("/user/ids/{id_}")
+async def get_nodes(id_: str, db: AsyncSession = Depends(get_db)):
     results = await db.execute(select(User).where(User.id == id_))
     nodes = results.scalars().all()
     return {id_: nodes}

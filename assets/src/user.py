@@ -22,9 +22,9 @@ async def check(dask_client, latest_tessellation_version, requester, history_dat
     schemas.Node]:
     futures = []
     data = []
-    for id_ in await locate_ids(dask_client, requester, _configuration):
+    for id_ in await locate_ids(requester, _configuration):
         print("ID:", id_)
-        subscriber = await locate_node(dask_client, dict, id_)
+        subscriber = await locate_node(dict, id_)
         print("SUBSCRIBER NODE DATA",subscriber)
         for L in list(set(subscriber["layer"])):
             for port in list(set(subscriber.public_port[subscriber.layer == L])):
@@ -42,7 +42,7 @@ async def update_public_port(dask_client, node_data: schemas.Node):
     pass
 
 
-async def locate_ids(dask_client, requester, _configuration):
+async def locate_ids(requester, _configuration):
     print("REQUEST?", requester)
     if requester is None:
         ids = await api.safe_request("http://127.0.0.1:8000/user/ids", _configuration)
@@ -55,10 +55,10 @@ async def locate_ids(dask_client, requester, _configuration):
         return await api.Request(f"127.0.0.1:8000/user/node/contact/{requester}").json(_configuration)
 
 
-async def locate_node(dask_client, _configuration, id_):
+async def locate_node(_configuration, id_):
     # Locate every subscription where ID is id_
     # return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])
-    return await api.safe_request(f"http://127.0.0.1:8000/user/node/id/{id_}", _configuration)
+    return await api.safe_request(f"http://127.0.0.1:8000/user/ids/{id_}", _configuration)
 
 
 async def write(dask_client, dataframe, configuration):
