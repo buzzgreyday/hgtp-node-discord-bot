@@ -24,9 +24,9 @@ async def check(dask_client, latest_tessellation_version, requester, history_dat
     data = []
     for id_ in await locate_ids(requester, _configuration):
         print("ID:", id_)
-        subscriber = await locate_node(dict, id_)
+        subscriber = await locate_node(_configuration, id_)
         print("SUBSCRIBER NODE DATA",subscriber)
-        for L in list(set(subscriber["layer"])):
+        for L in list(set(subscriber.layer)):
             for port in list(set(subscriber.public_port[subscriber.layer == L])):
                 futures.append(asyncio.create_task(
                     node.check(dask_client, bot, process_msg, requester, subscriber, port, L,
