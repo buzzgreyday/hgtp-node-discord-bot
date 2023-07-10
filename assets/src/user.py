@@ -29,6 +29,7 @@ async def check(dask_client, latest_tessellation_version, requester, history_dat
         print("SUBSCRIBER NODE DATA", subscriber)
         for L in list(set(subscriber.layer)):
             for port in list(set(subscriber.public_port[subscriber.layer == L])):
+                print("LAYER:", L, "PORT:", port)
                 futures.append(asyncio.create_task(
                     node.check(dask_client, bot, process_msg, requester, subscriber, port, L,
                                latest_tessellation_version, history_dataframe, all_cluster_data, dt_start,
@@ -44,10 +45,8 @@ async def update_public_port(dask_client, node_data: schemas.Node):
 
 
 async def locate_ids(requester, _configuration):
-    print("REQUEST?", requester)
     if requester is None:
         ids = await api.safe_request("http://127.0.0.1:8000/user/ids", _configuration)
-        print("IDS FROM LH API", ids)
         return ids
         # return list(set(await dask_client.compute(subscriber_dataframe["id"])))
     else:
@@ -60,7 +59,6 @@ async def locate_node(_configuration, id_):
     # Locate every subscription where ID is id_
     # return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])
     data = await api.safe_request(f"http://127.0.0.1:8000/user/ids/{id_}", _configuration)
-    print(data)
     return data
 
 
