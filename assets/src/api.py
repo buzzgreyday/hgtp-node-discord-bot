@@ -20,6 +20,7 @@ class Request:
 
                 if resp.status == 200:
                     data = await resp.json()
+                    print(data)
                     logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST SUCCEEDED")
                     return data
 

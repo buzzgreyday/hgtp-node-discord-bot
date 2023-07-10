@@ -18,14 +18,14 @@ from assets.src.discord.services import bot
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 
 
-async def check(dask_client, latest_tessellation_version, requester, subscriber_dataframe, history_dataframe, all_cluster_data, dt_start, process_msg, _configuration) -> List[
+async def check(dask_client, latest_tessellation_version, requester, history_dataframe, all_cluster_data, dt_start, process_msg, _configuration) -> List[
     schemas.Node]:
     futures = []
     data = []
-    for id_ in await locate_ids(dask_client, requester, subscriber_dataframe, _configuration):
-        print(id_)
+    for id_ in await locate_ids(dask_client, requester, _configuration):
+        print("ID:", id_)
         subscriber = await locate_node(dask_client, dict, id_)
-        print(subscriber)
+        print("SUBSCRIBER NODE DATA",subscriber)
         for L in list(set(subscriber["layer"])):
             for port in list(set(subscriber.public_port[subscriber.layer == L])):
                 futures.append(asyncio.create_task(
@@ -33,12 +33,8 @@ async def check(dask_client, latest_tessellation_version, requester, subscriber_
                                latest_tessellation_version, history_dataframe, all_cluster_data, dt_start,
                                _configuration)))
     for async_process in futures:
-        try:
-            d, process_msg = await async_process
-            data.append(d)
-        except Exception as e:
-            logging.critical(repr(e.with_traceback(sys.exc_info())))
-            exit(1)
+        d, process_msg = await async_process
+        data.append(d)
     return data
 
 
@@ -46,12 +42,12 @@ async def update_public_port(dask_client, node_data: schemas.Node):
     pass
 
 
-async def locate_ids(dask_client, requester, subscriber_dataframe, _configuration):
-    print(requester)
+async def locate_ids(dask_client, requester, _configuration):
+    print("REQUEST?", requester)
     if requester is None:
-        ids = await api.Request("127.0.0.1:8000/user/ids").json(_configuration)
-        print(ids)
-        return list(set(ids))
+        ids = await api.safe_request("127.0.0.1:8000/user/ids", _configuration)
+        print("IDS FROM LH API", ids)
+        return ids
         # return list(set(await dask_client.compute(subscriber_dataframe["id"])))
     else:
         """return list(set(await dask_client.compute(
@@ -62,7 +58,7 @@ async def locate_ids(dask_client, requester, subscriber_dataframe, _configuratio
 async def locate_node(dask_client, _configuration, id_):
     # Locate every subscription where ID is id_
     # return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])
-    return await api.Request(f"127.0.0.1:8000/user/node/id/{id_}").json(_configuration)
+    return await api.safe_request(f"127.0.0.1:8000/user/node/id/{id_}", _configuration)
 
 
 async def write(dask_client, dataframe, configuration):

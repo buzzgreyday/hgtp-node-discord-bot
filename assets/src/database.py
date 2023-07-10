@@ -1,4 +1,5 @@
 import datetime
+from typing import List
 
 import uuid as uuid
 
@@ -79,10 +80,10 @@ async def get_users(db: AsyncSession = Depends(get_db)):
 
 
 @api.get("/user/ids")
-async def get_user_ids(db: AsyncSession = Depends(get_db)) -> dict:
+async def get_user_ids(db: AsyncSession = Depends(get_db)) -> List:
     results = await db.execute(select(User.id))
     ids = results.scalars().all()
-    return {"ids": ids}
+    return list(set(ids))
 
 
 @api.get("/user/node/{ip}/{public_port}")
