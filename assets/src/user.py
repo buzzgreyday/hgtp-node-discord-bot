@@ -45,7 +45,7 @@ async def update_public_port(dask_client, node_data: schemas.Node):
 async def locate_ids(dask_client, requester, _configuration):
     print("REQUEST?", requester)
     if requester is None:
-        ids = await api.safe_request("127.0.0.1:8000/user/ids", _configuration)
+        ids = await api.safe_request("http://127.0.0.1:8000/user/ids", _configuration)
         print("IDS FROM LH API", ids)
         return ids
         # return list(set(await dask_client.compute(subscriber_dataframe["id"])))
@@ -58,7 +58,7 @@ async def locate_ids(dask_client, requester, _configuration):
 async def locate_node(dask_client, _configuration, id_):
     # Locate every subscription where ID is id_
     # return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])
-    return await api.safe_request(f"127.0.0.1:8000/user/node/id/{id_}", _configuration)
+    return await api.safe_request(f"http://127.0.0.1:8000/user/node/id/{id_}", _configuration)
 
 
 async def write(dask_client, dataframe, configuration):
