@@ -65,7 +65,7 @@ class NodeData(SQLBase):
     former_reward_state: Mapped[bool]
     former_timestamp_index: Mapped[datetime.datetime]
     ip: Mapped[str]
-    id: Mapped[str] = mapped_column(sqlalchemy.String, index=True, nullable=False, primary_key=True)
+    id: Mapped[str] = mapped_column(default=sqlalchemy.String, index=True, nullable=False, primary_key=True)
     """last_notified_timestamp
     latest_cluster_session
     latest_version

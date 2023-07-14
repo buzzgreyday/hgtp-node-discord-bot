@@ -105,7 +105,7 @@ class User(NodeBase):
     date: dt.datetime
     # UserRead should be UserEnum
     type: str
-    uuid: int
+    uuid: str
 
     # VALIDATE ID VALUE, CREATE CUSTOM EXCEPTION!
 
