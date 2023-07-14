@@ -1,6 +1,7 @@
 import datetime
 from typing import List
 
+import sqlalchemy
 import uuid as uuid
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
@@ -43,29 +44,29 @@ class User(SQLBase):
 
 class NodeData(SQLBase):
     __tablename__ = "data"
-    uuid: Mapped[str] = mapped_column(default=lambda: str(uuid.uuid4()) , index=True, nullable=False, primary_key=True)
-    one_m_system_load_average = Mapped[float]
-    cluster_association_time = Mapped[float]
-    cluster_connectivity = Mapped[str]
-    cluster_dissociation_time = Mapped[float]
-    cluster_name = Mapped[str]
-    """cluster_peer_count
-    cluster_state
-    cluster_version
-    contact
-    cpu_count
-    disk_space_free
-    disk_space_total
-    former_cluster_association_time
-    former_cluster_connectivity
-    former_cluster_dissociation_time
-    former_cluster_name
-    former_cluster_peer_count
-    former_reward_state
-    former_timestamp_index
-    ip
-    id
-    last_notified_timestamp
+
+    one_m_system_load_average: Mapped[float]
+    cluster_association_time: Mapped[float]
+    cluster_connectivity: Mapped[str]
+    cluster_dissociation_time: Mapped[float]
+    cluster_name: Mapped[str]
+    cluster_peer_count: Mapped[int]
+    cluster_state: Mapped[str]
+    cluster_version: Mapped[str]
+    contact: Mapped[str]
+    cpu_count: Mapped[int]
+    disk_space_free: Mapped[float]
+    disk_space_total: Mapped[float]
+    former_cluster_association_time: Mapped[float]
+    former_cluster_connectivity: Mapped[str]
+    former_cluster_dissociation_time: Mapped[float]
+    former_cluster_name: Mapped[str]
+    former_cluster_peer_count: Mapped[int]
+    former_reward_state: Mapped[bool]
+    former_timestamp_index: Mapped[datetime.datetime]
+    ip: Mapped[str]
+    id: Mapped[str] = mapped_column(sqlalchemy.String, index=True, nullable=False, primary_key=True)
+    """last_notified_timestamp
     latest_cluster_session
     latest_version
     layer
