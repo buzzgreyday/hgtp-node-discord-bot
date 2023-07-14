@@ -41,6 +41,49 @@ class User(SQLBase):
     date: Mapped[datetime.datetime]
     type: Mapped[str]
 
+class NodeData(SQLBase):
+    __tablename__ = "data"
+    uuid: Mapped[str] = mapped_column(default=lambda: str(uuid.uuid4()) , index=True, nullable=False, primary_key=True)
+    one_m_system_load_average = Mapped[float]
+    cluster_association_time = Mapped[float]
+    cluster_connectivity = Mapped[str]
+    cluster_dissociation_time = Mapped[float]
+    cluster_name = Mapped[str]
+    """cluster_peer_count
+    cluster_state
+    cluster_version
+    contact
+    cpu_count
+    disk_space_free
+    disk_space_total
+    former_cluster_association_time
+    former_cluster_connectivity
+    former_cluster_dissociation_time
+    former_cluster_name
+    former_cluster_peer_count
+    former_reward_state
+    former_timestamp_index
+    ip
+    id
+    last_notified_timestamp
+    latest_cluster_session
+    latest_version
+    layer
+    name
+    node_cluster_session
+    node_peer_count
+    wallet_address
+    wallet_balance
+    notify
+    p2p_port
+    public_port
+    reward_false_count
+    reward_state
+    reward_true_count
+    state
+    timestamp_index
+    version"""
+
 
 async def get_db() -> AsyncSession:
     async with SessionLocal() as session:

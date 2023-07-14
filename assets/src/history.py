@@ -38,24 +38,26 @@ def former_node_data(historic_node_dataframe):
 
 
 async def write(dask_client, history_dataframe, data: List[schemas.Node], configuration):
-    node_data = (node_data.dict() for node_data in data)
-    if node_data is not None:
-        new_history_dataframe = dd.from_pandas(pd.DataFrame(node_data), npartitions=1)
-        if len(await dask_client.compute(history_dataframe)) == 0:
-            history_dataframe = new_history_dataframe
-        else:
-            history_dataframe = history_dataframe.append(new_history_dataframe)
-        history_dataframe.public_port = history_dataframe.public_port.astype(float)
-        history_dataframe.cluster_association_time = history_dataframe.cluster_association_time.astype(float)
-        history_dataframe.cluster_dissociation_time = history_dataframe.cluster_dissociation_time.astype(float)
-        history_dataframe.former_timestamp_index = history_dataframe.former_timestamp_index.astype(str)
-        history_dataframe.reward_true_count = history_dataframe.reward_true_count.astype(float)
-        history_dataframe.reward_false_count = history_dataframe.reward_false_count.astype(float)
-        history_dataframe.reward_state = history_dataframe.reward_state.astype(bool)
+    node_data = pd.DataFrame(list(d.dict() for d in data))
+    print(node_data)
+    new_history_dataframe = dd.from_pandas(node_data, npartitions=1)
+    print("- HISTORIC DATA: NEW DATAFRAME CREATED -")
+    if len(await dask_client.compute(history_dataframe)) == 0:
+        history_dataframe = new_history_dataframe
+    else:
+        history_dataframe = history_dataframe.append(new_history_dataframe)
 
-        fut = history_dataframe.to_parquet(configuration["file settings"]["locations"]["history_new"], overwrite=True, compute=False, write_index=False)
-        await dask_client.compute(fut)
-        logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - Writing history to parquet")
+    """history_dataframe.public_port = history_dataframe.public_port.astype(float)
+    history_dataframe.cluster_association_time = history_dataframe.cluster_association_time.astype(float)
+    history_dataframe.cluster_dissociation_time = history_dataframe.cluster_dissociation_time.astype(float)
+    history_dataframe.former_timestamp_index = history_dataframe.former_timestamp_index.astype(str)
+    history_dataframe.former_cluster_peer_count = history_dataframe.former_cluster_per_count.astype(float)
+    history_dataframe.reward_true_count = history_dataframe.reward_true_count.astype(float)
+    history_dataframe.reward_false_count = history_dataframe.reward_false_count.astype(float)
+    history_dataframe.reward_state = history_dataframe.reward_state.astype(bool)
+    fut = history_dataframe.to_parquet(f'{configuration["file settings"]["locations"]["history_new"]}/new data', overwrite=True, compute=False, write_index=False)
+    await dask_client.compute(fut)"""
+    print(history_dataframe)
 
 
 async def read(configuration: dict):

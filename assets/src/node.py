@@ -25,7 +25,6 @@ def merge_data(node_data: schemas.Node, cluster_data):
 async def check(dask_client, bot, process_msg, requester, subscriber, port, layer, latest_tessellation_version: str,
                 history_dataframe, all_cluster_data: list[dict], dt_start, configuration: dict) -> tuple:
     process_msg = await discord.update_request_process_msg(process_msg, 2, None)
-    print(f"PORT {type(port)}:", subscriber.name[subscriber.public_port == port])
     node_data = schemas.Node(name=subscriber.name[subscriber.public_port == port].values[0],
                              contact=subscriber.contact[subscriber.public_port == port].values[0],
                              ip=subscriber.ip[subscriber.public_port == port].values[0],
@@ -35,21 +34,25 @@ async def check(dask_client, bot, process_msg, requester, subscriber, port, laye
                              latest_version=latest_tessellation_version,
                              notify=False if requester is None else True,
                              timestamp_index=dt.datetime.utcnow())
-    print("NODE DATA:", node_data)
     # node_data = data_template(requester, subscriber, port, layer, latest_tessellation_version, dt_start)
     loc_timer_start = dt.timing()[1]
     cluster_data = cluster.locate_node(node_data, all_cluster_data)
     loc_timer_stop = dt.timing()[1]
-    print("LOCATE NODE:", loc_timer_stop - loc_timer_start)
+    print("- LOCATE NODE: T =", loc_timer_stop - loc_timer_start, "-")
     node_data = merge_data(node_data, cluster_data)
+    print("- HISTORIC DATA: GET DATA -")
     historic_node_dataframe = await history.node_data(dask_client, node_data, history_dataframe)
     historic_node_dataframe = history.former_node_data(historic_node_dataframe)
+    print("- HISTORIC DATA: MERGE -")
+    node_data = history.merge_data(node_data, cluster_data, historic_node_dataframe)
     process_msg = await discord.update_request_process_msg(process_msg, 3, None)
     # HERE YOU ALSO NEED A DEFAULT CLUSTER MODULE? THINK ABOUT WHAT SUCH A MODULE COULD CONTRIBUTE WITH
+    print("- CLUSTER DATA: GET DATA VIA MODULE -")
     node_data, process_msg = await cluster.get_module_data(process_msg, node_data, configuration)
     name = node_data.cluster_name if node_data.cluster_name is not None else node_data.former_cluster_name
+    print("- CLUSTER DATA: GET REWARDS VIA MODULE -")
     if name is not None and configuration["modules"][name][node_data.layer]["rewards"]:
         node_data = determine_module.set_module(node_data.cluster_name, configuration).check_rewards(node_data, cluster_data)
+    print("- USER DATA: UPDATE PUBLIC PORT -")
     await user.update_public_port(dask_client, node_data)
-
     return node_data, process_msg
