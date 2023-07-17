@@ -2,17 +2,15 @@
 import asyncio
 import gc
 import logging
-import multiprocessing
 import sys
 import threading
 from datetime import datetime
 
-import pandas as pd
 from dask import distributed
 from dask.distributed import Client
 import dask.dataframe as dd
 from assets.src.schemas import User
-from assets.src import history, config, dt, preliminaries, user, determine_module, api
+from assets.src import history, config, dt, preliminaries, user, determine_module
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
 from assets.src.database import api as database_api
