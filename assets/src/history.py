@@ -6,7 +6,7 @@ import dask.dataframe as dd
 import pandas as pd
 from aiofiles import os
 
-from assets.src import schemas
+from assets.src import schemas, api
 
 
 class Clean:
@@ -25,11 +25,16 @@ class Clean:
             return None
 
 
-async def node_data(dask_client, node_data: schemas.Node, history_dataframe):
-    if node_data.public_port is not None:
-        return await dask_client.compute(history_dataframe[(history_dataframe["ip"] == node_data.ip) & (history_dataframe["public_port"] == node_data.public_port)])
-    else:
-        return await dask_client.compute(history_dataframe[(history_dataframe["ip"] == node_data.ip) & (history_dataframe["public_port"] == node_data.public_port)])
+async def node_data(dask_client, node_data: schemas.Node, history_dataframe, _configuration):
+    """
+        if node_data.public_port is not None:
+            return await dask_client.compute(history_dataframe[(history_dataframe["ip"] == node_data.ip) & (history_dataframe["public_port"] == node_data.public_port)])
+        else:
+            return await dask_client.compute(history_dataframe[(history_dataframe["ip"] == node_data.ip) & (history_dataframe["public_port"] == node_data.public_port)])
+    """
+    data = pd.DataFrame(await api.Request(f"127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").json(_configuration))
+    return data
+
 
 
 def former_node_data(historic_node_dataframe):

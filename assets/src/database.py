@@ -12,9 +12,9 @@ from fastapi.encoders import jsonable_encoder
 
 from assets.src.schemas import User as UserModel
 
-engine = create_async_engine("sqlite+aiosqlite:///assets/data/db/db.sqlite3", connect_args={"check_same_thread": False})
-
-SessionLocal = async_sessionmaker(engine, class_=AsyncSession)
+user_engine = create_async_engine("sqlite+aiosqlite:///assets/data/db/db.sqlite3", connect_args={"check_same_thread": False})
+data_engine = create_async_engine("sqlite+aiosqlite:///assets/data/db/db.sqlite3", connect_args={"check_same_thread": False})
+UserSessionLocal = async_sessionmaker(user_engine, class_=AsyncSession)
 
 api = FastAPI()
 
@@ -25,7 +25,7 @@ class SQLBase(DeclarativeBase):
 
 @api.on_event("startup")
 async def startup():
-    async with engine.begin() as conn:
+    async with user_engine.begin() as conn:
         await conn.run_sync(SQLBase.metadata.create_all)
 
 
@@ -88,7 +88,7 @@ class NodeData(SQLBase):
 
 
 async def get_db() -> AsyncSession:
-    async with SessionLocal() as session:
+    async with UserSessionLocal() as session:
         yield session
 
 
@@ -152,7 +152,7 @@ async def get_contact_node_id(contact, db: AsyncSession = Depends(get_db)):
     return {contact: nodes}
 
 
-@api.get("/data/node")
+@api.get("/data/node/{ip}/{public_port}")
 async def get_node_data(ip, public_port, db: AsyncSession = Depends(get_db)):
     results = await db.execute(select(User).where((NodeData.ip == ip) & (NodeData.public_port == public_port)))
     node = results.scalars().all()
