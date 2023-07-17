@@ -12,9 +12,9 @@ from fastapi.encoders import jsonable_encoder
 
 from assets.src.schemas import User as UserModel
 
-user_engine = create_async_engine("sqlite+aiosqlite:///assets/data/db/db.sqlite3", connect_args={"check_same_thread": False})
-data_engine = create_async_engine("sqlite+aiosqlite:///assets/data/db/db.sqlite3", connect_args={"check_same_thread": False})
-UserSessionLocal = async_sessionmaker(user_engine, class_=AsyncSession)
+engine = create_async_engine("sqlite+aiosqlite:///assets/data/db/db.sqlite3", connect_args={"check_same_thread": False})
+
+SessionLocal = async_sessionmaker(engine, class_=AsyncSession)
 
 api = FastAPI()
 
@@ -25,7 +25,7 @@ class SQLBase(DeclarativeBase):
 
 @api.on_event("startup")
 async def startup():
-    async with user_engine.begin() as conn:
+    async with engine.begin() as conn:
         await conn.run_sync(SQLBase.metadata.create_all)
 
 
@@ -88,7 +88,7 @@ class NodeData(SQLBase):
 
 
 async def get_db() -> AsyncSession:
-    async with UserSessionLocal() as session:
+    async with SessionLocal() as session:
         yield session
 
 
