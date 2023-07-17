@@ -153,7 +153,7 @@ async def get_contact_node_id(contact, db: AsyncSession = Depends(get_db)):
 
 
 @api.get("/data/node")
-async def get_node(ip, public_port, db: AsyncSession = Depends(get_db)):
+async def get_node_data(ip, public_port, db: AsyncSession = Depends(get_db)):
     results = await db.execute(select(User).where((NodeData.ip == ip) & (NodeData.public_port == public_port)))
     node = results.scalars().all()
     return node
