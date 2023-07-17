@@ -42,6 +42,7 @@ class User(SQLBase):
     date: Mapped[datetime.datetime]
     type: Mapped[str]
 
+
 class NodeData(SQLBase):
     __tablename__ = "data"
 
