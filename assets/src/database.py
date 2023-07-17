@@ -66,24 +66,24 @@ class NodeData(SQLBase):
     former_timestamp_index: Mapped[datetime.datetime]
     ip: Mapped[str]
     id: Mapped[str] = mapped_column(default=sqlalchemy.String, index=True, nullable=False, primary_key=True)
-    """last_notified_timestamp
-    latest_cluster_session
-    latest_version
-    layer
-    name
-    node_cluster_session
-    node_peer_count
-    wallet_address
-    wallet_balance
-    notify
-    p2p_port
-    public_port
-    reward_false_count
-    reward_state
-    reward_true_count
-    state
-    timestamp_index
-    version"""
+    last_notified_timestamp: Mapped[datetime.datetime]
+    latest_cluster_session: Mapped[int]
+    latest_version: Mapped[str]
+    layer: Mapped[int]
+    name: Mapped[str]
+    node_cluster_session: Mapped[int]
+    node_peer_count: Mapped[int]
+    wallet_address: Mapped[str]
+    wallet_balance: Mapped[float]
+    notify: Mapped[bool]
+    p2p_port: Mapped[int]
+    public_port: Mapped[int]
+    reward_false_count: Mapped[int]
+    reward_state: Mapped[bool]
+    reward_true_count: Mapped[int]
+    state: Mapped[str]
+    timestamp_index: Mapped[datetime.datetime]
+    version: Mapped[str]
 
 
 async def get_db() -> AsyncSession:
