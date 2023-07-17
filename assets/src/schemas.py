@@ -25,11 +25,11 @@ class NodeBase(BaseModel):
 class NodeMetrics(BaseModel):
     """These node metrics can be set by accessing the "from_text(text)" classmethod using main- or testnet text resp"""
 
-    cluster_association_time: int = None
+    cluster_association_time: float = None
     cpu_count: int = None
     one_m_system_load_average: float = None
-    disk_space_free: int = None
-    disk_space_total: int = None
+    disk_space_free: float = None
+    disk_space_total: float = None
 
     @classmethod
     def from_txt(cls, text):
@@ -62,17 +62,17 @@ class Node(NodeBase, NodeMetrics):
     cluster_connectivity: str = None
     former_cluster_connectivity: str = None
     reward_state: str = None
-    former_reward_state: str = None
-    reward_true_count: float = None
-    reward_false_count: float = None
+    former_reward_state: bool = None
+    reward_true_count: int = None
+    reward_false_count: int = None
     former_cluster_association_time: float = None
     cluster_dissociation_time: float = None
     former_cluster_dissociation_time: float = None
     node_cluster_session: int = None
     latest_cluster_session: int = None
-    node_peer_count: float = None
-    cluster_peer_count: float = None
-    former_cluster_peer_count: float = None
+    node_peer_count: int = None
+    cluster_peer_count: int = None
+    former_cluster_peer_count: int = None
     version: str = None
     cluster_version: str = None
     latest_version: str = None

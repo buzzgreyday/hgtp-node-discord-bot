@@ -11,6 +11,7 @@ from fastapi import FastAPI, Depends
 from fastapi.encoders import jsonable_encoder
 
 from assets.src.schemas import User as UserModel
+from assets.src.schemas import Node as NodeModel
 
 engine = create_async_engine("sqlite+aiosqlite:///assets/data/db/db.sqlite3", connect_args={"check_same_thread": False})
 
@@ -115,6 +116,11 @@ async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
         await db.commit()
         await db.refresh(user)
     return jsonable_encoder(data_dict)
+
+
+@api.post("/data/create")
+async def post_data(data: NodeModel, db: AsyncSession = Depends(get_db)):
+    pass
 
 
 @api.get("/user")
