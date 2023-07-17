@@ -131,13 +131,6 @@ async def get_user_ids(db: AsyncSession = Depends(get_db)) -> List:
     return list(set(ids))
 
 
-@api.get("/user/node/{ip}/{public_port}")
-async def get_node(ip: str, public_port: int, db: AsyncSession = Depends(get_db)):
-    results = await db.execute(select(User).where((User.ip == ip) & (User.public_port == public_port)))
-    node = results.scalars().all()
-    return {"node": node}
-
-
 @api.get("/user/ids/{id_}")
 async def get_nodes(id_: str, db: AsyncSession = Depends(get_db)):
     results = await db.execute(select(User).where(User.id == id_))
@@ -145,8 +138,21 @@ async def get_nodes(id_: str, db: AsyncSession = Depends(get_db)):
     return nodes
 
 
+@api.get("/user/node/{ip}/{public_port}")
+async def get_node(ip: str, public_port: int, db: AsyncSession = Depends(get_db)):
+    results = await db.execute(select(User).where((User.ip == ip) & (User.public_port == public_port)))
+    node = results.scalars().all()
+    return {"node": node}
+
+
 @api.get("/user/node/contact/{contact}")
 async def get_contact_node_id(contact, db: AsyncSession = Depends(get_db)):
     results = await db.execute(select(User).where(User.contact == contact))
     nodes = results.scalars().all()
     return {contact: nodes}
+
+@api.get("/data/node")
+async def get_contact_node_id(ip, public_port, db: AsyncSession = Depends(get_db)):
+    results = await db.execute(select(User).where((NodeData.ip == ip) & (NodeData.public_port == public_port)))
+    node = results.scalars().all()
+    return node
