@@ -107,18 +107,9 @@ async def get_next_index(Model, db: AsyncSession) -> int:
 @api.post("/user/create")
 async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
     next_index = await get_next_index(User, db)
+    data.index = next_index
     data_dict = data.dict()
-    user = User(
-        name=data.name,
-        id=data.id,
-        ip=data.ip,
-        public_port=data.public_port,
-        layer=data.layer,
-        contact=data.contact,
-        date=datetime.datetime.utcnow(),
-        type=data.type,
-        index=next_index
-        )
+    user = User(**data_dict)
     result = await db.execute(select(User).where((User.ip == data.ip) & (User.public_port == data.public_port)))
     # You only need one result that matches
     result = result.fetchone()
@@ -153,6 +144,7 @@ async def post_data(data: NodeModel, db: AsyncSession = Depends(get_db)):
     data_dict = data.dict()
     node_data = NodeData(**data_dict)
     data_dict.update({
+        "index": next_index,
         "name": NodeData.name,
         "id": NodeData.id,
         "ip": NodeData.ip,
