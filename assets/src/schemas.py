@@ -14,7 +14,7 @@ IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4]
 
 class NodeBase(BaseModel):
     """This class is the base from which any node related object inherits, it's also the base for user data"""
-
+    index: Optional[int]
     name: str
     id: str = None
     ip: str

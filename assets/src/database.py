@@ -49,6 +49,7 @@ class User(SQLBase):
 class NodeData(SQLBase):
     __tablename__ = "data"
 
+    index: Mapped[int] = mapped_column(primary_key=True)
     one_m_system_load_average: Mapped[float]
     cluster_association_time: Mapped[float]
     cluster_connectivity: Mapped[str]
@@ -87,7 +88,7 @@ class NodeData(SQLBase):
     reward_state: Mapped[bool]
     reward_true_count: Mapped[int]
     state: Mapped[str]
-    timestamp_index: Mapped[datetime.datetime] = mapped_column(default=datetime.datetime, index=True, nullable=False, primary_key=True)
+    timestamp_index: Mapped[datetime.datetime] = mapped_column(default=datetime.datetime, index=True, nullable=False)
     version: Mapped[str]
 
 
@@ -107,35 +108,37 @@ async def get_next_index(Model, db: AsyncSession) -> int:
 async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
     next_index = await get_next_index(User, db)
     data_dict = data.dict()
-    user = User(name=data.name,
-                id=data.id,
-                ip=data.ip,
-                public_port=data.public_port,
-                layer=data.layer,
-                contact=data.contact,
-                date=datetime.datetime.utcnow(),
-                type=data.type,
-                index=next_index
-                 # uuid=data.uuid
-                 )
+    user = User(
+        name=data.name,
+        id=data.id,
+        ip=data.ip,
+        public_port=data.public_port,
+        layer=data.layer,
+        contact=data.contact,
+        date=datetime.datetime.utcnow(),
+        type=data.type,
+        index=next_index
+        )
     result = await db.execute(select(User).where((User.ip == data.ip) & (User.public_port == data.public_port)))
     # You only need one result that matches
     result = result.fetchone()
     if result:
         print("RECORD ALREADY EXISTS")
     else:
-        data_dict.update({"name": data.name,
-                          "id": data.id,
-                          "ip": data.ip,
-                          "public_port": data.public_port,
-                          "layer": data.layer,
-                          "contact": data.contact,
-                          "date": datetime.datetime.utcnow(),
-                          "type": data.type,
-                          "index": next_index
-                          # "uuid": None
-                        }
-                        )
+        data_dict.update(
+            {
+                "name": data.name,
+                "id": data.id,
+                "ip": data.ip,
+                "public_port": data.public_port,
+                "layer": data.layer,
+                "contact": data.contact,
+                "date": datetime.datetime.utcnow(),
+                "type": data.type,
+                "index": next_index
+            }
+        )
+
         db.add(user)
         await db.commit()
         await db.refresh(user)
@@ -144,6 +147,10 @@ async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
 
 @api.post("/data/create")
 async def post_data(data: NodeModel, db: AsyncSession = Depends(get_db)):
+    print(data)
+    next_index = await get_next_index(User, db)
+    data.index = next_index
+    print(data)
     data_dict = data.dict()
     node_data = NodeData(**data_dict)
     data_dict.update({
