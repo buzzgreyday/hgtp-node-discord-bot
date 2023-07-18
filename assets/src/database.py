@@ -234,10 +234,13 @@ async def get_contact_node_id(contact, db: AsyncSession = Depends(get_db)):
 
 @api.get("/data/node/{ip}/{public_port}")
 async def get_node_data(ip, public_port, db: AsyncSession = Depends(get_db)):
+    print("Fetching API data...")
     results = await db.execute(
                     select(NodeData)
                     .where((NodeData.ip == ip) & (NodeData.public_port == public_port))
                     .order_by(NodeData.timestamp_index.desc())
                     .limit(1))
-    node = results.scalar_one_or_none()
+    print(results)
+    node = results.scalars().all()
+    print(node)
     return node
