@@ -153,7 +153,7 @@ modules:
           latest snapshot: global-snapshots/latest
         url:
         - https://be-testnet.constellationnetwork.io
-      id: 048e867de007559fda3b82798fb092fd680d958d9b2dd79dd95202bc48a5a20ee30efefbe602d417553b510e53f834329b94f54b3c188ab2aa496fb537ea9f87
+      id: 7e88d70fa4cbd694edf2c77234206caa76b8d669163098a83a2fbdb8bf9c648c7e0c034499928b42065665426e2e221dc2c999e1c38c72e488cc6e2a98894fe7
       info:
         cluster: cluster/info
         metrics: metrics

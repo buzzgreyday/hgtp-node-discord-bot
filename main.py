@@ -77,11 +77,7 @@ async def main(ctx, process_msg, requester, _configuration) -> None:
         # If not request received through Discord channel
         print("- HISTORIC DATA: WRITE -")
         if process_msg is None:
-            try:
-                await history.write(dask_client, history_dataframe, data, _configuration)
-            except Exception as e:
-                traceback.print_exc()
-                exit(1)
+            await history.write(dask_client, history_dataframe, data, _configuration)
     # Write node id, ip, ports to subscriber list, then base code on id
     print("- DISCORD: SEND NOTIFICATION -")
     await discord.send(ctx, process_msg, bot, data, _configuration)
@@ -142,7 +138,11 @@ async def loop():
     while True:
         print(datetime.time(datetime.utcnow()).strftime("%H:%M:%S"))
         if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
-            await main(None, None, None, _configuration)
+            try:
+                await main(None, None, None, _configuration)
+            except Exception as e:
+                traceback.print_exc()
+                exit(1)
 
         await asyncio.sleep(1)
 
