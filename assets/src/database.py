@@ -60,6 +60,8 @@ class NodeData(SQLBase):
     id: Mapped[str]
     public_port: Mapped[int]
     layer: Mapped[int]
+    version: Mapped[Optional[str]] = mapped_column(nullable=True)
+    latest_version: Mapped[Optional[str]] = mapped_column(nullable=True)
     cluster_association_time: Mapped[Optional[float]] = mapped_column(nullable=True)
     cluster_connectivity: Mapped[Optional[str]] = mapped_column(nullable=True)
     cluster_dissociation_time: Mapped[Optional[float]] = mapped_column(nullable=True)
@@ -72,7 +74,6 @@ class NodeData(SQLBase):
     disk_space_total: Mapped[Optional[float]] = mapped_column(nullable=True)
     one_m_system_load_average: Mapped[Optional[float]] = mapped_column(nullable=True)
     latest_cluster_session: Mapped[Optional[int]] = mapped_column(nullable=True)
-    latest_version: Mapped[Optional[str]] = mapped_column(nullable=True)
     node_cluster_session: Mapped[Optional[int]] = mapped_column(nullable=True)
     node_peer_count: Mapped[Optional[int]] = mapped_column(nullable=True)
     wallet_address: Mapped[Optional[str]] = mapped_column(nullable=True)
@@ -83,7 +84,6 @@ class NodeData(SQLBase):
     reward_state: Mapped[Optional[bool]] = mapped_column(nullable=True)
     reward_true_count: Mapped[Optional[int]] = mapped_column(nullable=True)
     state: Mapped[Optional[str]] = mapped_column(nullable=True)
-    version: Mapped[Optional[str]] = mapped_column(nullable=True)
     former_cluster_association_time: Mapped[Optional[float]] = mapped_column(nullable=True)
     former_cluster_connectivity: Mapped[Optional[str]] = mapped_column(nullable=True)
     former_cluster_dissociation_time: Mapped[Optional[float]] = mapped_column(nullable=True)
