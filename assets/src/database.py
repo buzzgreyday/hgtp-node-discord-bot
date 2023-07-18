@@ -240,7 +240,5 @@ async def get_node_data(ip, public_port, db: AsyncSession = Depends(get_db)):
                     .where((NodeData.ip == ip) & (NodeData.public_port == public_port))
                     .order_by(NodeData.timestamp_index.desc())
                     .limit(1))
-    print(results)
     node = results.scalar_one_or_none()
-    print(node)
     return node

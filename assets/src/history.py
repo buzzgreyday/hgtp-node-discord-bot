@@ -33,10 +33,9 @@ async def node_data(dask_client, node_data: schemas.Node, history_dataframe, _co
         else:
             return await dask_client.compute(history_dataframe[(history_dataframe["ip"] == node_data.ip) & (history_dataframe["public_port"] == node_data.public_port)])
     """
-    print(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}")
     data = await api.Request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").json(_configuration)
     print(data)
-    return data if data is None else pd.DataFrame(data)
+    return None if data is None else pd.DataFrame(data)
 
 
 
@@ -84,7 +83,7 @@ async def read(configuration: dict):
 
 def merge_data(node_data: schemas.Node, cluster_data, historic_node_dataframe) -> schemas.Node:
     # Might need refactoring when metagraphs is coming
-    if not historic_node_dataframe.empty:
+    if not historic_node_dataframe is None:
         node_data.former_cluster_name = Clean(historic_node_dataframe["cluster_name"]).make_lower()
         node_data.former_cluster_connectivity = Clean(historic_node_dataframe["cluster_connectivity"][historic_node_dataframe["cluster_name"] == node_data.former_cluster_name]).make_none()
         node_data.former_cluster_association_time = Clean(historic_node_dataframe["cluster_association_time"][historic_node_dataframe["cluster_name"] == node_data.former_cluster_name]).make_none()
