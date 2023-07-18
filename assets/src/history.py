@@ -46,7 +46,8 @@ async def write(dask_client, history_dataframe, data: List[schemas.Node], config
     async with database.SessionLocal() as session:
         db = session
         for d in data:
-            await database.post_data(data=d, db=db)
+            result = await database.post_data(data=d, db=db)
+            print(result)
     """node_data = pd.DataFrame(list(d.dict() for d in data))
     print(node_data)
     new_history_dataframe = dd.from_pandas(node_data, npartitions=1)
@@ -66,7 +67,6 @@ async def write(dask_client, history_dataframe, data: List[schemas.Node], config
     history_dataframe.reward_state = history_dataframe.reward_state.astype(bool)
     fut = history_dataframe.to_parquet(f'{configuration["file settings"]["locations"]["history_new"]}/new data', overwrite=True, compute=False, write_index=False)
     await dask_client.compute(fut)"""
-    print(history_dataframe)
 
 
 async def read(configuration: dict):
