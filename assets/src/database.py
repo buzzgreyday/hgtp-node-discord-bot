@@ -160,6 +160,6 @@ async def get_contact_node_id(contact, db: AsyncSession = Depends(get_db)):
 
 @api.get("/data/node/{ip}/{public_port}")
 async def get_node_data(ip, public_port, db: AsyncSession = Depends(get_db)):
-    results = await db.execute(select(User).where((NodeData.ip == ip) & (NodeData.public_port == public_port)))
+    results = await db.execute(select(NodeData).where((NodeData.ip == ip) & (NodeData.public_port == public_port) & max(NodeData.timestamp_index)))
     node = results.scalars().all()
     return node

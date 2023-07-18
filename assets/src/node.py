@@ -42,7 +42,8 @@ async def check(dask_client, bot, process_msg, requester, subscriber, port, laye
     node_data = merge_data(node_data, cluster_data)
     print("- HISTORIC DATA: GET DATA -")
     historic_node_dataframe = await history.node_data(dask_client, node_data, history_dataframe, configuration)
-    historic_node_dataframe = history.former_node_data(historic_node_dataframe)
+
+    # historic_node_dataframe = history.former_node_data(historic_node_dataframe)
     print("- HISTORIC DATA: MERGE -")
     node_data = history.merge_data(node_data, cluster_data, historic_node_dataframe)
     process_msg = await discord.update_request_process_msg(process_msg, 3, None)
