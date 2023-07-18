@@ -241,6 +241,6 @@ async def get_node_data(ip, public_port, db: AsyncSession = Depends(get_db)):
                     .order_by(NodeData.timestamp_index.desc())
                     .limit(1))
     print(results)
-    node = results.scalars().all()
+    node = results.scalar_one_or_none()
     print(node)
     return node
