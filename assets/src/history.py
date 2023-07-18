@@ -34,9 +34,7 @@ async def node_data(dask_client, node_data: schemas.Node, history_dataframe, _co
             return await dask_client.compute(history_dataframe[(history_dataframe["ip"] == node_data.ip) & (history_dataframe["public_port"] == node_data.public_port)])
     """
     data = await api.Request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").json(_configuration)
-    print(data)
-    return None if data is None else pd.DataFrame(data)
-
+    return None if data is None else data
 
 
 def former_node_data(historic_node_dataframe):
