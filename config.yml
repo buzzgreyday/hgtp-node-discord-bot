@@ -162,7 +162,7 @@ modules:
       url:
       - https://l0-lb-testnet.constellationnetwork.io
     1:
-      id: 9561959b0b4410e263fa9d0e25ee2bfeb9a1362db6680ceef242b11f5f18e98457b1191478e5901153c9dbb6eb5eca09924d9ab210017dd203bab5816ff88567
+      id: 890a641e239763187f1a8c3a30d1bbb23a57eb4a82b1d69154540376c8045dd94c1e0be08ebeeb43cf6b0f7de6cefa6a418e2f53dfa53ddcf7afd293a34ee363
       info:
         cluster: cluster/info
         metrics: metrics

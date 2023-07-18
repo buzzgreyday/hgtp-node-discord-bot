@@ -4,6 +4,7 @@ import gc
 import logging
 import sys
 import threading
+import traceback
 from datetime import datetime
 
 from dask import distributed
@@ -76,7 +77,11 @@ async def main(ctx, process_msg, requester, _configuration) -> None:
         # If not request received through Discord channel
         print("- HISTORIC DATA: WRITE -")
         if process_msg is None:
-            await history.write(dask_client, history_dataframe, data, _configuration)
+            try:
+                await history.write(dask_client, history_dataframe, data, _configuration)
+            except Exception as e:
+                traceback.print_exc()
+                exit(1)
     # Write node id, ip, ports to subscriber list, then base code on id
     print("- DISCORD: SEND NOTIFICATION -")
     await discord.send(ctx, process_msg, bot, data, _configuration)
@@ -137,11 +142,8 @@ async def loop():
     while True:
         print(datetime.time(datetime.utcnow()).strftime("%H:%M:%S"))
         if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
-            try:
-                await main(None, None, None, _configuration)
-            except Exception as e:
-                print(repr(e.with_traceback(sys.exc_info())))
-                exit(1)
+            await main(None, None, None, _configuration)
+
         await asyncio.sleep(1)
 
 

@@ -2,7 +2,7 @@ import datetime
 import logging
 import sqlite3
 import sys
-from typing import List
+from typing import List, Optional
 
 import sqlalchemy
 import uuid as uuid
@@ -53,51 +53,52 @@ class NodeData(SQLBase):
     __tablename__ = "data"
 
     index: Mapped[int] = mapped_column(primary_key=True)
-    one_m_system_load_average: Mapped[float] = mapped_column(nullable=True)
-    cluster_association_time: Mapped[float] = mapped_column(nullable=True)
-    cluster_connectivity: Mapped[str] = mapped_column(nullable=True)
-    cluster_dissociation_time: Mapped[float] = mapped_column(nullable=True)
-    cluster_name: Mapped[str] = mapped_column(nullable=True)
-    cluster_peer_count: Mapped[int] = mapped_column(nullable=True)
-    cluster_state: Mapped[str] = mapped_column(nullable=True)
-    cluster_version: Mapped[str] = mapped_column(nullable=True)
-    contact: Mapped[str] = mapped_column(nullable=True)
-    cpu_count: Mapped[int] = mapped_column(nullable=True)
-    disk_space_free: Mapped[float] = mapped_column(nullable=True)
-    disk_space_total: Mapped[float] = mapped_column(nullable=True)
-    former_cluster_association_time: Mapped[float] = mapped_column(nullable=True)
-    former_cluster_connectivity: Mapped[str] = mapped_column(nullable=True)
-    former_cluster_dissociation_time: Mapped[float] = mapped_column(nullable=True)
-    former_cluster_name: Mapped[str] = mapped_column(nullable=True)
-    former_cluster_peer_count: Mapped[int] = mapped_column(nullable=True)
-    former_cluster_state: Mapped[str] = mapped_column(nullable=True)
-    former_reward_state: Mapped[bool] = mapped_column(nullable=True)
-    former_timestamp_index: Mapped[datetime.datetime] = mapped_column(nullable=True)
-    ip: Mapped[str] = mapped_column(nullable=True)
-    id: Mapped[str] = mapped_column(nullable=True)
-    last_notified_timestamp: Mapped[datetime.datetime] = mapped_column(nullable=True)
-    latest_cluster_session: Mapped[int] = mapped_column(nullable=True)
-    latest_version: Mapped[str] = mapped_column(nullable=True)
-    layer: Mapped[int] = mapped_column(nullable=True)
-    name: Mapped[str] = mapped_column(nullable=True)
-    node_cluster_session: Mapped[int] = mapped_column(nullable=True)
-    node_peer_count: Mapped[int] = mapped_column(nullable=True)
-    wallet_address: Mapped[str] = mapped_column(nullable=True)
-    wallet_balance: Mapped[float] = mapped_column(nullable=True)
-    notify: Mapped[bool] = mapped_column(nullable=True)
-    p2p_port: Mapped[int] = mapped_column(nullable=True)
-    public_port: Mapped[int] = mapped_column(nullable=True)
-    reward_false_count: Mapped[int] = mapped_column(nullable=True)
-    reward_state: Mapped[bool] = mapped_column(nullable=True)
-    reward_true_count: Mapped[int] = mapped_column(nullable=True)
-    state: Mapped[str] = mapped_column(nullable=True)
-    timestamp_index: Mapped[datetime.datetime] = mapped_column(nullable=True)
-    version: Mapped[str] = mapped_column(nullable=True)
+    one_m_system_load_average: Mapped[Optional[float]] = mapped_column(nullable=True)
+    cluster_association_time: Mapped[Optional[float]] = mapped_column(nullable=True)
+    cluster_connectivity: Mapped[Optional[str]] = mapped_column(nullable=True)
+    cluster_dissociation_time: Mapped[Optional[float]] = mapped_column(nullable=True)
+    cluster_name: Mapped[Optional[str]] = mapped_column(nullable=True)
+    cluster_peer_count: Mapped[Optional[int]] = mapped_column(nullable=True)
+    cluster_state: Mapped[Optional[str]] = mapped_column(nullable=True)
+    cluster_version: Mapped[Optional[str]] = mapped_column(nullable=True)
+    contact: Mapped[str]
+    cpu_count: Mapped[Optional[int]] = mapped_column(nullable=True)
+    disk_space_free: Mapped[Optional[float]] = mapped_column(nullable=True)
+    disk_space_total: Mapped[Optional[float]] = mapped_column(nullable=True)
+    former_cluster_association_time: Mapped[Optional[float]] = mapped_column(nullable=True)
+    former_cluster_connectivity: Mapped[Optional[str]] = mapped_column(nullable=True)
+    former_cluster_dissociation_time: Mapped[Optional[float]] = mapped_column(nullable=True)
+    former_cluster_name: Mapped[Optional[str]] = mapped_column(nullable=True)
+    former_cluster_peer_count: Mapped[Optional[int]] = mapped_column(nullable=True)
+    former_cluster_state: Mapped[Optional[str]] = mapped_column(nullable=True)
+    former_reward_state: Mapped[Optional[bool]] = mapped_column(nullable=True)
+    former_timestamp_index: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
+    ip: Mapped[str]
+    id: Mapped[str]
+    last_notified_timestamp: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
+    latest_cluster_session: Mapped[Optional[int]] = mapped_column(nullable=True)
+    latest_version: Mapped[Optional[str]] = mapped_column(nullable=True)
+    layer: Mapped[Optional[int]] = mapped_column(nullable=True)
+    name: Mapped[Optional[str]] = mapped_column(nullable=True)
+    node_cluster_session: Mapped[Optional[int]] = mapped_column(nullable=True)
+    node_peer_count: Mapped[Optional[int]] = mapped_column(nullable=True)
+    wallet_address: Mapped[Optional[str]] = mapped_column(nullable=True)
+    wallet_balance: Mapped[Optional[float]] = mapped_column(nullable=True)
+    notify: Mapped[Optional[bool]] = mapped_column(nullable=True)
+    p2p_port: Mapped[Optional[int]] = mapped_column(nullable=True)
+    public_port: Mapped[int]
+    reward_false_count: Mapped[Optional[int]] = mapped_column(nullable=True)
+    reward_state: Mapped[Optional[bool]] = mapped_column(nullable=True)
+    reward_true_count: Mapped[Optional[int]] = mapped_column(nullable=True)
+    state: Mapped[Optional[str]] = mapped_column(nullable=True)
+    timestamp_index: Mapped[datetime.datetime]
+    version: Mapped[Optional[str]] = mapped_column(nullable=True)
 
 
 async def get_db() -> AsyncSession:
     async with SessionLocal() as session:
         yield session
+
 
 async def get_next_index(Model, db: AsyncSession) -> int:
     # Fetch the last assigned index from the separate table
