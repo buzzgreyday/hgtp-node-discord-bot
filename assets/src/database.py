@@ -53,15 +53,7 @@ class NodeData(SQLBase):
     __tablename__ = "data"
 
     index: Mapped[int] = mapped_column(primary_key=True)
-    timestamp_index: Mapped[datetime.datetime]
-    name: Optional[str]
-    contact: Mapped[str]
-    ip: Mapped[str]
-    id: Mapped[str]
-    public_port: Mapped[int]
-    layer: Mapped[int]
-    version: Mapped[Optional[str]] = mapped_column(nullable=True)
-    latest_version: Mapped[Optional[str]] = mapped_column(nullable=True)
+    one_m_system_load_average: Mapped[Optional[float]] = mapped_column(nullable=True)
     cluster_association_time: Mapped[Optional[float]] = mapped_column(nullable=True)
     cluster_connectivity: Mapped[Optional[str]] = mapped_column(nullable=True)
     cluster_dissociation_time: Mapped[Optional[float]] = mapped_column(nullable=True)
@@ -69,21 +61,10 @@ class NodeData(SQLBase):
     cluster_peer_count: Mapped[Optional[int]] = mapped_column(nullable=True)
     cluster_state: Mapped[Optional[str]] = mapped_column(nullable=True)
     cluster_version: Mapped[Optional[str]] = mapped_column(nullable=True)
+    contact: Mapped[Optional[str]] = mapped_column(nullable=True)
     cpu_count: Mapped[Optional[int]] = mapped_column(nullable=True)
     disk_space_free: Mapped[Optional[float]] = mapped_column(nullable=True)
     disk_space_total: Mapped[Optional[float]] = mapped_column(nullable=True)
-    one_m_system_load_average: Mapped[Optional[float]] = mapped_column(nullable=True)
-    latest_cluster_session: Mapped[Optional[int]] = mapped_column(nullable=True)
-    node_cluster_session: Mapped[Optional[int]] = mapped_column(nullable=True)
-    node_peer_count: Mapped[Optional[int]] = mapped_column(nullable=True)
-    wallet_address: Mapped[Optional[str]] = mapped_column(nullable=True)
-    wallet_balance: Mapped[Optional[float]] = mapped_column(nullable=True)
-    notify: Mapped[Optional[bool]] = mapped_column(nullable=True)
-    p2p_port: Mapped[Optional[int]] = mapped_column(nullable=True)
-    reward_false_count: Mapped[Optional[int]] = mapped_column(nullable=True)
-    reward_state: Mapped[Optional[bool]] = mapped_column(nullable=True)
-    reward_true_count: Mapped[Optional[int]] = mapped_column(nullable=True)
-    state: Mapped[Optional[str]] = mapped_column(nullable=True)
     former_cluster_association_time: Mapped[Optional[float]] = mapped_column(nullable=True)
     former_cluster_connectivity: Mapped[Optional[str]] = mapped_column(nullable=True)
     former_cluster_dissociation_time: Mapped[Optional[float]] = mapped_column(nullable=True)
@@ -92,8 +73,26 @@ class NodeData(SQLBase):
     former_cluster_state: Mapped[Optional[str]] = mapped_column(nullable=True)
     former_reward_state: Mapped[Optional[bool]] = mapped_column(nullable=True)
     former_timestamp_index: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
+    ip: Mapped[Optional[str]] = mapped_column(nullable=True)
+    id: Mapped[Optional[str]] = mapped_column(nullable=True)
     last_notified_timestamp: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
-
+    latest_cluster_session: Mapped[Optional[int]] = mapped_column(nullable=True)
+    latest_version: Mapped[Optional[str]] = mapped_column(nullable=True)
+    layer: Mapped[Optional[int]] = mapped_column(nullable=True)
+    name: Mapped[Optional[str]] = mapped_column(nullable=True)
+    node_cluster_session: Mapped[Optional[int]] = mapped_column(nullable=True)
+    node_peer_count: Mapped[Optional[int]] = mapped_column(nullable=True)
+    wallet_address: Mapped[Optional[str]] = mapped_column(nullable=True)
+    wallet_balance: Mapped[Optional[float]] = mapped_column(nullable=True)
+    notify: Mapped[Optional[bool]] = mapped_column(nullable=True)
+    p2p_port: Mapped[Optional[int]] = mapped_column(nullable=True)
+    public_port: Mapped[Optional[int]] = mapped_column(nullable=True)
+    reward_false_count: Mapped[Optional[int]] = mapped_column(nullable=True)
+    reward_state: Mapped[Optional[bool]] = mapped_column(nullable=True)
+    reward_true_count: Mapped[Optional[int]] = mapped_column(nullable=True)
+    state: Mapped[Optional[str]] = mapped_column(nullable=True)
+    timestamp_index: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
+    version: Mapped[Optional[str]] = mapped_column(nullable=True)
 
 
 async def get_db() -> AsyncSession:
@@ -121,20 +120,6 @@ async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
     if result:
         print("RECORD ALREADY EXISTS")
     else:
-        """data_dict.update(
-            {
-                "name": data.name,
-                "id": data.id,
-                "ip": data.ip,
-                "public_port": data.public_port,
-                "layer": data.layer,
-                "contact": data.contact,
-                "date": data.date,
-                "type": data.type,
-                "index": next_index
-            }
-        )"""
-
         db.add(user)
         await db.commit()
         await db.refresh(user)
@@ -145,53 +130,8 @@ async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
 async def post_data(data: NodeModel, db: AsyncSession = Depends(get_db)):
     next_index = await get_next_index(NodeData, db)
     data.index = next_index
-    print(data.index)
     data_dict = data.dict()
     node_data = NodeData(**data_dict)
-    """data_dict.update({
-        "index": next_index,
-        "name": NodeData.name,
-        "id": NodeData.id,
-        "ip": NodeData.ip,
-        "public_port": NodeData.public_port,
-        "layer": NodeData.layer,
-        "contact": NodeData.contact,
-        "cluster_association_time": NodeData.cluster_association_time,
-        "cpu_count": NodeData.cpu_count,
-        "one_m_system_load_average": NodeData.one_m_system_load_average,
-        "disk_space_free": NodeData.disk_space_free,
-        "disk_space_total": NodeData.disk_space_total,
-        "p2p_port": NodeData.p2p_port,
-        "wallet_address": NodeData.wallet_address,
-        "wallet_balance": NodeData.wallet_balance,
-        "cluster_name": NodeData.cluster_name,
-        "former_cluster_name": NodeData.former_cluster_name,
-        "state": NodeData.state,
-        "cluster_state": NodeData.cluster_state,
-        "former_cluster_state": NodeData.former_cluster_state,
-        "cluster_connectivity": NodeData.cluster_connectivity,
-        "former_cluster_connectivity": NodeData.former_cluster_connectivity,
-        "reward_state": NodeData.reward_state,
-        "former_reward_state": NodeData.former_reward_state,
-        "reward_true_count": NodeData.reward_true_count,
-        "reward_false_count": NodeData.reward_false_count,
-        "former_cluster_association_time": NodeData.former_cluster_association_time,
-        "cluster_dissociation_time": NodeData.cluster_dissociation_time,
-        "former_cluster_dissociation_time": NodeData.former_cluster_dissociation_time,
-        "node_cluster_session": NodeData.node_cluster_session,
-        "latest_cluster_session": NodeData.latest_cluster_session,
-        "node_peer_count": NodeData.node_peer_count,
-        "cluster_peer_count": NodeData.cluster_peer_count,
-        "former_cluster_peer_count": NodeData.former_cluster_peer_count,
-        "version": NodeData.version,
-        "cluster_version": NodeData.cluster_version,
-        "latest_version": NodeData.latest_version,
-        "notify": NodeData.notify,
-        "last_notified_timestamp": NodeData.last_notified_timestamp,
-        "timestamp_index": NodeData.timestamp_index,
-        "former_timestamp_index": NodeData.former_timestamp_index
-    })"""
-    print(data_dict)
     db.add(node_data)
     await db.commit()
     await db.refresh(node_data)
