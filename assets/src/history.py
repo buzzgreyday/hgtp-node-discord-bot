@@ -1,3 +1,4 @@
+import json
 import logging
 from datetime import datetime
 from typing import List
@@ -32,7 +33,9 @@ async def node_data(dask_client, node_data: schemas.Node, history_dataframe, _co
         else:
             return await dask_client.compute(history_dataframe[(history_dataframe["ip"] == node_data.ip) & (history_dataframe["public_port"] == node_data.public_port)])
     """
-    data = pd.DataFrame(await api.Request(f"127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").json(_configuration))
+    data = await api.Request(f"127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").json(_configuration)
+    print(data)
+    data = pd.DataFrame(data)
     return data
 
 

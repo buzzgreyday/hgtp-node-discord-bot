@@ -1,6 +1,7 @@
 import re
+import typing
 from enum import Enum
-from typing import List
+from typing import List, Optional
 import datetime as dt
 
 import uuid as uuid
@@ -102,10 +103,11 @@ class UserEnum(str, Enum):
 
 class User(NodeBase):
     """This class can create a user object which can be subscribed using different methods and transformations"""
-    date: dt.datetime
+    date: Optional[dt.datetime]
     # UserRead should be UserEnum
+    index: Optional[int]
     type: str
-    uuid: str
+    # uuid: str
 
     # VALIDATE ID VALUE, CREATE CUSTOM EXCEPTION!
 
@@ -136,7 +138,7 @@ class User(NodeBase):
                             # Check if port is subscribed?
                             user_data.append(
                                 cls(name=name, contact=contact, id=await User.get_id(arg[0], port, mode, configuration),
-                                    ip=arg[0], public_port=port, layer=0, date=dt.datetime.utcnow(), type="discord", uuid=str(uuid.uuid4())))
+                                    ip=arg[0], public_port=port, layer=0, type="discord"))
                         else:
                             break
                 elif val.lower() in ("o", "-o", "one", "l1", "-l1"):
@@ -145,7 +147,7 @@ class User(NodeBase):
 
                             user_data.append(
                                 cls(name=name, contact=contact, id=await User.get_id(arg[0], port, mode, configuration),
-                                    ip=arg[0], public_port=port, layer=1, date=dt.datetime.utcnow(), type="discord", uuid=str(uuid.uuid4())))
+                                    ip=arg[0], public_port=port, layer=1, type="discord"))
                         else:
                             break
 

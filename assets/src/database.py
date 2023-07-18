@@ -1,4 +1,5 @@
 import datetime
+import sqlite3
 from typing import List
 
 import sqlalchemy
@@ -33,7 +34,8 @@ async def startup():
 class User(SQLBase):
     __tablename__ = "users"
 
-    uuid: Mapped[str] = mapped_column(default=lambda: str(uuid.uuid4()), index=True, nullable=False, primary_key=True)
+    # uuid: Mapped[str] = mapped_column(default=lambda: str(uuid.uuid4()), index=True, nullable=False, primary_key=True)
+    index: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
     id: Mapped[str]
     ip: Mapped[str]
@@ -64,7 +66,7 @@ class NodeData(SQLBase):
     former_cluster_dissociation_time: Mapped[float]
     former_cluster_name: Mapped[str]
     former_cluster_peer_count: Mapped[int]
-    former_cluster_state = Mapped[str]
+    former_cluster_state: Mapped[str]
     former_reward_state: Mapped[bool]
     former_timestamp_index: Mapped[datetime.datetime]
     ip: Mapped[str]
@@ -93,11 +95,29 @@ async def get_db() -> AsyncSession:
     async with SessionLocal() as session:
         yield session
 
+async def get_next_index(Model, db: AsyncSession) -> int:
+    # Fetch the last assigned index from the separate table
+    result = await db.execute(select(Model.index).order_by(Model.index.desc()).limit(1))
+    last_index = result.scalar_one_or_none()
+    print(last_index)
+    return (last_index or 0) + 1
+
 
 @api.post("/user/create")
 async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
+    next_index = await get_next_index(User, db)
     data_dict = data.dict()
-    user = User(**data_dict)
+    user = User(name=data.name,
+                id=data.id,
+                ip=data.ip,
+                public_port=data.public_port,
+                layer=data.layer,
+                contact=data.contact,
+                date=datetime.datetime.utcnow(),
+                type=data.type,
+                index=next_index
+                 # uuid=data.uuid
+                 )
     result = await db.execute(select(User).where((User.ip == data.ip) & (User.public_port == data.public_port)))
     # You only need one result that matches
     result = result.fetchone()
@@ -112,7 +132,10 @@ async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
                           "contact": data.contact,
                           "date": datetime.datetime.utcnow(),
                           "type": data.type,
-                          "uuid": None})
+                          "index": next_index
+                          # "uuid": None
+                        }
+                        )
         db.add(user)
         await db.commit()
         await db.refresh(user)
@@ -211,6 +234,10 @@ async def get_contact_node_id(contact, db: AsyncSession = Depends(get_db)):
 
 @api.get("/data/node/{ip}/{public_port}")
 async def get_node_data(ip, public_port, db: AsyncSession = Depends(get_db)):
-    results = await db.execute(select(NodeData).where((NodeData.ip == ip) & (NodeData.public_port == public_port) & max(NodeData.timestamp_index)))
-    node = results.scalars().all()
+    results = await db.execute(
+                    select(NodeData)
+                    .where((NodeData.ip == ip) & (NodeData.public_port == public_port))
+                    .order_by(NodeData.timestamp_index.desc())
+                    .limit(1))
+    node = results.scalar_one_or_none()
     return node
