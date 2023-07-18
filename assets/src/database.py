@@ -147,8 +147,7 @@ async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
 
 @api.post("/data/create")
 async def post_data(data: NodeModel, db: AsyncSession = Depends(get_db)):
-    print(data)
-    next_index = await get_next_index(User, db)
+    next_index = await get_next_index(NodeData, db)
     data.index = next_index
     print(data)
     data_dict = data.dict()
