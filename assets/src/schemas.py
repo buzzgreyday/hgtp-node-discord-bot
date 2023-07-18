@@ -19,7 +19,7 @@ class NodeBase(BaseModel):
     ip: str
     public_port: int
     layer: int
-    contact: str
+    contact: str | int | None
 
 
 class NodeMetrics(BaseModel):
@@ -102,7 +102,7 @@ class UserEnum(str, Enum):
 
 class User(NodeBase):
     """This class can create a user object which can be subscribed using different methods and transformations"""
-    date: str
+    date: dt.datetime
     # UserRead should be UserEnum
     type: str
     uuid: str
@@ -136,7 +136,7 @@ class User(NodeBase):
                             # Check if port is subscribed?
                             user_data.append(
                                 cls(name=name, contact=contact, id=await User.get_id(arg[0], port, mode, configuration),
-                                    ip=arg[0], public_port=port, layer=0, date=str(dt.datetime.utcnow()), type="discord", uuid=str(uuid.uuid4())))
+                                    ip=arg[0], public_port=port, layer=0, date=dt.datetime.utcnow(), type="discord", uuid=str(uuid.uuid4())))
                         else:
                             break
                 elif val.lower() in ("o", "-o", "one", "l1", "-l1"):
@@ -145,7 +145,7 @@ class User(NodeBase):
 
                             user_data.append(
                                 cls(name=name, contact=contact, id=await User.get_id(arg[0], port, mode, configuration),
-                                    ip=arg[0], public_port=port, layer=1, date=str(dt.datetime.utcnow()), type="discord", uuid=str(uuid.uuid4())))
+                                    ip=arg[0], public_port=port, layer=1, date=dt.datetime.utcnow(), type="discord", uuid=str(uuid.uuid4())))
                         else:
                             break
 

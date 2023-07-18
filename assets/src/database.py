@@ -40,7 +40,7 @@ class User(SQLBase):
     public_port: Mapped[int]
     layer: Mapped[int]
     contact: Mapped[str]
-    date: Mapped[str]
+    date: Mapped[datetime.datetime]
     type: Mapped[str]
 
 
@@ -66,10 +66,10 @@ class NodeData(SQLBase):
     former_cluster_peer_count: Mapped[int]
     former_cluster_state = Mapped[str]
     former_reward_state: Mapped[bool]
-    former_timestamp_index: Mapped[str]
+    former_timestamp_index: Mapped[datetime.datetime]
     ip: Mapped[str]
     id: Mapped[str]
-    last_notified_timestamp: Mapped[str]
+    last_notified_timestamp: Mapped[datetime.datetime]
     latest_cluster_session: Mapped[int]
     latest_version: Mapped[str]
     layer: Mapped[int]
@@ -85,7 +85,7 @@ class NodeData(SQLBase):
     reward_state: Mapped[bool]
     reward_true_count: Mapped[int]
     state: Mapped[str]
-    timestamp_index: Mapped[str] = mapped_column(default=str, index=True, nullable=False, primary_key=True)
+    timestamp_index: Mapped[datetime.datetime] = mapped_column(default=datetime.datetime, index=True, nullable=False, primary_key=True)
     version: Mapped[str]
 
 
@@ -110,7 +110,7 @@ async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
                           "public_port": data.public_port,
                           "layer": data.layer,
                           "contact": data.contact,
-                          "date": str(datetime.datetime.utcnow()),
+                          "date": datetime.datetime.utcnow(),
                           "type": data.type,
                           "uuid": None})
         db.add(user)
