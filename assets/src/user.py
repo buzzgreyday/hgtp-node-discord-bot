@@ -78,7 +78,8 @@ async def write_db(data: List[schemas.User]):
     async with database.SessionLocal() as session:
         db = session
         for d in data:
-            await database.post_user(data=d, db=db)
+            result = await database.post_user(data=d, db=db)
+            print(result)
 
 
 async def read_db(configuration: dict):

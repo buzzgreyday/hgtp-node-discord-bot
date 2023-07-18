@@ -6,7 +6,7 @@ import dask.dataframe as dd
 import pandas as pd
 from aiofiles import os
 
-from assets.src import schemas, api
+from assets.src import schemas, api, database
 
 
 class Clean:
@@ -43,14 +43,18 @@ def former_node_data(historic_node_dataframe):
 
 
 async def write(dask_client, history_dataframe, data: List[schemas.Node], configuration):
-    node_data = pd.DataFrame(list(d.dict() for d in data))
+    async with database.SessionLocal() as session:
+        db = session
+        for d in data:
+            await database.post_data(data=d, db=db)
+    """node_data = pd.DataFrame(list(d.dict() for d in data))
     print(node_data)
     new_history_dataframe = dd.from_pandas(node_data, npartitions=1)
     print("- HISTORIC DATA: NEW DATAFRAME CREATED -")
     if len(await dask_client.compute(history_dataframe)) == 0:
         history_dataframe = new_history_dataframe
     else:
-        history_dataframe = history_dataframe.append(new_history_dataframe)
+        history_dataframe = history_dataframe.append(new_history_dataframe)"""
 
     """history_dataframe.public_port = history_dataframe.public_port.astype(float)
     history_dataframe.cluster_association_time = history_dataframe.cluster_association_time.astype(float)
