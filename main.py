@@ -66,12 +66,8 @@ async def main(ctx, process_msg, requester, _configuration) -> None:
         await discord.init_process(bot, requester)
         history_dataframe = await history.read(_configuration)
         # subscriber_dataframe = await user.read(_configuration)
-        try:
-            data = await user.check(dask_client, latest_tessellation_version, requester, history_dataframe,
-                                    all_cluster_data, dt_start, process_msg, _configuration)
-        except Exception as e:
-            logging.critical(repr(e.with_traceback(sys.exc_info())))
-            exit(1)
+        data = await user.check(dask_client, latest_tessellation_version, requester, history_dataframe,
+                                all_cluster_data, dt_start, process_msg, _configuration)
         process_msg = await discord.update_request_process_msg(process_msg, 5, None)
         # Check if notification should be sent
         print("- NOTIFY: DETERMINE USING MODULE -")
@@ -81,7 +77,6 @@ async def main(ctx, process_msg, requester, _configuration) -> None:
         print("- HISTORIC DATA: WRITE -")
         if process_msg is None:
             await history.write(dask_client, history_dataframe, data, _configuration)
-
     # Write node id, ip, ports to subscriber list, then base code on id
     print("- DISCORD: SEND NOTIFICATION -")
     await discord.send(ctx, process_msg, bot, data, _configuration)
@@ -145,7 +140,7 @@ async def loop():
             try:
                 await main(None, None, None, _configuration)
             except Exception as e:
-                logging.critical(repr(e.with_traceback(sys.exc_info())))
+                print(repr(e.with_traceback(sys.exc_info())))
                 exit(1)
         await asyncio.sleep(1)
 

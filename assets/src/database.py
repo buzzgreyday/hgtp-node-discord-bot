@@ -1,5 +1,7 @@
 import datetime
+import logging
 import sqlite3
+import sys
 from typing import List
 
 import sqlalchemy
@@ -11,6 +13,7 @@ from sqlalchemy import select
 from fastapi import FastAPI, Depends
 from fastapi.encoders import jsonable_encoder
 
+from assets.src import schemas
 from assets.src.schemas import User as UserModel
 from assets.src.schemas import Node as NodeModel
 
@@ -50,46 +53,46 @@ class NodeData(SQLBase):
     __tablename__ = "data"
 
     index: Mapped[int] = mapped_column(primary_key=True)
-    one_m_system_load_average: Mapped[float]
-    cluster_association_time: Mapped[float]
-    cluster_connectivity: Mapped[str]
-    cluster_dissociation_time: Mapped[float]
-    cluster_name: Mapped[str]
-    cluster_peer_count: Mapped[int]
-    cluster_state: Mapped[str]
-    cluster_version: Mapped[str]
-    contact: Mapped[str]
-    cpu_count: Mapped[int]
-    disk_space_free: Mapped[float]
-    disk_space_total: Mapped[float]
-    former_cluster_association_time: Mapped[float]
-    former_cluster_connectivity: Mapped[str]
-    former_cluster_dissociation_time: Mapped[float]
-    former_cluster_name: Mapped[str]
-    former_cluster_peer_count: Mapped[int]
-    former_cluster_state: Mapped[str]
-    former_reward_state: Mapped[bool]
-    former_timestamp_index: Mapped[datetime.datetime]
-    ip: Mapped[str]
-    id: Mapped[str]
-    last_notified_timestamp: Mapped[datetime.datetime]
-    latest_cluster_session: Mapped[int]
-    latest_version: Mapped[str]
-    layer: Mapped[int]
-    name: Mapped[str]
-    node_cluster_session: Mapped[int]
-    node_peer_count: Mapped[int]
-    wallet_address: Mapped[str]
-    wallet_balance: Mapped[float]
-    notify: Mapped[bool]
-    p2p_port: Mapped[int]
-    public_port: Mapped[int]
-    reward_false_count: Mapped[int]
-    reward_state: Mapped[bool]
-    reward_true_count: Mapped[int]
-    state: Mapped[str]
-    timestamp_index: Mapped[datetime.datetime] = mapped_column(default=datetime.datetime, index=True, nullable=False)
-    version: Mapped[str]
+    one_m_system_load_average: Mapped[float] = mapped_column(nullable=True)
+    cluster_association_time: Mapped[float] = mapped_column(nullable=True)
+    cluster_connectivity: Mapped[str] = mapped_column(nullable=True)
+    cluster_dissociation_time: Mapped[float] = mapped_column(nullable=True)
+    cluster_name: Mapped[str] = mapped_column(nullable=True)
+    cluster_peer_count: Mapped[int] = mapped_column(nullable=True)
+    cluster_state: Mapped[str] = mapped_column(nullable=True)
+    cluster_version: Mapped[str] = mapped_column(nullable=True)
+    contact: Mapped[str] = mapped_column(nullable=True)
+    cpu_count: Mapped[int] = mapped_column(nullable=True)
+    disk_space_free: Mapped[float] = mapped_column(nullable=True)
+    disk_space_total: Mapped[float] = mapped_column(nullable=True)
+    former_cluster_association_time: Mapped[float] = mapped_column(nullable=True)
+    former_cluster_connectivity: Mapped[str] = mapped_column(nullable=True)
+    former_cluster_dissociation_time: Mapped[float] = mapped_column(nullable=True)
+    former_cluster_name: Mapped[str] = mapped_column(nullable=True)
+    former_cluster_peer_count: Mapped[int] = mapped_column(nullable=True)
+    former_cluster_state: Mapped[str] = mapped_column(nullable=True)
+    former_reward_state: Mapped[bool] = mapped_column(nullable=True)
+    former_timestamp_index: Mapped[datetime.datetime] = mapped_column(nullable=True)
+    ip: Mapped[str] = mapped_column(nullable=True)
+    id: Mapped[str] = mapped_column(nullable=True)
+    last_notified_timestamp: Mapped[datetime.datetime] = mapped_column(nullable=True)
+    latest_cluster_session: Mapped[int] = mapped_column(nullable=True)
+    latest_version: Mapped[str] = mapped_column(nullable=True)
+    layer: Mapped[int] = mapped_column(nullable=True)
+    name: Mapped[str] = mapped_column(nullable=True)
+    node_cluster_session: Mapped[int] = mapped_column(nullable=True)
+    node_peer_count: Mapped[int] = mapped_column(nullable=True)
+    wallet_address: Mapped[str] = mapped_column(nullable=True)
+    wallet_balance: Mapped[float] = mapped_column(nullable=True)
+    notify: Mapped[bool] = mapped_column(nullable=True)
+    p2p_port: Mapped[int] = mapped_column(nullable=True)
+    public_port: Mapped[int] = mapped_column(nullable=True)
+    reward_false_count: Mapped[int] = mapped_column(nullable=True)
+    reward_state: Mapped[bool] = mapped_column(nullable=True)
+    reward_true_count: Mapped[int] = mapped_column(nullable=True)
+    state: Mapped[str] = mapped_column(nullable=True)
+    timestamp_index: Mapped[datetime.datetime] = mapped_column(nullable=True)
+    version: Mapped[str] = mapped_column(nullable=True)
 
 
 async def get_db() -> AsyncSession:
@@ -100,14 +103,14 @@ async def get_next_index(Model, db: AsyncSession) -> int:
     # Fetch the last assigned index from the separate table
     result = await db.execute(select(Model.index).order_by(Model.index.desc()).limit(1))
     last_index = result.scalar_one_or_none()
-    print(last_index)
-    return (last_index or 0) + 1
+    return 0 if last_index is None else last_index + 1
 
 
 @api.post("/user/create")
 async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
     next_index = await get_next_index(User, db)
     data.index = next_index
+    data.date = datetime.datetime.utcnow()
     data_dict = data.dict()
     user = User(**data_dict)
     result = await db.execute(select(User).where((User.ip == data.ip) & (User.public_port == data.public_port)))
@@ -116,7 +119,7 @@ async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
     if result:
         print("RECORD ALREADY EXISTS")
     else:
-        data_dict.update(
+        """data_dict.update(
             {
                 "name": data.name,
                 "id": data.id,
@@ -124,11 +127,11 @@ async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
                 "public_port": data.public_port,
                 "layer": data.layer,
                 "contact": data.contact,
-                "date": datetime.datetime.utcnow(),
+                "date": data.date,
                 "type": data.type,
                 "index": next_index
             }
-        )
+        )"""
 
         db.add(user)
         await db.commit()
@@ -140,10 +143,10 @@ async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
 async def post_data(data: NodeModel, db: AsyncSession = Depends(get_db)):
     next_index = await get_next_index(NodeData, db)
     data.index = next_index
-    print(data)
+    print(data.index)
     data_dict = data.dict()
     node_data = NodeData(**data_dict)
-    data_dict.update({
+    """data_dict.update({
         "index": next_index,
         "name": NodeData.name,
         "id": NodeData.id,
@@ -185,11 +188,13 @@ async def post_data(data: NodeModel, db: AsyncSession = Depends(get_db)):
         "last_notified_timestamp": NodeData.last_notified_timestamp,
         "timestamp_index": NodeData.timestamp_index,
         "former_timestamp_index": NodeData.former_timestamp_index
-    })
+    })"""
+    print(data_dict)
     db.add(node_data)
     await db.commit()
     await db.refresh(node_data)
     return jsonable_encoder(data_dict)
+
 
 
 @api.get("/user")

@@ -48,8 +48,7 @@ async def write(dask_client, history_dataframe, data: List[schemas.Node], config
     async with database.SessionLocal() as session:
         db = session
         for d in data:
-            result = await database.post_data(data=d, db=db)
-            print(result)
+            await database.post_data(data=d, db=db)
     """node_data = pd.DataFrame(list(d.dict() for d in data))
     print(node_data)
     new_history_dataframe = dd.from_pandas(node_data, npartitions=1)
