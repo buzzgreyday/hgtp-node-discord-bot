@@ -18,7 +18,7 @@ from assets.src.discord.services import bot
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 
 
-async def check(dask_client, latest_tessellation_version, requester, history_dataframe, all_cluster_data, dt_start, process_msg, _configuration) -> List[
+async def check(latest_tessellation_version, requester, history_dataframe, all_cluster_data, dt_start, process_msg, _configuration) -> List[
     schemas.Node]:
     futures = []
     data = []

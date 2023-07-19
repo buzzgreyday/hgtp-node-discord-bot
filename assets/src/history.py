@@ -34,12 +34,7 @@ async def node_data(dask_client, node_data: schemas.Node, history_dataframe, _co
             return await dask_client.compute(history_dataframe[(history_dataframe["ip"] == node_data.ip) & (history_dataframe["public_port"] == node_data.public_port)])
     """
     data = await api.Request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").json(_configuration)
-    return None if data is None else data
-
-
-def former_node_data(historic_node_dataframe):
-    return historic_node_dataframe[
-        historic_node_dataframe["timestamp_index"] == historic_node_dataframe["timestamp_index"].max()]
+    return pd.DataFrame([data])
 
 
 async def write(dask_client, history_dataframe, data: List[schemas.Node], configuration):
@@ -47,35 +42,6 @@ async def write(dask_client, history_dataframe, data: List[schemas.Node], config
         db = session
         for d in data:
             await database.post_data(data=d, db=db)
-    """node_data = pd.DataFrame(list(d.dict() for d in data))
-    print(node_data)
-    new_history_dataframe = dd.from_pandas(node_data, npartitions=1)
-    print("- HISTORIC DATA: NEW DATAFRAME CREATED -")
-    if len(await dask_client.compute(history_dataframe)) == 0:
-        history_dataframe = new_history_dataframe
-    else:
-        history_dataframe = history_dataframe.append(new_history_dataframe)"""
-
-    """history_dataframe.public_port = history_dataframe.public_port.astype(float)
-    history_dataframe.cluster_association_time = history_dataframe.cluster_association_time.astype(float)
-    history_dataframe.cluster_dissociation_time = history_dataframe.cluster_dissociation_time.astype(float)
-    history_dataframe.former_timestamp_index = history_dataframe.former_timestamp_index.astype(str)
-    history_dataframe.former_cluster_peer_count = history_dataframe.former_cluster_per_count.astype(float)
-    history_dataframe.reward_true_count = history_dataframe.reward_true_count.astype(float)
-    history_dataframe.reward_false_count = history_dataframe.reward_false_count.astype(float)
-    history_dataframe.reward_state = history_dataframe.reward_state.astype(bool)
-    fut = history_dataframe.to_parquet(f'{configuration["file settings"]["locations"]["history_new"]}/new data', overwrite=True, compute=False, write_index=False)
-    await dask_client.compute(fut)"""
-
-
-async def read(configuration: dict):
-    if not await os.path.exists(configuration["file settings"]["locations"]["history_new"]):
-        logging.warning(f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE DATA NOT FOUND, RETURN BLANK DATAFRAME WITH COLUMNS")
-        df = pd.DataFrame(columns=configuration["file settings"]["columns"]["history_new"])
-        return dd.from_pandas(df, npartitions=1)
-    elif await os.path.exists(configuration["file settings"]["locations"]["history_new"]):
-        logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - NODE DATA FOUND, RETURN READ DATAFRAME")
-        return dd.read_parquet(configuration["file settings"]["locations"]["history_new"], columns=configuration["file settings"]["columns"]["history_new"])
 
 
 def merge_data(node_data: schemas.Node, cluster_data, historic_node_dataframe) -> schemas.Node:
@@ -85,8 +51,8 @@ def merge_data(node_data: schemas.Node, cluster_data, historic_node_dataframe) -
         node_data.former_cluster_connectivity = Clean(historic_node_dataframe["cluster_connectivity"][historic_node_dataframe["cluster_name"] == node_data.former_cluster_name]).make_none()
         node_data.former_cluster_association_time = Clean(historic_node_dataframe["cluster_association_time"][historic_node_dataframe["cluster_name"] == node_data.former_cluster_name]).make_none()
         node_data.former_cluster_dissociation_time = Clean(historic_node_dataframe["cluster_dissociation_time"][historic_node_dataframe["cluster_name"] == node_data.former_cluster_name]).make_none()
-        node_data.former_timestamp_index = Clean(historic_node_dataframe["timestamp_index"]).make_none()
-        node_data.last_notified_timestamp = Clean(historic_node_dataframe["last_notified_timestamp"]).make_none()
+        node_data.former_timestamp_index = datetime.strptime(Clean(historic_node_dataframe["timestamp_index"]).make_none(), "%Y-%m-%dT%H:%M:%S.%f")
+        node_data.last_notified_timestamp = datetime.strptime(Clean(historic_node_dataframe["last_notified_timestamp"]).make_none(), "%Y-%m-%dT%H:%M:%S.%f")
         if node_data.state == "Offline":
             node_data.id = Clean(historic_node_dataframe["id"]).make_none()
             node_data.wallet_address = Clean(historic_node_dataframe["wallet_address"]).make_none()

@@ -62,22 +62,20 @@ async def main(ctx, process_msg, requester, _configuration) -> None:
     pre_timer_stop = dt.timing()[1]
     print("- START PROCESS: GET PRELIMINARIES T =", pre_timer_stop-pre_timer_start, "-")
     await bot.wait_until_ready()
-    async with Client(cluster) as dask_client:
-        await dask_client.wait_for_workers(n_workers=1)
-        await discord.init_process(bot, requester)
-        history_dataframe = await history.read(_configuration)
-        # subscriber_dataframe = await user.read(_configuration)
-        data = await user.check(dask_client, latest_tessellation_version, requester, history_dataframe,
-                                all_cluster_data, dt_start, process_msg, _configuration)
-        process_msg = await discord.update_request_process_msg(process_msg, 5, None)
-        # Check if notification should be sent
-        print("- NOTIFY: DETERMINE USING MODULE -")
-        data = await determine_module.notify(data, _configuration)
-        process_msg = await discord.update_request_process_msg(process_msg, 6, None)
-        # If not request received through Discord channel
-        print("- HISTORIC DATA: WRITE -")
-        if process_msg is None:
-            await history.write(dask_client, history_dataframe, data, _configuration)
+    await discord.init_process(bot, requester)
+    history_dataframe = await history.read(_configuration)
+    # subscriber_dataframe = await user.read(_configuration)
+    data = await user.check(latest_tessellation_version, requester, history_dataframe,
+                            all_cluster_data, dt_start, process_msg, _configuration)
+    process_msg = await discord.update_request_process_msg(process_msg, 5, None)
+    # Check if notification should be sent
+    print("- NOTIFY: DETERMINE USING MODULE -")
+    data = await determine_module.notify(data, _configuration)
+    process_msg = await discord.update_request_process_msg(process_msg, 6, None)
+    # If not request received through Discord channel
+    print("- HISTORIC DATA: WRITE -")
+    if process_msg is None:
+        await history.write(dask_client, history_dataframe, data, _configuration)
     # Write node id, ip, ports to subscriber list, then base code on id
     print("- DISCORD: SEND NOTIFICATION -")
     await discord.send(ctx, process_msg, bot, data, _configuration)
