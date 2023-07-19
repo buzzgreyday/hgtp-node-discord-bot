@@ -1,7 +1,5 @@
-# Native module imports
 from os import getenv
 
-# Project module imports
 import nextcord
 from nextcord.ext import commands
 

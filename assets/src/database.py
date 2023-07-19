@@ -1,11 +1,5 @@
 import datetime
-import logging
-import sqlite3
-import sys
 from typing import List, Optional
-
-import sqlalchemy
-import uuid as uuid
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -13,11 +7,10 @@ from sqlalchemy import select
 from fastapi import FastAPI, Depends
 from fastapi.encoders import jsonable_encoder
 
-from assets.src import schemas
 from assets.src.schemas import User as UserModel
 from assets.src.schemas import Node as NodeModel
 
-engine = create_async_engine("sqlite+aiosqlite:///assets/data/db/db.sqlite3", connect_args={"check_same_thread": False})
+engine = create_async_engine("sqlite+aiosqlite:///assets/data/db/database.db", connect_args={"check_same_thread": False})
 
 SessionLocal = async_sessionmaker(engine, class_=AsyncSession)
 
@@ -37,7 +30,6 @@ async def startup():
 class User(SQLBase):
     __tablename__ = "users"
 
-    # uuid: Mapped[str] = mapped_column(default=lambda: str(uuid.uuid4()), index=True, nullable=False, primary_key=True)
     index: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
     id: Mapped[str]
@@ -101,7 +93,7 @@ async def get_db() -> AsyncSession:
 
 
 async def get_next_index(Model, db: AsyncSession) -> int:
-    # Fetch the last assigned index from the separate table
+    """Fetch the last assigned index from the separate table"""
     result = await db.execute(select(Model.index).order_by(Model.index.desc()).limit(1))
     last_index = result.scalar_one_or_none()
     return 0 if last_index is None else last_index + 1
@@ -109,6 +101,7 @@ async def get_next_index(Model, db: AsyncSession) -> int:
 
 @api.post("/user/create")
 async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
+    """Creates a new user subscription"""
     next_index = await get_next_index(User, db)
     data.index = next_index
     data.date = datetime.datetime.utcnow()
@@ -128,6 +121,7 @@ async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
 
 @api.post("/data/create")
 async def post_data(data: NodeModel, db: AsyncSession = Depends(get_db)):
+    """Inserts node data from automatic check into database file"""
     next_index = await get_next_index(NodeData, db)
     data.index = next_index
     data_dict = data.dict()
