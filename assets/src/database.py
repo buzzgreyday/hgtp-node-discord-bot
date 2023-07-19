@@ -28,6 +28,7 @@ async def startup():
 
 
 class User(SQLBase):
+    """SQL Base for user subscription data"""
     __tablename__ = "users"
 
     index: Mapped[int] = mapped_column(primary_key=True)
@@ -42,6 +43,7 @@ class User(SQLBase):
 
 
 class NodeData(SQLBase):
+    """SQL Base for automatic check node data"""
     __tablename__ = "data"
 
     index: Mapped[int] = mapped_column(primary_key=True)
