@@ -5,7 +5,6 @@ from typing import List
 
 import dask.dataframe as dd
 import pandas as pd
-from aiofiles import os
 
 from assets.src import schemas, api, database
 

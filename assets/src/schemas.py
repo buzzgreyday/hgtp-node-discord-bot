@@ -1,10 +1,8 @@
 import re
-import typing
 from enum import Enum
 from typing import List, Optional
 import datetime as dt
 
-import uuid as uuid
 from pydantic import BaseModel
 
 from assets.src import api
@@ -123,6 +121,7 @@ class User(NodeBase):
     async def discord(cls, configuration, mode: str, name: str, contact: int, *args) -> List:
         """Treats a Discord message as a line of arguments and returns a list of subscribable user objects"""
 
+
         user_data = []
 
         ips = {ip for ip in args if re.match(IP_REGEX, ip)}
@@ -151,14 +150,3 @@ class User(NodeBase):
                             break
 
         return user_data
-
-    """@classmethod
-    async def Create(cls, data):
-        cls.name = data.name
-        cls.id = data.id
-        cls.ip = data.ip
-        cls.public_port = data.public_port
-        cls.layer = data.layer
-        cls.contact = data.contact
-        cls.date = data.date
-        cls.type = data.type"""

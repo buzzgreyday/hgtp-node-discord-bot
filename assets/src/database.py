@@ -174,9 +174,6 @@ async def get_contact_node_id(contact, db: AsyncSession = Depends(get_db)):
     return {contact: nodes}
 
 
-
-
-
 @api.get("/data/node/{ip}/{public_port}")
 async def get_node_data(ip, public_port, db: AsyncSession = Depends(get_db)):
     print("Fetching API data...")
