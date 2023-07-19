@@ -38,18 +38,13 @@ async def check(bot, process_msg, requester, subscriber, port, layer, latest_tes
     loc_timer_start = dt.timing()[1]
     cluster_data = cluster.locate_node(node_data, all_cluster_data)
     loc_timer_stop = dt.timing()[1]
-    print("- LOCATE NODE: T =", loc_timer_stop - loc_timer_start, "-")
     node_data = merge_data(node_data, cluster_data)
-    print("- HISTORIC DATA: GET DATA -")
     historic_node_dataframe = await history.node_data(node_data, configuration)
-    print("- HISTORIC DATA: MERGE -")
     node_data = history.merge_data(node_data, cluster_data, historic_node_dataframe)
     process_msg = await discord.update_request_process_msg(process_msg, 3, None)
     # HERE YOU ALSO NEED A DEFAULT CLUSTER MODULE? THINK ABOUT WHAT SUCH A MODULE COULD CONTRIBUTE WITH
-    print("- CLUSTER DATA: GET DATA VIA MODULE -")
     node_data, process_msg = await cluster.get_module_data(process_msg, node_data, configuration)
     name = node_data.cluster_name if node_data.cluster_name is not None else node_data.former_cluster_name
-    print("- CLUSTER DATA: GET REWARDS VIA MODULE -")
     if name is not None and configuration["modules"][name][node_data.layer]["rewards"]:
         node_data = determine_module.set_module(node_data.cluster_name, configuration).check_rewards(node_data, cluster_data)
     return node_data, process_msg

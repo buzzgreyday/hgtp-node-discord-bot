@@ -14,13 +14,10 @@ async def check(latest_tessellation_version, requester, all_cluster_data, dt_sta
     futures = []
     data = []
     for id_ in await locate_ids(requester, _configuration):
-        print("ID:", id_)
         subscriber = await locate_node(_configuration, id_)
         subscriber = pd.DataFrame(subscriber)
-        print("SUBSCRIBER NODE DATA", subscriber)
         for L in list(set(subscriber.layer)):
             for port in list(set(subscriber.public_port[subscriber.layer == L])):
-                print("LAYER:", L, "PORT:", port)
                 futures.append(asyncio.create_task(
                     node.check(bot, process_msg, requester, subscriber, port, L,
                                latest_tessellation_version, all_cluster_data, dt_start,
