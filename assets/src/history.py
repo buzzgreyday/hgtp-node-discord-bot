@@ -32,6 +32,7 @@ async def node_data(node_data: schemas.Node, _configuration):
 
 
 async def write(data: List[schemas.Node]):
+    """Write user/subscriber node data from automatic check to database"""
     async with database.SessionLocal() as session:
         db = session
         for d in data:
