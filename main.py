@@ -49,8 +49,6 @@ def generate_runtimes() -> list:
 async def main(ctx, process_msg, requester, _configuration) -> None:
     print("- CHECK STARTED -")
     dt_start, timer_start = dt.timing()
-    data = []
-    futures = []
 
     # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
     process_msg = await discord.update_request_process_msg(process_msg, 1, None)
@@ -63,10 +61,7 @@ async def main(ctx, process_msg, requester, _configuration) -> None:
     print("- START PROCESS: GET PRELIMINARIES T =", pre_timer_stop-pre_timer_start, "-")
     await bot.wait_until_ready()
     await discord.init_process(bot, requester)
-    history_dataframe = await history.read(_configuration)
-    # subscriber_dataframe = await user.read(_configuration)
-    data = await user.check(latest_tessellation_version, requester, history_dataframe,
-                            all_cluster_data, dt_start, process_msg, _configuration)
+    data = await user.check(latest_tessellation_version, requester, all_cluster_data, dt_start, process_msg, _configuration)
     process_msg = await discord.update_request_process_msg(process_msg, 5, None)
     # Check if notification should be sent
     print("- NOTIFY: DETERMINE USING MODULE -")
@@ -75,7 +70,7 @@ async def main(ctx, process_msg, requester, _configuration) -> None:
     # If not request received through Discord channel
     print("- HISTORIC DATA: WRITE -")
     if process_msg is None:
-        await history.write(dask_client, history_dataframe, data, _configuration)
+        await history.write(data)
     # Write node id, ip, ports to subscriber list, then base code on id
     print("- DISCORD: SEND NOTIFICATION -")
     await discord.send(ctx, process_msg, bot, data, _configuration)
@@ -83,7 +78,6 @@ async def main(ctx, process_msg, requester, _configuration) -> None:
     await asyncio.sleep(3)
     gc.collect()
     dt_stop, timer_stop = dt.timing()
-    await dask_client.close()
     print("ALL PROCESSES RAN IN:", timer_stop - timer_start, "SECONDS")
 
 
@@ -167,17 +161,7 @@ async def s(ctx, *args):
 async def u(ctx, *args):
     """This function treats a Discord message (context) as a line of arguments and attempts to unsubscribe the user"""
 
-    async with Client(cluster) as dask_client:
-        await dask_client.wait_for_workers(n_workers=1)
-        subscriber_dataframe = await user.read(_configuration)  # Load the dataframe using the read function
-        # The class below creates a list of user objects. These should be unsubscibed.
-        user_data = await User.discord(_configuration, "unsubscribe", str(ctx.message.author), int(ctx.message.author.id), *args)
-        subscriber_dataframe = await dask_client.compute(subscriber_dataframe)
-        for dict_ in user_data:
-            subscriber_dataframe = subscriber_dataframe.drop(subscriber_dataframe[(subscriber_dataframe.name == dict_.name) & (subscriber_dataframe.contact == dict_.contact) & (subscriber_dataframe.ip == dict_.ip) & (subscriber_dataframe.public_port == dict_.public_port) & (subscriber_dataframe.type == "discord")].index)
-            subscriber_dataframe = await dd.from_pandas(subscriber_dataframe, npartitions=1)
-        await user.write(dask_client, subscriber_dataframe, _configuration)
-        await dask_client.close()
+    pass
 
 
 def run_uvicorn():

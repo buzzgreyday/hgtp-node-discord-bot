@@ -26,18 +26,13 @@ class Clean:
             return None
 
 
-async def node_data(dask_client, node_data: schemas.Node, history_dataframe, _configuration):
-    """
-        if node_data.public_port is not None:
-            return await dask_client.compute(history_dataframe[(history_dataframe["ip"] == node_data.ip) & (history_dataframe["public_port"] == node_data.public_port)])
-        else:
-            return await dask_client.compute(history_dataframe[(history_dataframe["ip"] == node_data.ip) & (history_dataframe["public_port"] == node_data.public_port)])
-    """
+async def node_data(node_data: schemas.Node, _configuration):
+
     data = await api.Request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").json(_configuration)
     return pd.DataFrame([data])
 
 
-async def write(dask_client, history_dataframe, data: List[schemas.Node], configuration):
+async def write(data: List[schemas.Node]):
     async with database.SessionLocal() as session:
         db = session
         for d in data:

@@ -22,8 +22,8 @@ def merge_data(node_data: schemas.Node, cluster_data):
     return node_data
 
 
-async def check(dask_client, bot, process_msg, requester, subscriber, port, layer, latest_tessellation_version: str,
-                history_dataframe, all_cluster_data: list[dict], dt_start, configuration: dict) -> tuple:
+async def check(bot, process_msg, requester, subscriber, port, layer, latest_tessellation_version: str,
+                all_cluster_data: list[dict], dt_start, configuration: dict) -> tuple:
     process_msg = await discord.update_request_process_msg(process_msg, 2, None)
     node_data = schemas.Node(name=subscriber.name[subscriber.public_port == port].values[0],
                              contact=subscriber.contact[subscriber.public_port == port].values[0],
@@ -41,9 +41,7 @@ async def check(dask_client, bot, process_msg, requester, subscriber, port, laye
     print("- LOCATE NODE: T =", loc_timer_stop - loc_timer_start, "-")
     node_data = merge_data(node_data, cluster_data)
     print("- HISTORIC DATA: GET DATA -")
-    historic_node_dataframe = await history.node_data(dask_client, node_data, history_dataframe, configuration)
-
-    # historic_node_dataframe = history.former_node_data(historic_node_dataframe)
+    historic_node_dataframe = await history.node_data(node_data, configuration)
     print("- HISTORIC DATA: MERGE -")
     node_data = history.merge_data(node_data, cluster_data, historic_node_dataframe)
     process_msg = await discord.update_request_process_msg(process_msg, 3, None)
@@ -54,6 +52,4 @@ async def check(dask_client, bot, process_msg, requester, subscriber, port, laye
     print("- CLUSTER DATA: GET REWARDS VIA MODULE -")
     if name is not None and configuration["modules"][name][node_data.layer]["rewards"]:
         node_data = determine_module.set_module(node_data.cluster_name, configuration).check_rewards(node_data, cluster_data)
-    print("- USER DATA: UPDATE PUBLIC PORT -")
-    await user.update_public_port(dask_client, node_data)
     return node_data, process_msg
