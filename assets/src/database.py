@@ -137,6 +137,7 @@ async def post_data(data: NodeModel, db: AsyncSession = Depends(get_db)):
 
 @api.get("/user")
 async def get_users(db: AsyncSession = Depends(get_db)):
+    """Returns a list of all user data"""
     results = await db.execute(select(User))
     users = results.scalars().all()
     return {"users": users}
@@ -144,6 +145,7 @@ async def get_users(db: AsyncSession = Depends(get_db)):
 
 @api.get("/user/ids")
 async def get_user_ids(db: AsyncSession = Depends(get_db)) -> List:
+    """Returns a list of all user IDs currently subscribed"""
     results = await db.execute(select(User.id))
     ids = results.scalars().all()
     return list(set(ids))
@@ -151,6 +153,7 @@ async def get_user_ids(db: AsyncSession = Depends(get_db)) -> List:
 
 @api.get("/user/ids/{id_}")
 async def get_nodes(id_: str, db: AsyncSession = Depends(get_db)):
+    """Return user by ID"""
     results = await db.execute(select(User).where(User.id == id_))
     nodes = results.scalars().all()
     return nodes
@@ -158,6 +161,7 @@ async def get_nodes(id_: str, db: AsyncSession = Depends(get_db)):
 
 @api.get("/user/node/{ip}/{public_port}")
 async def get_node(ip: str, public_port: int, db: AsyncSession = Depends(get_db)):
+    """Return user by IP and port"""
     results = await db.execute(select(User).where((User.ip == ip) & (User.public_port == public_port)))
     node = results.scalars().all()
     return {"node": node}
@@ -165,6 +169,7 @@ async def get_node(ip: str, public_port: int, db: AsyncSession = Depends(get_db)
 
 @api.get("/user/node/contact/{contact}")
 async def get_contact_node_id(contact, db: AsyncSession = Depends(get_db)):
+    """Return user by contact"""
     results = await db.execute(select(User).where(User.contact == contact))
     nodes = results.scalars().all()
     return {contact: nodes}
@@ -172,7 +177,7 @@ async def get_contact_node_id(contact, db: AsyncSession = Depends(get_db)):
 
 @api.get("/data/node/{ip}/{public_port}")
 async def get_node_data(ip, public_port, db: AsyncSession = Depends(get_db)):
-    print("Fetching API data...")
+    """Return latest node data fetched via automatic check by IP and port"""
     results = await db.execute(
                     select(NodeData)
                     .where((NodeData.ip == ip) & (NodeData.public_port == public_port))

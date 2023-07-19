@@ -2,14 +2,12 @@
 import asyncio
 import gc
 import logging
-import sys
 import threading
 import traceback
 from datetime import datetime
 
 from dask import distributed
 from dask.distributed import Client
-import dask.dataframe as dd
 from assets.src.schemas import User
 from assets.src import history, config, dt, preliminaries, user, determine_module
 from assets.src.discord import discord
@@ -49,29 +47,21 @@ def generate_runtimes() -> list:
 async def main(ctx, process_msg, requester, _configuration) -> None:
     print("- CHECK STARTED -")
     dt_start, timer_start = dt.timing()
-
-    # CLUSTER DATA IS A LIST OF DICTIONARIES: STARTING WITH LAYER AS THE KEY
     process_msg = await discord.update_request_process_msg(process_msg, 1, None)
-    # Reload Config
-    pre_timer_start = dt.timing()[1]
     _configuration = await config.load()
     latest_tessellation_version = await preliminaries.latest_version_github(_configuration)
     all_cluster_data = await preliminaries.cluster_data(_configuration)
-    pre_timer_stop = dt.timing()[1]
-    print("- START PROCESS: GET PRELIMINARIES T =", pre_timer_stop-pre_timer_start, "-")
+    print("- START PROCESS: GET PRELIMINARIES -")
     await bot.wait_until_ready()
     await discord.init_process(bot, requester)
     data = await user.check(latest_tessellation_version, requester, all_cluster_data, dt_start, process_msg, _configuration)
     process_msg = await discord.update_request_process_msg(process_msg, 5, None)
-    # Check if notification should be sent
     print("- NOTIFY: DETERMINE USING MODULE -")
     data = await determine_module.notify(data, _configuration)
     process_msg = await discord.update_request_process_msg(process_msg, 6, None)
-    # If not request received through Discord channel
     print("- HISTORIC DATA: WRITE -")
     if process_msg is None:
         await history.write(data)
-    # Write node id, ip, ports to subscriber list, then base code on id
     print("- DISCORD: SEND NOTIFICATION -")
     await discord.send(ctx, process_msg, bot, data, _configuration)
     await discord.update_request_process_msg(process_msg, 7, None)
@@ -128,7 +118,7 @@ async def loop():
     times = generate_runtimes()
     print(times)
     while True:
-        print(datetime.time(datetime.utcnow()).strftime("%H:%M:%S"))
+        print(datetime.time(datetime.utcnow()).strftime("%H:%M:%S"), end="\r")
         if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
             try:
                 await main(None, None, None, _configuration)
