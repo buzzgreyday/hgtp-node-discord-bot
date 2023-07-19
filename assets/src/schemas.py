@@ -59,7 +59,7 @@ class Node(NodeBase, NodeMetrics):
     cluster_connectivity: str = None
     former_cluster_connectivity: str = None
     reward_state: str = None
-    former_reward_state: bool = None
+    former_reward_state: str = None
     reward_true_count: int = None
     reward_false_count: int = None
     former_cluster_association_time: float = None
@@ -73,7 +73,7 @@ class Node(NodeBase, NodeMetrics):
     version: str = None
     cluster_version: str = None
     latest_version: str = None
-    notify: bool = None
+    notify: str = None
     last_notified_timestamp: dt.datetime = None
     timestamp_index: dt.datetime = None
     former_timestamp_index: dt.datetime = None

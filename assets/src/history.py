@@ -40,7 +40,7 @@ def merge_data(node_data: schemas.Node, cluster_data, historic_node_dataframe) -
     """Transfer historic node data to current node data object"""
     if not historic_node_dataframe is None:
         node_data.former_cluster_name = Clean(historic_node_dataframe["cluster_name"]).make_lower()
-        # node_data.former_reward_state = Clean(historic_node_dataframe["reward_state"][historic_node_dataframe["cluster_name"] == node_data.former_cluster_name]).make_none()
+        node_data.former_reward_state = Clean(historic_node_dataframe["reward_state"][historic_node_dataframe["cluster_name"] == node_data.former_cluster_name]).make_none()
         node_data.former_cluster_connectivity = Clean(historic_node_dataframe["cluster_connectivity"][historic_node_dataframe["cluster_name"] == node_data.former_cluster_name]).make_none()
         node_data.former_cluster_association_time = Clean(historic_node_dataframe["cluster_association_time"][historic_node_dataframe["cluster_name"] == node_data.former_cluster_name]).make_none()
         node_data.former_cluster_dissociation_time = Clean(historic_node_dataframe["cluster_dissociation_time"][historic_node_dataframe["cluster_name"] == node_data.former_cluster_name]).make_none()
