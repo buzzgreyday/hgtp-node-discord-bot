@@ -1,9 +1,6 @@
-import json
-import logging
 from datetime import datetime
 from typing import List
 
-import dask.dataframe as dd
 import pandas as pd
 
 from assets.src import schemas, api, database
