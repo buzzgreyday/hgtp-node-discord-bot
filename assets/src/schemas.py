@@ -1,5 +1,4 @@
 import re
-from enum import Enum
 from typing import List, Optional
 import datetime as dt
 
@@ -91,11 +90,6 @@ class Cluster(NodeBase):
     latest_ordinal_timestamp: dt.datetime = None
     recently_rewarded: List = []
     peer_data: List = []
-
-
-class UserEnum(str, Enum):
-    """Should be used in UserRead"""
-    discord = "discord"
 
 
 class User(NodeBase):
