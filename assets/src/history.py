@@ -40,7 +40,7 @@ async def write(data: List[schemas.Node]):
 
 
 def merge_data(node_data: schemas.Node, cluster_data, historic_node_dataframe) -> schemas.Node:
-    # Might need refactoring when metagraphs is coming
+    """Transfer historic node data to current node data object"""
     if not historic_node_dataframe is None:
         node_data.former_cluster_name = Clean(historic_node_dataframe["cluster_name"]).make_lower()
         node_data.former_cluster_connectivity = Clean(historic_node_dataframe["cluster_connectivity"][historic_node_dataframe["cluster_name"] == node_data.former_cluster_name]).make_none()
