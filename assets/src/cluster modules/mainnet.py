@@ -177,7 +177,7 @@ def check_rewards(node_data: schemas.Node, cluster_data):
 
 async def request_wallet_data(node_data: schemas.Node, configuration) -> schemas.Node:
 
-    wallet_data = await api.safe_request(f"{configuration['modules']['mainnet'][0]['be']['url'][0]}/addresses/{node_data.wallet_address}/balance", configuration)
+    wallet_data = await api.safe_request(f"{configuration['modules'][MODULE.lower()][0]['be']['url'][0]}/addresses/{node_data.wallet_address}/balance", configuration)
     if wallet_data is not None:
         node_data.wallet_balance = wallet_data["data"]["balance"]
 

@@ -46,4 +46,9 @@ async def check(bot, process_msg, requester, subscriber, port, layer, latest_tes
     node_data, process_msg = await cluster.get_module_data(process_msg, node_data, configuration)
     if node_data.cluster_name is not None and configuration["modules"][node_data.cluster_name][node_data.layer]["rewards"]:
         node_data = determine_module.set_module(node_data.cluster_name, configuration).check_rewards(node_data, cluster_data)
+    elif node_data.former_cluster_name is not None and configuration["modules"][node_data.former_cluster_name][node_data.layer]["rewards"]:
+        node_data = determine_module.set_module(node_data.former_cluster_name, configuration).check_rewards(node_data, cluster_data)
+    elif node_data.last_known_cluster_name is not None and configuration["modules"][node_data.last_known_cluster_name][node_data.layer]["rewards"]:
+        node_data = determine_module.set_module(node_data.last_known_cluster_name, configuration).check_rewards(node_data, cluster_data)
+
     return node_data, process_msg
