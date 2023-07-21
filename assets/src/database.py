@@ -53,6 +53,7 @@ class NodeData(SQLBase):
     cluster_connectivity: Mapped[Optional[str]] = mapped_column(nullable=True)
     cluster_dissociation_time: Mapped[Optional[float]] = mapped_column(nullable=True)
     cluster_name: Mapped[Optional[str]] = mapped_column(nullable=True)
+    last_known_cluster_name: Mapped[Optional[str]] = mapped_column(nullable=True)
     cluster_peer_count: Mapped[Optional[int]] = mapped_column(nullable=True)
     cluster_state: Mapped[Optional[str]] = mapped_column(nullable=True)
     cluster_version: Mapped[Optional[str]] = mapped_column(nullable=True)
@@ -89,6 +90,7 @@ class NodeData(SQLBase):
     state: Mapped[Optional[str]] = mapped_column(nullable=True)
     timestamp_index: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
     version: Mapped[Optional[str]] = mapped_column(nullable=True)
+    cluster_check_ordinal: Mapped[Optional[str]] = mapped_column(nullable=True)
 
 
 async def get_db() -> AsyncSession:

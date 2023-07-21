@@ -199,16 +199,18 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node):
     session = node_data.node_cluster_session
     latest_session = node_data.latest_cluster_session
     former_session = node_data.former_node_cluster_session
-
+    print(curr_name, session, former_name, former_session)
     if latest_session == session:
+        # If new connection is made with this node then alert
         if curr_name == MODULE and (former_name != MODULE or former_name is None) and (former_session != session or former_session is None):
             print("new association")
             node_data.cluster_connectivity = "new association"
-        elif curr_name and former_name == MODULE and session == former_session:
+        elif curr_name == MODULE and former_name == MODULE and session == former_session:
             print("association")
             node_data.cluster_connectivity = "association"
     elif latest_session != session or latest_session is None:
-        if former_name == MODULE and (curr_name != MODULE or curr_name is None) and (former_session != session or session is None):
+        # Do not alert if new connection is made (former_name != MODULE)
+        if former_name == MODULE and curr_name is None and (former_session != session or session is None):
             print("new dissociation")
             node_data.cluster_connectivity = "new dissociation"
         elif former_name is None and curr_name is None and session == former_session:

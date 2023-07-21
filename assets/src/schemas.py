@@ -53,6 +53,7 @@ class Node(NodeBase, NodeMetrics):
     wallet_balance: float = None
     cluster_name: str = None
     former_cluster_name: str = None
+    last_known_cluster_name: str = None
     state: str = None
     cluster_state: str = None
     former_cluster_state: str = None
@@ -78,6 +79,7 @@ class Node(NodeBase, NodeMetrics):
     last_notified_timestamp: dt.datetime = None
     timestamp_index: dt.datetime = None
     former_timestamp_index: dt.datetime = None
+    cluster_check_ordinal: str = None
 
 
 class Cluster(NodeBase):
@@ -85,7 +87,7 @@ class Cluster(NodeBase):
 
     state: str = "offline"
     peer_count: int = 0
-    session: int = None
+    session: str = None
     version: str = None
     latest_ordinal: int = 1
     latest_ordinal_timestamp: dt.datetime = None
