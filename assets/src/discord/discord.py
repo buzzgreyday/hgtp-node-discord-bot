@@ -87,8 +87,10 @@ async def send(ctx, process_msg, bot, data: List[schemas.Node], configuration):
         if node_data.notify is True:
             if node_data.state != "offline":
                 name = node_data.cluster_name
-            else:
+            elif node_data.state == "offline" and node_data.former_cluster_name is not None:
                 name = node_data.former_cluster_name
+            else:
+                name = node_data.last_known_cluster_name
             if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{name}.py"):
                 module = determine_module.set_module(name, configuration)
                 embed = module.build_embed(node_data)

@@ -123,7 +123,7 @@ red_color_trigger = False
 
 
 async def node_cluster_data(node_data: schemas.Node, configuration: dict) -> schemas.Node:
-    
+    """Get node data. IMPORTANT: Create Pydantic Schema for node data"""
     if node_data.public_port is not None:
         node_info_data = await api.safe_request(
             f"http://{node_data.ip}:{node_data.public_port}/"
@@ -131,7 +131,7 @@ async def node_cluster_data(node_data: schemas.Node, configuration: dict) -> sch
         node_data.state = "offline" if node_info_data is None else node_info_data["state"].lower()
         # CHECK IF Public_Port has changed
         if node_info_data is not None:
-            node_data.node_cluster_session = node_info_data["clusterSession"]
+            node_data.node_cluster_session = str(node_info_data["clusterSession"])
             node_data.version = node_info_data["version"]
         if node_data.state != "offline":
             cluster_data = await api.safe_request(

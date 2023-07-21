@@ -123,7 +123,7 @@ red_color_trigger = False
 
 
 async def node_cluster_data(node_data: schemas.Node, configuration: dict) -> schemas.Node:
-    
+    """Get node data. IMPORTANT: Create Pydantic Schema for node data"""
     if node_data.public_port is not None:
         node_info_data = await api.safe_request(
             f"http://{node_data.ip}:{node_data.public_port}/"
@@ -131,7 +131,7 @@ async def node_cluster_data(node_data: schemas.Node, configuration: dict) -> sch
         node_data.state = "offline" if node_info_data is None else node_info_data["state"].lower()
         # CHECK IF Public_Port has changed
         if node_info_data is not None:
-            node_data.node_cluster_session = node_info_data["clusterSession"]
+            node_data.node_cluster_session = str(node_info_data["clusterSession"])
             node_data.version = node_info_data["version"]
         if node_data.state != "offline":
             cluster_data = await api.safe_request(
@@ -199,15 +199,15 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node):
 
     former_name = node_data.former_cluster_name
     curr_name = node_data.cluster_name
-    session = str(node_data.node_cluster_session)
+    session = node_data.node_cluster_session
     latest_session = node_data.latest_cluster_session
-    former_session = str(node_data.former_node_cluster_session)
-    print("Latest Session:", latest_session)
-    print("Current Node Cluster/Session", curr_name, session)
-    print("Former Node Cluster/Session", former_name, former_session)
+    former_session = node_data.former_node_cluster_session
+    print("Latest Session:", type(latest_session))
+    print("Current Node Cluster/Session", type(curr_name), type(session))
+    print("Former Node Cluster/Session", type(former_name), type(former_session))
     if latest_session is None or session is None:
         # Do not alert if new connection is made (former_name != MODULE)
-        print(curr_name == former_name, str(session) == str(former_session))
+        print(curr_name == former_name, session == former_session)
         if former_name == MODULE and curr_name is None and former_session != session:
             print("new dissociation")
             node_data.cluster_connectivity = "new dissociation"
@@ -219,7 +219,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node):
             print("Wrong logic: dissoc.")
 
     elif latest_session is not None and session is not None and latest_session == session:
-        print(curr_name == former_name, str(session) == str(former_session))
+        print(curr_name == former_name, session == former_session)
         # If new connection is made with this node then alert
         if curr_name == MODULE and (former_name != MODULE or former_name is None) and (former_session != session or former_session is None):
             print("new association")
