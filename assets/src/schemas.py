@@ -58,7 +58,7 @@ class Node(NodeBase, NodeMetrics):
     former_cluster_state: str = None
     cluster_connectivity: str = None
     former_cluster_connectivity: str = None
-    former_cluster_session: int = None
+    former_node_cluster_session: int = None
     reward_state: bool = None
     former_reward_state: bool = None
     reward_true_count: int = None

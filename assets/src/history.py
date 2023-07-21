@@ -42,7 +42,7 @@ def merge_data(node_data: schemas.Node, cluster_data, historic_node_dataframe) -
         node_data.former_cluster_name = Clean(historic_node_dataframe["cluster_name"]).make_lower()
         node_data.former_reward_state = bool(Clean(historic_node_dataframe["reward_state"][historic_node_dataframe["cluster_name"] == node_data.former_cluster_name]).make_none())
         node_data.former_cluster_connectivity = Clean(historic_node_dataframe["cluster_connectivity"][historic_node_dataframe["cluster_name"] == node_data.former_cluster_name]).make_none()
-        node_data.former_cluster_session = Clean(historic_node_dataframe.former_cluster_session[historic_node_dataframe.cluster_name == node_data.former_cluster_name]).make_none()
+        node_data.former_node_cluster_session = Clean(historic_node_dataframe.node_cluster_session[historic_node_dataframe.cluster_name == node_data.former_cluster_name]).make_none()
         node_data.former_cluster_association_time = Clean(historic_node_dataframe["cluster_association_time"][historic_node_dataframe["cluster_name"] == node_data.former_cluster_name]).make_none()
         node_data.former_cluster_dissociation_time = Clean(historic_node_dataframe["cluster_dissociation_time"][historic_node_dataframe["cluster_name"] == node_data.former_cluster_name]).make_none()
         node_data.former_timestamp_index = datetime.strptime(Clean(historic_node_dataframe["timestamp_index"]).make_none(), "%Y-%m-%dT%H:%M:%S.%f")

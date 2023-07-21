@@ -62,7 +62,7 @@ class NodeData(SQLBase):
     disk_space_total: Mapped[Optional[float]] = mapped_column(nullable=True)
     former_cluster_association_time: Mapped[Optional[float]] = mapped_column(nullable=True)
     former_cluster_connectivity: Mapped[Optional[str]] = mapped_column(nullable=True)
-    former_cluster_session: Mapped[Optional[int]] = mapped_column(nullable=True)
+    former_node_cluster_session: Mapped[Optional[int]] = mapped_column(nullable=True)
     former_cluster_dissociation_time: Mapped[Optional[float]] = mapped_column(nullable=True)
     former_cluster_name: Mapped[Optional[str]] = mapped_column(nullable=True)
     former_cluster_peer_count: Mapped[Optional[int]] = mapped_column(nullable=True)

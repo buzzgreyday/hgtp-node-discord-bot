@@ -197,15 +197,22 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node):
     curr_name = node_data.cluster_name
     session = node_data.node_cluster_session
     latest_session = node_data.latest_cluster_session
+    former_session = node_data.former_node_cluster_session
 
-    if MODULE == curr_name and MODULE not in (former_name, None) and session == latest_session:
-        node_data.cluster_connectivity = "new association"
-    elif former_name == curr_name and MODULE == former_name and session == latest_session:
-        node_data.cluster_connectivity = "association"
-    elif MODULE not in (curr_name, None) and MODULE == former_name and session != latest_session:
-        node_data.cluster_connectivity = "new dissociation"
-    elif MODULE not in (curr_name, None) and MODULE in (former_name, None) and session != latest_session:
-        node_data.cluster_connectivity = "dissociation"
+    if latest_session == session:
+        if curr_name == MODULE and (former_name != MODULE or former_name is None) and (former_session != session or former_session is None):
+            print("new association")
+            node_data.cluster_connectivity = "new association"
+        elif curr_name and former_name == MODULE and session == former_session:
+            print("association")
+            node_data.cluster_connectivity = "association"
+    elif latest_session != session or latest_session is None:
+        if former_name == MODULE and (curr_name != MODULE or curr_name is None) and (former_session != session or session is None):
+            print("new dissociation")
+            node_data.cluster_connectivity = "new dissociation"
+        elif former_name is None and curr_name is None and session == former_session:
+            print("dissociation")
+            node_data.cluster_connectivity = "dissociation"
 
     return node_data
 
