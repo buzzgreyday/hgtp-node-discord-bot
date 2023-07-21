@@ -58,7 +58,7 @@ class Node(NodeBase, NodeMetrics):
     former_cluster_state: str = None
     cluster_connectivity: str = None
     former_cluster_connectivity: str = None
-    former_node_cluster_session: int = None
+    former_node_cluster_session: str = None
     reward_state: bool = None
     former_reward_state: bool = None
     reward_true_count: int = None
@@ -66,8 +66,8 @@ class Node(NodeBase, NodeMetrics):
     former_cluster_association_time: float = None
     cluster_dissociation_time: float = None
     former_cluster_dissociation_time: float = None
-    node_cluster_session: int = None
-    latest_cluster_session: int = None
+    node_cluster_session: str = None
+    latest_cluster_session: str = None
     node_peer_count: int = None
     cluster_peer_count: int = None
     former_cluster_peer_count: int = None

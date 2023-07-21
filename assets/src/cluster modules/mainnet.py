@@ -193,6 +193,7 @@ async def request_wallet_data(node_data: schemas.Node, configuration) -> schemas
 
 def set_connectivity_specific_node_data_values(node_data: schemas.Node):
 
+    former_conn = node_data.former_cluster_connectivity
     former_name = node_data.former_cluster_name
     curr_name = node_data.cluster_name
     session = node_data.node_cluster_session
