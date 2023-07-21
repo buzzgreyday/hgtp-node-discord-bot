@@ -192,20 +192,27 @@ async def request_wallet_data(node_data: schemas.Node, configuration) -> schemas
 
 
 def set_connectivity_specific_node_data_values(node_data: schemas.Node):
+    """Determine the connectivity of the node.
+    We might need to add some more clarity to how the node has been connected. Like: former_name, latest_name, etc."""
+
+    # THIS NEEDS WORK, ALSO MAINNET!!!!
 
     former_name = node_data.former_cluster_name
     curr_name = node_data.cluster_name
     session = node_data.node_cluster_session
     latest_session = node_data.latest_cluster_session
+    former_session = node_data.former_cluster_session
 
-    if MODULE == curr_name and MODULE != former_name and session == latest_session:
-        node_data.cluster_connectivity = "new association"
-    elif former_name == curr_name and MODULE == former_name and session == latest_session:
-        node_data.cluster_connectivity = "association"
-    elif MODULE != curr_name and MODULE == former_name and session != latest_session:
-        node_data.cluster_connectivity = "new dissociation"
-    elif MODULE != curr_name and MODULE != former_name and session != latest_session:
-        node_data.cluster_connectivity = "dissociation"
+    if latest_session == session:
+        if curr_name == MODULE and former_name in (not MODULE, None) and session in (not former_session, None):
+            node_data.cluster_connectivity = "new association"
+        elif curr_name and former_name == MODULE and session == former_session:
+            node_data.cluster_connectivity = "association"
+    elif latest_session in (not session, None):
+        if former_name == MODULE and curr_name in (not MODULE or None) and session in (not former_session, None):
+            node_data.cluster_connectivity = "new dissociation"
+        elif former_name is None and curr_name is None and session == former_session:
+            node_data.cluster_connectivity = "dissociation"
 
     return node_data
 
@@ -602,7 +609,7 @@ def mark_notify(d: schemas.Node, configuration):
         d.notify = True
         d.last_notified_timestamp = d.timestamp_index
     if d.last_notified_timestamp is not None:
-        if d.reward_state is False and (d.timestamp_index.second - d.last_notified_timestamp.second >= timedelta(minutes=configuration["general"]["notifications"]["reward state notify sleep (minutes)"]).seconds):
+        if d.reward_state is False and (d.timestamp_index.second - d.last_notified_timestamp.second >= timedelta(minutes=configuration["general"]["notifications"]["reward state sleep (minutes)"]).seconds):
             # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
             """if d["layer"] == 1:
                 d["notify"] = False

@@ -38,14 +38,17 @@ async def write(data: List[schemas.Node]):
 
 def merge_data(node_data: schemas.Node, cluster_data, historic_node_dataframe) -> schemas.Node:
     """Transfer historic node data to current node data object"""
-    if not historic_node_dataframe is None:
+    if historic_node_dataframe is not None:
         node_data.former_cluster_name = Clean(historic_node_dataframe["cluster_name"]).make_lower()
         node_data.former_reward_state = bool(Clean(historic_node_dataframe["reward_state"][historic_node_dataframe["cluster_name"] == node_data.former_cluster_name]).make_none())
         node_data.former_cluster_connectivity = Clean(historic_node_dataframe["cluster_connectivity"][historic_node_dataframe["cluster_name"] == node_data.former_cluster_name]).make_none()
+        node_data.former_cluster_session = Clean(historic_node_dataframe.former_cluster_session[historic_node_dataframe.cluster_name == node_data.former_cluster_name]).make_none()
         node_data.former_cluster_association_time = Clean(historic_node_dataframe["cluster_association_time"][historic_node_dataframe["cluster_name"] == node_data.former_cluster_name]).make_none()
         node_data.former_cluster_dissociation_time = Clean(historic_node_dataframe["cluster_dissociation_time"][historic_node_dataframe["cluster_name"] == node_data.former_cluster_name]).make_none()
         node_data.former_timestamp_index = datetime.strptime(Clean(historic_node_dataframe["timestamp_index"]).make_none(), "%Y-%m-%dT%H:%M:%S.%f")
-        node_data.last_notified_timestamp = datetime.strptime(Clean(historic_node_dataframe["last_notified_timestamp"]).make_none(), "%Y-%m-%dT%H:%M:%S.%f")
+        last_notified = Clean(historic_node_dataframe["last_notified_timestamp"]).make_none()
+        if last_notified is not None:
+            node_data.last_notified_timestamp = datetime.strptime(last_notified, "%Y-%m-%dT%H:%M:%S.%f")
         if node_data.state == "Offline":
             node_data.id = Clean(historic_node_dataframe["id"]).make_none()
             node_data.wallet_address = Clean(historic_node_dataframe["wallet_address"]).make_none()

@@ -17,9 +17,10 @@ async def notify(data: List[schemas.Node], configuration):
 
 
 def set_module(cluster_name, configuration):
-    spec = importlib.util.spec_from_file_location(f"{cluster_name}.build_embed",
-                                                  f"{configuration['file settings']['locations']['cluster modules']}/{cluster_name}.py")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[f"{cluster_name}.build_embed"] = module
-    spec.loader.exec_module(module)
-    return module
+    if cluster_name is not None:
+        spec = importlib.util.spec_from_file_location(f"{cluster_name}.build_embed",
+                                                      f"{configuration['file settings']['locations']['cluster modules']}/{cluster_name}.py")
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[f"{cluster_name}.build_embed"] = module
+        spec.loader.exec_module(module)
+        return module

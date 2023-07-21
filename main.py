@@ -112,6 +112,7 @@ async def r(ctx, *arguments):
 
 async def loop():
     times = generate_runtimes()
+    print(times)
     while True:
         print(datetime.time(datetime.utcnow()).strftime("%H:%M:%S"), end="\r")
         if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:

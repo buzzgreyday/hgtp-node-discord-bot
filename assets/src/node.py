@@ -44,7 +44,6 @@ async def check(bot, process_msg, requester, subscriber, port, layer, latest_tes
     process_msg = await discord.update_request_process_msg(process_msg, 3, None)
     # HERE YOU ALSO NEED A DEFAULT CLUSTER MODULE? THINK ABOUT WHAT SUCH A MODULE COULD CONTRIBUTE WITH
     node_data, process_msg = await cluster.get_module_data(process_msg, node_data, configuration)
-    name = node_data.cluster_name if node_data.cluster_name is not None else node_data.former_cluster_name
-    if name is not None and configuration["modules"][name][node_data.layer]["rewards"]:
+    if node_data.cluster_name is not None and configuration["modules"][node_data.cluster_name][node_data.layer]["rewards"]:
         node_data = determine_module.set_module(node_data.cluster_name, configuration).check_rewards(node_data, cluster_data)
     return node_data, process_msg

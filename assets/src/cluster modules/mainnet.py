@@ -198,13 +198,13 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node):
     session = node_data.node_cluster_session
     latest_session = node_data.latest_cluster_session
 
-    if MODULE == curr_name and MODULE != former_name and session == latest_session:
+    if MODULE == curr_name and MODULE not in (former_name, None) and session == latest_session:
         node_data.cluster_connectivity = "new association"
     elif former_name == curr_name and MODULE == former_name and session == latest_session:
         node_data.cluster_connectivity = "association"
-    elif MODULE != curr_name and MODULE == former_name and session != latest_session:
+    elif MODULE not in (curr_name, None) and MODULE == former_name and session != latest_session:
         node_data.cluster_connectivity = "new dissociation"
-    elif MODULE != curr_name and MODULE != former_name and session != latest_session:
+    elif MODULE not in (curr_name, None) and MODULE in (former_name, None) and session != latest_session:
         node_data.cluster_connectivity = "dissociation"
 
     return node_data
