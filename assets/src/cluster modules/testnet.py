@@ -321,7 +321,7 @@ def build_general_node_state(node_data: schemas.Node):
 
 def build_general_cluster_state(node_data: schemas.Node):
     def general_cluster_state_field():
-        return f"{field_symbol} **MAINNET CLUSTER**\n" \
+        return f"{field_symbol} **{MODULE.upper()} CLUSTER**\n" \
                f"```\n" \
                f"Peers:   {node_data.cluster_peer_count}\n" \
                f"Assoc.:  {timedelta(seconds=float(node_data.cluster_association_time)).days} days {association_percent()}%\n" \
@@ -428,7 +428,7 @@ def build_general_node_wallet(node_data: schemas.Node):
                     yellow_color_trigger = True
                 return wallet_field(field_symbol, reward_percentage, field_info), False, yellow_color_trigger
         else:
-            if (node_data.cluster_name or node_data.former_cluster_name) != "testnet":
+            if (node_data.cluster_name or node_data.last_known_cluster_name) != "testnet":
                 field_symbol = ":red_square:"
                 field_info = f"`⚠ The wallet doesn't hold sufficient collateral`"
                 red_color_trigger = True
@@ -625,7 +625,7 @@ def build_embed(node_data: schemas.Node):
 
 def mark_notify(d: schemas.Node, configuration):
     # The hardcoded values should be adjustable in config_new.yml
-    if d.cluster_connectivity in ["new association", "new dissociation"]:
+    if d.cluster_connectivity in ("new association", "new dissociation"):
         d.notify = True
         d.last_notified_timestamp = d.timestamp_index
     elif d.last_notified_timestamp is not None:

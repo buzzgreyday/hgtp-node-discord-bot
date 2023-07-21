@@ -304,7 +304,7 @@ def build_general_node_state(node_data: schemas.Node):
 
 def build_general_cluster_state(node_data: schemas.Node):
     def general_cluster_state_field():
-        return f"{field_symbol} **MAINNET CLUSTER**\n" \
+        return f"{field_symbol} **{MODULE.upper()} CLUSTER**\n" \
                f"```\n" \
                f"Peers:   {node_data.cluster_peer_count}\n" \
                f"Assoc.:  {timedelta(seconds=float(node_data.cluster_association_time)).days} days {association_percent()}%\n" \
