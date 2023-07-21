@@ -9,7 +9,8 @@ async def latest_version_github(configuration):
     data = await api.safe_request(
         f"{configuration['tessellation']['github']['url']}/"
         f"{configuration['tessellation']['github']['releases']['latest']}", configuration)
-    return data["tag_name"][1:]
+    vers = data["tag_name"][1:] if data["tag_name"] is not None else latest_version_github(configuration)
+    return vers
 
 
 async def supported_clusters(name: str, layer: int, configuration: dict) -> list:
