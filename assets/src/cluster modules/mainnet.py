@@ -611,7 +611,7 @@ def mark_notify(d: schemas.Node, configuration):
     if d.cluster_connectivity in ["new association", "new dissociation"]:
         d.notify = True
         d.last_notified_timestamp = d.timestamp_index
-    if d.last_notified_timestamp is not None:
+    elif d.last_notified_timestamp is not None:
         if d.reward_state is False and (d.timestamp_index.second - d.last_notified_timestamp.second >= timedelta(minutes=configuration["general"]["notifications"]["reward state notify sleep (minutes)"]).seconds):
             # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
             """if d["layer"] == 1:
