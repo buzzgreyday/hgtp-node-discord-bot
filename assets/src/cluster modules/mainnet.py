@@ -192,30 +192,38 @@ async def request_wallet_data(node_data: schemas.Node, configuration) -> schemas
 
 
 def set_connectivity_specific_node_data_values(node_data: schemas.Node):
+    """Determine the connectivity of the node.
+    We might need to add some more clarity to how the node has been connected. Like: former_name, latest_name, etc."""
 
-    former_conn = node_data.former_cluster_connectivity
+    # THIS NEEDS WORK, ALSO MAINNET!!!!
+
     former_name = node_data.former_cluster_name
     curr_name = node_data.cluster_name
     session = node_data.node_cluster_session
     latest_session = node_data.latest_cluster_session
     former_session = node_data.former_node_cluster_session
-    print(curr_name, session, former_name, former_session)
-    if latest_session == session:
+    if session != latest_session:
+        if curr_name is None and former_name == MODULE:
+            print("new dissociation")
+            node_data.cluster_connectivity = "new dissociation"
+            node_data.last_known_cluster_name = former_name
+        elif curr_name is None and former_name is None:
+            print("dissociation")
+            node_data.cluster_connectivity = "dissociation"
+        else:
+            print("Wrong logic: dissoc.")
+
+    elif session == latest_session:
+        print(curr_name == former_name, session == former_session)
         # If new connection is made with this node then alert
         if curr_name == MODULE and (former_name != MODULE or former_name is None) and (former_session != session or former_session is None):
             print("new association")
             node_data.cluster_connectivity = "new association"
-        elif curr_name == MODULE and former_name == MODULE and session == former_session:
+        elif curr_name == former_name and session == former_session:
             print("association")
             node_data.cluster_connectivity = "association"
-    elif latest_session != session or latest_session is None:
-        # Do not alert if new connection is made (former_name != MODULE)
-        if former_name == MODULE and curr_name is None and (former_session != session or session is None):
-            print("new dissociation")
-            node_data.cluster_connectivity = "new dissociation"
-        elif former_name is None and curr_name is None and session == former_session:
-            print("dissociation")
-            node_data.cluster_connectivity = "dissociation"
+        else:
+            print("Wrong logic: assoc.")
 
     return node_data
 
@@ -320,7 +328,7 @@ def build_general_cluster_state(node_data: schemas.Node):
             return round(float(node_data.cluster_association_time)*100/float(0.0)+float(node_data.cluster_dissociation_time), 2)
         else:
             return 0
-
+    # This here needs to take former cluster and current cluser states into account
     if node_data.cluster_connectivity == "new association":
         field_symbol = ":green_square:"
         field_info = f"`ⓘ  Association with the cluster was recently established`"
@@ -344,7 +352,7 @@ def build_general_cluster_state(node_data: schemas.Node):
         field_info = f""
         return general_cluster_state_field(), False, yellow_color_trigger
     else:
-        print(node_data.cluster_connectivity)
+        print("NOT SUPPORTED NODE CLUSTER STATE:", node_data.cluster_connectivity)
 
 
 def build_general_node_wallet(node_data: schemas.Node):
@@ -363,96 +371,49 @@ def build_general_node_wallet(node_data: schemas.Node):
                    f"Reward frequency: {round(float(reward_percentage), 2)}%```" \
                    f"{field_info}"
 
-    def field_from_wallet_conditions():
-        if node_data.reward_true_count in (0, None):
-            reward_percentage = 0
-        elif node_data.reward_false_count in (0, None):
-            reward_percentage = 100
-        else:
-            reward_percentage = float(node_data.reward_true_count) * 100 / float(node_data.reward_false_count)
-        if node_data.wallet_balance >= 250000 * 100000000:
-            if node_data.reward_state is False:
-                # TEMPROARY FIC SINCE MAINNET LAYER ONE DOESN'T SUPPORT REWARDS
-                if node_data.layer == 1:
-                    field_symbol = ":green_square:"
-                else:
-                    field_symbol = ":red_square:"
-                if node_data.former_reward_state is True:
-                    field_info = f":red_circle:` The wallet recently stopped receiving rewards`"
-                    red_color_trigger = True
-                    return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
-                else:
-                    # TEMPROARY FIC SINCE MAINNET LAYER ONE DOESN'T SUPPORT REWARDS
-                    if node_data.layer == 1:
-                        field_info = f"`ⓘ  {MODULE} layer one does not currently distribute rewards. Please refer to the " \
-                                     f"layer 0 report`"
-                        return wallet_field(field_symbol, reward_percentage, field_info), False, False
-                    else:
-                        field_info = f":red_circle:` The wallet doesn't receive rewards`"
-                        red_color_trigger = True
-                        return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
-            elif node_data.reward_state is True:
+    def generate_field_from_reward_states(reward_percentage):
+        if node_data.cluster_name == "mainnet" and node_data.wallet_balance >= 250000 * 100000000:
+            field_symbol = ":red_square:"
+            field_info = f"`⚠ The wallet doesn't hold sufficient collateral`"
+            red_color_trigger = True
+            return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
+        elif node_data.reward_state is False and node_data.former_reward_state is True:
+            field_symbol = ":red_square:"
+            field_info = f":red_circle:` The wallet recently stopped receiving rewards`"
+            red_color_trigger = True
+            return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
+        elif node_data.reward_state in (False, None) and node_data.former_reward_state in (False, None):
+            if node_data.layer == 1:
                 field_symbol = ":green_square:"
-                if node_data.former_reward_state is False:
-                    field_info = f":coin:` The wallet recently started receiving rewards`"
-                    return wallet_field(field_symbol, reward_percentage, field_info), False, False
-                else:
-                    field_info = f":coin:` The wallet receives rewards`"
-                    return wallet_field(field_symbol, reward_percentage, field_info), False, False
-            elif node_data.reward_state is None:
-                if node_data.layer == 1:
-                    field_symbol = ":green_square:"
-                    field_info = f"`ⓘ  {MODULE} layer one does not currently distribute rewards. Please refer to the " \
-                                 f"layer 0 report`"
-                    yellow_color_trigger = False
-                else:
-                    field_symbol = ":yellow_square:"
-                    field_info = f"`ⓘ  Unknown reward state - please report`"
-                    yellow_color_trigger = True
-                return wallet_field(field_symbol, reward_percentage, field_info), False, yellow_color_trigger
-        else:
-            if (node_data.cluster_name or node_data.former_cluster_name) != "testnet":
+                field_info = f"`ⓘ  {MODULE.title()} layer one does not currently distribute rewards. Please refer to the " \
+                             f"layer 0 report`"
+                return wallet_field(field_symbol, reward_percentage, field_info), False, False
+            else:
                 field_symbol = ":red_square:"
-                field_info = f"`⚠ The wallet doesn't hold sufficient collateral`"
+                field_info = f":red_circle:` The wallet doesn't receive rewards`"
                 red_color_trigger = True
                 return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
-            else:
-                if node_data.reward_state is True:
-                    field_symbol = ":green_square:"
-                    if node_data.former_reward_state is False:
-                        field_info = f":coin:` The wallet recently started receiving rewards`\n" \
-                                     f"`ⓘ  No minimum collateral required`"
-                        return wallet_field(field_symbol, reward_percentage, field_info), False, False
-                    else:
-                        field_info = f":coin:` The wallet receives rewards`\n" \
-                                     f"`ⓘ  No minimum collateral required`"
+        elif node_data.reward_state is True and node_data.former_reward_state is False:
+            field_symbol = ":green_square:"
+            field_info = f":coin:` The wallet recently started receiving rewards`"
+            return wallet_field(field_symbol, reward_percentage, field_info), False, False
+        elif node_data.reward_state is True and node_data.former_reward_state is True:
+            field_symbol = ":green_square:"
+            field_info = f":coin:` The wallet receives rewards`"
+            return wallet_field(field_symbol, reward_percentage, field_info), False, False
+        else:
+            field_symbol = ":yellow_square:"
+            field_info = f"`ⓘ  The wallet reward state is unknown. Please report`\n" \
+                         f"`ⓘ  No minimum collateral required`"
+            yellow_color_trigger = True
+            return wallet_field(field_symbol, reward_percentage, field_info), False, yellow_color_trigger
 
-                        return wallet_field(field_symbol, reward_percentage, field_info), False, False
-
-                elif node_data.reward_state is False:
-                    field_symbol = ":red_square:"
-                    if node_data.former_reward_state is True:
-                        field_info = f":red_circle:` The wallet recently stopped receiving rewards`\n" \
-                                     f"`ⓘ  No minimum collateral required`"
-
-                        red_color_trigger = True
-                        return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
-                    else:
-                        field_info = f":red_circle:` The wallet doesn't receive rewards`\n"\
-                                     f"`ⓘ  No minimum collateral required`"
-
-                        red_color_trigger = True
-                        return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
-                else:
-                    field_symbol = ":yellow_square:"
-                    field_info = f"`ⓘ  The wallet reward state is unknown. Please report`\n" \
-                                 f"`ⓘ  No minimum collateral required`"
-
-                    yellow_color_trigger = True
-                    return wallet_field(field_symbol, reward_percentage, field_info), False, yellow_color_trigger
+    reward_percentage = 0 if node_data.reward_true_count in (0, None) else \
+                        100 if node_data.reward_false_count in (0, None) else (
+                                float(node_data.reward_true_count) * 100 / float(node_data.reward_false_count))
 
     if node_data.wallet_address is not None:
-        field_content, red_color_trigger, yellow_color_trigger = field_from_wallet_conditions()
+        field_content, red_color_trigger, yellow_color_trigger = generate_field_from_reward_states(reward_percentage)
         return field_content, red_color_trigger, yellow_color_trigger
     else:
         return f":yellow_square: **WALLET**\n" \
@@ -608,11 +569,11 @@ def build_embed(node_data: schemas.Node):
 
 def mark_notify(d: schemas.Node, configuration):
     # The hardcoded values should be adjustable in config_new.yml
-    if d.cluster_connectivity in ["new association", "new dissociation"]:
+    if d.cluster_connectivity in ("new association", "new dissociation"):
         d.notify = True
         d.last_notified_timestamp = d.timestamp_index
     elif d.last_notified_timestamp is not None:
-        if d.reward_state is False and (d.timestamp_index.second - d.last_notified_timestamp.second >= timedelta(minutes=configuration["general"]["notifications"]["reward state notify sleep (minutes)"]).seconds):
+        if d.reward_state is False and (d.timestamp_index.second - d.last_notified_timestamp.second >= timedelta(minutes=configuration["general"]["notifications"]["reward state sleep (minutes)"]).seconds):
             # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
             """if d["layer"] == 1:
                 d["notify"] = False
