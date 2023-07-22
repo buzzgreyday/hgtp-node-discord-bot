@@ -33,7 +33,7 @@ async def locate_ids(requester, _configuration):
         ids = await api.safe_request("http://127.0.0.1:8000/user/ids", _configuration)
         return ids
     else:
-        return await api.Request(f"127.0.0.1:8000/user/node/contact/{requester}").json(_configuration)
+        return await api.Request(f"http://127.0.0.1:8000/user/node/contact/{requester}").json(_configuration)
 
 
 async def locate_node(_configuration, id_):
