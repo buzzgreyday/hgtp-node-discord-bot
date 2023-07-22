@@ -216,7 +216,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node):
     elif session == latest_session:
         print(curr_name == former_name, session == former_session)
         # If new connection is made with this node then alert
-        if curr_name == MODULE and (former_name != MODULE or former_name is None) and (former_session != session or former_session is None):
+        if curr_name == MODULE and (former_name != MODULE or former_name is None):
             print("new association")
             node_data.cluster_connectivity = "new association"
         elif curr_name == former_name and session == former_session:
