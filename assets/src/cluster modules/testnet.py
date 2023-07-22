@@ -205,20 +205,18 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node):
     print("Latest Session:", type(latest_session))
     print("Current Node Cluster/Session", type(curr_name), type(session))
     print("Former Node Cluster/Session", type(former_name), type(former_session))
-    if latest_session is None or session is None:
-        # Do not alert if new connection is made (former_name != MODULE)
-        print(curr_name == former_name, session == former_session)
-        if former_name == MODULE and curr_name is None and former_session != session:
+    if session != latest_session:
+        if curr_name is None and former_name == MODULE:
             print("new dissociation")
             node_data.cluster_connectivity = "new dissociation"
             node_data.last_known_cluster_name = former_name
-        elif curr_name == former_name and former_session == session:
+        elif curr_name is None and former_name is None:
             print("dissociation")
             node_data.cluster_connectivity = "dissociation"
         else:
             print("Wrong logic: dissoc.")
 
-    elif latest_session is not None and session is not None and latest_session == session:
+    elif session == latest_session:
         print(curr_name == former_name, session == former_session)
         # If new connection is made with this node then alert
         if curr_name == MODULE and (former_name != MODULE or former_name is None) and (former_session != session or former_session is None):
@@ -229,10 +227,6 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node):
             node_data.cluster_connectivity = "association"
         else:
             print("Wrong logic: assoc.")
-
-    elif latest_session is not None and session is not None and latest_session != session:
-        print("fork")
-        node_data.cluster_connectivity = "fork"
 
     return node_data
 
