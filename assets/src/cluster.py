@@ -34,11 +34,20 @@ async def locate_id_offline(layer, name, configuration):
 
 def locate_node(node_data: schemas.Node, all_cluster_data: List[dict]):
     """This function loops through all cluster data supported by the bot and returns the relevant cluster data"""
-
+    offline_cluster = None
     for cluster in all_cluster_data:
         if cluster["layer"] == node_data.layer:
             if locate_node_binary(node_data, cluster["peer_data"]):
                 return cluster
+            else:
+                if node_data.last_known_cluster_name == cluster["name"]:
+                    print("Using last_known to locate node cluster")
+                    offline_cluster = cluster
+                elif node_data.former_cluster_name == cluster["name"]:
+                    print("Using former to locate node cluster")
+                    offline_cluster = cluster
+    return offline_cluster
+
 
 
 async def get_module_data(process_msg, node_data: schemas.Node, configuration):
@@ -65,5 +74,7 @@ async def get_module_data(process_msg, node_data: schemas.Node, configuration):
         return node_data, process_msg
 
     else:
+
+        print("NOT FOUND:", f"{configuration['file settings']['locations']['cluster modules']}/{node_data.last_known_cluster_name}.py")
 
         return node_data, process_msg

@@ -337,7 +337,7 @@ def build_general_cluster_state(node_data: schemas.Node):
             return round(float(node_data.cluster_association_time)*100/float(0.0)+float(node_data.cluster_dissociation_time), 2)
         else:
             return 0
-
+    # This here needs to take former cluster and current cluser states into account
     if node_data.cluster_connectivity == "new association":
         field_symbol = ":green_square:"
         field_info = f"`ⓘ  Association with the cluster was recently established`"
@@ -361,7 +361,7 @@ def build_general_cluster_state(node_data: schemas.Node):
         field_info = f""
         return general_cluster_state_field(), False, yellow_color_trigger
     else:
-        print(node_data.cluster_connectivity)
+        print("NOT SUPPORTED NODE CLUSTER STATE:", node_data.cluster_connectivity)
 
 
 def build_general_node_wallet(node_data: schemas.Node):
