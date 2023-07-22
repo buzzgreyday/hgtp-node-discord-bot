@@ -24,7 +24,7 @@ class Clean:
 
 
 async def node_data(node_data: schemas.Node, _configuration):
-    """THIS IS NOT DONE: NEW SUBSCRIPTION WILL FAIL!!!!!!!!!!!!"""
+    """Get historic node data"""
     data = await api.Request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").json(_configuration)
     if data is not None:
         data = schemas.Node(**data)
