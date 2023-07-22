@@ -29,7 +29,19 @@ async def node_data(node_data: schemas.Node, _configuration):
                         last_known_cluster_name=data.last_known_cluster_name,
                         former_reward_state=data.reward_state,
                         former_cluster_connectivity=data.cluster_connectivity,
-                        )
+                        former_node_cluster_session=data.node_cluster_session,
+                        former_cluster_association_time=data.cluster_association_time,
+                        former_cluster_dissociation_time=data.cluster_dissociation_time,
+                        former_timestamp_index=datetime.strptime(data.timestamp_index, "%Y-%m-%dT%H:%M:%S.%f"),
+                        last_notified_timestamp=datetime.strptime(data.last_notified_timestamp, "%Y-%m-%dT%H:%M:%S.%f"),
+                        id=data.id,
+                        wallet_address=data.wallet_address,
+                        version=data.version,
+                        cpu_count=data.cpu_count,
+                        disk_space_total=data.disk_space_total,
+                        disk_space_free=data.disk_space_free,
+                        former_cluster_peer_count=data.peer_count,
+                        former_cluster_state=data.state)
     # return pd.DataFrame([data]) if data is not None else data
 
 
