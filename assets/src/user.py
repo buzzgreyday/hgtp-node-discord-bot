@@ -29,6 +29,7 @@ async def check(latest_tessellation_version, requester, all_cluster_data, dt_sta
 
 
 async def locate_ids(requester, _configuration):
+    """NOT FUNCTIONING PROPERLY, HERE WE NEED A SET OF TUPLES CONTAINING ID, IP, PORT"""
     if requester is None:
         ids = await api.safe_request("http://127.0.0.1:8000/user/ids", _configuration)
         return ids
