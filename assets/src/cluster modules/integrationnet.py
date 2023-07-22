@@ -59,6 +59,7 @@ async def request_cluster_data(url, layer, name, configuration):
                                        peer_data=sorted(cluster_resp, key=lambda d: d['id'])
                                        )
     await config.update_config_with_latest_values(cluster_data, configuration)
+    print(cluster_data.dict())
     return cluster_data.dict()
 
 # THE ABOVE FUNCTION ALSO REQUEST THE MOST RECENT REWARDED ADDRESSES. THIS FUNCTION LOCATES THESE ADDRESSES BY
