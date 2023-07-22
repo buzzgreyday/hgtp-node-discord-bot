@@ -6,7 +6,7 @@ def merge_data(node_data: schemas.Node, cluster_data):
 
     if node_data.layer == cluster_data["layer"]:
         name = list(str(value) for value in
-                    (node_data.former_cluster_name, node_data.former_cluster_name, node_data.last_known_cluster_name) if
+                    (node_data.cluster_name, node_data.former_cluster_name, node_data.last_known_cluster_name) if
                     value is not None)
         name = name[0] if name else None
         if name == cluster_data["name"]:
