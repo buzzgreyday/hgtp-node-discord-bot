@@ -176,7 +176,7 @@ def check_rewards(node_data: schemas.Node, cluster_data):
 
 
 async def request_wallet_data(node_data: schemas.Node, configuration) -> schemas.Node:
-
+    print(f"{configuration['modules'][MODULE.lower()][0]['be']['url'][0]}/addresses/{node_data.wallet_address}/balance")
     wallet_data = await api.safe_request(f"{configuration['modules'][MODULE.lower()][0]['be']['url'][0]}/addresses/{node_data.wallet_address}/balance", configuration)
     if wallet_data is not None:
         node_data.wallet_balance = wallet_data["data"]["balance"]
@@ -372,7 +372,12 @@ def build_general_node_wallet(node_data: schemas.Node):
                    f"{field_info}"
 
     def generate_field_from_reward_states(reward_percentage):
-        if node_data.cluster_name == "mainnet" and node_data.wallet_balance >= 250000 * 100000000:
+        name = list(str(value) for value in
+                    (node_data.cluster_name, node_data.former_cluster_name, node_data.last_known_cluster_name) if
+                    value is not None)
+        name = name[0] if name else None
+        print(node_data.wallet_balance)
+        if name == "mainnet" and node_data.wallet_balance <= 250000 * 100000000:
             field_symbol = ":red_square:"
             field_info = f"`⚠ The wallet doesn't hold sufficient collateral`"
             red_color_trigger = True
