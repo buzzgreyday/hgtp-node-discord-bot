@@ -33,14 +33,13 @@ async def locate_ids(requester, _configuration):
         ids = await api.safe_request("http://127.0.0.1:8000/user/ids", _configuration)
         return ids
     else:
-        return await api.Request(f"http://127.0.0.1:8000/user/node/contact/{requester}").json(_configuration)
+        return await api.Request(f"http://127.0.0.1:8000/user/ids/contact/{requester}").json(_configuration)
 
 
 async def locate_node(_configuration, id_):
     """Locate every subscription where ID is id_
     return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])"""
     data = await api.safe_request(f"http://127.0.0.1:8000/user/ids/{id_}", _configuration)
-    print(data)
     return data
 
 

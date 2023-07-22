@@ -202,9 +202,6 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node):
     session = node_data.node_cluster_session
     latest_session = node_data.latest_cluster_session
     former_session = node_data.former_node_cluster_session
-    print("Latest Session:", type(latest_session))
-    print("Current Node Cluster/Session", type(curr_name), type(session))
-    print("Former Node Cluster/Session", type(former_name), type(former_session))
     if session != latest_session:
         if curr_name is None and former_name == MODULE:
             print("new dissociation")

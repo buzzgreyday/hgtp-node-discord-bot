@@ -40,11 +40,8 @@ async def check(bot, process_msg, requester, subscriber, port, layer, latest_tes
                              timestamp_index=dt.datetime.utcnow())
     # node_data = data_template(requester, subscriber, port, layer, latest_tessellation_version, dt_start)
     loc_timer_start = dt.timing()[1]
-    """GATHER HISTORIC DATA, RETURN A DATAFRAME"""
     node_data = await history.node_data(node_data, configuration)
-    print(node_data)
     cluster_data = cluster.locate_node(node_data, all_cluster_data)
-    # node_data = history.merge_data(node_data, cluster_data, historic_node_dataframe)
     loc_timer_stop = dt.timing()[1]
 
     node_data = merge_data(node_data, cluster_data)

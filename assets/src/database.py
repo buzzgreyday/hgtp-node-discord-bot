@@ -171,12 +171,12 @@ async def get_node(ip: str, public_port: int, db: AsyncSession = Depends(get_db)
     return {"node": node}
 
 
-@api.get("/user/node/contact/{contact}")
+@api.get("/user/ids/contact/{contact}")
 async def get_contact_node_id(contact, db: AsyncSession = Depends(get_db)):
     """Return user by contact"""
-    results = await db.execute(select(User).where(User.contact == contact))
-    nodes = results.scalars().all()
-    return {contact: nodes}
+    results = await db.execute(select(User.id).where(User.contact == contact))
+    ids = results.scalars().all()
+    return list(set(ids))
 
 
 @api.get("/data/node/{ip}/{public_port}")
