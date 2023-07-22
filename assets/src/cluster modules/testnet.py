@@ -372,90 +372,83 @@ def build_general_node_wallet(node_data: schemas.Node):
                    f"{field_info}"
 
     def field_from_wallet_conditions():
-        if node_data.reward_true_count in (0, None):
-            reward_percentage = 0
-        elif node_data.reward_false_count in (0, None):
-            reward_percentage = 100
-        else:
-            reward_percentage = float(node_data.reward_true_count) * 100 / float(node_data.reward_false_count)
-        if node_data.wallet_balance >= 250000 * 100000000:
-            if node_data.reward_state is False:
-                # TEMPROARY FIC SINCE MAINNET LAYER ONE DOESN'T SUPPORT REWARDS
-                if node_data.layer == 1:
-                    field_symbol = ":green_square:"
-                else:
+
+        reward_percentage = 0 if node_data.reward_true_count in (0, None) else \
+                            100 if node_data.reward_false_count in (0, None) else (
+                                    float(node_data.reward_true_count) * 100 / float(node_data.reward_false_count))
+
+        if MODULE in (node_data.cluster_name, node_data.former_cluster_name, node_data.last_known_cluster_name):
+
+            if MODULE == "testnet":
+
+                if node_data.reward_state is False and node_data.former_reward_state is True:
                     field_symbol = ":red_square:"
-                if node_data.former_reward_state is True:
                     field_info = f":red_circle:` The wallet recently stopped receiving rewards`"
                     red_color_trigger = True
                     return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
-                else:
-                    # TEMPROARY FIC SINCE MAINNET LAYER ONE DOESN'T SUPPORT REWARDS
+
+                elif node_data.reward_state in (False, None) and node_data.former_reward_state in (False, None):
+
                     if node_data.layer == 1:
+                        field_symbol = ":green_square:"
                         field_info = f"`ⓘ  {MODULE} layer one does not currently distribute rewards. Please refer to the " \
                                      f"layer 0 report`"
                         return wallet_field(field_symbol, reward_percentage, field_info), False, False
                     else:
+                        field_symbol = ":red_square:"
                         field_info = f":red_circle:` The wallet doesn't receive rewards`"
                         red_color_trigger = True
                         return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
-            elif node_data.reward_state is True:
-                field_symbol = ":green_square:"
-                if node_data.former_reward_state is False:
+                elif node_data.reward_state is True and node_data.former_reward_state is False:
+                    field_symbol = ":green_square:"
                     field_info = f":coin:` The wallet recently started receiving rewards`"
                     return wallet_field(field_symbol, reward_percentage, field_info), False, False
-                else:
+                elif node_data.reward_state is True and node_data.former_reward_state is True:
+                    field_symbol = ":green_square:"
                     field_info = f":coin:` The wallet receives rewards`"
                     return wallet_field(field_symbol, reward_percentage, field_info), False, False
-            elif node_data.reward_state is None:
-                if node_data.layer == 1:
-                    field_symbol = ":green_square:"
-                    field_info = f"`ⓘ  {MODULE} layer one does not currently distribute rewards. Please refer to the " \
-                                 f"layer 0 report`"
-                    yellow_color_trigger = False
-                else:
-                    field_symbol = ":yellow_square:"
-                    field_info = f"`ⓘ  Unknown reward state - please report`"
-                    yellow_color_trigger = True
-                return wallet_field(field_symbol, reward_percentage, field_info), False, yellow_color_trigger
-        else:
-            if (node_data.cluster_name or node_data.last_known_cluster_name) != "testnet":
-                field_symbol = ":red_square:"
-                field_info = f"`⚠ The wallet doesn't hold sufficient collateral`"
-                red_color_trigger = True
-                return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
-            else:
-                if node_data.reward_state is True:
-                    field_symbol = ":green_square:"
-                    if node_data.former_reward_state is False:
-                        field_info = f":coin:` The wallet recently started receiving rewards`\n" \
-                                     f"`ⓘ  No minimum collateral required`"
-                        return wallet_field(field_symbol, reward_percentage, field_info), False, False
-                    else:
-                        field_info = f":coin:` The wallet receives rewards`\n" \
-                                     f"`ⓘ  No minimum collateral required`"
-
-                        return wallet_field(field_symbol, reward_percentage, field_info), False, False
-
-                elif node_data.reward_state is False:
-                    field_symbol = ":red_square:"
-                    if node_data.former_reward_state is True:
-                        field_info = f":red_circle:` The wallet recently stopped receiving rewards`\n" \
-                                     f"`ⓘ  No minimum collateral required`"
-
-                        red_color_trigger = True
-                        return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
-                    else:
-                        field_info = f":red_circle:` The wallet doesn't receive rewards`\n"\
-                                     f"`ⓘ  No minimum collateral required`"
-
-                        red_color_trigger = True
-                        return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
                 else:
                     field_symbol = ":yellow_square:"
                     field_info = f"`ⓘ  The wallet reward state is unknown. Please report`\n" \
                                  f"`ⓘ  No minimum collateral required`"
+                    yellow_color_trigger = True
+                    return wallet_field(field_symbol, reward_percentage, field_info), False, yellow_color_trigger
 
+            elif MODULE == "mainnet":
+
+                if node_data.wallet_balance >= 250000 * 100000000:
+                    field_symbol = ":red_square:"
+                    field_info = f"`⚠ The wallet doesn't hold sufficient collateral`"
+                    red_color_trigger = True
+                    return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
+                elif node_data.reward_state is False and node_data.former_reward_state is True:
+                    field_symbol = ":red_square:"
+                    field_info = f":red_circle:` The wallet recently stopped receiving rewards`"
+                    red_color_trigger = True
+                    return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
+                elif node_data.reward_state in (False, None) and node_data.former_reward_state in (False, None):
+                    if node_data.layer == 1:
+                        field_symbol = ":green_square:"
+                        field_info = f"`ⓘ  {MODULE} layer one does not currently distribute rewards. Please refer to the " \
+                                     f"layer 0 report`"
+                        return wallet_field(field_symbol, reward_percentage, field_info), False, False
+                    else:
+                        field_symbol = ":red_square:"
+                        field_info = f":red_circle:` The wallet doesn't receive rewards`"
+                        red_color_trigger = True
+                        return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
+                elif node_data.reward_state is True and node_data.former_reward_state is False:
+                    field_symbol = ":green_square:"
+                    field_info = f":coin:` The wallet recently started receiving rewards`"
+                    return wallet_field(field_symbol, reward_percentage, field_info), False, False
+                elif node_data.reward_state is True and node_data.former_reward_state is True:
+                    field_symbol = ":green_square:"
+                    field_info = f":coin:` The wallet receives rewards`"
+                    return wallet_field(field_symbol, reward_percentage, field_info), False, False
+                else:
+                    field_symbol = ":yellow_square:"
+                    field_info = f"`ⓘ  The wallet reward state is unknown. Please report`\n" \
+                                 f"`ⓘ  No minimum collateral required`"
                     yellow_color_trigger = True
                     return wallet_field(field_symbol, reward_percentage, field_info), False, yellow_color_trigger
 
