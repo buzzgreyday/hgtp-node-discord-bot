@@ -19,7 +19,6 @@ def locate_node_binary(node_data: schemas.Node, peer_data: List[dict]):
         if peer["id"] == node_data.id:
             # print("NODE ID FOUND:", peer["id"])
             return True
-
         if node_data.id < peer["id"]:
             end = mid - 1
         else:

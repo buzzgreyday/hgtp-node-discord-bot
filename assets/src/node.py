@@ -3,9 +3,8 @@ from assets.src.discord import discord
 
 
 def merge_data(node_data: schemas.Node, cluster_data):
-    if cluster_data is None:
-        pass
-    elif node_data.layer == cluster_data["layer"]:
+
+    if node_data.layer == cluster_data["layer"]:
         name = list(str(value) for value in
                     (node_data.former_cluster_name, node_data.former_cluster_name, node_data.last_known_cluster_name) if
                     value is not None)[0]
