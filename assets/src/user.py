@@ -13,6 +13,7 @@ async def check(latest_tessellation_version, requester, all_cluster_data, dt_sta
     schemas.Node]:
     futures = []
     data = []
+    # for (id_, ip, port)
     for id_ in await locate_ids(requester, _configuration):
         subscriber = await locate_node(_configuration, id_)
         subscriber = pd.DataFrame(subscriber)
