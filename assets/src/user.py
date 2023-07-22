@@ -14,7 +14,10 @@ async def check(latest_tessellation_version, requester, all_cluster_data, dt_sta
     futures = []
     data = []
     # for (id_, ip, port)
-    for id_ in await locate_ids(requester, _configuration):
+    for tup in await locate_ids(requester, _configuration):
+        id_ = tup[0]
+        ip = tup[1]
+        port = tup[2]
         subscriber = await locate_node(_configuration, id_)
         subscriber = pd.DataFrame(subscriber)
         for L in list(set(subscriber.layer)):
@@ -30,10 +33,9 @@ async def check(latest_tessellation_version, requester, all_cluster_data, dt_sta
 
 
 async def locate_ids(requester, _configuration):
-    """NOT FUNCTIONING PROPERLY, HERE WE NEED A SET OF TUPLES CONTAINING ID, IP, PORT"""
+    """NOT FUNCTIONING PROPERLY, HERE WE NEED A LIST/SET OF TUPLES CONTAINING ID, IP, PORT"""
     if requester is None:
-        ids = await api.safe_request("http://127.0.0.1:8000/user/ids", _configuration)
-        return ids
+        return await api.safe_request("http://127.0.0.1:8000/user/ids", _configuration)
     else:
         return await api.Request(f"http://127.0.0.1:8000/user/ids/contact/{requester}").json(_configuration)
 

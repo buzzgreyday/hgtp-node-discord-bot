@@ -148,11 +148,15 @@ async def get_users(db: AsyncSession = Depends(get_db)):
 
 
 @api.get("/user/ids")
-async def get_user_ids(db: AsyncSession = Depends(get_db)) -> List:
-    """Returns a list of all user IDs currently subscribed"""
-    results = await db.execute(select(User.id))
+async def get_user_ids(db: AsyncSession = Depends(get_db)):
+    """INSTEAD RETURN A TUPLE CONTAINING ID, IP, PORT!!!! Returns a list of all user IDs currently subscribed"""
+    list_of_tuples = []
+    results = await db.execute(select(User))
     ids = results.scalars().all()
-    return list(set(ids))
+    for values in ids:
+        list_of_tuples.append((values.id, values.ip, values.public_port))
+    # return list(set(ids))
+    return list_of_tuples
 
 
 @api.get("/user/ids/{id_}")
@@ -173,7 +177,7 @@ async def get_node(ip: str, public_port: int, db: AsyncSession = Depends(get_db)
 
 @api.get("/user/ids/contact/{contact}")
 async def get_contact_node_id(contact, db: AsyncSession = Depends(get_db)):
-    """Return user by contact"""
+    """INSTEAD RETURN A TUPLE CONTAINING ID, IP, PORT!!!! Return user by contact"""
     results = await db.execute(select(User.id).where(User.contact == contact))
     ids = results.scalars().all()
     return list(set(ids))
