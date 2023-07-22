@@ -176,7 +176,7 @@ def check_rewards(node_data: schemas.Node, cluster_data):
 
 
 async def request_wallet_data(node_data: schemas.Node, configuration) -> schemas.Node:
-    print(f"{configuration['modules'][MODULE.lower()][0]['be']['url'][0]}/addresses/{node_data.wallet_address}/balance")
+
     wallet_data = await api.safe_request(f"{configuration['modules'][MODULE.lower()][0]['be']['url'][0]}/addresses/{node_data.wallet_address}/balance", configuration)
     if wallet_data is not None:
         node_data.wallet_balance = wallet_data["data"]["balance"]
@@ -211,7 +211,8 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node):
             print("dissociation")
             node_data.cluster_connectivity = "dissociation"
         else:
-            print("Wrong logic: dissoc.")
+            node_data.cluster_connectivity = "dissociation"
+            print("fork")
 
     elif session == latest_session:
         print(curr_name == former_name, session == former_session)

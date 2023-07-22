@@ -211,7 +211,8 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node):
             print("dissociation")
             node_data.cluster_connectivity = "dissociation"
         else:
-            print("Wrong logic: dissoc.")
+            node_data.cluster_connectivity = "dissociation"
+            print("fork")
 
     elif session == latest_session:
         print(curr_name == former_name, session == former_session)

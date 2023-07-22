@@ -17,6 +17,30 @@ general:
   request timeout (sec): 6
   version: 5-alpha.1
 modules:
+  integrationnet:
+    0:
+      be:
+        info:
+          latest snapshot: global-snapshots/latest
+        url:
+        - https://be-integrationnet.constellationnetwork.io
+      id: 3a3c367eaffa5bb3c4b35404e95983c73c522d166010784cc8d69ee9cc9c415c11534d331b70fceb7d445c96dcf62021bb8d7762a81506a0b616c45a32f00055
+      info:
+        cluster: cluster/info
+        metrics: metrics
+        node: node/info
+      rewards: true
+      url:
+      - https://l0-lb-integrationnet.constellationnetwork.io
+    1:
+      id: 9561959b0b4410e263fa9d0e25ee2bfeb9a1362db6680ceef242b11f5f18e98457b1191478e5901153c9dbb6eb5eca09924d9ab210017dd203bab5816ff88567
+      info:
+        cluster: cluster/info
+        metrics: metrics
+        node: node/info
+      rewards: false
+      url:
+      - https://l1-lb-testnet.constellationnetwork.io
   mainnet:
     0:
       be:
@@ -65,30 +89,6 @@ modules:
       rewards: false
       url:
       - https://l1-lb-testnet.constellationnetwork.io
-  integrationnet:
-    0:
-      be:
-        info:
-          latest snapshot: global-snapshots/latest
-        url:
-          - https://be-integrationnet.constellationnetwork.io
-      id: unknown
-      info:
-        cluster: cluster/info
-        metrics: metrics
-        node: node/info
-      rewards: true
-      url:
-        - https://l0-lb-integrationnet.constellationnetwork.io
-    1:
-      id: unknown
-      info:
-        cluster: cluster/info
-        metrics: metrics
-        node: node/info
-      rewards: false
-      url:
-        - https://l1-lb-testnet.constellationnetwork.io
 tessellation:
   github:
     releases:
