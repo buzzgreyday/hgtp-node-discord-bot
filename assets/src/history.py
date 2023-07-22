@@ -26,7 +26,6 @@ class Clean:
 async def node_data(node_data: schemas.Node, _configuration):
     """THIS IS NOT DONE!!!!!!!!!!!!"""
     data = schemas.Node(**await api.Request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").json(_configuration))
-    print(data)
     node_data.former_cluster_name = data.cluster_name
     node_data.last_known_cluster_name = data.last_known_cluster_name
     node_data.former_reward_state = data.reward_state
