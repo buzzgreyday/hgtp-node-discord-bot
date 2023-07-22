@@ -154,15 +154,15 @@ async def get_user_ids(db: AsyncSession = Depends(get_db)):
     results = await db.execute(select(User))
     ids = results.scalars().all()
     for values in ids:
-        list_of_tuples.append((values.id, values.ip, values.public_port))
+        list_of_tuples.append((values.id, values.ip, values.public_port, values.layer))
     # return list(set(ids))
     return list_of_tuples
 
 
-@api.get("/user/ids/{id_}")
-async def get_nodes(id_: str, db: AsyncSession = Depends(get_db)):
+@api.get("/user/ids/{id_}/{ip}/{port}")
+async def get_nodes(id_: str, ip: str, port: int, db: AsyncSession = Depends(get_db)):
     """Return user by ID"""
-    results = await db.execute(select(User).where(User.id == id_))
+    results = await db.execute(select(User).where((User.id == id_) & (User.ip == ip) & (User.public_port == port)))
     nodes = results.scalars().all()
     return nodes
 
@@ -178,9 +178,13 @@ async def get_node(ip: str, public_port: int, db: AsyncSession = Depends(get_db)
 @api.get("/user/ids/contact/{contact}")
 async def get_contact_node_id(contact, db: AsyncSession = Depends(get_db)):
     """INSTEAD RETURN A TUPLE CONTAINING ID, IP, PORT!!!! Return user by contact"""
-    results = await db.execute(select(User.id).where(User.contact == contact))
+    list_of_tuples = []
+    results = await db.execute(select(User).where(User.contact == contact))
     ids = results.scalars().all()
-    return list(set(ids))
+    for values in ids:
+        list_of_tuples.append((values.id, values.ip, values.public_port, values.layer))
+    # return list(set(ids))
+    return list_of_tuples
 
 
 @api.get("/data/node/{ip}/{public_port}")

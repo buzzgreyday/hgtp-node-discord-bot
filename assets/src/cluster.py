@@ -34,7 +34,7 @@ async def locate_id_offline(layer, name, configuration):
 
 
 def locate_node(node_data: schemas.Node, all_cluster_data: List[dict]):
-    """This function loops through all cluster data supported by the bot and returns the relevant cluster data"""
+    """THIS IS THE REASON A CLUSTER CAN COME OUT AS NONE!!! This function loops through all cluster data supported by the bot and returns the relevant cluster data"""
     offline_cluster = None
     for cluster in all_cluster_data:
         if cluster["layer"] == node_data.layer:

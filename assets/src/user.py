@@ -9,23 +9,22 @@ from assets.src.discord.services import bot
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 
 
-async def check(latest_tessellation_version, requester, all_cluster_data, dt_start, process_msg, _configuration) -> List[
-    schemas.Node]:
+async def check(latest_tessellation_version, requester, all_cluster_data, dt_start, process_msg, _configuration) -> List[schemas.Node]:
     futures = []
     data = []
     # for (id_, ip, port)
-    for tup in await locate_ids(requester, _configuration):
-        id_ = tup[0]
-        ip = tup[1]
-        port = tup[2]
-        subscriber = await locate_node(_configuration, id_)
+    for lst in await locate_ids(requester, _configuration):
+        id_ = lst[0]
+        ip = lst[1]
+        port = lst[2]
+        layer = lst[3]
+        subscriber = await locate_node(_configuration, requester, id_, ip, port)
         subscriber = pd.DataFrame(subscriber)
-        for L in list(set(subscriber.layer)):
-            for port in list(set(subscriber.public_port[subscriber.layer == L])):
-                futures.append(asyncio.create_task(
-                    node.check(bot, process_msg, requester, subscriber, port, L,
-                               latest_tessellation_version, all_cluster_data, dt_start,
-                               _configuration)))
+        # for L in list(set(subscriber.layer)):
+        futures.append(asyncio.create_task(
+            node.check(bot, process_msg, requester, subscriber, port, layer,
+                       latest_tessellation_version, all_cluster_data, dt_start,
+                       _configuration)))
     for async_process in futures:
         d, process_msg = await async_process
         data.append(d)
@@ -40,11 +39,12 @@ async def locate_ids(requester, _configuration):
         return await api.Request(f"http://127.0.0.1:8000/user/ids/contact/{requester}").json(_configuration)
 
 
-async def locate_node(_configuration, id_):
+async def locate_node(_configuration, requester, id_, ip, port):
     """Locate every subscription where ID is id_
     return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])"""
-    data = await api.safe_request(f"http://127.0.0.1:8000/user/ids/{id_}", _configuration)
-    return data
+    return await api.safe_request(f"http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port}", _configuration)
+
+
 
 
 async def write_db(data: List[schemas.User]):
