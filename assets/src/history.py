@@ -23,7 +23,7 @@ class Clean:
 
 
 async def node_data(node_data: schemas.Node, _configuration):
-
+    """THIS IS NOT DONE!!!!!!!!!!!!"""
     data = await api.Request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").json(_configuration)
     return schemas.Node(former_cluster_name=data.cluster_name,
                         last_known_cluster_name=data.last_known_cluster_name,
