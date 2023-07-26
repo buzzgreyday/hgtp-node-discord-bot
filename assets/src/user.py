@@ -20,6 +20,7 @@ async def check(latest_tessellation_version, requester, all_cluster_data, dt_sta
         layer = lst[3]
         subscriber = await locate_node(_configuration, requester, id_, ip, port)
         subscriber = pd.DataFrame(subscriber)
+        print(subscriber)
         # for L in list(set(subscriber.layer)):
         futures.append(asyncio.create_task(
             node.check(bot, process_msg, requester, subscriber, port, layer,
@@ -43,8 +44,6 @@ async def locate_node(_configuration, requester, id_, ip, port):
     """Locate every subscription where ID is id_
     return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])"""
     return await api.safe_request(f"http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port}", _configuration)
-
-
 
 
 async def write_db(data: List[schemas.User]):

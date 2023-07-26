@@ -85,7 +85,7 @@ async def send(ctx, process_msg, bot, data: List[schemas.Node], configuration):
     futures = []
     for node_data in data:
         if node_data.notify is True:
-            name = list(str(value) for value in (node_data.former_cluster_name, node_data.former_cluster_name, node_data.last_known_cluster_name) if value is not None)[0]
+            name = list(str(value) for value in (node_data.cluster_name, node_data.former_cluster_name, node_data.last_known_cluster_name) if value is not None)[0]
             print(f"{configuration['file settings']['locations']['cluster modules']}/{name}.py")
             if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{name}.py"):
                 print(f"Choosing {name} module embed type.")

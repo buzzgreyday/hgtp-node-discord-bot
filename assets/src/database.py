@@ -33,6 +33,7 @@ class User(SQLBase):
 
     index: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
+    wallet: Mapped[str]
     id: Mapped[str]
     ip: Mapped[str]
     public_port: Mapped[int]
@@ -112,7 +113,9 @@ async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
     data.index = next_index
     data.date = datetime.datetime.utcnow()
     data_dict = data.dict()
+    print(data_dict)
     user = User(**data_dict)
+    print(user.wallet)
     result = await db.execute(select(User).where((User.ip == data.ip) & (User.public_port == data.public_port)))
     # You only need one result that matches
     result = result.fetchone()

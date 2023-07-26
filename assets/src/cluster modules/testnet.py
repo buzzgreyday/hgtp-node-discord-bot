@@ -141,7 +141,6 @@ async def node_cluster_data(node_data: schemas.Node, configuration: dict) -> sch
                 f"http://{node_data.ip}:{node_data.public_port}/"
                 f"{configuration['modules'][MODULE][node_data.layer]['info']['metrics']}", configuration)
             node_data.id = node_info_data["id"]
-            node_data.wallet_address = encode.id_to_dag_address(node_data.id)
             node_data.node_peer_count = len(cluster_data) if cluster_data is not None else 0
             node_data.cluster_association_time = metrics_data.cluster_association_time
             node_data.cpu_count = metrics_data.cpu_count

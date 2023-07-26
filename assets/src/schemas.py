@@ -5,6 +5,7 @@ import datetime as dt
 from pydantic import BaseModel
 
 from assets.src import api
+from assets.src.encode import id_to_dag_address
 
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 
@@ -83,8 +84,8 @@ class Node(NodeBase, NodeMetrics):
 
 
 class Cluster(NodeBase):
-    """The base model for every cluster data, this object is created pre-user node checks"""
-
+    """Will need to be tied to a wallet! The base model for every cluster data, this object is created pre-user node checks"""
+    wallet: str = None
     state: str = "offline"
     peer_count: int = 0
     session: str = None
@@ -101,6 +102,7 @@ class User(NodeBase):
     # UserRead should be UserEnum
     index: Optional[int]
     type: str
+    wallet: str
     # uuid: str
 
     # VALIDATE ID VALUE, CREATE CUSTOM EXCEPTION!
@@ -131,17 +133,22 @@ class User(NodeBase):
                     for port in arg[i + 1:]:
                         if port.isdigit():
                             # Check if port is subscribed?
+                            id_ = await User.get_id(arg[0], port, mode, configuration)
+                            wallet = id_to_dag_address(id_)
+                            print(wallet)
                             user_data.append(
-                                cls(name=name, contact=contact, id=await User.get_id(arg[0], port, mode, configuration),
+                                cls(name=name, contact=contact, id=id_, wallet=wallet,
                                     ip=arg[0], public_port=port, layer=0, type="discord"))
                         else:
                             break
                 elif val.lower() in ("o", "-o", "one", "l1", "-l1"):
                     for port in arg[i + 1:]:
                         if port.isdigit():
-
+                            id_ = await User.get_id(arg[0], port, mode, configuration)
+                            wallet = id_to_dag_address(id_)
+                            print(wallet)
                             user_data.append(
-                                cls(name=name, contact=contact, id=await User.get_id(arg[0], port, mode, configuration),
+                                cls(name=name, contact=contact, id=id_, wallet=wallet,
                                     ip=arg[0], public_port=port, layer=1, type="discord"))
                         else:
                             break

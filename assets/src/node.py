@@ -31,12 +31,13 @@ def merge_data(node_data: schemas.Node, cluster_data: dict):
 async def check(bot, process_msg, requester, subscriber, port, layer, latest_tessellation_version: str,
                 all_cluster_data: list[dict], dt_start, configuration: dict) -> tuple:
     process_msg = await discord.update_request_process_msg(process_msg, 2, None)
-    node_data = schemas.Node(name=subscriber.name[subscriber.public_port == port].values[0],
-                             contact=subscriber.contact[subscriber.public_port == port].values[0],
-                             ip=subscriber.ip[subscriber.public_port == port].values[0],
-                             layer=layer,
-                             public_port=port,
-                             id=subscriber.id[subscriber.public_port == port].values[0],
+    node_data = schemas.Node(name=subscriber.name.values[0],
+                             contact=subscriber.contact.values[0],
+                             ip=subscriber.ip.values[0],
+                             layer=subscriber.layer.values[0],
+                             public_port=subscriber.public_port.values[0],
+                             id=subscriber.id.values[0],
+                             wallet_address=subscriber.wallet.values[0],
                              latest_version=latest_tessellation_version,
                              notify=False if requester is None else True,
                              timestamp_index=dt.datetime.utcnow())

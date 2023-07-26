@@ -16,9 +16,8 @@ def locate_node_binary(node_data: schemas.Node, peer_data: List[dict]):
 
         mid = (start + end) // 2
         peer = peer_data[mid]
-        if peer["id"] == node_data.id and peer["ip"] == node_data.ip and peer["publicPort"] == node_data.public_port:
-            # print("NODE ID FOUND:", peer["id"])
-            print(peer["ip"], peer["publicPort"])
+        if peer["id"] == node_data.id and peer["ip"] == node_data.ip:
+            print("NODE ID FOUND:", peer["id"], "NODE IP FOUND:", peer["ip"])
             return True
 
         if node_data.id < peer["id"]:
@@ -35,20 +34,11 @@ async def locate_id_offline(layer, name, configuration):
 
 def locate_node(node_data: schemas.Node, all_cluster_data: List[dict]):
     """THIS IS THE REASON A CLUSTER CAN COME OUT AS NONE!!! This function loops through all cluster data supported by the bot and returns the relevant cluster data"""
-    offline_cluster = None
     for cluster in all_cluster_data:
         if cluster["layer"] == node_data.layer:
             if locate_node_binary(node_data, cluster["peer_data"]):
+                print(cluster["name"], cluster["layer"])
                 return cluster
-            else:
-                if node_data.last_known_cluster_name == cluster["name"]:
-                    print("Using last_known to locate node cluster")
-                    offline_cluster = cluster
-                elif node_data.former_cluster_name == cluster["name"]:
-                    print("Using former to locate node cluster")
-                    offline_cluster = cluster
-    return offline_cluster
-
 
 
 async def get_module_data(process_msg, node_data: schemas.Node, configuration):
