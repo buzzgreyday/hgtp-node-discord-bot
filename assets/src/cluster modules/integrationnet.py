@@ -209,6 +209,12 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node):
         elif curr_name is None and former_name is None:
             print("dissociation")
             node_data.cluster_connectivity = "dissociation"
+        elif curr_name == MODULE and former_name is None:
+            print("new association")
+            node_data.cluster_connectivity = "new association"
+        elif curr_name == MODULE and former_name == curr_name:
+            print("association")
+            node_data.cluster_connectivity = "association: session != latest_session"
         else:
             node_data.cluster_connectivity = "dissociation"
             print("fork")
@@ -222,6 +228,9 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node):
         elif curr_name == former_name and session == former_session:
             print("association")
             node_data.cluster_connectivity = "association"
+        elif curr_name == former_name and session != former_session:
+            node_data.cluster_connectivity = "association"
+            print("fork")
         else:
             print("Wrong logic: assoc.")
 
