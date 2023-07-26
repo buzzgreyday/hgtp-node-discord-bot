@@ -308,6 +308,7 @@ def build_general_node_state(node_data: schemas.Node):
         if node_data in (None, 0):
             field_info = f"`ⓘ  The node is not connected to any known cluster`"
         else:
+            print(node_data.node_peer_count, node_data.cluster_peer_count, node_data.layer)
             field_info = f"`ⓘ  Connected to {node_data.node_peer_count*100/node_data.cluster_peer_count}% of the cluster peers`"
         node_state = node_data.state.title()
         return node_state_field(), False, yellow_color_trigger
