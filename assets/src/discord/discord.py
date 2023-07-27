@@ -11,22 +11,6 @@ from assets.src import schemas, determine_module
 from assets.src.discord import defaults
 
 
-async def init_process(bot, requester):
-    if requester is not None:
-        await set_active_presence(bot)
-
-
-async def set_active_presence(bot):
-    try:
-        logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - CHANGING PRESENCE TO \"ACTIVE\"")
-        return await bot.change_presence(activity=nextcord.Activity(type=nextcord.ActivityType.watching, name=f'node(s)'), status=nextcord.Status.online)
-    except Exception:
-        logging.warning(f"{datetime.utcnow().strftime('%H:%M:%S')} - ATTEMPTING TO RECONNECT BEFORE CHANGING PRESENCE TO \"ACTIVE\"")
-        await bot.wait_until_ready()
-        await bot.connect(reconnect=True)
-        return await bot.change_presence(activity=nextcord.Activity(type=nextcord.ActivityType.watching, name=f'node(s)'), status=nextcord.Status.online)
-
-
 async def send_request_process_msg(ctx):
     msg = await ctx.message.author.send(
         "**`➭ 1. Add request to queue`**\n"

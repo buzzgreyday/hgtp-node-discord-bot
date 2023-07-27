@@ -52,7 +52,6 @@ async def main(ctx, process_msg, requester, _configuration) -> None:
     latest_tessellation_version = await preliminaries.latest_version_github(_configuration)
     all_cluster_data = await preliminaries.cluster_data(_configuration)
     await bot.wait_until_ready()
-    await discord.init_process(bot, requester)
     data = await user.check(latest_tessellation_version, requester, all_cluster_data, dt_start, process_msg, _configuration)
     process_msg = await discord.update_request_process_msg(process_msg, 5, None)
     data = await determine_module.notify(data, _configuration)
