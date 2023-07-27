@@ -1,10 +1,15 @@
 file settings:
   locations:
+    archived history: assets/data/historic/archived
     cluster modules: assets/src/cluster_modules
-    db: assets/data/db/database.db
+    db: assets/data/db/db.sqlite3
+    historic temp: assets/data/historic/temp
+    history_new: assets/data/historic/latest
     log: assets/data/logs/bot/exec.log
+    subscribers temp: assets/data/users/temp
+    subscribers_new: assets/data/users/db
 general:
-  loop_init_time: '12:00:00'
+  loop_init_time: '12:25:00'
   loop_interval_minutes: 1
   name: Hgtp Node Spidr
   notifications:
@@ -17,30 +22,6 @@ general:
   request timeout (sec): 6
   version: 5-alpha.1
 modules:
-  integrationnet:
-    0:
-      be:
-        info:
-          latest snapshot: global-snapshots/latest
-        url:
-        - https://be-integrationnet.constellationnetwork.io
-      id: 3a3c367eaffa5bb3c4b35404e95983c73c522d166010784cc8d69ee9cc9c415c11534d331b70fceb7d445c96dcf62021bb8d7762a81506a0b616c45a32f00055
-      info:
-        cluster: cluster/info
-        metrics: metrics
-        node: node/info
-      rewards: true
-      url:
-      - https://l0-lb-integrationnet.constellationnetwork.io
-    1:
-      id: 29b0dc8d310b0403db818db2da8d187127cdce14a825d3176534b03537e8573eaff0f95366617074996322d64f52b7a62e2737d77f7fbc888accbf4b98f7f651
-      info:
-        cluster: cluster/info
-        metrics: metrics
-        node: node/info
-      rewards: false
-      url:
-      - https://l1-lb-integrationnet.constellationnetwork.io
   mainnet:
     0:
       be:
@@ -81,7 +62,7 @@ modules:
       url:
       - https://l0-lb-testnet.constellationnetwork.io
     1:
-      id: 340f081474e91d5402133bae99d9a9bb9e92933984081be23e3b06701c11087b460c0cd6973b1b8fcc15a68297de62d34d2b73603696fad872d2eac0443ca3bc
+      id: 890a641e239763187f1a8c3a30d1bbb23a57eb4a82b1d69154540376c8045dd94c1e0be08ebeeb43cf6b0f7de6cefa6a418e2f53dfa53ddcf7afd293a34ee363
       info:
         cluster: cluster/info
         metrics: metrics
