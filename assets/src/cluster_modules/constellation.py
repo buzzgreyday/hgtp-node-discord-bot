@@ -395,7 +395,6 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
             red_color_trigger = True
             return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
         elif node_data.reward_state in (False, None) and node_data.former_reward_state in (False, None):
-            print(node_data.reward_state, node_data.former_reward_state)
             if node_data.layer == 1:
                 field_symbol = ":green_square:"
                 field_info = f"`ⓘ  {module_name.title()} layer one does not currently distribute rewards. Please refer to the " \
