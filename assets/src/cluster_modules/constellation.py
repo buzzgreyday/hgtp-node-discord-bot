@@ -16,7 +16,6 @@ import pandas as pd
 
 from assets.src import schemas, encode, config, cluster, api
 
-MODULE = "testnet"
 
 """
     SECTION 1: PRELIMINARIES
@@ -122,12 +121,12 @@ yellow_color_trigger = False
 red_color_trigger = False
 
 
-async def node_cluster_data(node_data: schemas.Node, configuration: dict) -> schemas.Node:
+async def node_cluster_data(node_data: schemas.Node, module_name, configuration: dict) -> schemas.Node:
     """Get node data. IMPORTANT: Create Pydantic Schema for node data"""
     if node_data.public_port is not None:
         node_info_data = await api.safe_request(
             f"http://{node_data.ip}:{node_data.public_port}/"
-            f"{configuration['modules'][MODULE][node_data.layer]['info']['node']}", configuration)
+            f"{configuration['modules'][module_name][node_data.layer]['info']['node']}", configuration)
         node_data.state = "offline" if node_info_data is None else node_info_data["state"].lower()
         # CHECK IF Public_Port has changed
         if node_info_data is not None:
@@ -136,10 +135,10 @@ async def node_cluster_data(node_data: schemas.Node, configuration: dict) -> sch
         if node_data.state != "offline":
             cluster_data = await api.safe_request(
                 f"http://{node_data.ip}:{node_data.public_port}/"
-                f"{configuration['modules'][MODULE][node_data.layer]['info']['cluster']}", configuration)
+                f"{configuration['modules'][module_name][node_data.layer]['info']['cluster']}", configuration)
             metrics_data = await api.safe_request(
                 f"http://{node_data.ip}:{node_data.public_port}/"
-                f"{configuration['modules'][MODULE][node_data.layer]['info']['metrics']}", configuration)
+                f"{configuration['modules'][module_name][node_data.layer]['info']['metrics']}", configuration)
             node_data.id = node_info_data["id"]
             node_data.node_peer_count = len(cluster_data) if cluster_data is not None else 0
             node_data.cluster_association_time = metrics_data.cluster_association_time
@@ -147,8 +146,8 @@ async def node_cluster_data(node_data: schemas.Node, configuration: dict) -> sch
             node_data.one_m_system_load_average = metrics_data.one_m_system_load_average
             node_data.disk_space_free = metrics_data.disk_space_free
             node_data.disk_space_total = metrics_data.disk_space_total
-        node_data = await request_wallet_data(node_data, configuration)
-        node_data = set_connectivity_specific_node_data_values(node_data)
+        node_data = await request_wallet_data(node_data, module_name, configuration)
+        node_data = set_connectivity_specific_node_data_values(node_data, module_name)
         node_data = set_association_time(node_data)
 
     return node_data
@@ -174,9 +173,9 @@ def check_rewards(node_data: schemas.Node, cluster_data):
     return node_data
 
 
-async def request_wallet_data(node_data: schemas.Node, configuration) -> schemas.Node:
+async def request_wallet_data(node_data: schemas.Node, module_name, configuration) -> schemas.Node:
 
-    wallet_data = await api.safe_request(f"{configuration['modules'][MODULE.lower()][0]['be']['url'][0]}/addresses/{node_data.wallet_address}/balance", configuration)
+    wallet_data = await api.safe_request(f"{configuration['modules'][module_name.lower()][0]['be']['url'][0]}/addresses/{node_data.wallet_address}/balance", configuration)
     if wallet_data is not None:
         node_data.wallet_balance = wallet_data["data"]["balance"]
 
@@ -190,7 +189,7 @@ async def request_wallet_data(node_data: schemas.Node, configuration) -> schemas
 # ---------------------------------------------------------------------------------------------------------------------
 
 
-def set_connectivity_specific_node_data_values(node_data: schemas.Node):
+def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_name):
     """Determine the connectivity of the node.
     We might need to add some more clarity to how the node has been connected. Like: former_name, latest_name, etc."""
 
@@ -202,17 +201,17 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node):
     latest_session = node_data.latest_cluster_session
     former_session = node_data.former_node_cluster_session
     if session != latest_session:
-        if curr_name is None and former_name == MODULE:
+        if curr_name is None and former_name == module_name:
             print("new dissociation")
             node_data.cluster_connectivity = "new dissociation"
             node_data.last_known_cluster_name = former_name
         elif curr_name is None and former_name is None:
             print("dissociation")
             node_data.cluster_connectivity = "dissociation"
-        elif curr_name == MODULE and former_name is None:
+        elif curr_name == module_name and former_name is None:
             print("new association")
             node_data.cluster_connectivity = "new association"
-        elif curr_name == MODULE and former_name == curr_name:
+        elif curr_name == module_name and former_name == curr_name:
             print("association")
             node_data.cluster_connectivity = "association: session != latest_session"
         else:
@@ -222,7 +221,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node):
     elif session == latest_session:
         print(curr_name == former_name, session == former_session)
         # If new connection is made with this node then alert
-        if curr_name == MODULE and (former_name != MODULE or former_name is None):
+        if curr_name == module_name and (former_name != module_name or former_name is None):
             print("new association")
             node_data.cluster_connectivity = "new association"
         elif curr_name == former_name and session == former_session:
@@ -308,6 +307,7 @@ def build_general_node_state(node_data: schemas.Node):
         if node_data in (None, 0):
             field_info = f"`ⓘ  The node is not connected to any known cluster`"
         else:
+            print(node_data.node_peer_count, node_data.cluster_peer_count, node_data.layer)
             field_info = f"`ⓘ  Connected to {node_data.node_peer_count*100/node_data.cluster_peer_count}% of the cluster peers`"
         node_state = node_data.state.title()
         return node_state_field(), False, yellow_color_trigger
@@ -319,9 +319,10 @@ def build_general_node_state(node_data: schemas.Node):
         return node_state_field(), red_color_trigger, yellow_color_trigger
 
 
-def build_general_cluster_state(node_data: schemas.Node):
+def build_general_cluster_state(node_data: schemas.Node, module_name):
+
     def general_cluster_state_field():
-        return f"{field_symbol} **{MODULE.upper()} CLUSTER**\n" \
+        return f"{field_symbol} **{module_name.upper()} CLUSTER**\n" \
                f"```\n" \
                f"Peers:   {node_data.cluster_peer_count}\n" \
                f"Assoc.:  {timedelta(seconds=float(node_data.cluster_association_time)).days} days {association_percent()}%\n" \
@@ -364,7 +365,7 @@ def build_general_cluster_state(node_data: schemas.Node):
         print("NOT SUPPORTED NODE CLUSTER STATE:", node_data.cluster_connectivity)
 
 
-def build_general_node_wallet(node_data: schemas.Node):
+def build_general_node_wallet(node_data: schemas.Node, module_name):
     def wallet_field(field_symbol, reward_percentage, field_info):
         if node_data.layer == 1:
             return f"{field_symbol} **WALLET**\n" \
@@ -380,7 +381,7 @@ def build_general_node_wallet(node_data: schemas.Node):
                    f"Reward frequency: {round(float(reward_percentage), 2)}%```" \
                    f"{field_info}"
 
-    def generate_field_from_reward_states(reward_percentage):
+    def generate_field_from_reward_states(reward_percentage, module_name):
         name = list(str(value) for value in
                     (node_data.cluster_name, node_data.former_cluster_name, node_data.last_known_cluster_name) if
                     value is not None)
@@ -399,7 +400,7 @@ def build_general_node_wallet(node_data: schemas.Node):
         elif node_data.reward_state in (False, None) and node_data.former_reward_state in (False, None):
             if node_data.layer == 1:
                 field_symbol = ":green_square:"
-                field_info = f"`ⓘ  {MODULE.title()} layer one does not currently distribute rewards. Please refer to the " \
+                field_info = f"`ⓘ  {module_name.title()} layer one does not currently distribute rewards. Please refer to the " \
                              f"layer 0 report`"
                 return wallet_field(field_symbol, reward_percentage, field_info), False, False
             else:
@@ -427,7 +428,7 @@ def build_general_node_wallet(node_data: schemas.Node):
                                 float(node_data.reward_true_count) * 100 / float(node_data.reward_false_count))
 
     if node_data.wallet_address is not None:
-        field_content, red_color_trigger, yellow_color_trigger = generate_field_from_reward_states(reward_percentage)
+        field_content, red_color_trigger, yellow_color_trigger = generate_field_from_reward_states(reward_percentage, module_name)
         return field_content, red_color_trigger, yellow_color_trigger
     else:
         return f":yellow_square: **WALLET**\n" \
@@ -520,7 +521,7 @@ def build_system_node_disk_space(node_data: schemas.Node):
             return disk_space_field(), red_color_trigger, False
 
 
-def build_embed(node_data: schemas.Node):
+def build_embed(node_data: schemas.Node, module_name):
     embed_created = False
 
     def determine_color_and_create_embed(yellow_color_trigger, red_color_trigger):
@@ -541,7 +542,7 @@ def build_embed(node_data: schemas.Node):
         embed = determine_color_and_create_embed(yellow_color_trigger, red_color_trigger)
         embed_created = True
     if node_data.wallet_address is not None:
-        node_wallet, red_color_trigger, yellow_color_trigger = build_general_node_wallet(node_data)
+        node_wallet, red_color_trigger, yellow_color_trigger = build_general_node_wallet(node_data, module_name)
         if (red_color_trigger is True or yellow_color_trigger is True) and not embed_created:
             embed = determine_color_and_create_embed(yellow_color_trigger, red_color_trigger)
             embed_created = True

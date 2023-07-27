@@ -1,6 +1,6 @@
 file settings:
   locations:
-    cluster modules: assets/src/cluster modules
+    cluster modules: assets/src/cluster_modules
     db: assets/data/db/database.db
     log: assets/data/logs/bot/exec.log
 general:
@@ -48,7 +48,7 @@ modules:
           latest snapshot: global-snapshots/latest
         url:
         - https://be-mainnet.constellationnetwork.io
-      id: 1d5ca25f46872297ac5277089f6909751e5bff3dba8e638c34cbe9d04b7d04def083088f5a670495b83d8fb039f2e75d539546a6221373fca46a814efb9dcb06
+      id: b34e87be784c61fe0b3a93460fb923eccfd39edf7031127dbefe2546c45d7c70b17e90b8baf0e05125065da4206cbc36ff99cc33293aa232d8def138c31a2fd1
       info:
         cluster: cluster/info
         metrics: metrics
@@ -57,7 +57,7 @@ modules:
       url:
       - https://l0-lb-mainnet.constellationnetwork.io
     1:
-      id: 1d64061fb8eea8a5ca7dce1247dc53204ea744a2dabbcb69b3232e971407a85abc3770d73f229c3c9ddd076f1efa243e8c45f24b29b7a54041c24062fe2d84be
+      id: f411f0ac7fc5dbe1e3d08b17af84e998fa16c6089392dcdb3f5541bba12555bd1ca1372ee302d2da816f22ac087e08f599cd9c6a4d3a8f5a4f1db0e9cc2ec449
       info:
         cluster: cluster/info
         metrics: metrics
