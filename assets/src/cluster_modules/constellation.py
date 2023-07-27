@@ -389,7 +389,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
             field_info = f"`⚠ The wallet doesn't hold sufficient collateral`"
             red_color_trigger = True
             return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
-        elif node_data.reward_state is False and node_data.former_reward_state is True:
+        elif node_data.reward_state in (False, None) and node_data.former_reward_state is True:
             field_symbol = ":red_square:"
             field_info = f":red_circle:` The wallet recently stopped receiving rewards`"
             red_color_trigger = True
@@ -406,7 +406,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                 field_info = f":red_circle:` The wallet doesn't receive rewards`"
                 red_color_trigger = True
                 return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
-        elif node_data.reward_state is True and node_data.former_reward_state is False:
+        elif node_data.reward_state is True and node_data.former_reward_state in (False, None):
             field_symbol = ":green_square:"
             field_info = f":coin:` The wallet recently started receiving rewards`"
             return wallet_field(field_symbol, reward_percentage, field_info), False, False
