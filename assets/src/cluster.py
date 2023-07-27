@@ -65,6 +65,6 @@ async def get_module_data(process_msg, node_data: schemas.Node, configuration):
         return node_data, process_msg
 
     else:
-        logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - DEBUG: No module found while processing:\n{node_data.dict()}")
+        logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - No module found while processing:\n{node_data.dict()}")
 
         return node_data, process_msg

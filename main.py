@@ -46,9 +46,9 @@ def generate_runtimes() -> list:
 
 async def main(ctx, process_msg, requester, _configuration) -> None:
     if requester is None:
-        logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - INFO: Automatic check initiated")
+        logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - Automatic check initiated")
     else:
-        logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - INFO: Request from {requester} initiated")
+        logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - Request from {requester} initiated")
     dt_start, timer_start = dt.timing()
     process_msg = await discord.update_request_process_msg(process_msg, 1, None)
     _configuration = await config.load()
@@ -67,9 +67,9 @@ async def main(ctx, process_msg, requester, _configuration) -> None:
     gc.collect()
     dt_stop, timer_stop = dt.timing()
     if requester is None:
-        logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - INFO: Automatic check completed in {round(timer_stop - timer_start, 2)} seconds")
+        logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - Automatic check completed in {round(timer_stop - timer_start, 2)} seconds")
     else:
-        logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - INFO: Request from {requester} completed in {round(timer_stop - timer_start, 2)} seconds")
+        logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - Request from {requester} completed in {round(timer_stop - timer_start, 2)} seconds")
 
 
 async def command_error(ctx, bot):
@@ -91,17 +91,17 @@ async def on_message(message):
     ctx = await bot.get_context(message)
     if ctx.valid:
         logging.info(
-            f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - INFO: Command received from {ctx.message.author} in {ctx.message.channel}")
+            f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - Command received from {ctx.message.author} in {ctx.message.channel}")
         await bot.process_commands(message)
     else:
         if ctx.message.channel.id in (977357753947402281, 974431346850140204, 1030007676257710080):
             # IGNORE INTERPRETING MESSAGES IN THESE CHANNELS AS COMMANDS
             logging.info(
-                f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - INFO: Received a command in an non-command channel")
+                f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - Received a command in an non-command channel")
             pass
         else:
             logging.info(
-                f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - INFO: Received an unknown command from {ctx.message.author} in {ctx.message.channel}")
+                f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - Received an unknown command from {ctx.message.author} in {ctx.message.channel}")
             await message.add_reaction("\U0000274C")
             if not isinstance(ctx.message.channel, nextcord.DMChannel):
                 await message.delete(delay=3)
@@ -120,14 +120,14 @@ async def r(ctx, *arguments):
 
 async def loop():
     times = generate_runtimes()
-    logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - INFO: Runtime schedule:\n{times}")
+    logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - Runtime schedule:\n{times}")
     while True:
         if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
             try:
                 await main(None, None, None, _configuration)
             except Exception as e:
 
-                logging.critical(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - CRITICAL:\n{traceback.print_exc()}")
+                logging.critical(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - \n{traceback.print_exc()}")
 
         await asyncio.sleep(1)
 
@@ -135,13 +135,13 @@ async def loop():
 @bot.event
 async def on_ready():
     """Prints a message to the logs when connection to Discord is established (bot is running)"""
-    logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - INFO: Discord connection established")
+    logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - Discord connection established")
 
 
 @bot.command()
 async def s(ctx, *args):
     """This function treats a Discord message (context) as a line of arguments and attempts to create a new user subscription"""
-    logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - INFO: Subscription request received from {ctx.message.author}: {args}")
+    logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - Subscription request received from {ctx.message.author}: {args}")
     async with Client(cluster) as dask_client:
         await dask_client.wait_for_workers(n_workers=1)
         # Clean data
@@ -153,7 +153,7 @@ async def s(ctx, *args):
 @bot.command()
 async def u(ctx, *args):
     """This function treats a Discord message (context) as a line of arguments and attempts to unsubscribe the user"""
-    logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - INFO: Unubscription request received from {ctx.message.author}: {args}")
+    logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - Unubscription request received from {ctx.message.author}: {args}")
     pass
 
 
@@ -162,7 +162,7 @@ def run_uvicorn():
     port = 8000
     log_level = 'debug'
     access_log = True
-    logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - INFO: Uvicorn running on {host}:{port}")
+    logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - Uvicorn running on {host}:{port}")
     uvicorn.run(database_api, host=host, port=port, log_level=log_level, access_log=access_log)
 
 

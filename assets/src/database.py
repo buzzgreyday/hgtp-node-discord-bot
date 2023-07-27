@@ -119,12 +119,12 @@ async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
     # You only need one result that matches
     result = result.fetchone()
     if result:
-        logging.info(f"{datetime.datetime.utcnow().strftime('%H:%M:%S')} - main.py - INFO: The user {data.name} already exists for {data.ip}:{data.public_port}")
+        logging.info(f"{datetime.datetime.utcnow().strftime('%H:%M:%S')} - main.py - The user {data.name} already exists for {data.ip}:{data.public_port}")
     else:
         db.add(user)
         await db.commit()
         await db.refresh(user)
-        logging.info(f"{datetime.datetime.utcnow().strftime('%H:%M:%S')} - main.py - INFO: A new subscription recorded for {data.name} ({data.ip}:{data.public_port})")
+        logging.info(f"{datetime.datetime.utcnow().strftime('%H:%M:%S')} - main.py - A new subscription recorded for {data.name} ({data.ip}:{data.public_port})")
     return jsonable_encoder(data_dict)
 
 
