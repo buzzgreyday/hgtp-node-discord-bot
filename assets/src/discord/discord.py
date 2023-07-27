@@ -19,19 +19,19 @@ async def init_process(bot, requester):
 async def set_active_presence(bot):
     try:
         logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - CHANGING PRESENCE TO \"ACTIVE\"")
-        return await bot.change_presence(activity=nextcord.Activity(type=nextcord.ActivityType.watching, name=f'nodes since {datetime.utcnow().strftime("%H:%M")} UTC'), status=nextcord.Status.online)
+        return await bot.change_presence(activity=nextcord.Activity(type=nextcord.ActivityType.watching, name=f'node(s)'), status=nextcord.Status.online)
     except Exception:
         logging.warning(f"{datetime.utcnow().strftime('%H:%M:%S')} - ATTEMPTING TO RECONNECT BEFORE CHANGING PRESENCE TO \"ACTIVE\"")
         await bot.wait_until_ready()
         await bot.connect(reconnect=True)
-        return await bot.change_presence(activity=nextcord.Activity(type=nextcord.ActivityType.watching, name=f'nodes since {datetime.utcnow().strftime("%H:%M")} UTC'), status=nextcord.Status.online)
+        return await bot.change_presence(activity=nextcord.Activity(type=nextcord.ActivityType.watching, name=f'node(s)'), status=nextcord.Status.online)
 
 
 async def send_request_process_msg(ctx):
     msg = await ctx.message.author.send(
-        "**`➭ 1. Request added to queue.`**\n"
-        "`  2. Process request.`\n"
-        "`  3. Send report(s).`"
+        "**`➭ 1. Add request to queue`**\n"
+        "`  2. Process data`\n"
+        "`  3. Send report(s)`"
     )
     return msg
 
@@ -41,40 +41,60 @@ async def update_request_process_msg(process_msg, process_num, foo):
         return None
     elif process_msg is not None:
         if process_num == 1:
-            return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
-                                          "**`➭ 2. Processing:`**\n"
-                                          "**`   ➥ Preliminary data...`**\n"
+            return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
+                                          "**`➭ 2. Process data`**\n"
+                                          "`  *  Current cluster data`\n"
                                           "`  3. Send report(s).`")
         elif process_num == 2:
-            return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
-                                          "**`➭ 2. Preparing:`**\n"
-                                          "**`   ➥ Historic node data...`**\n"
+            return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
+                                          "**`➭ 2. Process data`**\n"
+                                          "**`  ✓  Current cluster data`**\n"
+                                          "`  *  Historic node data`\n"
                                           "`  3. Send report(s).`")
         elif process_num == 3:
-            return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
-                                          "**`➭ 2. Preparing:`**\n"
-                                          "**`   ➥ API node data...`**\n"
+            return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
+                                          "**`➭ 2. Process data`**\n"
+                                          "**`  ✓  Current cluster data`**\n"
+                                          "**`  ✓  Historic node data`**\n"
+                                          "`  *  Current node data`\n"
                                           "`  3. Send report(s).`")
         elif process_num == 4:
-            return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
-                                          "**`➭ 2. Preparing:`**\n"
-                                          f"**`   ➥ {foo.title()} node data...`**\n"
+            return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
+                                          "**`➭ 2. Process data`**\n"
+                                          "**`  ✓  Current cluster data`**\n"
+                                          "**`  ✓  Historic node data`**\n"
+                                          "**`  ✓  Current node data`**\n"
+                                          f"`  *  Now processing {foo.title()} node data`\n"
                                           "`  3. Send report(s).`")
         elif process_num == 5:
-            return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
-                                          "**`➭ 2. Processing:`**\n"
-                                          "**`   ➥ Building report(s)...`**\n"
-                                          "`  3. Send report(s).`")
+            return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
+                                          "**`✓ 2. Process data`**\n"
+                                          "**`  ✓  Current cluster data`**\n"
+                                          "**`  ✓  Historic node data`**\n"
+                                          "**`  ✓  Current node data`**\n"
+                                          "**`  ✓  All data processed`**\n"
+                                          "**`➭ 3. Send report(s).`**\n"
+                                          "`  *  Building report(s)`\n")
         elif process_num == 6:
-            return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
-                                          "**`✓ 2. Processing:`**\n"
-                                          "**`   ➥ Done!`**\n"
-                                          "**`➭ 3. Sending report(s).`**")
+            return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
+                                          "**`✓ 2. Process data`**\n"
+                                          "**`  ✓  Current cluster data`**\n"
+                                          "**`  ✓  Historic node data`**\n"
+                                          "**`  ✓  Current node data`**\n"
+                                          "**`  ✓  All data processed`**\n"
+                                          "**`➭ 3. Send report(s).`**\n"
+                                          "**`  ✓  Building report(s)`**\n"
+                                          "`  *  Sending report(s)`\n")
         elif process_num == 7:
-            return await process_msg.edit("**`✓ 1. Request added to queue.`**\n"
-                                          "**`✓ 2. Processing:`**\n"
-                                          "**`   ➥ Done!`**\n"
-                                          "**`✓ 3. Report(s) sent.`**")
+            return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
+                                          "**`✓ 2. Process data`**\n"
+                                          "**`  ✓  Current cluster data`**\n"
+                                          "**`  ✓  Historic node data`**\n"
+                                          "**`  ✓  Current node data`**\n"
+                                          "**`  ✓  All data processed`**\n"
+                                          "**`✓ 3. Send report(s).`**\n"
+                                          "**`  ✓  Building report(s)`**\n"
+                                          "**`  ✓  Report(s) sent`**\n")
 
 
 async def get_requester(ctx):
