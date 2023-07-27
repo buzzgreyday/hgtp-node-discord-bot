@@ -101,24 +101,24 @@ async def get_requester(ctx):
 
 
 async def send(ctx, process_msg, bot, data: List[schemas.Node], configuration):
-    logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - discord.py - INFO: Sending node {len(data)} reports")
+    logging.getLogger(__name__).info(f"discord.py - Sending node {len(data)} reports")
     futures = []
     for node_data in data:
         if node_data.notify is True:
             module_name = list(str(value) for value in (node_data.cluster_name, node_data.former_cluster_name, node_data.last_known_cluster_name) if value is not None)[0]
             if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{module_name}.py"):
-                logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - discord.py - DEBUG: Choosing {module_name} module embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})")
+                logging.getLogger(__name__).debug(f"discord.py - Choosing {module_name} module embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})")
                 module = determine_module.set_module(module_name, configuration)
                 embed = module.build_embed(node_data, module_name)
             else:
-                logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - discord.py - DEBUG: Choosing default embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})")
+                logging.getLogger(__name__).debug(f"discord.py - Choosing default embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})")
                 embed = defaults.build_embed(node_data)
             if process_msg is not None:
-                logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - discord.py - DEBUG: Sending node report to {node_data.name} ({node_data.ip}, L{node_data.layer})")
+                logging.getLogger(__name__).debug(f"discord.py - Sending node report to {node_data.name} ({node_data.ip}, L{node_data.layer})")
                 futures.append((asyncio.create_task(ctx.author.send(embed=embed))))
-                logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - discord.py - DEBUG: Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer})")
+                logging.getLogger(__name__).debug(f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer})")
             elif process_msg is None:
-                logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - discord.py - DEBUG: Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer})")
+                logging.getLogger(__name__).debug(f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer})")
                 futures.append(asyncio.create_task(bot.get_channel(977357753947402281).send(embed=embed)))
 
     for fut in futures:

@@ -88,8 +88,7 @@ async def on_message(message):
         return
     ctx = await bot.get_context(message)
     if ctx.valid:
-        logging.info(
-            f"main.py - Command received from {ctx.message.author} in {ctx.message.channel}")
+        logging.getLogger(__name__).info(f"main.py - Command received from {ctx.message.author} in {ctx.message.channel}")
         await bot.process_commands(message)
     else:
         if ctx.message.channel.id in (977357753947402281, 974431346850140204, 1030007676257710080):
@@ -124,7 +123,7 @@ async def loop():
             try:
                 await main(None, None, None, _configuration)
             except Exception as e:
-                logging.critical(f"main.py - Treceback:\n\t{traceback.print_exc()}")
+                logging.getLogger(__name__).info(f"main.py - Traceback:\n\t{traceback.print_exc()}")
 
         await asyncio.sleep(1)
 
@@ -155,8 +154,7 @@ def run_uvicorn():
     host = "127.0.0.1"
     port = 8000
     log_level = 'debug'
-    access_log = True
-    logging.info(f"main.py - Uvicorn running on {host}:{port}")
+    logging.getLogger(__name__).info(f"main.py - Uvicorn running on {host}:{port}")
     uvicorn.run(database_api, host=host, port=port, log_level=log_level, log_config=f'assets/data/logs/bot/uvicorn.ini')
 
 
