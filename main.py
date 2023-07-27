@@ -28,7 +28,7 @@ if not path.exists(_configuration["file settings"]["locations"]["log"]):
 
 """DEFINE LOGGING LEVEL AND LOCATION"""
 logging.basicConfig(filename=_configuration["file settings"]["locations"]["log"], filemode='w',
-                    format='%(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+                    format='%(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
 
 cluster = distributed.LocalCluster(asynchronous=True, n_workers=1, threads_per_worker=2, memory_limit='4GB',
                                    processes=True, silence_logs=logging.CRITICAL)
@@ -126,8 +126,8 @@ async def loop():
             try:
                 await main(None, None, None, _configuration)
             except Exception as e:
-                traceback.print_exc()
-                exit(1)
+
+                logging.critical(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - CRITICAL:\n{traceback.print_exc()}")
 
         await asyncio.sleep(1)
 
@@ -159,7 +159,7 @@ async def u(ctx, *args):
 
 def run_uvicorn():
     host = "127.0.0.1"
-    port = 9012
+    port = 8000
     log_level = 'debug'
     access_log = True
     logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - INFO: Uvicorn running on {host}:{port}")

@@ -7,22 +7,6 @@ import pandas as pd
 from assets.src import schemas, api, database
 
 
-class Clean:
-    def __init__(self, value):
-        self._value = value
-
-    def make_lower(self) -> str | None:
-        self._value = Clean(self._value).make_none()
-        if self._value is not None:
-            return self._value.lower()
-
-    def make_none(self) -> str | None:
-        if len(self._value) != 0:
-            return self._value.values[0]
-        else:
-            return None
-
-
 async def node_data(node_data: schemas.Node, _configuration):
     """Get historic node data"""
     data = await api.Request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").json(_configuration)

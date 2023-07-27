@@ -9,6 +9,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 import asyncio
+import logging
 from datetime import datetime, timedelta
 
 import nextcord
@@ -157,7 +158,6 @@ def check_rewards(node_data: schemas.Node, cluster_data):
 
     # if (cluster["layer"] == f"layer {node_data['layer']}") and (cluster["cluster name"] == node_data["clusterNames"]):
     # if (cluster["cluster name"] == node_data["clusterNames"]) or (cluster["cluster name"] == node_data["formerClusterNames"]):
-    print("- CHECKING REWARDS -")
     if node_data.wallet_address in cluster_data["recently_rewarded"]:
         node_data.reward_state = True
         former_reward_count = 0 if node_data.reward_true_count is None else node_data.reward_true_count
@@ -203,37 +203,37 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
     former_session = node_data.former_node_cluster_session
     if session != latest_session:
         if curr_name is None and former_name == module_name:
-            print("new dissociation")
+            logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - constellation.py - DEBUG: New dissociation with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
             node_data.cluster_connectivity = "new dissociation"
             node_data.last_known_cluster_name = former_name
         elif curr_name is None and former_name is None:
-            print("dissociation")
+            logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - constellation.py - DEBUG: {module_name.title()} is dissociated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
             node_data.cluster_connectivity = "dissociation"
         elif curr_name == module_name and former_name is None:
-            print("new association")
+            logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - constellation.py - DEBUG: New association with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
             node_data.cluster_connectivity = "new association"
         elif curr_name == module_name and former_name == curr_name:
-            print("association")
-            node_data.cluster_connectivity = "association: session != latest_session"
+            logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - constellation.py - DEBUG: {module_name.title()} is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
+            node_data.cluster_connectivity = "association"
         else:
+            logging.warning(f"{datetime.utcnow().strftime('%H:%M:%S')} - constellation.py - WARNING: Unknown cluster association or connectivity (dissociation) for {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
             node_data.cluster_connectivity = "dissociation"
-            print("fork")
 
     elif session == latest_session:
-        print(curr_name == former_name, session == former_session)
         # If new connection is made with this node then alert
         if curr_name == module_name and (former_name != module_name or former_name is None):
-            print("new association")
+            logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - constellation.py - DEBUG: New association with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
             node_data.cluster_connectivity = "new association"
         elif curr_name == former_name and session == former_session:
-            print("association")
+            logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - constellation.py - DEBUG: {module_name.title()} is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
             node_data.cluster_connectivity = "association"
         elif curr_name == former_name and session != former_session:
+            logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - constellation.py - DEBUG: {module_name.title()} has forked but is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
             node_data.cluster_connectivity = "association"
-            print("fork")
         else:
-            print("Wrong logic: assoc.")
-
+            logging.warning(
+                f"{datetime.utcnow().strftime('%H:%M:%S')} - constellation.py - WARNING: Unknown cluster association or connectivity (dissociation) for {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
+            node_data.cluster_connectivity = "dissociation"
     return node_data
 
 
@@ -308,7 +308,6 @@ def build_general_node_state(node_data: schemas.Node):
         if node_data in (None, 0):
             field_info = f"`ⓘ  The node is not connected to any known cluster`"
         else:
-            print(node_data.node_peer_count, node_data.cluster_peer_count, node_data.layer)
             field_info = f"`ⓘ  Connected to {node_data.node_peer_count*100/node_data.cluster_peer_count}% of the cluster peers`"
         node_state = node_data.state.title()
         return node_state_field(), False, yellow_color_trigger
@@ -363,7 +362,9 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
         field_info = f""
         return general_cluster_state_field(), False, yellow_color_trigger
     else:
-        print("NOT SUPPORTED NODE CLUSTER STATE:", node_data.cluster_connectivity)
+        logging.warning(
+            f"{datetime.utcnow().strftime('%H:%M:%S')} - constellation.py - WARNING: {node_data.cluster_connectivity.title()} is not a supported node state ({node_data.name}, {node_data.ip}:{node_data.public_port}, L{node_data.layer})")
+        node_data.cluster_connectivity = "dissociation"
 
 
 def build_general_node_wallet(node_data: schemas.Node, module_name):

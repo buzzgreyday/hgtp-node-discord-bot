@@ -29,7 +29,7 @@ modules:
           latest snapshot: global-snapshots/latest
         url:
         - https://be-integrationnet.constellationnetwork.io
-      id: 3a3c367eaffa5bb3c4b35404e95983c73c522d166010784cc8d69ee9cc9c415c11534d331b70fceb7d445c96dcf62021bb8d7762a81506a0b616c45a32f00055
+      id: 4ea70b615a9ad00a57acb4290159dd11f3c86bbcd0fd1ab203b6b448c5baff06a9a80dcffcdb94749f6c4013f00576dbd009e6be5a34621ebb483203295777d9
       info:
         cluster: cluster/info
         metrics: metrics
@@ -53,7 +53,7 @@ modules:
           latest snapshot: global-snapshots/latest
         url:
         - https://be-mainnet.constellationnetwork.io
-      id: 8b0f8889948b35ac122a44d7a597f461a1c813fb74a75aa9af04de7fe4a070e8e68e8ef3c72b3b5952ec4a238827fba580350a655fc445375cf99688d506f9d7
+      id: b34e87be784c61fe0b3a93460fb923eccfd39edf7031127dbefe2546c45d7c70b17e90b8baf0e05125065da4206cbc36ff99cc33293aa232d8def138c31a2fd1
       info:
         cluster: cluster/info
         metrics: metrics
@@ -62,7 +62,7 @@ modules:
       url:
       - https://l0-lb-mainnet.constellationnetwork.io
     1:
-      id: 5a8f0f756659be91e8af0b6aa1e2a63a94227680aa4d565e055a37db206f69a3b88479e7f37e8c9c9eca40278ddc98eab2b07f0fc0cf17fdf83ca012082ba827
+      id: f411f0ac7fc5dbe1e3d08b17af84e998fa16c6089392dcdb3f5541bba12555bd1ca1372ee302d2da816f22ac087e08f599cd9c6a4d3a8f5a4f1db0e9cc2ec449
       info:
         cluster: cluster/info
         metrics: metrics

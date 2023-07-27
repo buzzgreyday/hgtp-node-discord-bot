@@ -1,4 +1,5 @@
 import datetime
+import logging
 from typing import List, Optional
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
@@ -113,18 +114,17 @@ async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
     data.index = next_index
     data.date = datetime.datetime.utcnow()
     data_dict = data.dict()
-    print(data_dict)
     user = User(**data_dict)
-    print(user.wallet)
     result = await db.execute(select(User).where((User.ip == data.ip) & (User.public_port == data.public_port)))
     # You only need one result that matches
     result = result.fetchone()
     if result:
-        print("RECORD ALREADY EXISTS")
+        logging.info(f"{datetime.datetime.utcnow().strftime('%H:%M:%S')} - main.py - INFO: The user {data.name} already exists for {data.ip}:{data.public_port}")
     else:
         db.add(user)
         await db.commit()
         await db.refresh(user)
+        logging.info(f"{datetime.datetime.utcnow().strftime('%H:%M:%S')} - main.py - INFO: A new subscription recorded for {data.name} ({data.ip}:{data.public_port})")
     return jsonable_encoder(data_dict)
 
 

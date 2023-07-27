@@ -103,7 +103,6 @@ class User(NodeBase):
     index: Optional[int]
     type: str
     wallet: str
-    # uuid: str
 
     # VALIDATE ID VALUE, CREATE CUSTOM EXCEPTION!
 
@@ -120,7 +119,6 @@ class User(NodeBase):
     async def discord(cls, configuration, mode: str, name: str, contact: int, *args) -> List:
         """Treats a Discord message as a line of arguments and returns a list of subscribable user objects"""
 
-
         user_data = []
 
         ips = {ip for ip in args if re.match(IP_REGEX, ip)}
@@ -129,24 +127,22 @@ class User(NodeBase):
             # Split arguments into lists before each IP
             arg = args[ip_idx[idx]:ip_idx[idx + 1]] if idx + 1 < len(ip_idx) else args[ip_idx[idx]:]
             for i, val in enumerate(arg):
-                if val.lower() in ("z", "-z", "zero", "l0", "-l0"):
+                if val.lower() in ("1", "-1", "z", "-z", "zero", "--zero", "l0", "-l0"):
                     for port in arg[i + 1:]:
                         if port.isdigit():
                             # Check if port is subscribed?
                             id_ = await User.get_id(arg[0], port, mode, configuration)
                             wallet = id_to_dag_address(id_)
-                            print(wallet)
                             user_data.append(
                                 cls(name=name, contact=contact, id=id_, wallet=wallet,
                                     ip=arg[0], public_port=port, layer=0, type="discord"))
                         else:
                             break
-                elif val.lower() in ("o", "-o", "one", "l1", "-l1"):
+                elif val.lower() in ("0", "-0", "o", "-o", "one", "--zero", "l1", "-l1"):
                     for port in arg[i + 1:]:
                         if port.isdigit():
                             id_ = await User.get_id(arg[0], port, mode, configuration)
                             wallet = id_to_dag_address(id_)
-                            print(wallet)
                             user_data.append(
                                 cls(name=name, contact=contact, id=id_, wallet=wallet,
                                     ip=arg[0], public_port=port, layer=1, type="discord"))
