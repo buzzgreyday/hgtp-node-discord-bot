@@ -20,16 +20,11 @@ class Request:
 
                 if resp.status == 200:
                     data = await resp.json()
-                    logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST SUCCEEDED")
                     return data
 
                 elif resp.status == 503:
-                    logging.debug(
-                        f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST FAILED: SERVICE UNAVAILABLE")
                     return 503
 
-                else:
-                    logging.critical(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST FAILED")
             del resp
             await session.close()
 
@@ -40,17 +35,11 @@ class Request:
             async with session.get(self.url, timeout=timeout) as resp:
                 if resp.status == 200:
                     text = await resp.text()
-                    logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST SUCCEEDED")
-
                     obj = schemas.NodeMetrics.from_txt(text)
                     del text
                     return obj
                 elif resp.status == 503:
-                    logging.debug(
-                        f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST FAILED: SERVICE UNAVAILABLE")
                     return 503
-                else:
-                    logging.critical(f"{datetime.utcnow().strftime('%H:%M:%S')} - JSON REQUEST FAILED")
             del resp
             await session.close()
 
@@ -76,6 +65,6 @@ async def safe_request(request_url: str, configuration: dict):
                 return None
             retry_count += 1
             await asyncio.sleep(configuration['general']['request retry interval (sec)'])
-            logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - CLUSTER @ {request_url} UNREACHABLE - TRIED {retry_count}/{configuration['general']['request retry (count)']}")
+            logging.getLogger(__name__).warning(f"api.py - {request_url} is unreachable ({retry_count}/{configuration['general']['request retry (count)']})")
         except (aiohttp.client_exceptions.ClientConnectorError, aiohttp.client_exceptions.InvalidURL):
             return None

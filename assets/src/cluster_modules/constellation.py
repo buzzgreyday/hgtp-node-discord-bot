@@ -203,36 +203,35 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
     former_session = node_data.former_node_cluster_session
     if session != latest_session:
         if curr_name is None and former_name == module_name:
-            logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - constellation.py - New dissociation with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
+            logging.getLogger(__name__).debug(f"constellation.py - New dissociation with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
             node_data.cluster_connectivity = "new dissociation"
             node_data.last_known_cluster_name = former_name
         elif curr_name is None and former_name is None:
-            logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - constellation.py - {module_name.title()} is dissociated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
+            logging.getLogger(__name__).debug(f"constellation.py - {module_name.title()} is dissociated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
             node_data.cluster_connectivity = "dissociation"
         elif curr_name == module_name and former_name is None:
-            logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - constellation.py - New association with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
+            logging.getLogger(__name__).debug(f"constellation.py - New association with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
             node_data.cluster_connectivity = "new association"
         elif curr_name == module_name and former_name == curr_name:
-            logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
+            logging.getLogger(__name__).debug(f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
             node_data.cluster_connectivity = "association"
         else:
-            logging.warning(f"{datetime.utcnow().strftime('%H:%M:%S')} - constellation.py - Unknown cluster association or connectivity (dissociation) for {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
+            logging.getLogger(__name__).warning(f"constellation.py - Unknown cluster association or connectivity (dissociation) for {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
             node_data.cluster_connectivity = "dissociation"
 
     elif session == latest_session:
         # If new connection is made with this node then alert
         if curr_name == module_name and (former_name != module_name or former_name is None):
-            logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - constellation.py - New association with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
+            logging.getLogger(__name__).debug(f"constellation.py - New association with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
             node_data.cluster_connectivity = "new association"
         elif curr_name == former_name and session == former_session:
-            logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
+            logging.getLogger(__name__).debug(f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
             node_data.cluster_connectivity = "association"
         elif curr_name == former_name and session != former_session:
-            logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - constellation.py - {module_name.title()} has forked but is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
+            logging.getLogger(__name__).debug(f"constellation.py - {module_name.title()} has forked but is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
             node_data.cluster_connectivity = "association"
         else:
-            logging.warning(
-                f"{datetime.utcnow().strftime('%H:%M:%S')} - constellation.py - Unknown cluster association or connectivity (dissociation) for {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
+            logging.getLogger(__name__).warning(f"constellation.py - Unknown cluster association or connectivity (dissociation) for {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
             node_data.cluster_connectivity = "dissociation"
     return node_data
 
@@ -362,8 +361,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
         field_info = f""
         return general_cluster_state_field(), False, yellow_color_trigger
     else:
-        logging.warning(
-            f"{datetime.utcnow().strftime('%H:%M:%S')} - constellation.py - {node_data.cluster_connectivity.title()} is not a supported node state ({node_data.name}, {node_data.ip}:{node_data.public_port}, L{node_data.layer})")
+        logging.getLogger(__name__).warning(f"constellation.py - {node_data.cluster_connectivity.title()} is not a supported node state ({node_data.name}, {node_data.ip}:{node_data.public_port}, L{node_data.layer})")
         node_data.cluster_connectivity = "dissociation"
 
 
