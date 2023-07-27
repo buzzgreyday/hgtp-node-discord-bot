@@ -120,7 +120,7 @@ async def r(ctx, *arguments):
 
 async def loop():
     times = generate_runtimes()
-    logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - Runtime schedule:\n{times}")
+    logging.info(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - Runtime schedule:\n\t{times}")
     while True:
         if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
             try:
