@@ -1,4 +1,7 @@
 # Third-party imports
+import logging
+from datetime import datetime
+
 from aiofiles import os
 from typing import List
 
@@ -17,7 +20,6 @@ def locate_node_binary(node_data: schemas.Node, peer_data: List[dict]):
         mid = (start + end) // 2
         peer = peer_data[mid]
         if peer["id"] == node_data.id and peer["ip"] == node_data.ip and peer["publicPort"] == node_data.public_port:
-            print("ID FOUND:", peer["id"], "IP FOUND:", peer["ip"], "PORT FOUND:", peer["publicPort"])
             return True
 
         if node_data.id < peer["id"]:
@@ -37,12 +39,10 @@ def locate_node(node_data: schemas.Node, all_cluster_data: List[dict]):
     for cluster in all_cluster_data:
         if cluster["layer"] == node_data.layer:
             if locate_node_binary(node_data, cluster["peer_data"]):
-                print(cluster["name"], cluster["layer"])
                 return cluster
 
 
 async def get_module_data(process_msg, node_data: schemas.Node, configuration):
-    print(f"{configuration['file settings']['locations']['cluster modules']}/{node_data.cluster_name}.py")
     if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{node_data.cluster_name}.py"):
         process_msg = await discord.update_request_process_msg(process_msg, 4, f"{node_data.cluster_name} layer {node_data.layer}")
         module = determine_module.set_module(node_data.cluster_name, configuration)
@@ -65,7 +65,6 @@ async def get_module_data(process_msg, node_data: schemas.Node, configuration):
         return node_data, process_msg
 
     else:
-
-        print("NOT FOUND:", f"{configuration['file settings']['locations']['cluster modules']}/{node_data.last_known_cluster_name}.py")
+        logging.debug(f"{datetime.utcnow().strftime('%H:%M:%S')} - main.py - DEBUG: No module found while processing:\n{node_data.dict()}")
 
         return node_data, process_msg
