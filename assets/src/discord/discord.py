@@ -43,7 +43,7 @@ async def update_request_process_msg(process_msg, process_num, foo):
         if process_num == 1:
             return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
                                           "**`➭ 2. Process data`**\n"
-                                          "`  *  Current cluster data`\n"
+                                          "`  >  Current cluster data`\n"
                                           "`  *  Historic node data`\n"
                                           "`  *  Current node data`\n"
                                           f"`  *  Process aggregated data`\n"
@@ -52,7 +52,7 @@ async def update_request_process_msg(process_msg, process_num, foo):
             return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
                                           "**`➭ 2. Process data`**\n"
                                           "**`  ✓  Current cluster data`**\n"
-                                          "`  *  Historic node data`\n"
+                                          "`  >  Historic node data`\n"
                                           "`  *  Current node data`\n"
                                           f"`  *  Process aggregated data`\n"
                                           "`  3. Send report(s).`")
@@ -61,7 +61,7 @@ async def update_request_process_msg(process_msg, process_num, foo):
                                           "**`➭ 2. Process data`**\n"
                                           "**`  ✓  Current cluster data`**\n"
                                           "**`  ✓  Historic node data`**\n"
-                                          "`  *  Current node data`\n"
+                                          "`  >  Current node data`\n"
                                           f"`  *  Process aggregated data`\n"
                                           "`  3. Send report(s).`")
         elif process_num == 4:
@@ -70,7 +70,7 @@ async def update_request_process_msg(process_msg, process_num, foo):
                                           "**`  ✓  Current cluster data`**\n"
                                           "**`  ✓  Historic node data`**\n"
                                           "**`  ✓  Current node data`**\n"
-                                          f"`  *  Now processing {foo.title()} data`\n"
+                                          f"`  >  Now processing {foo.title()} data`\n"
                                           "`  3. Send report(s).`")
         elif process_num == 5:
             return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
