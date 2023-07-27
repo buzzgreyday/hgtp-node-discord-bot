@@ -31,7 +31,7 @@ async def send_request_process_msg(ctx):
     msg = await ctx.message.author.send(
         "**`➭ 1. Add request to queue`**\n"
         "`  2. Process data`\n"
-        "`  3. Send report(s)`"
+        "`  3. Report`"
     )
     return msg
 
@@ -47,7 +47,9 @@ async def update_request_process_msg(process_msg, process_num, foo):
                                           "`  *  Historic node data`\n"
                                           "`  *  Current node data`\n"
                                           f"`  *  Process aggregated data`\n"
-                                          "`  3. Send report(s).`")
+                                          "`  3. Report`\n"
+                                          "`  *  Build report(s)`\n"
+                                          "`  *  Send report(s)`\n")
         elif process_num == 2:
             return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
                                           "**`➭ 2. Process data`**\n"
@@ -55,7 +57,9 @@ async def update_request_process_msg(process_msg, process_num, foo):
                                           "`  >  Historic node data`\n"
                                           "`  *  Current node data`\n"
                                           f"`  *  Process aggregated data`\n"
-                                          "`  3. Send report(s).`")
+                                          "`  3. Report`\n"
+                                          "`  *  Build report(s)`\n"
+                                          "`  *  Send report(s)`\n")
         elif process_num == 3:
             return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
                                           "**`➭ 2. Process data`**\n"
@@ -63,7 +67,9 @@ async def update_request_process_msg(process_msg, process_num, foo):
                                           "**`  ✓  Historic node data`**\n"
                                           "`  >  Current node data`\n"
                                           f"`  *  Process aggregated data`\n"
-                                          "`  3. Send report(s).`")
+                                          "`  3. Report`\n"
+                                          "`  *  Build report(s)`\n"
+                                          "`  *  Send report(s)`\n")
         elif process_num == 4:
             return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
                                           "**`➭ 2. Process data`**\n"
@@ -71,7 +77,9 @@ async def update_request_process_msg(process_msg, process_num, foo):
                                           "**`  ✓  Historic node data`**\n"
                                           "**`  ✓  Current node data`**\n"
                                           f"`  >  Now processing {foo.title()} data`\n"
-                                          "`  3. Send report(s).`")
+                                          "`  3. Report`\n"
+                                          "`  *  Build report(s)`\n"
+                                          "`  *  Send report(s)`\n")
         elif process_num == 5:
             return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
                                           "**`✓ 2. Process data`**\n"
@@ -79,8 +87,9 @@ async def update_request_process_msg(process_msg, process_num, foo):
                                           "**`  ✓  Historic node data`**\n"
                                           "**`  ✓  Current node data`**\n"
                                           "**`  ✓  All data processed`**\n"
-                                          "**`➭ 3. Send report(s).`**\n"
-                                          "`  *  Building report(s)`\n")
+                                          "**`➭ 3. Report`**\n"
+                                          "`  >  Build report(s)`\n"
+                                          "`  *  Send report(s)`\n")
         elif process_num == 6:
             return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
                                           "**`✓ 2. Process data`**\n"
@@ -88,9 +97,9 @@ async def update_request_process_msg(process_msg, process_num, foo):
                                           "**`  ✓  Historic node data`**\n"
                                           "**`  ✓  Current node data`**\n"
                                           "**`  ✓  All data processed`**\n"
-                                          "**`➭ 3. Send report(s).`**\n"
-                                          "**`  ✓  Building report(s)`**\n"
-                                          "`  *  Sending report(s)`\n")
+                                          "**`➭ 3. Report`**\n"
+                                          "**`  ✓  Build report(s)`**\n"
+                                          "`  >  Send report(s)`\n")
         elif process_num == 7:
             return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
                                           "**`✓ 2. Process data`**\n"
@@ -98,9 +107,9 @@ async def update_request_process_msg(process_msg, process_num, foo):
                                           "**`  ✓  Historic node data`**\n"
                                           "**`  ✓  Current node data`**\n"
                                           "**`  ✓  All data processed`**\n"
-                                          "**`✓ 3. Send report(s).`**\n"
-                                          "**`  ✓  Building report(s)`**\n"
-                                          "**`  ✓  Report(s) sent`**\n")
+                                          "**`✓ 3. Report`**\n"
+                                          "**`  ✓  Build report(s)`**\n"
+                                          "**`  ✓  Send report(s)`**\n")
 
 
 async def get_requester(ctx):
