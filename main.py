@@ -28,7 +28,7 @@ if not path.exists(_configuration["file settings"]["locations"]["log"]):
 
 """DEFINE LOGGING LEVEL AND LOCATION"""
 logging.basicConfig(filename=_configuration["file settings"]["locations"]["log"], filemode='w',
-                    format='%(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
+                    format='%(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 cluster = distributed.LocalCluster(asynchronous=True, n_workers=1, threads_per_worker=2, memory_limit='4GB',
                                    processes=True, silence_logs=logging.CRITICAL)
