@@ -157,6 +157,7 @@ def check_rewards(node_data: schemas.Node, cluster_data):
 
     # if (cluster["layer"] == f"layer {node_data['layer']}") and (cluster["cluster name"] == node_data["clusterNames"]):
     # if (cluster["cluster name"] == node_data["clusterNames"]) or (cluster["cluster name"] == node_data["formerClusterNames"]):
+    print("- CHECKING REWARDS -")
     if node_data.wallet_address in cluster_data["recently_rewarded"]:
         node_data.reward_state = True
         former_reward_count = 0 if node_data.reward_true_count is None else node_data.reward_true_count
@@ -382,12 +383,8 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                    f"{field_info}"
 
     def generate_field_from_reward_states(reward_percentage, module_name):
-        name = list(str(value) for value in
-                    (node_data.cluster_name, node_data.former_cluster_name, node_data.last_known_cluster_name) if
-                    value is not None)
-        name = name[0] if name else None
-        print(node_data.wallet_balance)
-        if name == "mainnet" and node_data.wallet_balance <= 250000 * 100000000:
+
+        if module_name == "mainnet" and node_data.wallet_balance <= 250000 * 100000000:
             field_symbol = ":red_square:"
             field_info = f"`⚠ The wallet doesn't hold sufficient collateral`"
             red_color_trigger = True
@@ -398,6 +395,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
             red_color_trigger = True
             return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
         elif node_data.reward_state in (False, None) and node_data.former_reward_state in (False, None):
+            print(node_data.reward_state, node_data.former_reward_state)
             if node_data.layer == 1:
                 field_symbol = ":green_square:"
                 field_info = f"`ⓘ  {module_name.title()} layer one does not currently distribute rewards. Please refer to the " \
