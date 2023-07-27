@@ -537,7 +537,7 @@ def build_embed(node_data: schemas.Node, module_name):
     if (red_color_trigger is True or yellow_color_trigger is True) and not embed_created:
         embed = determine_color_and_create_embed(yellow_color_trigger, red_color_trigger)
         embed_created = True
-    cluster_state, red_color_trigger, yellow_color_trigger = build_general_cluster_state(node_data)
+    cluster_state, red_color_trigger, yellow_color_trigger = build_general_cluster_state(node_data, module_name)
     if (red_color_trigger is True or yellow_color_trigger is True) and not embed_created:
         embed = determine_color_and_create_embed(yellow_color_trigger, red_color_trigger)
         embed_created = True
