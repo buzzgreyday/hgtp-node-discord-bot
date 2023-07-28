@@ -135,7 +135,7 @@ async def on_ready():
 
 
 @bot.command()
-async def s(ctx, *args):
+async def s(bot, ctx, *args):
     """This function treats a Discord message (context) as a line of arguments and attempts to create a new user subscription"""
     logging.getLogger(__name__).info(f"main.py - Subscription request received from {ctx.message.author}: {args}")
     # Clean data
