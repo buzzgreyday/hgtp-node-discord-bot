@@ -117,10 +117,11 @@ class User(NodeBase):
             return None
 
     @classmethod
-    async def discord(cls, configuration, mode: str, name: str, contact: int, *args) -> List:
+    async def discord(cls, configuration, mode: str, name: str, contact: int, *args):
         """Treats a Discord message as a line of arguments and returns a list of subscribable user objects"""
 
         user_data = []
+        invalid_user_data = []
         wallet = None
         ips = {ip for ip in args if re.match(IP_REGEX, ip)}
         ip_idx = [args.index(ip) for ip in ips]
@@ -154,7 +155,8 @@ class User(NodeBase):
                                     cls(name=name, contact=contact, id=id_, wallet=wallet,
                                         ip=arg[0], public_port=port, layer=1, type="discord"))
                             except ValidationError:
+                                invalid_user_data.append((arg[0], port, 1))
                                 pass
                         else:
                             break
-        return user_data
+        return user_data, invalid_user_data

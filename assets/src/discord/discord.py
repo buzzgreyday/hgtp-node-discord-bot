@@ -9,9 +9,17 @@ from assets.src import schemas, determine_module
 from assets.src.discord import defaults
 
 
+async def send_subscription_process_msg(ctx):
+    msg = await ctx.message.author.send(
+        "**`➭ 1. Add subscription request to queue`**\n"
+        "`  2. Gather information`\n"
+        "`  3. Subscribe`"
+    )
+    return msg
+
 async def send_request_process_msg(ctx):
     msg = await ctx.message.author.send(
-        "**`➭ 1. Add request to queue`**\n"
+        "**`➭ 1. Add report request to queue`**\n"
         "`  2. Process data`\n"
         "`  3. Report`"
     )
@@ -23,7 +31,7 @@ async def update_request_process_msg(process_msg, process_num, foo):
         return None
     elif process_msg is not None:
         if process_num == 1:
-            return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
+            return await process_msg.edit("**`✓ 1. Add report request to queue`**\n"
                                           "**`➭ 2. Process data`**\n"
                                           "`  >  Current cluster data`\n"
                                           "`  *  Historic node data`\n"
@@ -33,7 +41,7 @@ async def update_request_process_msg(process_msg, process_num, foo):
                                           "`  *  Build report(s)`\n"
                                           "`  *  Send report(s)`\n")
         elif process_num == 2:
-            return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
+            return await process_msg.edit("**`✓ 1. Add report request to queue`**\n"
                                           "**`➭ 2. Process data`**\n"
                                           "**`  ✓  Current cluster data`**\n"
                                           "`  >  Historic node data`\n"
@@ -43,7 +51,7 @@ async def update_request_process_msg(process_msg, process_num, foo):
                                           "`  *  Build report(s)`\n"
                                           "`  *  Send report(s)`\n")
         elif process_num == 3:
-            return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
+            return await process_msg.edit("**`✓ 1. Add report request to queue`**\n"
                                           "**`➭ 2. Process data`**\n"
                                           "**`  ✓  Current cluster data`**\n"
                                           "**`  ✓  Historic node data`**\n"
@@ -53,7 +61,7 @@ async def update_request_process_msg(process_msg, process_num, foo):
                                           "`  *  Build report(s)`\n"
                                           "`  *  Send report(s)`\n")
         elif process_num == 4:
-            return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
+            return await process_msg.edit("**`✓ 1. Add report request to queue`**\n"
                                           "**`➭ 2. Process data`**\n"
                                           "**`  ✓  Current cluster data`**\n"
                                           "**`  ✓  Historic node data`**\n"
@@ -63,7 +71,7 @@ async def update_request_process_msg(process_msg, process_num, foo):
                                           "`  *  Build report(s)`\n"
                                           "`  *  Send report(s)`\n")
         elif process_num == 5:
-            return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
+            return await process_msg.edit("**`✓ 1. Add report request to queue`**\n"
                                           "**`✓ 2. Process data`**\n"
                                           "**`  ✓  Current cluster data`**\n"
                                           "**`  ✓  Historic node data`**\n"
@@ -73,7 +81,7 @@ async def update_request_process_msg(process_msg, process_num, foo):
                                           "`  >  Build report(s)`\n"
                                           "`  *  Send report(s)`\n")
         elif process_num == 6:
-            return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
+            return await process_msg.edit("**`✓ 1. Add report request to queue`**\n"
                                           "**`✓ 2. Process data`**\n"
                                           "**`  ✓  Current cluster data`**\n"
                                           "**`  ✓  Historic node data`**\n"
@@ -83,7 +91,7 @@ async def update_request_process_msg(process_msg, process_num, foo):
                                           "**`  ✓  Build report(s)`**\n"
                                           "`  >  Send report(s)`\n")
         elif process_num == 7:
-            return await process_msg.edit("**`✓ 1. Add request to queue`**\n"
+            return await process_msg.edit("**`✓ 1. Add report request to queue`**\n"
                                           "**`✓ 2. Process data`**\n"
                                           "**`  ✓  Current cluster data`**\n"
                                           "**`  ✓  Historic node data`**\n"
