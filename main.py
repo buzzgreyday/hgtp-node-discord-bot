@@ -135,13 +135,20 @@ async def on_ready():
 
 
 @bot.command()
-async def s(bot, ctx, *args):
+async def s(ctx, *args):
     """This function treats a Discord message (context) as a line of arguments and attempts to create a new user subscription"""
     logging.getLogger(__name__).info(f"main.py - Subscription request received from {ctx.message.author}: {args}")
     # Clean data
     user_data = await User.discord(_configuration, "subscribe", str(ctx.message.author), int(ctx.message.author.id), *args)
     if user_data:
         await user.write_db(user_data)
+        # Getting the member from the server (guild)
+        guild = await bot.fetch_guild(974431346850140201)
+        member = await guild.fetch_member(ctx.author.id)
+
+        # Assuming the role you want to add is named "tester"
+        role = nextcord.utils.get(guild.roles, name="tester")
+        await member.add_roles(role)
     else:
         logging.getLogger(__name__).info(f"main.py - Subscription denied for {ctx.message.author}: {args}")
 
