@@ -143,7 +143,7 @@ class User(NodeBase):
                                     cls(name=name, contact=contact, id=id_, wallet=wallet,
                                         ip=arg[0], public_port=port, layer=0, type="discord"))
                             except ValidationError:
-                                pass
+                                invalid_user_data.append((arg[0], port, 0))
                         else:
                             break
                 elif val.lower() in ("o", "-o", "one", "--one", "l1", "-l1"):
@@ -159,7 +159,6 @@ class User(NodeBase):
                                         ip=arg[0], public_port=port, layer=1, type="discord"))
                             except ValidationError:
                                 invalid_user_data.append((arg[0], port, 1))
-                                pass
                         else:
                             break
         return user_data, invalid_user_data

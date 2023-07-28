@@ -23,32 +23,42 @@ async def update_subscription_process_msg(process_msg, process_num, foo):
         return await process_msg.edit(
             "**`✓  1. Add subscription request to queue`**\n"
             "**`➭  2. Gather information`**\n"
-            "`  *  Process data`\n"
-            "`  3. Subscribe`\n"
-            "`  *  Write to database and assign role`\n"
+            "`   *  Process data`\n"
+            "`   3. Subscribe`\n"
+            "`   *  Write to database and assign role`\n"
 
         )
     elif process_num == 2:
         return await process_msg.edit(
             "**`✓  1. Add subscription request to queue`**\n"
             "**`➭  2. Gather information`**\n"
-            f"`  >  Now processing {foo}`\n"
-            "`  3. Subscribe`"
-            "`  *  Write to database and assign role`\n"
+            f"`   >  Now processing {foo}`\n"
+            "`   3. Subscribe`\n"
+            "`   *  Write to database and assign role`\n"
         )
     elif process_num == 3:
         return await process_msg.edit(
             "**`✓  1. Add subscription request to queue`**\n"
             "**`✓  2. Gather information`**\n"
             "**`➭  3. Subscribe`**\n"
-            "`   >  Write to database and assign role`\n"
+            "`    >  Write to database and assign role`\n"
         )
     elif process_num == 4:
-        return await process_msg.edit(
-            "**`✓  1. Add subscription request to queue`**\n"
-            "**`✓  2. Gather information`**\n"
-            "**`✓  3. Subscribe`**\n"
-        )
+        invalid = list(f"IP: {val[0]}\nPort: {val[1]}\n" for val in foo)
+        if foo is not None:
+            return await process_msg.edit(
+                "**`✓  1. Add subscription request to queue`**\n"
+                "**`✓  2. Gather information`**\n"
+                "**`✓  3. Subscribe`**\n"
+                "**:warning:` The following could not be subscribed:`**"
+                f"```{invalid}```"
+            )
+        else:
+            return await process_msg.edit(
+                "**`✓  1. Add subscription request to queue`**\n"
+                "**`✓  2. Gather information`**\n"
+                "**`✓  3. Subscribe`**"
+            )
 
 
 async def send_request_process_msg(ctx):

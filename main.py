@@ -161,14 +161,9 @@ async def s(ctx, *args):
         # Assuming the role you want to add is named "tester"
         role = nextcord.utils.get(guild.roles, name="tester")
         await member.add_roles(role)
-        process_msg = await discord.update_subscription_process_msg(process_msg, 4, None)
+        process_msg = await discord.update_subscription_process_msg(process_msg, 4, invalid_user_data)
     else:
         logging.getLogger(__name__).info(f"main.py - Subscription denied for {ctx.message.author}: {args}")
-    if invalid_user_data:
-        for tup in invalid_user_data:
-            ip = tup[0]
-            port = tup[1]
-            layer = tup[2]
 
     if not isinstance(ctx.channel, nextcord.DMChannel):
         await ctx.message.delete(delay=3)
