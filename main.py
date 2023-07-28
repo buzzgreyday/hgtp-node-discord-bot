@@ -148,10 +148,11 @@ async def on_ready():
 async def s(ctx, *args):
     """This function treats a Discord message (context) as a line of arguments and attempts to create a new user subscription"""
     logging.getLogger(__name__).info(f"main.py - Subscription request received from {ctx.message.author}: {args}")
-
+    process_msg = await discord.send_subscription_process_msg(ctx)
     # Clean data
-    valid_user_data, invalid_user_data = await User.discord(_configuration, "subscribe", str(ctx.message.author), int(ctx.message.author.id), *args)
+    valid_user_data, invalid_user_data = await User.discord(_configuration, process_msg, "subscribe", str(ctx.message.author), int(ctx.message.author.id), *args)
     if valid_user_data:
+        process_msg = await discord.update_subscription_process_msg(process_msg, 3, None)
         await user.write_db(valid_user_data)
         # Getting the member from the server (guild)
         guild = await bot.fetch_guild(974431346850140201)
@@ -160,14 +161,15 @@ async def s(ctx, *args):
         # Assuming the role you want to add is named "tester"
         role = nextcord.utils.get(guild.roles, name="tester")
         await member.add_roles(role)
+        process_msg = await discord.update_subscription_process_msg(process_msg, 4, None)
+    else:
+        logging.getLogger(__name__).info(f"main.py - Subscription denied for {ctx.message.author}: {args}")
     if invalid_user_data:
         for tup in invalid_user_data:
             ip = tup[0]
             port = tup[1]
             layer = tup[2]
 
-    else:
-        logging.getLogger(__name__).info(f"main.py - Subscription denied for {ctx.message.author}: {args}")
     if not isinstance(ctx.channel, nextcord.DMChannel):
         await ctx.message.delete(delay=3)
 

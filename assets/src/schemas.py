@@ -117,12 +117,13 @@ class User(NodeBase):
             return None
 
     @classmethod
-    async def discord(cls, configuration, mode: str, name: str, contact: int, *args):
+    async def discord(cls, configuration, process_msg, mode: str, name: str, contact: int, *args):
         """Treats a Discord message as a line of arguments and returns a list of subscribable user objects"""
-
+        from assets.src.discord.discord import update_subscription_process_msg
         user_data = []
         invalid_user_data = []
         wallet = None
+        process_msg = await update_subscription_process_msg(process_msg, 1, None)
         ips = {ip for ip in args if re.match(IP_REGEX, ip)}
         ip_idx = [args.index(ip) for ip in ips]
         for idx in range(0, len(ip_idx)):
@@ -132,6 +133,7 @@ class User(NodeBase):
                 if val.lower() in ("z", "-z", "zero", "--zero", "l0", "-l0"):
                     for port in arg[i + 1:]:
                         if port.isdigit():
+                            process_msg = await update_subscription_process_msg(process_msg, 2, f"{arg[0]}:{port}")
                             # Check if port is subscribed?
                             id_ = await User.get_id(arg[0], port, mode, configuration)
                             if id_ is not None:
@@ -147,6 +149,7 @@ class User(NodeBase):
                 elif val.lower() in ("o", "-o", "one", "--one", "l1", "-l1"):
                     for port in arg[i + 1:]:
                         if port.isdigit():
+                            process_msg = await update_subscription_process_msg(process_msg, 2, f"{arg[0]}:{port}")
                             id_ = await User.get_id(arg[0], port, mode, configuration)
                             if id_ is not None:
                                 wallet = id_to_dag_address(id_)
