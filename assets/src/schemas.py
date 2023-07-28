@@ -138,11 +138,13 @@ class User(NodeBase):
                             id_ = await User.get_id(arg[0], port, mode, configuration)
                             if id_ is not None:
                                 wallet = id_to_dag_address(id_)
-                            try:
-                                user_data.append(
-                                    cls(name=name, contact=contact, id=id_, wallet=wallet,
-                                        ip=arg[0], public_port=port, layer=0, type="discord"))
-                            except ValidationError:
+                                try:
+                                    user_data.append(
+                                        cls(name=name, contact=contact, id=id_, wallet=wallet,
+                                            ip=arg[0], public_port=port, layer=0, type="discord"))
+                                except ValidationError:
+                                    pass
+                            else:
                                 invalid_user_data.append((arg[0], port, 0))
                         else:
                             break
@@ -153,11 +155,13 @@ class User(NodeBase):
                             id_ = await User.get_id(arg[0], port, mode, configuration)
                             if id_ is not None:
                                 wallet = id_to_dag_address(id_)
-                            try:
-                                user_data.append(
-                                    cls(name=name, contact=contact, id=id_, wallet=wallet,
-                                        ip=arg[0], public_port=port, layer=1, type="discord"))
-                            except ValidationError:
+                                try:
+                                    user_data.append(
+                                        cls(name=name, contact=contact, id=id_, wallet=wallet,
+                                            ip=arg[0], public_port=port, layer=1, type="discord"))
+                                except ValidationError:
+                                    pass
+                            else:
                                 invalid_user_data.append((arg[0], port, 1))
                         else:
                             break

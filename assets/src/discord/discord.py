@@ -44,14 +44,14 @@ async def update_subscription_process_msg(process_msg, process_num, foo):
             "`    >  Write to database and assign role`\n"
         )
     elif process_num == 4:
-        invalid = list(f"IP: {val[0]}\nPort: {val[1]}\n" for val in foo)
+        invalid = list(f"IP: {val[0]} Port: {val[1]}" for val in foo)
         if foo is not None:
             return await process_msg.edit(
                 "**`✓  1. Add subscription request to queue`**\n"
                 "**`✓  2. Gather information`**\n"
                 "**`✓  3. Subscribe`**\n"
                 "**:warning:` The following could not be subscribed:`**"
-                f"```{invalid}```"
+                f"```{invalid}````Please make sure the IP and port is correct and the node is online. You can subscribe the correct IP(s) and port(s) when the node services are online`"
             )
         else:
             return await process_msg.edit(
