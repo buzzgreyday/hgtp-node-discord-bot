@@ -115,6 +115,13 @@ async def r(ctx):
     if role:
         await main(ctx, process_msg, requester, _configuration)
     else:
+        await process_msg.edit(
+            "**`➭ 1. Add request to queue`**\n"
+            "**`  X  You're not a subscriber`**\n"
+            "*`     Please subscribe to request reports`*\n"
+            "`  2. Process data`\n"
+            "`  3. Report`"
+        )
         logging.getLogger(__name__).info(f"main.py - User {ctx.message.author} does not have the appropriate role")
 
 
