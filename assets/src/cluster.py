@@ -36,14 +36,17 @@ async def locate_id_offline(layer, name, configuration):
 
 def locate_node(node_data: schemas.Node, all_cluster_data: List[dict]):
     """THIS IS THE REASON A CLUSTER CAN COME OUT AS NONE!!! This function loops through all cluster data supported by the bot and returns the relevant cluster data"""
+    found = False
     former_cluster = list(val for val in (node_data.former_cluster_name, node_data.last_known_cluster_name) if val is not None)
     for cluster in all_cluster_data:
         if cluster["layer"] == node_data.layer:
             if locate_node_binary(node_data, cluster["peer_data"]):
-                return cluster
+                found = True
+                return found, cluster
             if former_cluster:
                 if former_cluster[0] == cluster["name"]:
-                    node_data.last_known_cluster_name = former_cluster[0]
+                    former_cluster = cluster
+    return found, former_cluster
 
 
 async def get_module_data(process_msg, node_data: schemas.Node, configuration):
