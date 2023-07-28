@@ -304,7 +304,7 @@ def build_general_node_state(node_data: schemas.Node):
 
     if node_data.state != "offline":
         field_symbol = ":green_square:"
-        if node_data in (None, 0):
+        if node_data.cluster_peer_count in (None, 0):
             field_info = f"`ⓘ  The node is not connected to any known cluster`"
         else:
             field_info = f"`ⓘ  Connected to {node_data.node_peer_count*100/node_data.cluster_peer_count}% of the cluster peers`"
@@ -439,7 +439,7 @@ def build_system_node_version(node_data: schemas.Node):
                f"Version {node_data.version} installed```" \
                f"{field_info}"
 
-    if node_data.version is not None:
+    if node_data.version is not None and node_data.cluster_version is not None:
         if node_data.version == node_data.cluster_version:
             field_symbol = ":green_square:"
             if node_data.cluster_version == node_data.latest_version:
@@ -457,8 +457,9 @@ def build_system_node_version(node_data: schemas.Node):
             field_info = f"`⚠ New upgrade (v{node_data.latest_version}) available`"
             yellow_color_trigger = True
             return version_field(), red_color_trigger, yellow_color_trigger
+    elif node_data.version is not None and node_data.latest_version is not None:
 
-        elif node_data.version > node_data.latest_version:
+        if node_data.version > node_data.latest_version:
             field_symbol = ":green_square:"
             if node_data.version == node_data.cluster_version:
                 field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest official version is {node_data.latest_version}`"
@@ -469,6 +470,7 @@ def build_system_node_version(node_data: schemas.Node):
             field_symbol = ":yellow_square:"
             field_info = f"`ⓘ  Latest version is {node_data.latest_version}`"
             return version_field(), red_color_trigger, False
+
     else:
         return f":yellow_square: **TESSELLATION**\n" \
                f"`ⓘ  No data available`", red_color_trigger, False
