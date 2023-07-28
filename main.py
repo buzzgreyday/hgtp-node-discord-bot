@@ -140,7 +140,10 @@ async def s(ctx, *args):
     logging.getLogger(__name__).info(f"main.py - Subscription request received from {ctx.message.author}: {args}")
     # Clean data
     user_data = await User.discord(_configuration, "subscribe", str(ctx.message.author), int(ctx.message.author.id), *args)
-    await user.write_db(user_data)
+    if user_data:
+        await user.write_db(user_data)
+    else:
+        logging.getLogger(__name__).info(f"main.py - Subscription denied for {ctx.message.author}: {args}")
 
 
 @bot.command()

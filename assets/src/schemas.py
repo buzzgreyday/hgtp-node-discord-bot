@@ -3,6 +3,7 @@ from typing import List, Optional
 import datetime as dt
 
 from pydantic import BaseModel
+from pydantic.error_wrappers import ValidationError
 
 from assets.src import api
 from assets.src.encode import id_to_dag_address
@@ -120,7 +121,7 @@ class User(NodeBase):
         """Treats a Discord message as a line of arguments and returns a list of subscribable user objects"""
 
         user_data = []
-
+        wallet = None
         ips = {ip for ip in args if re.match(IP_REGEX, ip)}
         ip_idx = [args.index(ip) for ip in ips]
         for idx in range(0, len(ip_idx)):
@@ -132,21 +133,29 @@ class User(NodeBase):
                         if port.isdigit():
                             # Check if port is subscribed?
                             id_ = await User.get_id(arg[0], port, mode, configuration)
-                            wallet = id_to_dag_address(id_)
-                            user_data.append(
-                                cls(name=name, contact=contact, id=id_, wallet=wallet,
-                                    ip=arg[0], public_port=port, layer=0, type="discord"))
+                            if id_ is not None:
+                                wallet = id_to_dag_address(id_)
+                            try:
+                                user_data.append(
+                                    cls(name=name, contact=contact, id=id_, wallet=wallet,
+                                        ip=arg[0], public_port=port, layer=0, type="discord"))
+                            except ValidationError:
+                                pass
                         else:
                             break
                 elif val.lower() in ("o", "-o", "one", "--one", "l1", "-l1"):
                     for port in arg[i + 1:]:
                         if port.isdigit():
                             id_ = await User.get_id(arg[0], port, mode, configuration)
-                            wallet = id_to_dag_address(id_)
-                            user_data.append(
-                                cls(name=name, contact=contact, id=id_, wallet=wallet,
-                                    ip=arg[0], public_port=port, layer=1, type="discord"))
+                            if id_ is not None:
+                                wallet = id_to_dag_address(id_)
+                            try:
+                                user_data.append(
+                                    cls(name=name, contact=contact, id=id_, wallet=wallet,
+                                        ip=arg[0], public_port=port, layer=1, type="discord"))
+                            except ValidationError:
+                                pass
                         else:
                             break
-
+        print(user_data)
         return user_data
