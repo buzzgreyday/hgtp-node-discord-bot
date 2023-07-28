@@ -17,10 +17,42 @@ async def send_subscription_process_msg(ctx):
     )
     return msg
 
+
+async def update_subscription_process_msg(process_msg, process_num, foo):
+    if process_num == 1:
+        return await process_msg.edit(
+            "**`✓ 1. 1. Add subscription request to queue`**\n"
+            "**`➭  2. Gather information`**\n"
+            "`  3. Subscribe`"
+        )
+    elif process_num == 2:
+        return await process_msg.edit(
+            "**`✓ 1. 1. Add subscription request to queue`**\n"
+            "**`➭  2. Gather information`**\n"
+            f"`  >  Now processing {foo}`\n"
+            "`  3. Subscribe`"
+        )
+    elif process_num == 3:
+        return await process_msg.edit(
+            "**`✓ 1. 1. Add subscription request to queue`**\n"
+            "**`✓  2. Gather information`**\n"
+            f"**`  ✓  All data processed`**\n"
+            "**`➭  3. Subscribe`**\n"
+            "`   > Write to database and assign role`\n"
+        )
+    elif process_num == 4:
+        return await process_msg.edit(
+            "**`✓ 1. 1. Add subscription request to queue`**\n"
+            "**`✓  2. Gather information`**\n"
+            f"**`  ✓  All data processed`**\n"
+            "**`✓  3. Subscribe`**\n"
+            "**`   ✓ Write to database and assign role`**\n"
+        )
+
 async def send_request_process_msg(ctx):
     msg = await ctx.message.author.send(
-        "**`➭ 1. Add report request to queue`**\n"
-        "`  2. Process data`\n"
+        "**`✓ 1. Add report request to queue`**\n"
+        "**`➭ 2. Process data`**\n"
         "`  3. Report`"
     )
     return msg
