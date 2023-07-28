@@ -41,8 +41,10 @@ def locate_node(node_data: schemas.Node, all_cluster_data: List[dict]):
         if cluster["layer"] == node_data.layer:
             if locate_node_binary(node_data, cluster["peer_data"]):
                 return cluster
-    if former_cluster:
-        return former_cluster[0]
+            if former_cluster:
+                if former_cluster[0] == cluster["name"]:
+                    former_cluster = cluster
+    return former_cluster
 
 
 async def get_module_data(process_msg, node_data: schemas.Node, configuration):
