@@ -43,8 +43,7 @@ def locate_node(node_data: schemas.Node, all_cluster_data: List[dict]):
                 return cluster
             if former_cluster:
                 if former_cluster[0] == cluster["name"]:
-                    former_cluster = cluster
-    return former_cluster
+                    node_data.last_known_cluster_name = former_cluster[0]
 
 
 async def get_module_data(process_msg, node_data: schemas.Node, configuration):
