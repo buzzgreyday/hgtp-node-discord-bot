@@ -101,7 +101,7 @@ async def get_requester(ctx):
 
 
 async def send(ctx, process_msg, bot, data: List[schemas.Node], configuration):
-    logging.getLogger(__name__).info(f"discord.py - Sending node {len(data)} reports")
+    logging.getLogger(__name__).info(f"discord.py - Preparing {len(data)} reports")
     futures = []
     for node_data in data:
         if node_data.notify is True:
@@ -120,6 +120,8 @@ async def send(ctx, process_msg, bot, data: List[schemas.Node], configuration):
             elif process_msg is None:
                 logging.getLogger(__name__).debug(f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer})")
                 futures.append(asyncio.create_task(bot.get_channel(977357753947402281).send(embed=embed)))
+    # if not data:
+    #   pass
 
     for fut in futures:
         await fut
