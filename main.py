@@ -88,7 +88,7 @@ async def on_message(message):
         logging.getLogger(__name__).info(f"main.py - Command received from {ctx.message.author} in {ctx.message.channel}")
         await bot.process_commands(message)
     else:
-        if ctx.message.channel.id in (977357753947402281, 974431346850140204, 1030007676257710080):
+        if ctx.message.channel.id in (977357753947402281, 974431346850140204, 1030007676257710080, 1134396471639277648):
             # IGNORE INTERPRETING MESSAGES IN THESE CHANNELS AS COMMANDS
             logging.getLogger(__name__).info(
                 f"main.py - Received a command in an non-command channel")
@@ -148,6 +148,8 @@ async def s(ctx, *args):
         await member.add_roles(role)
     else:
         logging.getLogger(__name__).info(f"main.py - Subscription denied for {ctx.message.author}: {args}")
+    if isinstance(ctx.channel, nextcord.DMChannel):
+        await ctx.message.delete(delay=3)
 
 
 @bot.command()
