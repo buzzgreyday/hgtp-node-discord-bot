@@ -156,8 +156,6 @@ async def node_cluster_data(node_data: schemas.Node, module_name, configuration:
 
 def check_rewards(node_data: schemas.Node, cluster_data):
 
-    # if (cluster["layer"] == f"layer {node_data['layer']}") and (cluster["cluster name"] == node_data["clusterNames"]):
-    # if (cluster["cluster name"] == node_data["clusterNames"]) or (cluster["cluster name"] == node_data["formerClusterNames"]):
     if node_data.wallet_address in cluster_data["recently_rewarded"]:
         node_data.reward_state = True
         former_reward_count = 0 if node_data.reward_true_count is None else node_data.reward_true_count
