@@ -1,9 +1,7 @@
 import asyncio
 from typing import List
 
-import nextcord
 import logging
-from datetime import datetime
 
 from aiofiles import os
 

@@ -1,4 +1,4 @@
-from assets.src import schemas, history, dt, cluster, user, determine_module
+from assets.src import schemas, history, dt, cluster, determine_module
 from assets.src.discord import discord
 
 

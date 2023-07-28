@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 import nextcord
 import pandas as pd
 
-from assets.src import schemas, encode, config, cluster, api
+from assets.src import schemas, config, cluster, api
 
 
 """

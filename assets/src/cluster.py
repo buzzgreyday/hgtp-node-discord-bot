@@ -1,11 +1,9 @@
 # Third-party imports
 import logging
-from datetime import datetime
 
 from aiofiles import os
 from typing import List
 
-# Project module imports
 from assets.src import schemas, determine_module
 from assets.src.discord import discord
 
