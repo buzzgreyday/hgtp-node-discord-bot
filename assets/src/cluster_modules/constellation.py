@@ -394,7 +394,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                 return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
             elif module_name in ("integrationnet", "testnet"):
                 field_symbol = ":green_square:"
-                field_info = f":red_circle:` The wallet recently stopped receiving rewards. However, the cluster is a test environment cluster which means this is not the associated mainnet wallet`"
+                field_info = f":red_circle:` The wallet recently stopped receiving rewards. However, the cluster is a test environment which means this is not the associated mainnet wallet`"
                 return wallet_field(field_symbol, reward_percentage, field_info), False, False
         elif node_data.reward_state in (False, None) and node_data.former_reward_state in (False, None):
             if node_data.layer == 1:
@@ -410,7 +410,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                     return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
                 elif module_name in ("integrationnet", "testnet"):
                     field_symbol = ":green_square:"
-                    field_info = f":red_circle:` The wallet doesn't receive rewards. However, the cluster is a test environment cluster which means this is not the associated mainnet wallet`"
+                    field_info = f":red_circle:` The wallet doesn't receive rewards. However, the cluster is a test environment which means this is not the associated mainnet wallet`"
                     return wallet_field(field_symbol, reward_percentage, field_info), False, False
         elif node_data.reward_state is True and node_data.former_reward_state in (False, None):
             field_symbol = ":green_square:"
