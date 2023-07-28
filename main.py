@@ -109,7 +109,13 @@ async def r(ctx):
     requester = await discord.get_requester(ctx)
     if not isinstance(ctx.channel, nextcord.DMChannel):
         await ctx.message.delete(delay=3)
-    await main(ctx, process_msg, requester, _configuration)
+    guild = await bot.fetch_guild(974431346850140201)
+    member = await guild.fetch_member(ctx.author.id)
+    role = member.get_role(1134395525727272991)
+    if role:
+        await main(ctx, process_msg, requester, _configuration)
+    else:
+        logging.getLogger(__name__).info(f"main.py - User {ctx.message.author} does not have the appropriate role")
 
 
 async def loop():
