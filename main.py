@@ -6,8 +6,6 @@ import threading
 import traceback
 from datetime import datetime
 
-from dask import distributed
-from dask.distributed import Client
 from assets.src.schemas import User
 from assets.src import history, config, dt, preliminaries, user, determine_module
 from assets.src.discord import discord
@@ -17,7 +15,6 @@ import nextcord
 from os import path, makedirs
 import yaml
 import uvicorn
-import concurrent.futures
 
 """LOAD CONFIGURATION"""
 with open('config.yml', 'r') as file:

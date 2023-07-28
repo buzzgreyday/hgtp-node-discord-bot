@@ -157,5 +157,4 @@ class User(NodeBase):
                                 pass
                         else:
                             break
-        print(user_data)
         return user_data
