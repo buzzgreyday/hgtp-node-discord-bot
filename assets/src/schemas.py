@@ -127,7 +127,7 @@ class User(NodeBase):
             # Split arguments into lists before each IP
             arg = args[ip_idx[idx]:ip_idx[idx + 1]] if idx + 1 < len(ip_idx) else args[ip_idx[idx]:]
             for i, val in enumerate(arg):
-                if val.lower() in ("1", "-1", "z", "-z", "zero", "--zero", "l0", "-l0"):
+                if val.lower() in ("z", "-z", "zero", "--zero", "l0", "-l0"):
                     for port in arg[i + 1:]:
                         if port.isdigit():
                             # Check if port is subscribed?
@@ -138,7 +138,7 @@ class User(NodeBase):
                                     ip=arg[0], public_port=port, layer=0, type="discord"))
                         else:
                             break
-                elif val.lower() in ("0", "-0", "o", "-o", "one", "--zero", "l1", "-l1"):
+                elif val.lower() in ("o", "-o", "one", "--one", "l1", "-l1"):
                     for port in arg[i + 1:]:
                         if port.isdigit():
                             id_ = await User.get_id(arg[0], port, mode, configuration)
