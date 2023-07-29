@@ -44,7 +44,7 @@ function start_bot() {
   if [ ! -d "$HOME/bot/" ]; then
     echo "Bot: The bot app doesn't seem to be installed"
     echo
-    read -rp "Do you wish to install the bot app? [y]" input
+    read -rp "Do you wish to install the bot app? [y] " input
     if [ "$input" == "y" ]; then
       install_bot
     elif [ "$input" == "n" ]; then
@@ -114,7 +114,7 @@ function main() {
   echo "[4] Install bot"
   echo "[5] Exit"
   echo
-  read -rp "Bot: Choose a number " input
+  read -rp "Bot: Choose number " input
   if [ "$input" == 1 ]; then
     start_bot
   elif [ "$input" == 2 ]; then
