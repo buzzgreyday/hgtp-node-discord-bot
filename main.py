@@ -17,9 +17,10 @@ import yaml
 import uvicorn
 from pathlib import Path
 
+WORKING_DIR = f'{str(Path.home())}/bot'
 
 """LOAD CONFIGURATION"""
-with open(f'{str(Path.home())}/bot/config.yml', 'r') as file:
+with open(f'{WORKING_DIR}/config.yml', 'r') as file:
     _configuration = yaml.safe_load(file)
 
 """CREATE NON-EXISTENT FOLDER STRUCTURE"""
