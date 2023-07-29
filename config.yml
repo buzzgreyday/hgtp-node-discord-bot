@@ -1,8 +1,8 @@
 file settings:
   locations:
-    cluster modules: ~/bot/assets/src/cluster_modules
-    db: ~/bot/assets/data/db/database.db
-    log: ~/root/bot/assets/data/logs/bot/exec.log
+    cluster modules: assets/src/cluster_modules
+    db: assets/data/db/database.db
+    log: assets/data/logs/bot
 general:
   loop_init_time: '12:25:00'
   loop_interval_minutes: 1

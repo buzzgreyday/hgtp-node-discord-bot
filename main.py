@@ -27,7 +27,7 @@ if not path.exists(_configuration["file settings"]["locations"]["log"]):
     makedirs(_configuration["file settings"]["locations"]["log"])
 
 """DEFINE LOGGING LEVEL AND LOCATION"""
-logging.basicConfig(filename=_configuration["file settings"]["locations"]["log"], filemode='w',
+logging.basicConfig(filename=f'{_configuration["file settings"]["locations"]["log"]}/exec.log', filemode='w',
                     format='[%(asctime)s] %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 
