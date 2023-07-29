@@ -4,12 +4,12 @@ WAIT=3
 
 function create_dir_structure() {
       # Create dir structure
-  if [ ! -d "$HOME/assets/data/db" ]; then
+  if [ ! -d "$HOME/bot/assets/data/db" ]; then
     echo "Bot: Creating $HOME/assets/data/db"
-    mkdir "$HOME/assets/data/db"
+    mkdir -p "$HOME/bot/assets/data/db"
   elif [ ! -d "$HOME/bot/tmp" ]; then
     echo "Bot: Creating $HOME/bot/tmp"
-    mkdir "$HOME/bot/tmp"
+    mkdir -p "$HOME/bot/tmp"
   fi
 }
 
