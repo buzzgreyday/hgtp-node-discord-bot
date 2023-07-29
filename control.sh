@@ -15,11 +15,11 @@ function create_dir_structure() {
 
 
 function create_swap_file() {
-  read -rp "Bot: Create 8GB swap-file? [y] " yN
-  if [ "$yN" == 'y' ]; then
+  read -rp "Bot: Create 8GB swap-file? [y] " input
+  if [ "$input" == 'y' ]; then
     swapoff /swap.img && fallocate -l 8G /swapfile && mkswap /swapfile && swapon /swapfile && echo "Bot: Swap-file creation done"
     free -h
-  elif [ "$yN" == 'n' ]; then
+  elif [ "$input" == 'n' ]; then
     echo "Bot: Swap-file creation: Skipped"
   else
     swapoff /swap.img && fallocate -l 8G /swapfile && mkswap /swapfile && swapon /swapfile && echo "Bot: Swap-file creation done"
@@ -47,6 +47,7 @@ function start_bot() {
   echo "Bot: The app started, waiting $WAIT seconds to fetch process ID"
   sleep $WAIT
   pid=$(pidof python3 main.py)
+  echo "Bot: Got process ID $pid"
   echo "$pid" &> "$HOME/bot/tmp/pid-store"
 }
 
@@ -56,6 +57,7 @@ function stop_bot() {
   else
     echo "Bot: Could not kill process - no saved process found"
   fi
+  main
 }
 
 
@@ -63,23 +65,21 @@ function update_bot() {
   if [ ! -d "$HOME/bot/" ]; then
     echo "Bot: The bot app doesn't seem to be installed"
     echo
-    read -rp "Do you wish to install the bot app? [y]", input
-    if [ $input == "y" ]; then
+    read -rp "Do you wish to install the bot app? [y]" input
+    if [ "$input" == "y" ]; then
       install_bot
-      main
-    elif [ $input == "n" ]; then
+    elif [ "$input" == "n" ]; then
       echo "Bot: Ok, the bot app will not be installed, exiting to main menu"
       sleep $WAIT
-      main
     else
       install_bot
-      main
     fi
   else
     git -C "$HOME/bot/" pull
     start_venv
     python -r "$HOME/bot/requirements.txt"
   fi
+  main
 }
 
 function install_bot() {
@@ -97,7 +97,7 @@ function main() {
   echo "[3] Update bot"
   echo "[4] Install bot"
   echo
-  read -rp "Bot: Choose a number ", input
+  read -rp "Bot: Choose a number " input
   if [ "$input" == 1 ]; then
     start_bot
   elif [ "$input" == 2 ]; then
