@@ -176,7 +176,7 @@ def run_uvicorn():
     port = 8000
     log_level = 'debug'
     logging.getLogger(__name__).info(f"main.py - Uvicorn running on {host}:{port}")
-    uvicorn.run(database_api, host=host, port=port, log_level=log_level, log_config=f'assets/data/logs/bot/uvicorn.ini')
+    uvicorn.run(database_api, host=host, port=port, log_level=log_level, log_config=f'{WORKING_DIR}/assets/data/logs/bot/uvicorn.ini')
 
 
 if __name__ == "__main__":
