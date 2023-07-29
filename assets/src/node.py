@@ -4,6 +4,7 @@ from assets.src.discord import discord
 
 def merge_data(node_data: schemas.Node, found: bool, cluster_data: dict):
     if not found and cluster_data is not None:
+        print(cluster_data)
         node_data.last_known_cluster_name = cluster_data["name"]
         node_data.latest_cluster_session = cluster_data["session"]
         node_data.cluster_version = cluster_data["version"]
