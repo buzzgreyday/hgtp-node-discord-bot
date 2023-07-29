@@ -1,8 +1,4 @@
-import json
-from datetime import datetime
 from typing import List
-
-import pandas as pd
 
 from assets.src import schemas, api, database
 

@@ -1,6 +1,3 @@
-import logging
-from datetime import datetime
-
 import aiofiles
 import yaml
 
