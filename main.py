@@ -15,9 +15,11 @@ import nextcord
 from os import path, makedirs
 import yaml
 import uvicorn
+from pathlib import Path
+
 
 """LOAD CONFIGURATION"""
-with open('~/bot/config.yml', 'r') as file:
+with open(f'{str(Path.home())}/bot/config.yml', 'r') as file:
     _configuration = yaml.safe_load(file)
 
 """CREATE NON-EXISTENT FOLDER STRUCTURE"""
