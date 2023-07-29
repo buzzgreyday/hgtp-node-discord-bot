@@ -151,6 +151,7 @@ async def role_deny_request_update_process_msg(process_msg):
         "`  3. Report`"
     )
 
+
 async def get_requester(ctx):
     return ctx.message.author.id
 
