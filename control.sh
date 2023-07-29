@@ -57,13 +57,12 @@ function start_bot() {
     create_dir_structure
     create_swap_file
     start_venv
-    tee
     cd "$HOME/bot" && python3 main.py &
     echo "Bot: The app started, waiting $WAIT seconds to fetch process ID"
     sleep $WAIT
     pid=$(pidof python3 main.py)
     echo "Bot: Got process ID $pid"
-    echo "$pid" | tee "$HOME/bot/tmp/pid-store"
+    echo "$pid" | tee "$HOME/bot/tmp/pid-store" &
   fi
 }
 
