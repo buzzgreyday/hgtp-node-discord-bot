@@ -29,11 +29,12 @@ function create_swap_file() {
 
 
 function start_venv() {
-  if [ ! -d $HOME/bot/venv ]; then
-    python -m venv $HOME/bot/venv
-    source $HOME/bot/venv/bin/activate
+  if [ ! -d "$HOME/bot/venv" ]; then
+    python -m venv "$HOME/bot/venv"
+    source "$HOME/bot/venv/bin/activate"
+    python -r "$HOME/bot/requirements.txt"
   else
-    source $HOME/bot/venv/bin/activate
+    source "$HOME/bot/venv/bin/activate"
   fi
 }
 
@@ -76,6 +77,8 @@ function update_bot() {
     fi
   else
     git -C "$HOME/bot/" pull
+    start_venv
+    python -r "$HOME/bot/requirements.txt"
   fi
 }
 
@@ -84,6 +87,8 @@ function install_bot() {
     mkdir "$HOME/bot/"
   fi
   git clone "https://pypergraph:$GITHUB_TOKEN@github.com/pypergraph/hgtp-node-discord-bot" "$HOME/bot/"
+  start_venv
+  main
 }
 
 function main() {
@@ -101,6 +106,8 @@ function main() {
     update_bot
   elif [ "$input" == 4 ]; then
     install_bot
+  elif [ "$input" == "exit" ]; then
+    exit 0
   fi
 }
 
