@@ -93,7 +93,7 @@ function install_bot() {
 
 function main() {
   echo "[1] Start bot"
-  enco "[2] Stop bot"
+  echo "[2] Stop bot"
   echo "[3] Update bot"
   echo "[4] Install bot"
   echo "[5] Exit"
