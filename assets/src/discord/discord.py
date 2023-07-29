@@ -55,7 +55,7 @@ async def update_subscription_process_msg(process_msg, process_num, foo):
         )
     elif process_num == 4:
         invalid = list(f"IP: {val[0]} Port: {val[1]}" for val in foo)
-        if foo is not None:
+        if foo:
             return await process_msg.edit(
                 "**`✓  1. Add subscription request to queue`**\n"
                 "**`✓  2. Gather information`**\n"
@@ -174,7 +174,7 @@ async def send(ctx, process_msg, bot, data: List[schemas.Node], configuration):
                 logging.getLogger(__name__).debug(f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}")
             elif process_msg is None:
                 guild = await bot.fetch_guild(974431346850140201)
-                member = await guild.fetch_member(ctx.author.id)
+                member = await guild.fetch_member(int(node_data.contact))
                 futures.append(asyncio.create_task(member.send(embed=embed)))
                 logging.getLogger(__name__).debug(f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}")
 
