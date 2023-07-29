@@ -18,6 +18,16 @@ async def send_subscription_process_msg(ctx):
     return msg
 
 
+async def deny_subscription(process_msg):
+    return await process_msg.edit(
+        "**`✓  1. Add subscription request to queue`**\n"
+        "**`✓  2. Gather information`**\n"
+        "**`➭  3. Subscribe`**\n"
+        "`    X  Subscription denied`\n"
+        "**:warning:` We could not verify the IP as belonging to a node or the port(s) are not open or not correct`**"
+    )
+
+
 async def update_subscription_process_msg(process_msg, process_num, foo):
     if process_num == 1:
         return await process_msg.edit(
@@ -131,6 +141,15 @@ async def update_request_process_msg(process_msg, process_num, foo):
                                           "**`✓ 2. Process data`**\n"
                                           "**`✓ 3. Report`**\n")
 
+
+async def role_deny_request_update_process_msg(process_msg):
+    return await process_msg.edit(
+        "**`➭ 1. Add report request to queue`**\n"
+        "**`  X  You're not a subscriber`**\n"
+        "*`     Please subscribe to request reports`*\n"
+        "`  2. Process data`\n"
+        "`  3. Report`"
+    )
 
 async def get_requester(ctx):
     return ctx.message.author.id

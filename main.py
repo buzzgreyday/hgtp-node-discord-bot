@@ -115,14 +115,8 @@ async def r(ctx):
     if role:
         await main(ctx, process_msg, requester, _configuration)
     else:
-        await process_msg.edit(
-            "**`➭ 1. Add report request to queue`**\n"
-            "**`  X  You're not a subscriber`**\n"
-            "*`     Please subscribe to request reports`*\n"
-            "`  2. Process data`\n"
-            "`  3. Report`"
-        )
-        logging.getLogger(__name__).info(f"main.py - User {ctx.message.author} does not have the appropriate role")
+        logging.getLogger(__name__).info(f"discord.py - User {ctx.message.author} does not have the appropriate role")
+        await discord.role_deny_request_update_process_msg(process_msg)
 
 
 async def loop():
@@ -149,20 +143,18 @@ async def s(ctx, *args):
     """This function treats a Discord message (context) as a line of arguments and attempts to create a new user subscription"""
     logging.getLogger(__name__).info(f"main.py - Subscription request received from {ctx.message.author}: {args}")
     process_msg = await discord.send_subscription_process_msg(ctx)
-    # Clean data
     valid_user_data, invalid_user_data = await User.discord(_configuration, process_msg, "subscribe", str(ctx.message.author), int(ctx.message.author.id), *args)
     if valid_user_data:
         process_msg = await discord.update_subscription_process_msg(process_msg, 3, None)
         await user.write_db(valid_user_data)
-        # Getting the member from the server (guild)
         guild = await bot.fetch_guild(974431346850140201)
         member = await guild.fetch_member(ctx.author.id)
-
-        # Assuming the role you want to add is named "tester"
         role = nextcord.utils.get(guild.roles, name="tester")
         await member.add_roles(role)
-        process_msg = await discord.update_subscription_process_msg(process_msg, 4, invalid_user_data)
+        await discord.update_subscription_process_msg(process_msg, 4, invalid_user_data)
+        logging.getLogger(__name__).info(f"main.py - Subscription successful for {ctx.message.author}: {valid_user_data}\n\tDenied for: {invalid_user_data}")
     else:
+        await discord.deny_subscription(process_msg)
         logging.getLogger(__name__).info(f"main.py - Subscription denied for {ctx.message.author}: {args}")
 
     if not isinstance(ctx.channel, nextcord.DMChannel):
