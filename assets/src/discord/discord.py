@@ -23,7 +23,7 @@ async def deny_subscription(process_msg):
         "**`✓  1. Add subscription request to queue`**\n"
         "**`✓  2. Gather information`**\n"
         "**`➭  3. Subscribe`**\n"
-        "`    X  Subscription denied`\n"
+        "`   X  Subscription denied`\n"
         "**:warning:` We could not verify the IP as belonging to a node or the port(s) are not open or not correct`**"
     )
 
@@ -171,10 +171,13 @@ async def send(ctx, process_msg, bot, data: List[schemas.Node], configuration):
             if process_msg is not None:
                 logging.getLogger(__name__).debug(f"discord.py - Sending node report to {node_data.name} ({node_data.ip}, L{node_data.layer})")
                 futures.append((asyncio.create_task(ctx.author.send(embed=embed))))
-                logging.getLogger(__name__).debug(f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer})")
+                logging.getLogger(__name__).debug(f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}")
             elif process_msg is None:
-                logging.getLogger(__name__).debug(f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer})")
-                futures.append(asyncio.create_task(bot.get_channel(977357753947402281).send(embed=embed)))
+                guild = await bot.fetch_guild(974431346850140201)
+                member = await guild.fetch_member(ctx.author.id)
+                futures.append(asyncio.create_task(member.send(embed=embed)))
+                logging.getLogger(__name__).debug(f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}")
+
     # if not data:
     #   pass
 
