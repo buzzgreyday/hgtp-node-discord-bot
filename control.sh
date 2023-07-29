@@ -57,7 +57,7 @@ function start_bot() {
     create_dir_structure
     create_swap_file
     start_venv
-    cd "$HOME/bot" && python3 main.py &
+    python3 "$HOME/bot/main.py" &
     echo "Bot: The app started, waiting $WAIT seconds to fetch process ID"
     sleep $WAIT
     pid="$(pidof python3 main.py)"
@@ -77,7 +77,7 @@ function stop_bot() {
 
 
 function update_bot() {
-  if [ ! -d "$HOME/bot/" ]; then
+  if [ ! -d "$HOME/bot" ]; then
     echo "Bot: The bot app doesn't seem to be installed"
     echo
     read -rp "Do you wish to install the bot app? [y]" input
@@ -90,7 +90,7 @@ function update_bot() {
       install_bot
     fi
   else
-    git -C "$HOME/bot/" pull
+    git -C "$HOME/bot" pull
     start_venv
     pip install -r "$HOME/bot/requirements.txt"
   fi
