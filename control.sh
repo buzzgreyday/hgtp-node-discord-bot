@@ -39,15 +39,29 @@ function start_venv() {
 
 
 function start_bot() {
-  create_dir_structure
-  create_swap_file
-  start_venv
-  python3 "$HOME"/bot/main.py &
-  echo "Bot: The app started, waiting $WAIT seconds to fetch process ID"
-  sleep $WAIT
-  pid=$(pidof python3 main.py)
-  echo "Bot: Got process ID $pid"
-  echo "$pid" &> "$HOME/bot/tmp/pid-store"
+  if [ ! -d "$HOME/bot/" ]; then
+    echo "Bot: The bot app doesn't seem to be installed"
+    echo
+    read -rp "Do you wish to install the bot app? [y]" input
+    if [ "$input" == "y" ]; then
+      install_bot
+    elif [ "$input" == "n" ]; then
+      echo "Bot: Ok, the bot app will not be installed, exiting to main menu"
+      sleep $WAIT
+    else
+      install_bot
+    fi
+  else
+    create_dir_structure
+    create_swap_file
+    start_venv
+    python3 "$HOME"/bot/main.py &
+    echo "Bot: The app started, waiting $WAIT seconds to fetch process ID"
+    sleep $WAIT
+    pid=$(pidof python3 main.py)
+    echo "Bot: Got process ID $pid"
+    echo "$pid" &> "$HOME/bot/tmp/pid-store"
+  fi
 }
 
 function stop_bot() {
@@ -76,7 +90,7 @@ function update_bot() {
   else
     git -C "$HOME/bot/" pull
     start_venv
-    python -r "$HOME/bot/requirements.txt"
+    python install -r "$HOME/bot/requirements.txt"
   fi
   main
 }
@@ -87,7 +101,7 @@ function install_bot() {
   fi
   git clone "https://pypergraph:$GITHUB_TOKEN@github.com/pypergraph/hgtp-node-discord-bot" "$HOME/bot/"
   start_venv
-  python -r "$HOME/bot/requirements.txt"
+  python install -r "$HOME/bot/requirements.txt"
   main
 }
 
