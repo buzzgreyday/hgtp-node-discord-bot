@@ -20,10 +20,6 @@ import uvicorn
 with open('config.yml', 'r') as file:
     _configuration = yaml.safe_load(file)
 
-"""CREATE NON-EXISTENT FOLDER STRUCTURE"""
-if not path.exists(_configuration["file settings"]["locations"]["log"]):
-    makedirs(_configuration["file settings"]["locations"]["log"])
-
 """DEFINE LOGGING LEVEL AND LOCATION"""
 logging.basicConfig(filename=_configuration["file settings"]["locations"]["log"], filemode='w',
                     format='[%(asctime)s] %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
