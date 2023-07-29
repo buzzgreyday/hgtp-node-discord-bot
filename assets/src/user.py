@@ -12,7 +12,6 @@ IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4]
 async def check(latest_tessellation_version, requester, all_cluster_data, dt_start, process_msg, _configuration) -> List[schemas.Node]:
     futures = []
     data = []
-    # for (id_, ip, port)
     for lst in await locate_ids(requester, _configuration):
         id_ = lst[0]
         ip = lst[1]
@@ -20,7 +19,6 @@ async def check(latest_tessellation_version, requester, all_cluster_data, dt_sta
         layer = lst[3]
         subscriber = await locate_node(_configuration, requester, id_, ip, port)
         subscriber = pd.DataFrame(subscriber)
-        # for L in list(set(subscriber.layer)):
         futures.append(asyncio.create_task(
             node.check(bot, process_msg, requester, subscriber, port, layer,
                        latest_tessellation_version, all_cluster_data, dt_start,
