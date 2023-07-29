@@ -15,12 +15,9 @@ import nextcord
 from os import path, makedirs
 import yaml
 import uvicorn
-from pathlib import Path
-
-WORKING_DIR = f'{str(Path.home())}/bot'
 
 """LOAD CONFIGURATION"""
-with open(f'{WORKING_DIR}/config.yml', 'r') as file:
+with open('config.yml', 'r') as file:
     _configuration = yaml.safe_load(file)
 
 """CREATE NON-EXISTENT FOLDER STRUCTURE"""
@@ -28,7 +25,7 @@ if not path.exists(_configuration["file settings"]["locations"]["log"]):
     makedirs(_configuration["file settings"]["locations"]["log"])
 
 """DEFINE LOGGING LEVEL AND LOCATION"""
-logging.basicConfig(filename=f'{_configuration["file settings"]["locations"]["log"]}/exec.log', filemode='w',
+logging.basicConfig(filename=_configuration["file settings"]["locations"]["log"], filemode='w',
                     format='[%(asctime)s] %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 
@@ -176,7 +173,7 @@ def run_uvicorn():
     port = 8000
     log_level = 'debug'
     logging.getLogger(__name__).info(f"main.py - Uvicorn running on {host}:{port}")
-    uvicorn.run(database_api, host=host, port=port, log_level=log_level, log_config=f'{WORKING_DIR}/assets/data/logs/bot/uvicorn.ini')
+    uvicorn.run(database_api, host=host, port=port, log_level=log_level, log_config=f'assets/data/logs/bot/uvicorn.ini')
 
 
 if __name__ == "__main__":
