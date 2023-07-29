@@ -7,6 +7,8 @@ function create_dir_structure() {
   if [ ! -d "$HOME/bot/assets/data/db" ]; then
     echo "Bot: Creating $HOME/assets/data/db"
     mkdir -p "$HOME/bot/assets/data/db"
+  elif [ ! -d "$HOME/bot/assets/data/logs/bot" ]; then
+    mkdir -p "$HOME/bot/assets/data/logs/bot"
   elif [ ! -d "$HOME/bot/tmp" ]; then
     echo "Bot: Creating $HOME/bot/tmp"
     mkdir -p "$HOME/bot/tmp"
@@ -55,12 +57,13 @@ function start_bot() {
     create_dir_structure
     create_swap_file
     start_venv
+    tee
     cd "$HOME/bot" && python3 main.py &
     echo "Bot: The app started, waiting $WAIT seconds to fetch process ID"
     sleep $WAIT
     pid=$(pidof python3 main.py)
     echo "Bot: Got process ID $pid"
-    echo "$pid" &> "$HOME/bot/tmp/pid-store"
+    echo "$pid" | tee "$HOME/bot/tmp/pid-store"
   fi
 }
 
