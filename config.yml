@@ -4,9 +4,9 @@ file settings:
     db: assets/data/db/database.db
     log: assets/data/logs/bot/exec.log
 general:
-  loop_init_time: '12:25:00'
+  loop_init_time: '12:00:00'
   loop_interval_minutes: 1
-  name: Hgtp Node Spidr
+  name: Hgtp-Node-Discord-Bot
   notifications:
     free disk space sleep (hours): 6
     free disk space threshold (percentage): 10
@@ -15,7 +15,7 @@ general:
   request retry (count): 3
   request retry interval (sec): 1
   request timeout (sec): 6
-  version: 5-alpha.1
+  version: alpha.1
 modules:
   integrationnet:
     0:

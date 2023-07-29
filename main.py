@@ -12,7 +12,6 @@ from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
 from assets.src.database import api as database_api
 import nextcord
-from os import path, makedirs
 import yaml
 import uvicorn
 
