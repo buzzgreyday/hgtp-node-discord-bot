@@ -112,5 +112,4 @@ function main() {
   fi
 }
 
-
-
+main
