@@ -4,7 +4,7 @@ import nextcord
 from nextcord.ext import commands
 
 """LOAD DISCORD SERVER TOKEN FROM ENVIRONMENT"""
-discord_token = getenv("HGTP_SPIDR_DISCORD_TOKEN")
+discord_token = getenv("DISCORD_TOKEN")
 
 description = '''Bot by hgtp_Michael'''
 intents = nextcord.Intents.all()
