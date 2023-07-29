@@ -32,7 +32,6 @@ function start_venv() {
   if [ ! -d "$HOME/bot/venv" ]; then
     python -m venv "$HOME/bot/venv"
     source "$HOME/bot/venv/bin/activate"
-    python -r "$HOME/bot/requirements.txt"
   else
     source "$HOME/bot/venv/bin/activate"
   fi
@@ -88,6 +87,7 @@ function install_bot() {
   fi
   git clone "https://pypergraph:$GITHUB_TOKEN@github.com/pypergraph/hgtp-node-discord-bot" "$HOME/bot/"
   start_venv
+  python -r "$HOME/bot/requirements.txt"
   main
 }
 
@@ -96,6 +96,7 @@ function main() {
   enco "[2] Stop bot"
   echo "[3] Update bot"
   echo "[4] Install bot"
+  echo "[5] Exit"
   echo
   read -rp "Bot: Choose a number " input
   if [ "$input" == 1 ]; then
@@ -106,7 +107,7 @@ function main() {
     update_bot
   elif [ "$input" == 4 ]; then
     install_bot
-  elif [ "$input" == "exit" ]; then
+  elif [ "$input" == 5 ]; then
     exit 0
   fi
 }
