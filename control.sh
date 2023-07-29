@@ -90,7 +90,7 @@ function update_bot() {
   else
     git -C "$HOME/bot/" pull
     start_venv
-    python install -r "$HOME/bot/requirements.txt"
+    pip install -r "$HOME/bot/requirements.txt"
   fi
   main
 }
@@ -101,7 +101,7 @@ function install_bot() {
   fi
   git clone "https://pypergraph:$GITHUB_TOKEN@github.com/pypergraph/hgtp-node-discord-bot" "$HOME/bot/"
   start_venv
-  python install -r "$HOME/bot/requirements.txt"
+  pip install -r "$HOME/bot/requirements.txt"
   main
 }
 
