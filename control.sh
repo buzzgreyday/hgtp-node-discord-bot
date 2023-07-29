@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+WAIT=3
+
 function create_dir_structure() {
       # Create dir structure
   if [ ! -d "$HOME/assets/data/db" ]; then
@@ -26,11 +28,23 @@ function create_swap_file() {
 }
 
 
+function start_venv() {
+  if [ ! -d $HOME/bot/venv ]; then
+    python -m venv $HOME/bot/venv
+    source $HOME/bot/venv/bin/activate
+  else
+    source $HOME/bot/venv/bin/activate
+  fi
+}
+
+
 function start_bot() {
   create_dir_structure
   create_swap_file
+  start_venv
   python3 "$HOME"/bot/main.py &
-  sleep 3
+  echo "Bot: The app started, waiting $WAIT seconds to fetch process ID"
+  sleep $WAIT
   pid=$(pidof python3 main.py)
   echo "$pid" &> "$HOME/bot/tmp/pid-store"
 }
@@ -43,22 +57,52 @@ function stop_bot() {
   fi
 }
 
+
 function update_bot() {
-  git clone "https://pypergraph:$GITHUB_TOKEN@github.com/pypergraph/hgtp-node-discord-bot"
+  if [ ! -d "$HOME/bot/" ]; then
+    echo "Bot: The bot app doesn't seem to be installed"
+    echo
+    read -rp "Do you wish to install the bot app? [y]", input
+    if [ $input == "y" ]; then
+      install_bot
+      main
+    elif [ $input == "n" ]; then
+      echo "Bot: Ok, the bot app will not be installed, exiting to main menu"
+      sleep $WAIT
+      main
+    else
+      install_bot
+      main
+    fi
+  else
+    git -C "$HOME/bot/" pull
+  fi
 }
 
+function install_bot() {
+  if [ ! -d "$HOME/bot/" ]; then
+    mkdir "$HOME/bot/"
+  fi
+  git clone "https://pypergraph:$GITHUB_TOKEN@github.com/pypergraph/hgtp-node-discord-bot" "$HOME/bot/"
+}
 
-echo "[1] Start bot"
-enco "[2] Stop bot"
-echo "[3] Update bot"
-enco
-read -rp "Bot: Choose a number ", input
-if [ "$input" == 1 ]; then
-  start_bot
-elif [ "$input" == 2 ]; then
-  stop_bot
-elif [ "$input" == 3 ]; then
-  update_bot
-fi
+function main() {
+  echo "[1] Start bot"
+  enco "[2] Stop bot"
+  echo "[3] Update bot"
+  echo "[4] Install bot"
+  echo
+  read -rp "Bot: Choose a number ", input
+  if [ "$input" == 1 ]; then
+    start_bot
+  elif [ "$input" == 2 ]; then
+    stop_bot
+  elif [ "$input" == 3 ]; then
+    update_bot
+  elif [ "$input" == 4 ]; then
+    install_bot
+  fi
+}
+
 
 
