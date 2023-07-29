@@ -1,6 +1,7 @@
 import datetime
 import logging
 from typing import List, Optional
+from pathlib import Path
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -11,7 +12,8 @@ from fastapi.encoders import jsonable_encoder
 from assets.src.schemas import User as UserModel
 from assets.src.schemas import Node as NodeModel
 
-engine = create_async_engine("sqlite+aiosqlite:///assets/data/db/database.db", connect_args={"check_same_thread": False})
+WORKING_DIR = f'{str(Path.home())}/bot'
+engine = create_async_engine(f"sqlite+aiosqlite:///{WORKING_DIR}/assets/data/db/database.db", connect_args={"check_same_thread": False})
 
 SessionLocal = async_sessionmaker(engine, class_=AsyncSession)
 
