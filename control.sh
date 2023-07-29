@@ -55,7 +55,7 @@ function start_bot() {
     create_dir_structure
     create_swap_file
     start_venv
-    python3 "$HOME"/bot/main.py &
+    cd "$HOME/bot" && python3 main.py &
     echo "Bot: The app started, waiting $WAIT seconds to fetch process ID"
     sleep $WAIT
     pid=$(pidof python3 main.py)
