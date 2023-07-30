@@ -150,6 +150,7 @@ function main() {
   elif [ "$input" == 4 ]; then
     install_bot
   elif [ "$input" == 4 ]; then
+    echo $$
     kill $$ && cp "$HOME/bot/control.sh" "$HOME" && bash "$HOME/control.sh"
   elif [ "$input" == 6 ]; then
     exit 0
