@@ -90,7 +90,18 @@ function update_bot() {
       install_bot
     fi
   else
-    git -C "$HOME/bot" pull
+    echo "[1] Master"
+    echo "[2] Develop"
+    echo "[3] Experimental"
+    echo
+    read -rp "Bot: choose a number" input
+    if [ "$input" == 1 ]; then
+      git -C "$HOME/bot" pull
+    elif [ "$input" == 2 ]; then
+      git -C "$HOME/bot" pull origin develop
+    elif [ "$input" == 2 ]; then
+      git -C "$HOME/bot" pull origin experimental
+    fi
     start_venv
     pip install -r "$HOME/bot/requirements.txt"
   fi
