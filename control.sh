@@ -114,7 +114,7 @@ function install_bot() {
   fi
   sudo add-apt-repository ppa:deadsnakes/ppa -y
   sudo apt update
-  sudo apt install python3.11 python3.10-venv -y
+  sudo apt install python3.11 python3.10-venv libcurl4-openssl-dev libssl-dev -y
   git clone "https://pypergraph:$GITHUB_TOKEN@github.com/pypergraph/hgtp-node-discord-bot" "$HOME/bot/"
   start_venv
   pip install -r "$HOME/bot/requirements.txt"
