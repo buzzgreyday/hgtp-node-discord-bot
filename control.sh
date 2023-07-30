@@ -101,6 +101,7 @@ function update_bot() {
       git -C "$HOME/bot" pull origin develop
     elif [ "$input" == 2 ]; then
       git -C "$HOME/bot" pull origin experimental
+    fi
     start_venv
     pip install -r "$HOME/bot/requirements.txt"
   fi
