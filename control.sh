@@ -149,13 +149,11 @@ function main() {
     update_bot
   elif [ "$input" == 4 ]; then
     install_bot
-  elif [ "$input" == 4 ]; then
+  elif [ "$input" == 5 ]; then
     echo $$
     kill $$ && cp "$HOME/bot/control.sh" "$HOME" && bash "$HOME/control.sh"
   elif [ "$input" == 6 ]; then
     exit 0
-  else
-    pass
   fi
 }
 
