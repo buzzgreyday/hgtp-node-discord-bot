@@ -7,9 +7,11 @@ function create_dir_structure() {
   if [ ! -d "$HOME/bot/assets/data/db" ]; then
     echo "Bot: Creating $HOME/assets/data/db"
     mkdir -p "$HOME/bot/assets/data/db"
-  elif [ ! -d "$HOME/bot/assets/data/logs/bot" ]; then
+  fi
+  if [ ! -d "$HOME/bot/assets/data/logs/bot" ]; then
     mkdir -p "$HOME/bot/assets/data/logs/bot"
-  elif [ ! -d "$HOME/bot/tmp" ]; then
+  fi
+  if [ ! -d "$HOME/bot/tmp" ]; then
     echo "Bot: Creating $HOME/bot/tmp"
     mkdir -p "$HOME/bot/tmp"
   fi
@@ -98,8 +100,10 @@ function update_bot() {
     if [ "$input" == 1 ]; then
       git -C "$HOME/bot" pull
     elif [ "$input" == 2 ]; then
+      git checkout master
       git -C "$HOME/bot" pull origin develop
     elif [ "$input" == 2 ]; then
+      git checkout master
       git -C "$HOME/bot" pull origin experimental
     fi
     start_venv
