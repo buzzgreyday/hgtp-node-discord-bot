@@ -32,7 +32,7 @@ function create_swap_file() {
 
 function start_venv() {
   if [ ! -d "$HOME/bot/venv" ]; then
-    python -m venv "$HOME/bot/venv"
+    python3 -m venv "$HOME/bot/venv"
     source "$HOME/bot/venv/bin/activate"
   else
     source "$HOME/bot/venv/bin/activate"
@@ -112,6 +112,9 @@ function install_bot() {
   if [ ! -d "$HOME/bot/" ]; then
     mkdir "$HOME/bot/"
   fi
+  sudo add-apt-repository ppa:deadsnakes/ppa -y
+  sudo apt update
+  sudo apt install python3.11 -y
   git clone "https://pypergraph:$GITHUB_TOKEN@github.com/pypergraph/hgtp-node-discord-bot" "$HOME/bot/"
   start_venv
   pip install -r "$HOME/bot/requirements.txt"
