@@ -21,12 +21,12 @@ function create_dir_structure() {
 function create_swap_file() {
   read -rp "Bot: Create 8GB swap-file? [y] " input
   if [ "$input" == 'y' ]; then
-    swapoff /swap.img && fallocate -l 8G /swapfile && mkswap /swapfile && swapon /swapfile && echo "Bot: Swap-file creation done"
+    sudo swapoff /swap.img && sudo fallocate -l 8G /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile && echo "Bot: Swap-file creation done"
     free -h
   elif [ "$input" == 'n' ]; then
     echo "Bot: Swap-file creation: Skipped"
   else
-    swapoff /swap.img && fallocate -l 8G /swapfile && mkswap /swapfile && swapon /swapfile && echo "Bot: Swap-file creation done"
+    sudo swapoff /swap.img && sudo fallocate -l 8G /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile && echo "Bot: Swap-file creation done"
     free -h
   fi
 }
@@ -103,9 +103,11 @@ function update_bot() {
     elif [ "$input" == 2 ]; then
       git checkout master
       git -C "$HOME/bot" pull origin develop
+      git checkout develop
     elif [ "$input" == 3 ]; then
       git checkout master
       git -C "$HOME/bot" pull origin experimental
+      git checkout experimental
     fi
     start_venv
     pip install -r "$HOME/bot/requirements.txt"
@@ -133,7 +135,7 @@ function install_bot() {
 function main() {
   echo "[1] Start bot"
   echo "[2] Stop bot"
-  echo "[3] Update bot"
+  echo "[3] Change branch and update bot"
   echo "[4] Install bot"
   echo "[5] Exit"
   echo
