@@ -60,7 +60,7 @@ function start_bot() {
     cd "$HOME/bot" && python3 main.py &
     echo "Bot: The app started, waiting $WAIT seconds to fetch process ID"
     sleep $WAIT
-    pid="$(pidof python3 main.py)"
+    pid=$(pidof python3 main.py)
     echo "Bot: Got process ID $pid"
     echo "$pid" &> "$HOME/bot/tmp/pid-store"
   fi
@@ -80,7 +80,7 @@ function update_bot() {
   if [ ! -d "$HOME/bot" ]; then
     echo "Bot: The bot app doesn't seem to be installed"
     echo
-    read -rp "Do you wish to install the bot app? [y]" input
+    read -rp "Do you wish to install the bot app? [y] " input
     if [ "$input" == "y" ]; then
       install_bot
     elif [ "$input" == "n" ]; then
@@ -94,7 +94,7 @@ function update_bot() {
     echo "[2] Develop"
     echo "[3] Experimental"
     echo
-    read -rp "Bot: choose a number" input
+    read -rp "Bot: choose a number " input
     if [ "$input" == 1 ]; then
       git -C "$HOME/bot" pull
     elif [ "$input" == 2 ]; then
@@ -114,7 +114,11 @@ function install_bot() {
   fi
   sudo add-apt-repository ppa:deadsnakes/ppa -y
   sudo apt update
-  sudo apt install python3.11 -y
+  sudo apt install -y pip
+  sudo apt install -y python3.10
+  sudo apt install -y python3.10-venv
+  sudo apt install -y libcurl4-openssl-dev
+  sudo apt install -y libssl-dev
   git clone "https://pypergraph:$GITHUB_TOKEN@github.com/pypergraph/hgtp-node-discord-bot" "$HOME/bot/"
   start_venv
   pip install -r "$HOME/bot/requirements.txt"
