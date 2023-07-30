@@ -133,10 +133,10 @@ function install_bot() {
 }
 
 function main() {
-  echo "[1] Start bot"
-  echo "[2] Stop bot"
-  echo "[3] Change branch and update bot"
-  echo "[4] Install bot"
+  echo "[1] Start Bot"
+  echo "[2] Stop Bot"
+  echo "[3] Update -and Change Bot Branch"
+  echo "[4] Install Bot"
   echo "[5] Exit"
   echo
   read -rp "Bot: Choose number " input
