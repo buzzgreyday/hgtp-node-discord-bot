@@ -114,6 +114,7 @@ function install_bot() {
   fi
   sudo add-apt-repository ppa:deadsnakes/ppa -y
   sudo apt update
+  sudo apt install -y pip
   sudo apt install -y python3.11
   sudo apt install -y python3.10-venv
   sudo apt install -y libcurl4-openssl-dev
