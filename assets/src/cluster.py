@@ -70,6 +70,5 @@ async def get_module_data(process_msg, node_data: schemas.Node, configuration):
         return node_data, process_msg
 
     else:
-        logging.getLogger(__name__).warning(f"main.py - No module found while processing:\n{node_data.dict()}")
-
+        logging.getLogger(__name__).warning(f"cluster.py - No module found while processing:\n{node_data.dict()}")
         return node_data, process_msg

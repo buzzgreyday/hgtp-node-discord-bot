@@ -123,8 +123,10 @@ async def loop():
                 await main(None, None, None, _configuration)
             except Exception as e:
                 logging.getLogger(__name__).info(f"main.py - Traceback:\n\t{traceback.print_exc()}")
+                break
 
         await asyncio.sleep(1)
+    await loop()
 
 
 @bot.event
