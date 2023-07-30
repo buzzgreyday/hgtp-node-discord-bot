@@ -137,8 +137,7 @@ function main() {
   echo "[2] Stop bot"
   echo "[3] Change branch and update bot"
   echo "[4] Install bot"
-  echo "[5] Update control script"
-  echo "[6] Exit"
+  echo "[5] Exit"
   echo
   read -rp "Bot: Choose number " input
   if [ "$input" == 1 ]; then
@@ -150,9 +149,6 @@ function main() {
   elif [ "$input" == 4 ]; then
     install_bot
   elif [ "$input" == 5 ]; then
-    echo $$
-    kill $$ && cp "$HOME/bot/control.sh" "$HOME" && bash "$HOME/control.sh"
-  elif [ "$input" == 6 ]; then
     exit 0
   fi
 }
