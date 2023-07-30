@@ -12,7 +12,7 @@ async def latest_version_github(configuration):
     data = await api.safe_request(
         f"{configuration['tessellation']['github']['url']}/"
         f"{configuration['tessellation']['github']['releases']['latest']}", configuration)
-    vers = data["tag_name"][1:] if data["tag_name"] is not None else latest_version_github(configuration)
+    vers = data["tag_name"][1:] if data is not None else latest_version_github(configuration)
     return vers
 
 
