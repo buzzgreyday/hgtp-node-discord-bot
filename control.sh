@@ -60,7 +60,7 @@ function start_bot() {
     cd "$HOME/bot" && python3 main.py &
     echo "Bot: The app started, waiting $WAIT seconds to fetch process ID"
     sleep $WAIT
-    pid=$(pidof python3 "$HOME/bot/main.py")
+    pid=$(pidof python3 main.py)
     echo "Bot: Got process ID $pid"
     echo "$pid" &> "$HOME/bot/tmp/pid-store"
   fi
