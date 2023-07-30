@@ -80,7 +80,7 @@ function update_bot() {
   if [ ! -d "$HOME/bot" ]; then
     echo "Bot: The bot app doesn't seem to be installed"
     echo
-    read -rp "Do you wish to install the bot app? [y]" input
+    read -rp "Do you wish to install the bot app? [y] " input
     if [ "$input" == "y" ]; then
       install_bot
     elif [ "$input" == "n" ]; then
@@ -94,7 +94,7 @@ function update_bot() {
     echo "[2] Develop"
     echo "[3] Experimental"
     echo
-    read -rp "Bot: choose a number" input
+    read -rp "Bot: choose a number " input
     if [ "$input" == 1 ]; then
       git -C "$HOME/bot" pull
     elif [ "$input" == 2 ]; then
