@@ -78,11 +78,6 @@ function stop_bot() {
 }
 
 
-function choose_repo() {
-
-}
-
-
 function update_bot() {
   if [ ! -d "$HOME/bot" ]; then
     echo "Bot: The bot app doesn't seem to be installed"
