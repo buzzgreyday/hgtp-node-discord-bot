@@ -109,7 +109,11 @@ async def request_snapshot(request_url, configuration):
 
 async def request_reward_addresses_per_snapshot(request_url, configuration):
     data = await api.safe_request(request_url, configuration)
-    return list(data_dictionary["destination"] for data_dictionary in data["data"])
+    if data is not None:
+        return list(data_dictionary["destination"] for data_dictionary in data["data"])
+    else:
+        logging.getLogger(__name__).warning(f"constellation.py - {request_url} not reachable; forcing retry")
+        await request_reward_addresses_per_snapshot(request_url, configuration)
 
 """
     SECTION 2: INDIVIDUAL NODE DATA PROCESSING
