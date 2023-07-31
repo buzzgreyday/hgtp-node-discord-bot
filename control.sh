@@ -21,12 +21,18 @@ function create_dir_structure() {
 function create_swap_file() {
   read -rp "Bot: Create 8GB swap-file? [y] " input
   if [ "$input" == 'y' ]; then
-    sudo swapoff /swap.img && sudo fallocate -l 8G /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile && echo "Bot: Swap-file creation done"
+    if [ -f "/swap.img" ]; then
+      sudo swapoff /swap.img
+    fi
+    sudo fallocate -l 8G /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile && echo "Bot: Swap-file creation done"
     free -h
   elif [ "$input" == 'n' ]; then
     echo "Bot: Swap-file creation: Skipped"
   else
-    sudo swapoff /swap.img && sudo fallocate -l 8G /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile && echo "Bot: Swap-file creation done"
+    if [ -f "/swap.img" ]; then
+      sudo swapoff /swap.img
+    fi
+    sudo fallocate -l 8G /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile && echo "Bot: Swap-file creation done"
     free -h
   fi
 }
