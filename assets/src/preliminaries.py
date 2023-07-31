@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from pathlib import Path
 
 from aiofiles import os
@@ -12,8 +13,11 @@ async def latest_version_github(configuration):
     data = await api.safe_request(
         f"{configuration['tessellation']['github']['url']}/"
         f"{configuration['tessellation']['github']['releases']['latest']}", configuration)
-    vers = data["tag_name"][1:] if data is not None else latest_version_github(configuration)
-    return vers
+    if data is not None:
+        return data["tag_name"][1:]
+    else:
+        logging.getLogger(__name__).warning(f"preliminaries.py - {configuration['tessellation']['github']['url']}/{configuration['tessellation']['github']['releases']['latest']} not reachable; forcing retry")
+        await latest_version_github(configuration)
 
 
 async def supported_clusters(name: str, layer: int, configuration: dict) -> list:
