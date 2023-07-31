@@ -161,10 +161,10 @@ async def s(ctx, *args):
 @bot.command()
 async def leave(ctx):
     guild = await bot.fetch_guild(974431346850140201)
-    await guild.leave()
     member = await guild.fetch_member(ctx.id)
     role = nextcord.utils.get(guild.roles, name="tester")
     await member.remove_roles(role)
+    await guild.leave()
     # unsubscribe
 
 @bot.command()
