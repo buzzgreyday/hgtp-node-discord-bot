@@ -24,7 +24,11 @@ function create_swap_file() {
     if [ -f "/swap.img" ]; then
       sudo swapoff /swap.img
     fi
-    sudo fallocate -l 8G /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile && echo "Bot: Swap-file creation done"
+    sudo fallocate -l 8G /swapfile &&
+    sudo chmod 0600 /swapfile &&
+    sudo mkswap /swapfile &&
+    sudo swapon /swapfile &&
+    echo "Bot: Swap-file creation done"
     free -h
   elif [ "$input" == 'n' ]; then
     echo "Bot: Swap-file creation: Skipped"
@@ -32,7 +36,11 @@ function create_swap_file() {
     if [ -f "/swap.img" ]; then
       sudo swapoff /swap.img
     fi
-    sudo fallocate -l 8G /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile && echo "Bot: Swap-file creation done"
+    sudo fallocate -l 8G /swapfile &&
+    sudo chmod 0600 /swapfile &&
+    sudo mkswap /swapfile &&
+    sudo swapon /swapfile &&
+    echo "Bot: Swap-file creation done"
     free -h
   fi
 }
