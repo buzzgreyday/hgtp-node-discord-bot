@@ -120,7 +120,7 @@ async def update_request_process_msg(process_msg, process_num, foo):
                                           "**`  ✓  Current cluster data`**\n"
                                           "**`  ✓  Historic node data`**\n"
                                           "**`  ✓  Current node data`**\n"
-                                          f"`  >  Now processing {foo.title()} data`\n"
+                                          f"`  >  Processing {foo.title()} data`\n"
                                           "`  3. Report`\n"
                                           "`  *  Build report(s)`\n"
                                           "`  *  Send report(s)`\n")
