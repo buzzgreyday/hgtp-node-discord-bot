@@ -143,7 +143,7 @@ async def s(ctx, *args):
     if valid_user_data:
         process_msg = await discord.update_subscription_process_msg(process_msg, 3, None)
         await user.write_db(valid_user_data)
-        guild, member, role = discord.return_guild_member_role(bot, ctx)
+        guild, member, role = await discord.return_guild_member_role(bot, ctx)
         await member.add_roles(role)
         await discord.update_subscription_process_msg(process_msg, 4, invalid_user_data)
         logging.getLogger(__name__).info(f"main.py - Subscription successful for {ctx.message.author}: {valid_user_data}\n\tDenied for: {invalid_user_data}")
