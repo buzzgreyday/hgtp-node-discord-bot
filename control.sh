@@ -112,16 +112,16 @@ function update_bot() {
     echo
     read -rp "Bot: choose a number " input
     if [ "$input" == 1 ]; then
-      git checkout master
+      git -C "$HOME/bot" checkout master
       git -C "$HOME/bot" pull
     elif [ "$input" == 2 ]; then
-      git checkout master
+      git -C "$HOME/bot" checkout master
       git -C "$HOME/bot" pull origin develop
-      git checkout develop
+      git -C "$HOME/bot" checkout develop
     elif [ "$input" == 3 ]; then
-      git checkout master
+      git -C "$HOME/bot" checkout master
       git -C "$HOME/bot" pull origin experimental
-      git checkout experimental
+      git -C "$HOME/bot" checkout experimental
     fi
     start_venv
     pip install -r "$HOME/bot/requirements.txt"
