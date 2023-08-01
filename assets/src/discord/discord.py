@@ -88,7 +88,6 @@ async def return_guild_member_role(bot, ctx):
     return guild, member, role
 
 
-
 async def update_request_process_msg(process_msg, process_num, foo):
     if process_msg is None:
         return None
