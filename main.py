@@ -104,7 +104,7 @@ async def r(ctx):
     requester = await discord.get_requester(ctx)
     if not isinstance(ctx.channel, nextcord.DMChannel):
         await ctx.message.delete(delay=3)
-    guild, member, role = discord.return_guild_member_role(bot, ctx)
+    guild, member, role = await discord.return_guild_member_role(bot, ctx)
     role = member.get_role(role)
     # role = member.get_role(1134395525727272991)
     if role:
