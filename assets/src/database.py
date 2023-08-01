@@ -1,6 +1,6 @@
 import datetime
 import logging
-from typing import List, Optional
+from typing import Optional
 from pathlib import Path
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
