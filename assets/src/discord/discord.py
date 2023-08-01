@@ -4,6 +4,7 @@ from typing import List
 import logging
 
 from aiofiles import os
+import nextcord
 
 from assets.src import schemas, determine_module
 from assets.src.discord import defaults
@@ -78,6 +79,14 @@ async def send_request_process_msg(ctx):
         "`  3. Report`"
     )
     return msg
+
+
+async def return_guild_member_role(bot, ctx):
+    guild = await bot.fetch_guild(974431346850140201)
+    member = await guild.fetch_member(ctx.author.id)
+    role = nextcord.utils.get(guild.roles, name="tester")
+    return guild, member, role
+
 
 
 async def update_request_process_msg(process_msg, process_num, foo):

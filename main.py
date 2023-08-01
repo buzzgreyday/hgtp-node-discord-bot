@@ -104,10 +104,10 @@ async def r(ctx):
     requester = await discord.get_requester(ctx)
     if not isinstance(ctx.channel, nextcord.DMChannel):
         await ctx.message.delete(delay=3)
-    guild = await bot.fetch_guild(974431346850140201)
-    member = await guild.fetch_member(ctx.author.id)
-    role = member.get_role(1134395525727272991)
-    if role:
+    guild, member, role = discord.return_guild_member_role(bot, ctx)
+    role_name = member.get_role(role)
+    # role = member.get_role(1134395525727272991)
+    if role_name:
         await main(ctx, process_msg, requester, _configuration)
     else:
         logging.getLogger(__name__).info(f"discord.py - User {ctx.message.author} does not have the appropriate role")
@@ -144,9 +144,7 @@ async def s(ctx, *args):
     if valid_user_data:
         process_msg = await discord.update_subscription_process_msg(process_msg, 3, None)
         await user.write_db(valid_user_data)
-        guild = await bot.fetch_guild(974431346850140201)
-        member = await guild.fetch_member(ctx.author.id)
-        role = nextcord.utils.get(guild.roles, name="tester")
+        guild, member, role = discord.return_guild_member_role(bot, ctx)
         await member.add_roles(role)
         await discord.update_subscription_process_msg(process_msg, 4, invalid_user_data)
         logging.getLogger(__name__).info(f"main.py - Subscription successful for {ctx.message.author}: {valid_user_data}\n\tDenied for: {invalid_user_data}")
