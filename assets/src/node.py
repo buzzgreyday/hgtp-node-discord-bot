@@ -38,9 +38,6 @@ async def check(bot, process_msg, requester, subscriber, port, layer, latest_tes
     node_data = await history.node_data(node_data, configuration)
     found_in_cluster, cluster_data = cluster.locate_node(node_data, all_cluster_data)
     loc_timer_stop = dt.timing()[1]
-    """if cluster_data is None:
-        print(node_data.former_cluster_name, node_data.ip, node_data.layer)
-        exit(1)"""
     node_data = merge_data(node_data, found_in_cluster, cluster_data)
     process_msg = await discord.update_request_process_msg(process_msg, 3, None)
     # HERE YOU ALSO NEED A DEFAULT CLUSTER MODULE? THINK ABOUT WHAT SUCH A MODULE COULD CONTRIBUTE WITH
