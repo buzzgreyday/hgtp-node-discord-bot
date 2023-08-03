@@ -156,8 +156,8 @@ async def s(ctx, *args):
 
 @bot.event
 async def on_reaction_add(reaction, author):
-    channel = await bot.get_channel(1136386732628115636)
-    msg = channel.fetch_message(1136640961049546833)
+    channel = bot.get_channel(1136386732628115636)
+    msg = await channel.fetch_message(1136640961049546833)
     if reaction.message.id == msg.id:
         try:
             author.send()
