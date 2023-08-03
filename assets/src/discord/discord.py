@@ -93,11 +93,12 @@ async def track_reactions(ctx, bot):
     def check(reaction, user):
         return user != bot.user and reaction.message.id == verify_msg.id
     timeout = 60
-    greetings = ["Hi", "Hallo", "Greetings"]
-    introduction = ["ready to gain your `verified`role? :robot:",
-                    "you should now be all set to earn your `verified` role:robot:"]
+    greetings = ["Hi", "Hallo", "Greetings", "Well", "Ok"]
+    introduction = ["Ready to claim your `verified`role? :robot:",
+                    "You should now be set to claim your `verified` role:robot:"]
     verify_msg = await ctx.channel.send(
-        f"{random.choice(greetings)} {ctx.message.author.mention}, {random.choice(introduction)}\n"
+        f"{random.choice(greetings)}, {ctx.message.author.mention}.\n"
+        f"{random.choice(introduction)}\n"
         f"Please react to this message with an optional emoji to gain the `verified` role.\n\n"
         f"`This message will burn in {timeout} seconds`")
     try:
