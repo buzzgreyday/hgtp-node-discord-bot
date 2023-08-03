@@ -94,12 +94,12 @@ async def track_reactions(ctx, bot):
         return user != bot.user and reaction.message.id == verify_msg.id
     timeout = 60
     greetings = ["Hi", "Hallo", "Greetings"]
-    introduction = ["Ready to gain your `verified`role? :robot:",
-                    "You should now be able to gain your `verified` role:robot:"]
+    introduction = ["ready to gain your `verified`role? :robot:",
+                    "you should now be all set to earn your `verified` role:robot:"]
     verify_msg = await ctx.channel.send(
         f"{random.choice(greetings)} {ctx.message.author.mention}, {random.choice(introduction)}\n"
-        f"Please react to this message with an optional emoji to gain the `verified` role.\n"
-        f"I will :fire: the messages in {timeout} seconds.")
+        f"Please react to this message with an optional emoji to gain the `verified` role.\n\n"
+        f"`This message will burn in {timeout} seconds`")
     try:
         await bot.wait_for("reaction_add", check=check, timeout=timeout)  # Adjust the timeout as needed
         await ctx.message.author.send("You gained the `verified` role")
@@ -112,8 +112,8 @@ async def track_reactions(ctx, bot):
     except nextcord.Forbidden:
         await ctx.message.delete()
         await verify_msg.delete()
-        msg = await ctx.channel.send(f"I can't believe it {ctx.message.author.mention}!\n"
-                                     f"I would have thought you (of all people) would have read the rules, but it seems you haven't allowed DMing.\n"
+        msg = await ctx.channel.send(f"I can't believe it {ctx.message.author.mention},\n"
+                                     f"You didn't read the rules?!\n"
                                      f"Ok, one more time :robot:\n"
                                      "> * Click the server title at the top of the left menu\n"
                                      "> * Go to `Privacy Settings`\n"
