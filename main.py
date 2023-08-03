@@ -90,7 +90,7 @@ async def on_message(message):
                 f"main.py - Received a command in an non-command channel")
             pass
         elif ctx.message.channel.id == 1136386732628115636:
-            with open("verify_message_id.json", "w") as file:
+            async with open("verify_message_id.json", "w") as file:
                 json.dump({"message_id": ctx.message.id}, file)
         else:
             logging.getLogger(__name__).info(
@@ -161,7 +161,7 @@ async def s(ctx, *args):
 @bot.event
 async def on_reaction_add(reaction, author):
     try:
-        with open("verify_message_id.json", "r") as file:
+        async with open("verify_message_id.json", "r") as file:
             data = json.load(file)
             msg_id = data.get("message_id")
             if msg_id:
