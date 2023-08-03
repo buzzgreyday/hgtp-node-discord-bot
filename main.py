@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.11
 import asyncio
 import gc
 import logging
@@ -83,7 +83,7 @@ async def on_message(message):
         logging.getLogger(__name__).info(f"main.py - Command received from {ctx.message.author} in {ctx.message.channel}")
         await bot.process_commands(message)
     else:
-        if ctx.message.channel.id in (977357753947402281, 974431346850140204, 1030007676257710080, 1134396471639277648):
+        if ctx.message.channel.id in (977357753947402281, 974431346850140204, 1030007676257710080, 1134396471639277648, 1136386732628115636):
             # IGNORE INTERPRETING MESSAGES IN THESE CHANNELS AS COMMANDS
             logging.getLogger(__name__).info(
                 f"main.py - Received a command in an non-command channel")
@@ -105,7 +105,6 @@ async def r(ctx):
     if not isinstance(ctx.channel, nextcord.DMChannel):
         await ctx.message.delete(delay=3)
     guild, member, role = await discord.return_guild_member_role(bot, ctx)
-    role = member.get_role(1134395525727272991)
     if role:
         await main(ctx, process_msg, requester, _configuration)
     else:
@@ -153,6 +152,22 @@ async def s(ctx, *args):
 
     if not isinstance(ctx.channel, nextcord.DMChannel):
         await ctx.message.delete(delay=3)
+
+
+@bot.event
+async def on_reaction_add(reaction, author):
+    channel = await bot.get_channel(1136386732628115636)
+    msg = channel.fetch_message(1136394853022974082)
+    if reaction.message.id == msg.id:
+        try:
+            author.send()
+        except nextcord.Forbidden:
+            logging.getLogger(__name__).info(f"main.py - Verification of {author} denied")
+        except nextcord.HTTPException:
+            guild = await bot.fetch_guild(974431346850140201)
+            role = nextcord.utils.get(guild.roles, name="verified")
+            author.add_roles(role)
+            logging.getLogger(__name__).info(f"main.py - Verification of {author} accepted, granted role")
 
 
 @bot.command()
