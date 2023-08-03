@@ -83,11 +83,14 @@ async def on_message(message):
         logging.getLogger(__name__).info(f"main.py - Command received from {ctx.message.author} in {ctx.message.channel}")
         await bot.process_commands(message)
     else:
-        if ctx.message.channel.id in (977357753947402281, 974431346850140204, 1030007676257710080, 1134396471639277648, 1136386732628115636):
+        if ctx.message.channel.id in (977357753947402281, 974431346850140204, 1030007676257710080, 1134396471639277648):
             # IGNORE INTERPRETING MESSAGES IN THESE CHANNELS AS COMMANDS
             logging.getLogger(__name__).info(
                 f"main.py - Received a command in an non-command channel")
             pass
+        elif ctx.message.channel.id == 1136386732628115636:
+            global verify_msg
+            verify_msg = await ctx.message
         else:
             logging.getLogger(__name__).info(
                 f"main.py - Received an unknown command from {ctx.message.author} in {ctx.message.channel}")
@@ -156,9 +159,7 @@ async def s(ctx, *args):
 
 @bot.event
 async def on_reaction_add(reaction, author):
-    channel = await bot.get_channel(1136386732628115636)
-    msg = channel.fetch_message(1136394853022974082)
-    if reaction.message.id == msg.id:
+    if reaction.message.id == verify_msg.id:
         try:
             author.send()
         except nextcord.Forbidden:
