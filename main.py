@@ -90,7 +90,7 @@ async def on_message(message):
             pass
         elif ctx.message.channel.id == 1136386732628115636:
             global verify_msg
-            verify_msg = await ctx.message
+            verify_msg = ctx.message
         else:
             logging.getLogger(__name__).info(
                 f"main.py - Received an unknown command from {ctx.message.author} in {ctx.message.channel}")
@@ -161,7 +161,7 @@ async def s(ctx, *args):
 async def on_reaction_add(reaction, author):
     if reaction.message.id == verify_msg.id:
         try:
-            author.send()
+            await author.send()
         except nextcord.Forbidden:
             logging.getLogger(__name__).info(f"main.py - Verification of {author} denied")
         except nextcord.HTTPException:
