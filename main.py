@@ -1,6 +1,7 @@
 #!/usr/bin/env python3.11
 import asyncio
 import gc
+import json
 import logging
 import threading
 import traceback
@@ -89,8 +90,8 @@ async def on_message(message):
                 f"main.py - Received a command in an non-command channel")
             pass
         elif ctx.message.channel.id == 1136386732628115636:
-            global verify_msg
-            verify_msg = ctx.message
+            with open("verify_message_id.json", "w") as file:
+                json.dump({"message_id": ctx.message.id}, file)
         else:
             logging.getLogger(__name__).info(
                 f"main.py - Received an unknown command from {ctx.message.author} in {ctx.message.channel}")
@@ -159,7 +160,18 @@ async def s(ctx, *args):
 
 @bot.event
 async def on_reaction_add(reaction, author):
-    if reaction.message.id == verify_msg.id:
+    try:
+        with open("verify_message_id.json", "r") as file:
+            data = json.load(file)
+            msg_id = data.get("message_id")
+            if msg_id:
+                logging.getLogger(__name__).info(f"main.py - Verification message ID found: {msg_id}")
+            else:
+                logging.getLogger(__name__).warning(f"main.py - No verification message ID saved")
+    except FileNotFoundError:
+        logging.getLogger(__name__).warning(f"main.py - No verification message ID found")
+
+    if reaction.message.id == msg_id:
         try:
             await author.send()
         except nextcord.Forbidden:
