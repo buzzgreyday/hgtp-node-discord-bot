@@ -1,7 +1,6 @@
 #!/usr/bin/env python3.11
 import asyncio
 import gc
-import json
 import logging
 import threading
 import traceback
@@ -90,8 +89,9 @@ async def on_message(message):
                 f"main.py - Received a command in an non-command channel")
             pass
         elif ctx.message.channel.id == 1136386732628115636:
-            with open("verify_message_id.json", "w") as file:
-                json.dump({"message_id": ctx.message.id}, file)
+            await discord.track_reactions(ctx, bot)
+            logging.getLogger(__name__).info(
+                f"main.py - Received a message in the verify channel")
         else:
             logging.getLogger(__name__).info(
                 f"main.py - Received an unknown command from {ctx.message.author} in {ctx.message.channel}")
@@ -157,30 +157,6 @@ async def s(ctx, *args):
     if not isinstance(ctx.channel, nextcord.DMChannel):
         await ctx.message.delete(delay=3)
 
-
-@bot.event
-async def on_reaction_add(reaction, author):
-    try:
-        with open("verify_message_id.json", "r") as file:
-            data = json.load(file)
-            msg_id = data.get("message_id")
-            if msg_id:
-                logging.getLogger(__name__).info(f"main.py - Verification message ID found: {msg_id}")
-            else:
-                logging.getLogger(__name__).warning(f"main.py - No verification message ID saved")
-    except FileNotFoundError:
-        logging.getLogger(__name__).warning(f"main.py - No verification message ID found")
-
-    if reaction.message.id == msg_id:
-        try:
-            await author.send()
-        except nextcord.Forbidden:
-            logging.getLogger(__name__).info(f"main.py - Verification of {author} denied")
-        except nextcord.HTTPException:
-            guild = await bot.fetch_guild(974431346850140201)
-            role = nextcord.utils.get(guild.roles, name="verified")
-            author.add_roles(role)
-            logging.getLogger(__name__).info(f"main.py - Verification of {author} accepted, granted role")
 
 
 @bot.command()
