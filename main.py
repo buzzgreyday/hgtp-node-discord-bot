@@ -90,6 +90,7 @@ async def on_message(message):
             pass
         if ctx.message.channel.id == 1136386732628115636:
             msg = await ctx.message
+
         else:
             logging.getLogger(__name__).info(
                 f"main.py - Received an unknown command from {ctx.message.author} in {ctx.message.channel}")
