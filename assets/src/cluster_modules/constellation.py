@@ -609,8 +609,8 @@ def mark_notify(d: schemas.Node, configuration):
             d.notify = True
             d.last_notified_timestamp = d.timestamp_index
         elif d.disk_space_free and d.disk_space_total:
-            logging.getLogger(__name__).info(f'constellation.py - If both values are True, then disk space is small for {d.name}'
-                                             f'({(0 <= float((d.disk_space_free)*100/float(d.disk_space_total)) <= configuration["general"]["notifications"]["free disk space threshold (percentage)"])}{(d.timestamp_index.second - d.last_notified_timestamp.second) >= timedelta(hours=configuration["general"]["notifications"]["free disk space sleep (hours)"]).seconds})')
+            logging.getLogger(__name__).info(f'constellation.py - If the first value is greater than the last value a notification should be sent to {d.name}'
+                                             f'({(d.timestamp_index.second - d.last_notified_timestamp.second), timedelta(hours=configuration["general"]["notifications"]["free disk space sleep (hours)"]).seconds})')
             if (0 <= float((d.disk_space_free)*100/float(d.disk_space_total)) <= configuration["general"]["notifications"]["free disk space threshold (percentage)"]) and (d.timestamp_index.second - d.last_notified_timestamp.second) >= timedelta(hours=configuration["general"]["notifications"]["free disk space sleep (hours)"]).seconds:
                 d.notify = True
                 d.last_notified_timestamp = d.timestamp_index
