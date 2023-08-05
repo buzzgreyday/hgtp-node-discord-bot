@@ -21,11 +21,8 @@ class Request:
                     data = await resp.json()
                     return data
 
-                elif resp.status == 503:
-                    return 503
-
-            del resp
-            await session.close()
+                else:
+                    return None
 
     async def text(self, configuration: dict):
 
@@ -37,10 +34,8 @@ class Request:
                     obj = schemas.NodeMetrics.from_txt(text)
                     del text
                     return obj
-                elif resp.status == 503:
-                    return 503
-            del resp
-            await session.close()
+                else:
+                    return None
 
 
 async def safe_request(request_url: str, configuration: dict):
@@ -51,7 +46,7 @@ async def safe_request(request_url: str, configuration: dict):
                 data = await Request(request_url).text(configuration)
             else:
                 data = await Request(request_url).json(configuration)
-            if retry_count >= configuration['general']['request retry (count)'] or data == 503:
+            if retry_count >= configuration['general']['request retry (count)']:
                 return None
             elif data is not None:
                 return data
