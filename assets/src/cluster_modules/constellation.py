@@ -618,8 +618,6 @@ def mark_notify(d: schemas.Node, configuration):
                     d.last_notified_timestamp = d.timestamp_index
     # IF NO FORMER DATA
     else:
-        logging.getLogger(__name__).info(
-            f'constellation.py - last_notified_timestamp does not exist for {d.name, d.ip, d.layer}')
         if d.reward_state is False:
             d.notify = True
             d.last_notified_timestamp = d.timestamp_index
