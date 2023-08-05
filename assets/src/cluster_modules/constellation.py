@@ -597,23 +597,27 @@ def mark_notify(d: schemas.Node, configuration):
     if d.cluster_connectivity in ("new association", "new dissociation"):
         d.notify = True
         d.last_notified_timestamp = d.timestamp_index
-    elif d.last_notified_timestamp is not None:
-        if d.reward_state is False and (d.timestamp_index.second - d.last_notified_timestamp.second >= timedelta(minutes=configuration["general"]["notifications"]["reward state sleep (minutes)"]).seconds):
+    elif d.last_notified_timestamp:
+        if d.reward_state is False and ((d.timestamp_index.second - d.last_notified_timestamp.second) >= timedelta(minutes=configuration["general"]["notifications"]["reward state sleep (minutes)"]).seconds):
             # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
             """if d["layer"] == 1:
                 d["notify"] = False
             else:"""
             d.notify = True
             d.last_notified_timestamp = d.timestamp_index
-        elif (d.version != d.cluster_version) and (d.timestamp_index.second - d.last_notified_timestamp.second >= timedelta(hours=6).seconds):
+        elif (d.version != d.cluster_version) and ((d.timestamp_index.second - d.last_notified_timestamp.second) >= timedelta(hours=6).seconds):
             d.notify = True
             d.last_notified_timestamp = d.timestamp_index
-        elif d.disk_space_free and d.disk_space_total is not None:
-            if (0 <= float(d.disk_space_free)*100/float(d.disk_space_total) <= configuration["general"]["notifications"]["free disk space threshold (percentage)"]) and (d.timestamp_index.second - d.last_notified_timestamp.second) >= timedelta(hours=configuration["general"]["notifications"]["free disk space sleep (hours)"]).seconds:
+        elif d.disk_space_free and d.disk_space_total:
+            logging.getLogger(__name__).info(f'constellation.py - If both values are True, then disk space is small for {d.name}'
+                                             f'({(0 <= float((d.disk_space_free)*100/float(d.disk_space_total)) <= configuration["general"]["notifications"]["free disk space threshold (percentage)"])}{(d.timestamp_index.second - d.last_notified_timestamp.second) >= timedelta(hours=configuration["general"]["notifications"]["free disk space sleep (hours)"]).seconds})')
+            if (0 <= float((d.disk_space_free)*100/float(d.disk_space_total)) <= configuration["general"]["notifications"]["free disk space threshold (percentage)"]) and (d.timestamp_index.second - d.last_notified_timestamp.second) >= timedelta(hours=configuration["general"]["notifications"]["free disk space sleep (hours)"]).seconds:
                 d.notify = True
                 d.last_notified_timestamp = d.timestamp_index
     # IF NO FORMER DATA
     else:
+        logging.getLogger(__name__).info(
+            f'constellation.py - last_notified_timestamp does not exist for {d.name, d.ip, d.layer}')
         if d.reward_state is False:
             d.notify = True
             d.last_notified_timestamp = d.timestamp_index
