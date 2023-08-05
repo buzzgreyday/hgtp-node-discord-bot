@@ -598,22 +598,24 @@ def mark_notify(d: schemas.Node, configuration):
         d.notify = True
         d.last_notified_timestamp = d.timestamp_index
     elif d.last_notified_timestamp:
-        if d.reward_state is False and ((d.timestamp_index.second - d.last_notified_timestamp.second) >= timedelta(minutes=configuration["general"]["notifications"]["reward state sleep (minutes)"]).seconds):
-            # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
-            """if d["layer"] == 1:
-                d["notify"] = False
-            else:"""
-            d.notify = True
-            d.last_notified_timestamp = d.timestamp_index
+        if d.reward_state is False:
+            if (d.timestamp_index - d.last_notified_timestamp).total_seconds() >= timedelta(
+                    hours=configuration["general"]["notifications"]["free disk space sleep (hours)"]).seconds:
+                # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
+                """if d["layer"] == 1:
+                    d["notify"] = False
+                else:"""
+                d.notify = True
+                d.last_notified_timestamp = d.timestamp_index
         elif (d.version != d.cluster_version) and ((d.timestamp_index.second - d.last_notified_timestamp.second) >= timedelta(hours=6).seconds):
             d.notify = True
             d.last_notified_timestamp = d.timestamp_index
         elif d.disk_space_free and d.disk_space_total:
-            logging.getLogger(__name__).info(f'constellation.py - If the first value is greater than the last value a notification should be sent to {d.name}'
-                                             f'({d.timestamp_index} - {d.last_notified_timestamp} = {d.timestamp_index - d.last_notified_timestamp})')
-            if (0 <= float((d.disk_space_free)*100/float(d.disk_space_total)) <= configuration["general"]["notifications"]["free disk space threshold (percentage)"]) and (d.timestamp_index.second - d.last_notified_timestamp.second) >= timedelta(hours=configuration["general"]["notifications"]["free disk space sleep (hours)"]).seconds:
-                d.notify = True
-                d.last_notified_timestamp = d.timestamp_index
+            if (0 <= float((d.disk_space_free)*100/float(d.disk_space_total)) <= configuration["general"]["notifications"]["free disk space threshold (percentage)"]):
+                if (d.timestamp_index - d.last_notified_timestamp).total_seconds() >= timedelta(
+                        hours=configuration["general"]["notifications"]["free disk space sleep (hours)"]).seconds:
+                    d.notify = True
+                    d.last_notified_timestamp = d.timestamp_index
     # IF NO FORMER DATA
     else:
         logging.getLogger(__name__).info(
