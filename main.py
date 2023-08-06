@@ -92,8 +92,8 @@ async def on_message(message):
             logging.getLogger(__name__).info(
                 f"main.py - Received a message in the verify channel")
             try:
-                await ctx.message.author.send(f"Hi, {ctx.message.author}! You passed the check.\n"
-                                              f"> <#1136386732628115636>")
+                await ctx.message.author.send(f"Hi, {ctx.message.author.mention}! You passed the check.\n"
+                                              f"> {ctx.channel.mention}")
                 await discord.track_reactions(ctx, bot)
             except nextcord.Forbidden:
                 await discord.verification_denied(ctx)
