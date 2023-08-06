@@ -212,6 +212,7 @@ async def get_requester(ctx):
 
 async def send(ctx, process_msg, bot, data: List[schemas.Node], configuration):
     logging.getLogger(__name__).info(f"discord.py - Preparing {len(data)} reports")
+    guild = await bot.fetch_guild(974431346850140201)
     futures = []
     for node_data in data:
         if node_data.notify is True:
@@ -232,11 +233,16 @@ async def send(ctx, process_msg, bot, data: List[schemas.Node], configuration):
                 futures.append((asyncio.create_task(ctx.author.send(embed=embed))))
                 logging.getLogger(__name__).debug(f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}")
             elif process_msg is None:
-                guild = await bot.fetch_guild(974431346850140201)
                 member = await guild.fetch_member(int(node_data.contact))
                 futures.append(asyncio.create_task(member.send(embed=embed)))
                 logging.getLogger(__name__).debug(f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}")
 
     for fut in futures:
-        await fut
+        try:
+            await fut
+        except nextcord.Forbidden:
+            logging.getLogger(__name__).debug(
+                f"discord.py - Discord message could not be sent. The member doesn't allow DMs.")
+
+
 
