@@ -89,9 +89,18 @@ async def on_message(message):
                 f"main.py - Received a command in an non-command channel")
             pass
         elif ctx.message.channel.id == 1136386732628115636:
-            await discord.track_reactions(ctx, bot)
             logging.getLogger(__name__).info(
                 f"main.py - Received a message in the verify channel")
+            try:
+                await ctx.message.author.send("Hallo, I can DM you. Disregard this message and follow the instructions in the <#1136386732628115636> channel.")
+                await discord.track_reactions(ctx, bot)
+            except nextcord.Forbidden:
+                await discord.verification_denied(ctx)
+                logging.getLogger(__name__).info(f"discord.py - Verification of {ctx.message.author} denied")
+            except asyncio.TimeoutError:
+                logging.getLogger(__name__).info(f"discord.py - Verification of {ctx.message.author} denied: timed out")
+                await ctx.message.delete()
+
         else:
             logging.getLogger(__name__).info(
                 f"main.py - Received an unknown command from {ctx.message.author} in {ctx.message.channel}")

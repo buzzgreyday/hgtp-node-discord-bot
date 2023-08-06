@@ -90,45 +90,47 @@ async def return_guild_member_role(bot, ctx):
 
 
 async def track_reactions(ctx, bot):
+    timeout = 60
     def check(reaction, user):
         return user != bot.user and reaction.message.id == verify_msg.id
-    timeout = 60
-    greetings = ["Hi", "Hallo", "Greetings", "Well", "Ok"]
-    introduction = ["Ready to claim your `verified`role? :robot:",
-                    "You should now be set to claim your `verified` role:robot:"]
+    greetings = ["Hi", "Hallo","Yo", "Greetings", "Well", "Ok"]
+    introduction = ["Disregard the DM I sent you. Ready to claim your `verified`role? :robot:",
+                    "Disregard the DM I sent you. You're now able to claim your `verified` role :robot:"]
     verify_msg = await ctx.channel.send(
         f"{random.choice(greetings)}, {ctx.message.author.mention}.\n"
         f"{random.choice(introduction)}\n"
         f"Please react to this message with an optional emoji to gain the `verified` role.\n\n"
         f"`This message will burn in {timeout} seconds`")
-    try:
-        await bot.wait_for("reaction_add", check=check, timeout=timeout)  # Adjust the timeout as needed
-        await ctx.message.author.send("You gained the `verified` role")
-        guild = await bot.fetch_guild(974431346850140201)
-        role = nextcord.utils.get(guild.roles, name="verified")
-        await ctx.message.author.add_roles(role)
-        await ctx.message.delete()
-        await verify_msg.delete()
-        logging.getLogger(__name__).info(f"discord.py - Verification of {ctx.message.author} accepted, granted role")
-    except nextcord.Forbidden:
-        await ctx.message.delete()
-        await verify_msg.delete()
-        msg = await ctx.channel.send(f"I can't believe it {ctx.message.author.mention},\n"
-                                     f"You didn't read the rules?!\n"
-                                     f"Ok, one more time :robot:\n"
-                                     "> * Click the server title at the top of the left menu\n"
-                                     "> * Go to `Privacy Settings`\n"
-                                     "> * Enable/allow `Direct Messages`\n"
-                                     "> * Come back here and write me an electronic message\n"
-                                     "If you're having trouble write <@794353079825727500> a letter.\n\n"
-                                     "`This message will burn in 60 seconds`")
-        await asyncio.sleep(timeout)
-        await msg.delete()
-        logging.getLogger(__name__).info(f"discord.py - Verification of {ctx.message.author} denied")
-    except asyncio.TimeoutError:
-        logging.getLogger(__name__).info(f"discord.py - Verification of {ctx.message.author} denied: timed out")
-        await ctx.message.delete()
-        await verify_msg.delete()
+    await bot.wait_for("reaction_add", check=check, timeout=timeout)  # Adjust the timeout as needed
+    guild = await bot.fetch_guild(974431346850140201)
+    role = nextcord.utils.get(guild.roles, name="verified")
+    await ctx.message.author.add_roles(role)
+    await ctx.channel.send("Thank you for joining. You were successfully assigned the `verified` role. You are now able to subscribe your node(s).\n"
+                           "> See the commands used to subscribe your node IP(s) and port(s) here:\n"
+                           "> <#993895415873273916>\n"
+                           "All commands can also be used (in a private channel) by DMing the Node Robot:\n"
+                           "> <#977302927154769971>\n\n"
+                           f"`This message will burn in {timeout} seconds`")
+
+
+    await ctx.message.delete()
+    await verify_msg.delete()
+    logging.getLogger(__name__).info(f"discord.py - Verification of {ctx.message.author} accepted, granted role")
+
+async def verification_denied(ctx):
+    timeout = 60
+    await ctx.message.delete()
+    msg = await ctx.channel.send(f"I can't believe it {ctx.message.author.mention},\n"
+                                 f"You didn't read the rules?!\n"
+                                 f"Ok, one more time :robot:\n"
+                                 "> * Click the server title at the top of the left menu\n"
+                                 "> * Go to `Privacy Settings`\n"
+                                 "> * Enable/allow `Direct Messages`\n"
+                                 "> * Come back here and write me an electronic message\n"
+                                 "If you're having trouble write <@794353079825727500> a letter.\n\n"
+                                 "`This message will burn in 60 seconds`")
+    await asyncio.sleep(timeout)
+    await msg.delete()
 
 
 async def update_request_process_msg(process_msg, process_num, foo):
