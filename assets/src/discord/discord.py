@@ -127,8 +127,8 @@ async def verification_denied(ctx):
                                  "> * Click the server title at the top of the left menu\n"
                                  "> * Go to `Privacy Settings`\n"
                                  "> * Enable/allow `Direct Messages`\n"
-                                 "> * Come back here and write me an electronic message\n"
-                                 "If you're having trouble write <@794353079825727500> a letter.\n\n"
+                                 "> * Come back here and write me an message\n"
+                                 "If you're having trouble please contact <@794353079825727500>.\n\n"
                                  "`This message will burn in 60 seconds`")
     await asyncio.sleep(timeout)
     await msg.delete()
