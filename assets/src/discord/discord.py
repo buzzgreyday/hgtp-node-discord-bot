@@ -123,7 +123,7 @@ async def verification_denied(ctx):
     timeout = 60
     await ctx.message.delete()
     msg = await ctx.channel.send(f"Hi, {ctx.message.author.mention},\n"
-                                 f"Please allow me to DM you. Otherwise, I can't grant you the `verified` user privileges:\n"
+                                 f"Please allow me to DM you. Otherwise, I can't grant you the `verified` member privileges:\n"
                                  "> * Click the server title at the top of the left menu\n"
                                  "> * Go to `Privacy Settings`\n"
                                  "> * Enable/allow `Direct Messages`\n"
