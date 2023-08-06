@@ -211,7 +211,7 @@ async def get_requester(ctx):
 
 
 async def send(ctx, process_msg, bot, data: List[schemas.Node], configuration):
-    logging.getLogger(__name__).info(f"discord.py - Preparing {len(data)} reports")
+    logging.getLogger(__name__).info(f"discord.py - Handling {len(data)} node(s)")
     guild = await bot.fetch_guild(974431346850140201)
     futures = []
     for node_data in data:
