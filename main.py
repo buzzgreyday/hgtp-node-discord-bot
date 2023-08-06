@@ -126,6 +126,8 @@ async def r(ctx):
             logging.getLogger(__name__).info(f"discord.py - User {ctx.message.author} does not have the appropriate role")
             await discord.role_deny_request_update_process_msg(process_msg)
     else:
+        if not isinstance(ctx.channel, nextcord.DMChannel):
+            await ctx.message.delete(delay=3)
         logging.getLogger(__name__).info(f"discord.py - User {ctx.message.author} does not allow DMs")
 
 
