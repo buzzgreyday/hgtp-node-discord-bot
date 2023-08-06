@@ -98,9 +98,8 @@ async def track_reactions(ctx, bot):
     def check(reaction, user):
         return user != bot.user and reaction.message.id == verify_msg.id
     greetings = ["Hi", "Hallo","Greetings", "Hey"]
-    introduction = ["As you might have noticed, I did some checking and you're DMs are open. Ready to claim your role as a`verified`member? :robot:",
-                    "As you might have noticed, I did some banging on the pipes and you're elible for the role as a `verified` member :robot:",
-                    "Good news! As you might have noticed, I was able to reach you through DM. Therefore you're able to claim the role as a verified member"]
+    introduction = ["As you might have noticed, I did some banging on the data pipelines, they do not sound clogged. Thus, you're elible for the role as a `verified` member :robot:",
+                    "Good news! As you might have noticed, I banged on the data pipelines, they do not sound clogged. You're now able to claim the role as a verified member"]
     verify_msg = await ctx.channel.send(
         f"{random.choice(greetings)}, {ctx.message.author.mention}.\n"
         f"{random.choice(introduction)}\n"
