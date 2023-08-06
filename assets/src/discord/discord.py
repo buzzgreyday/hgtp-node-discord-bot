@@ -94,9 +94,9 @@ async def track_reactions(ctx, bot):
     def check(reaction, user):
         return user != bot.user and reaction.message.id == verify_msg.id
     greetings = ["Hi", "Hallo","Greetings", "Hey"]
-    introduction = ["I did some checking and you're DMs are open. Ready to claim your role as a`verified`member? :robot:",
-                    "I did some banging on the pipes and you're elible for the role as a `verified` member :robot:",
-                    "Good news! I was able to reach you through DM. Therefore you're able to claim the role as a verified member"]
+    introduction = ["As you might have noticed, I did some checking and you're DMs are open. Ready to claim your role as a`verified`member? :robot:",
+                    "As you might have noticed, I did some banging on the pipes and you're elible for the role as a `verified` member :robot:",
+                    "Good news! As you might have noticed, I was able to reach you through DM. Therefore you're able to claim the role as a verified member"]
     verify_msg = await ctx.channel.send(
         f"{random.choice(greetings)}, {ctx.message.author.mention}.\n"
         f"{random.choice(introduction)}\n"
@@ -108,8 +108,8 @@ async def track_reactions(ctx, bot):
     await ctx.message.author.add_roles(role)
     await ctx.message.delete()
     await verify_msg.delete()
-    confirm_msg = await ctx.channel.send(f"Dear {ctx.message.author.mention}.\n"
-                                         "You were successfully assigned the role as a `verified` member. You're now able to subscribe node(s).\n"
+    confirm_msg = await ctx.channel.send(f"Dear {ctx.message.author.mention} :heart:\n"
+                                         f"I assigned you the role as a `verified` member. You're now able to subscribe node(s).\n"
                                          "See how to subscribe your node(s) here:\n"
                                          "> <#993895415873273916>\n"
                                          "All commands can also be used by DMing the Node Robot:\n"

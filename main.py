@@ -93,7 +93,7 @@ async def on_message(message):
                 f"main.py - Received a message in the verify channel")
             try:
                 await ctx.message.author.send(f"Hi, {ctx.message.author.mention}! You passed the check.\n"
-                                              f"> {ctx.channel.mention}")
+                                              f"> Return to the {ctx.channel.mention} channel")
                 await discord.track_reactions(ctx, bot)
             except nextcord.Forbidden:
                 await discord.verification_denied(ctx)
