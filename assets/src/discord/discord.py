@@ -241,12 +241,12 @@ async def send(ctx, process_msg, bot, data: List[schemas.Node], configuration):
                 futures.append(asyncio.create_task(member.send(embed=embed)))
                 logging.getLogger(__name__).debug(f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}")
 
-    for fut in futures:
+    for i, fut in enumerate(futures):
         try:
             await fut
         except nextcord.Forbidden:
-            logging.getLogger(__name__).debug(
-                f"discord.py - Discord message could not be sent. The member doesn't allow DMs.")
+            logging.getLogger(__name__).warning(
+                f"discord.py - Discord message could not be sent to {data[i].name, data[i].ip, data[i].public_port}. The member doesn't allow DMs.")
 
 
 
