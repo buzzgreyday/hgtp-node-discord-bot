@@ -93,7 +93,7 @@ async def track_reactions(ctx, bot):
     timeout = 60
     def check(reaction, user):
         return user != bot.user and reaction.message.id == verify_msg.id
-    greetings = ["Hi", "Hallo","Yo", "Greetings", "Well", "Ok"]
+    greetings = ["Hi", "Hallo","Greetings", "Well", "Ok"]
     introduction = ["Disregard the DM I sent you. Ready to claim your `verified`role? :robot:",
                     "Disregard the DM I sent you. You're now able to claim your `verified` role :robot:"]
     verify_msg = await ctx.channel.send(
@@ -107,9 +107,9 @@ async def track_reactions(ctx, bot):
     await ctx.message.author.add_roles(role)
     await ctx.message.delete()
     await verify_msg.delete()
-    confirm_msg = await ctx.channel.send(f"Dear {ctx.message.author.mention}.\n"
-                                         "Thank you for joining! You were successfully assigned the `verified` role. You are now able to subscribe your node(s).\n"
-                                         "> See the how to subscribe your node(s) here:\n"
+    confirm_msg = await ctx.channel.send(f"Dear {ctx.message.author.mention}, thank you for joining! :heart:\n"
+                                         "You were successfully assigned the `verified` role. You are now able to subscribe your node(s).\n"
+                                         "> See how to subscribe your node(s) here:\n"
                                          "> <#993895415873273916>\n"
                                          "All commands can also be used by DMing the Node Robot:\n"
                                          "> <#977302927154769971>\n\n"
@@ -122,7 +122,7 @@ async def verification_denied(ctx):
     timeout = 60
     await ctx.message.delete()
     msg = await ctx.channel.send(f"Hi {ctx.message.author.mention},\n"
-                                 f"Please allow me to DM you. Otherwise, I can't grant you the `verified` user privileges\n"
+                                 f"Please allow me to DM you. Otherwise, I can't grant you the `verified` user privileges:\n"
                                  "> * Click the server title at the top of the left menu\n"
                                  "> * Go to `Privacy Settings`\n"
                                  "> * Enable/allow `Direct Messages`\n"
