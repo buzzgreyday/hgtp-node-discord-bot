@@ -92,7 +92,7 @@ async def on_message(message):
             logging.getLogger(__name__).info(
                 f"main.py - Received a message in the verify channel")
             try:
-                await ctx.message.author.send("Hallo, I can DM you. Disregard this message and follow the instructions in the <#1136386732628115636> channel.")
+                await ctx.message.author.send("I'm able to reach you through DM. Disregard this message and follow the instructions in the <#1136386732628115636> channel.")
                 await discord.track_reactions(ctx, bot)
             except nextcord.Forbidden:
                 await discord.verification_denied(ctx)
