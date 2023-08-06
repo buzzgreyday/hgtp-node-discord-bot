@@ -122,7 +122,7 @@ async def track_reactions(ctx, bot):
 async def verification_denied(ctx):
     timeout = 60
     await ctx.message.delete()
-    msg = await ctx.channel.send(f"Hi {ctx.message.author.mention},\n"
+    msg = await ctx.channel.send(f"Hi, {ctx.message.author.mention},\n"
                                  f"Please allow me to DM you. Otherwise, I can't grant you the `verified` user privileges:\n"
                                  "> * Click the server title at the top of the left menu\n"
                                  "> * Go to `Privacy Settings`\n"
