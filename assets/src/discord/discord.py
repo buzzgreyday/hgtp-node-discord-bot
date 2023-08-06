@@ -74,12 +74,16 @@ async def update_subscription_process_msg(process_msg, process_num, foo):
 
 
 async def send_request_process_msg(ctx):
-    msg = await ctx.message.author.send(
-        "**`✓ 1. Add report request to queue`**\n"
-        "**`➭ 2. Process data`**\n"
-        "`  3. Report`"
-    )
-    return msg
+    try:
+        msg = await ctx.message.author.send(
+            "**`✓ 1. Add report request to queue`**\n"
+            "**`➭ 2. Process data`**\n"
+            "`  3. Report`"
+        )
+        return msg
+    except nextcord.Forbidden:
+        return None
+
 
 
 async def return_guild_member_role(bot, ctx):
