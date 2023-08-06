@@ -105,16 +105,17 @@ async def track_reactions(ctx, bot):
     guild = await bot.fetch_guild(974431346850140201)
     role = nextcord.utils.get(guild.roles, name="verified")
     await ctx.message.author.add_roles(role)
-    await ctx.channel.send("Thank you for joining. You were successfully assigned the `verified` role. You are now able to subscribe your node(s).\n"
-                           "> See the commands used to subscribe your node IP(s) and port(s) here:\n"
-                           "> <#993895415873273916>\n"
-                           "All commands can also be used (in a private channel) by DMing the Node Robot:\n"
-                           "> <#977302927154769971>\n\n"
-                           f"`This message will burn in {timeout} seconds`")
-
-
     await ctx.message.delete()
     await verify_msg.delete()
+    confirm_msg = await ctx.channel.send(f"Dear {ctx.message.author.mention}.\n"
+                                         "Thank you for joining! You were successfully assigned the `verified` role. You are now able to subscribe your node(s).\n"
+                                         "> See the how to subscribe your node(s) here:\n"
+                                         "> <#993895415873273916>\n"
+                                         "All commands can also be used by DMing the Node Robot:\n"
+                                         "> <#977302927154769971>\n\n"
+                                         f"`This message will burn in {timeout} seconds`")
+    await asyncio.sleep(timeout)
+    await confirm_msg.delete()
     logging.getLogger(__name__).info(f"discord.py - Verification of {ctx.message.author} accepted, granted role")
 
 async def verification_denied(ctx):
