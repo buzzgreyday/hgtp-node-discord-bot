@@ -5,7 +5,7 @@ TIMEOUT = 60
 
 # ROLES HANDLING
 
-def assign_verified(ctx):
+async def assign_verified(ctx):
     verify_msg = await ctx.channel.send(
         f"{random.choice(greeting)}, {ctx.message.author.mention}.\n"
         f"As you might have noticed, I did some banging on the data pipelines, they do not sound clogged. Thus, you're eligible for the role as a `verified` member :robot:\n"
@@ -13,7 +13,7 @@ def assign_verified(ctx):
         f"`This message will burn in {TIMEOUT} seconds`")
     return verify_msg
 
-def confirm_verified(ctx):
+async def confirm_verified(ctx):
     confirm_msg = await ctx.channel.send(f"Dear {ctx.message.author.mention} :heart:\n"
                                          f"I assigned you the role as a `verified` member. You're now able to subscribe node(s).\n"
                                          "See how to subscribe your node(s) here:\n"
@@ -23,7 +23,7 @@ def confirm_verified(ctx):
                                          f"`This message will burn in {TIMEOUT} seconds`")
     return confirm_msg
 
-def deny_verified(ctx):
+async def deny_verified(ctx):
     deny_msg = await ctx.channel.send(f"Hi, {ctx.message.author.mention},\n"
                                       f"Please allow me to DM you. Otherwise, I can't grant you the `verified` member privileges:\n"
                                       "> * Click the server title at the top of the left menu\n"
@@ -38,7 +38,7 @@ def deny_verified(ctx):
 
 # REQUEST HANDLING
 
-def request(ctx):
+async def request(ctx):
     msg = await ctx.message.author.send(
                 "**`✓ 1. Add report request to queue`**\n"
                 "**`➭ 2. Process data`**\n"
