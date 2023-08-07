@@ -1,5 +1,4 @@
 import asyncio
-import random
 from typing import List
 
 import logging
@@ -8,7 +7,7 @@ from aiofiles import os
 import nextcord
 
 from assets.src import schemas, determine_module
-from assets.src.discord import defaults
+from assets.src.discord import defaults, messages
 
 
 async def send_subscription_process_msg(ctx):
@@ -75,11 +74,7 @@ async def update_subscription_process_msg(process_msg, process_num, foo):
 
 async def send_request_process_msg(ctx):
     try:
-        msg = await ctx.message.author.send(
-            "**`✓ 1. Add report request to queue`**\n"
-            "**`➭ 2. Process data`**\n"
-            "`  3. Report`"
-        )
+        msg = messages.request(ctx)
         return msg
     except nextcord.Forbidden:
         return None
@@ -97,27 +92,14 @@ async def track_reactions(ctx, bot):
     timeout = 60
     def check(reaction, user):
         return user != bot.user and reaction.message.id == verify_msg.id
-    greetings = ["Hi", "Hallo","Greetings", "Hey"]
-    introduction = ["As you might have noticed, I did some banging on the data pipelines, they do not sound clogged. Thus, you're elible for the role as a `verified` member :robot:",
-                    "Good news! As you might have noticed, I banged on the data pipelines, they do not sound clogged. You're now able to claim the role as a verified member"]
-    verify_msg = await ctx.channel.send(
-        f"{random.choice(greetings)}, {ctx.message.author.mention}.\n"
-        f"{random.choice(introduction)}\n"
-        f"Please react to this message with an optional emoji to gain the `verified` role.\n\n"
-        f"`This message will burn in {timeout} seconds`")
+    verify_msg = messages.assign_verified(ctx)
     await bot.wait_for("reaction_add", check=check, timeout=timeout)  # Adjust the timeout as needed
     guild = await bot.fetch_guild(974431346850140201)
     role = nextcord.utils.get(guild.roles, name="verified")
     await ctx.message.author.add_roles(role)
     await ctx.message.delete()
     await verify_msg.delete()
-    confirm_msg = await ctx.channel.send(f"Dear {ctx.message.author.mention} :heart:\n"
-                                         f"I assigned you the role as a `verified` member. You're now able to subscribe node(s).\n"
-                                         "See how to subscribe your node(s) here:\n"
-                                         "> <#993895415873273916>\n"
-                                         "All commands can also be used by DMing the Node Robot:\n"
-                                         "> <#977302927154769971>\n\n"
-                                         f"`This message will burn in {timeout} seconds`")
+    confirm_msg = messages.confirm_verified(ctx)
     await asyncio.sleep(timeout)
     await confirm_msg.delete()
     logging.getLogger(__name__).info(f"discord.py - Verification of {ctx.message.author} accepted, granted role")
@@ -125,16 +107,9 @@ async def track_reactions(ctx, bot):
 async def verification_denied(ctx):
     timeout = 60
     await ctx.message.delete()
-    msg = await ctx.channel.send(f"Hi, {ctx.message.author.mention},\n"
-                                 f"Please allow me to DM you. Otherwise, I can't grant you the `verified` member privileges:\n"
-                                 "> * Click the server title at the top of the left menu\n"
-                                 "> * Go to `Privacy Settings`\n"
-                                 "> * Enable/allow `Direct Messages`\n"
-                                 "> * Come back here and write me an message\n"
-                                 "If you're having trouble please contact <@794353079825727500>.\n\n"
-                                 "`This message will burn in 60 seconds`")
+    deny_msg = await messages.deny_verified(ctx)
     await asyncio.sleep(timeout)
-    await msg.delete()
+    await deny_msg.delete()
 
 
 async def update_request_process_msg(process_msg, process_num, foo):
@@ -197,16 +172,6 @@ async def update_request_process_msg(process_msg, process_num, foo):
             return await process_msg.edit("**`✓ 1. Add report request to queue`**\n"
                                           "**`✓ 2. Process data`**\n"
                                           "**`✓ 3. Report`**\n")
-
-
-async def role_deny_request_update_process_msg(process_msg):
-    return await process_msg.edit(
-        "**`➭ 1. Add report request to queue`**\n"
-        "**`  X  You're not a subscriber`**\n"
-        "*`     Please subscribe to request reports`*\n"
-        "`  2. Process data`\n"
-        "`  3. Report`"
-    )
 
 
 async def get_requester(ctx):
