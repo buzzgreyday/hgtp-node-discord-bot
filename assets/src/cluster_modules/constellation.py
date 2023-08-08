@@ -52,7 +52,7 @@ async def request_cluster_data(url, layer, name, configuration):
                                        version=node_resp["version"],
                                        ip=node_resp["host"],
                                        public_port=node_resp["publicPort"],
-                                       peer_count=len(cluster_resp),
+                                       peer_count=len(cluster_resp) if cluster_resp is not None else 0,
                                        latest_ordinal=latest_ordinal,
                                        latest_timestamp=latest_timestamp,
                                        recently_rewarded=addresses,
