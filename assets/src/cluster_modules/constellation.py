@@ -83,7 +83,8 @@ async def locate_rewarded_addresses(layer, name, configuration):
             )))
         addresses = []
         for task in tasks:
-            addresses.extend(await task); addresses = list(set(addresses))
+            addresses.extend(await task)
+            addresses = list(set(addresses))
     except KeyError:
         latest_ordinal = None; latest_timestamp = None; addresses = []
     return latest_ordinal, latest_timestamp, addresses
@@ -102,9 +103,11 @@ async def request_snapshot(request_url, configuration):
             timestamp = datetime.strptime(data["data"]["timestamp"], "%Y-%m-%dT%H:%M:%SZ")
         return ordinal, timestamp
     elif data is None:
-        ordinal = None
+        """ordinal = None
         timestamp = None
-        return ordinal, timestamp
+        return ordinal, timestamp"""
+        await asyncio.sleep(0)
+        await request_snapshot(request_url, configuration)
 
 
 async def request_reward_addresses_per_snapshot(request_url, configuration):
