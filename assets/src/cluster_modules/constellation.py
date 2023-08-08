@@ -56,7 +56,7 @@ async def request_cluster_data(url, layer, name, configuration):
                                        latest_ordinal=latest_ordinal,
                                        latest_timestamp=latest_timestamp,
                                        recently_rewarded=addresses,
-                                       peer_data=sorted(cluster_resp, key=lambda d: d['id'])
+                                       peer_data=sorted(cluster_resp, key=lambda d: d['id']) if cluster_resp is not None else []
                                        )
     await config.update_config_with_latest_values(cluster_data, configuration)
     return cluster_data.dict()
@@ -71,20 +71,21 @@ async def request_cluster_data(url, layer, name, configuration):
 async def locate_rewarded_addresses(layer, name, configuration):
     """layer 1 doesn't have a block explorer: defaulting to 0"""
     try:
+        addresses = []
         latest_ordinal, latest_timestamp = \
             await request_snapshot(
                 f"{configuration['modules'][name][0]['be']['url'][0]}/"
                 f"{configuration['modules'][name][0]['be']['info']['latest snapshot']}", configuration)
-        tasks = []
-        for ordinal in range(latest_ordinal-50, latest_ordinal):
-            tasks.append(asyncio.create_task(request_reward_addresses_per_snapshot(
-                f"{configuration['modules'][name][0]['be']['url'][0]}/"
-                f"global-snapshots/{ordinal}/rewards", configuration
-            )))
-        addresses = []
-        for task in tasks:
-            addresses.extend(await task)
-            addresses = list(set(addresses))
+        if latest_ordinal:
+            tasks = []
+            for ordinal in range(latest_ordinal-50, latest_ordinal):
+                tasks.append(asyncio.create_task(request_reward_addresses_per_snapshot(
+                    f"{configuration['modules'][name][0]['be']['url'][0]}/"
+                    f"global-snapshots/{ordinal}/rewards", configuration
+                )))
+            for task in tasks:
+                addresses.extend(await task)
+                addresses = list(set(addresses))
     except KeyError:
         latest_ordinal = None; latest_timestamp = None; addresses = []
     return latest_ordinal, latest_timestamp, addresses
@@ -103,11 +104,11 @@ async def request_snapshot(request_url, configuration):
             timestamp = datetime.strptime(data["data"]["timestamp"], "%Y-%m-%dT%H:%M:%SZ")
         return ordinal, timestamp
     elif data is None:
-        """ordinal = None
+        ordinal = None
         timestamp = None
-        return ordinal, timestamp"""
-        await asyncio.sleep(0)
-        await request_snapshot(request_url, configuration)
+        return ordinal, timestamp
+        """await asyncio.sleep(0)
+        await request_snapshot(request_url, configuration)"""
 
 
 async def request_reward_addresses_per_snapshot(request_url, configuration):
