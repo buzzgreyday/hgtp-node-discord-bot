@@ -74,7 +74,7 @@ async def update_subscription_process_msg(process_msg, process_num, foo):
 
 async def send_request_process_msg(ctx):
     try:
-        msg = messages.request(ctx)
+        msg = await messages.request(ctx)
         return msg
     except nextcord.Forbidden:
         return None
