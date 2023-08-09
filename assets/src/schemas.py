@@ -84,8 +84,14 @@ class Node(NodeBase, NodeMetrics):
     cluster_check_ordinal: str = None
 
 
-class Cluster(NodeBase):
+class Cluster(BaseModel):
     """Will need to be tied to a wallet! The base model for every cluster data, this object is created pre-user node checks"""
+    name: str
+    id: str = None
+    ip: str = None
+    public_port: int = None
+    layer: int
+    contact: str | int | None
     wallet: str = None
     state: str = "offline"
     peer_count: int = 0
