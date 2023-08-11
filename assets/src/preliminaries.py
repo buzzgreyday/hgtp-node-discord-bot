@@ -22,8 +22,6 @@ async def latest_version_github(configuration):
         else:
             logging.getLogger(__name__).warning(f"preliminaries.py - {configuration['tessellation']['github']['url']}/{configuration['tessellation']['github']['releases']['latest']} not reachable; forcing retry in {sleep} seconds")
             await asyncio.sleep(sleep)
-            await latest_version_github(configuration)
-
 
 async def supported_clusters(name: str, layer: int, configuration: dict) -> schemas.Cluster:
     url = configuration["modules"][name][layer]["url"][0]
