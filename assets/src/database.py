@@ -2,6 +2,8 @@ import datetime
 import logging
 from typing import Optional
 from pathlib import Path
+
+import sqlalchemy.exc
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import select
@@ -136,9 +138,12 @@ async def post_data(data: NodeModel, db: AsyncSession = Depends(get_db)):
     data.index = next_index
     data_dict = data.dict()
     node_data = NodeData(**data_dict)
-    db.add(node_data)
-    await db.commit()
-    await db.refresh(node_data)
+    try:
+        db.add(node_data)
+        await db.commit()
+        await db.refresh(node_data)
+    except sqlalchemy.exc.IntegrityError:
+        print(node_data)
     return jsonable_encoder(data_dict)
 
 
