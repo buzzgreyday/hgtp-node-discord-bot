@@ -26,14 +26,3 @@ async def supported_clusters(name: str, layer: int, configuration: dict) -> list
         module = determine_module.set_module(name, configuration)
         cluster = await module.request_cluster_data(url, layer, name, configuration)
         return cluster
-
-
-async def cluster_data(configuration):
-    tasks = []
-    all_cluster_data = []
-    for name in configuration["modules"].keys():
-        for layer in configuration["modules"][name].keys():
-            tasks.append(asyncio.create_task(supported_clusters(name, layer, configuration)))
-    for task in tasks:
-        all_cluster_data.append(await task)
-    return all_cluster_data

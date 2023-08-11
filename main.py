@@ -34,16 +34,18 @@ def generate_runtimes() -> list:
             range(int((end - start).total_seconds() / 60.0 / (_configuration['general']['loop_interval_minutes'])))]
 
 
-async def main(ctx, process_msg, requester, _configuration) -> None:
+async def main(ctx, process_msg, requester, name, layer, _configuration) -> None:
     if requester is None:
-        logging.getLogger(__name__).info(f"main.py - Automatic check initiated")
+        logging.getLogger(__name__).info(f"main.py - Automatic {name, layer} check initiated")
     else:
         logging.getLogger(__name__).info(f"main.py - Request from {requester} initiated")
     dt_start, timer_start = dt.timing()
     process_msg = await discord.update_request_process_msg(process_msg, 1, None)
     _configuration = await config.load()
+    # Github should be made variable
     latest_tessellation_version = await preliminaries.latest_version_github(_configuration)
-    all_cluster_data = await preliminaries.cluster_data(_configuration)
+    cluster_data = await preliminaries.supported_clusters(name, layer, _configuration)
+    # made it to here
     await bot.wait_until_ready()
     data = await user.check(latest_tessellation_version, requester, all_cluster_data, dt_start, process_msg, _configuration)
     process_msg = await discord.update_request_process_msg(process_msg, 5, None)
@@ -121,7 +123,7 @@ async def r(ctx):
             await ctx.message.delete(delay=3)
         guild, member, role = await discord.return_guild_member_role(bot, ctx)
         if role:
-            await main(ctx, process_msg, requester, _configuration)
+            await main(ctx, process_msg, requester, None, None, _configuration)
         else:
             logging.getLogger(__name__).info(f"discord.py - User {ctx.message.author} does not have the appropriate role")
             await discord.messages.subscriber_role_deny_request(process_msg)
@@ -132,18 +134,22 @@ async def r(ctx):
 
 
 async def loop():
-    times = generate_runtimes()
-    logging.getLogger(__name__).info(f"main.py - Runtime schedule:\n\t{times}")
-    while True:
-        if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
-            try:
-                await main(None, None, None, _configuration)
-            except Exception as e:
-                logging.getLogger(__name__).info(f"main.py - Traceback:\n\t{traceback.print_exc()}")
-                break
+    async def loop_de_loop(name, layer):
+        times = generate_runtimes()
+        logging.getLogger(__name__).info(f"main.py - {name, layer} runtime schedule:\n\t{times}")
+        while True:
+            if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
+                try:
+                    await main(None, None, None, name, layer, _configuration)
+                except Exception as e:
+                    logging.getLogger(__name__).info(f"main.py - {name, layer} traceback:\n\t{traceback.print_exc()}")
+                    break
+            await asyncio.sleep(1)
+        await loop_de_loop()
 
-        await asyncio.sleep(1)
-    await loop()
+    for name in _configuration["modules"].keys():
+        for layer in _configuration["modules"][name].keys():
+            await loop_de_loop(name, layer)
 
 
 @bot.event
