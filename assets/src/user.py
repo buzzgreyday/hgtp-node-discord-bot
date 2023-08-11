@@ -34,7 +34,7 @@ async def check(latest_tessellation_version, name, layer, requester, cluster_dat
 async def locate_ids(layer, requester, _configuration):
     """NOT FUNCTIONING PROPERLY, HERE WE NEED A LIST/SET OF TUPLES CONTAINING ID, IP, PORT"""
     if requester is None:
-        return await api.safe_request(f"http://127.0.0.1:8000/user/ids/{layer}", _configuration)
+        return await api.safe_request(f"http://127.0.0.1:8000/user/ids/layer/{layer}", _configuration)
     else:
         return await api.Request(f"http://127.0.0.1:8000/user/ids/contact/{requester}").json(_configuration)
 

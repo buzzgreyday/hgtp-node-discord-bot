@@ -151,7 +151,7 @@ async def get_users(db: AsyncSession = Depends(get_db)):
     return {"users": users}
 
 
-@api.get("/user/ids/{name}/{layer}")
+@api.get("/user/ids/layer/{layer}")
 async def get_user_ids(name: str, layer: int, db: AsyncSession = Depends(get_db)):
     """INSTEAD RETURN A TUPLE CONTAINING ID, IP, PORT!!!! Returns a list of all user IDs currently subscribed"""
     list_of_tuples = []
