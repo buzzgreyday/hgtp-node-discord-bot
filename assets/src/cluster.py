@@ -45,7 +45,7 @@ def locate_node(node_data: schemas.Node, cluster_data: dict):
         if locate_node_binary(node_data, cluster_data["peer_data"]):
             found = True
             return found, cluster_data
-        if former_cluster == cluster_data["name"]:
+        elif former_cluster == cluster_data["name"]:
             former_cluster = cluster_data
             return found, former_cluster
     # Changed this
