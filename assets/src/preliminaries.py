@@ -12,7 +12,7 @@ WORKING_DIR = f'{str(Path.home())}/bot'
 async def latest_version_github(configuration):
     i = 0
     while True:
-        i = i + i
+        i += 1
         sleep = 3 * i
         data = await api.safe_request(
             f"{configuration['tessellation']['github']['url']}/"
