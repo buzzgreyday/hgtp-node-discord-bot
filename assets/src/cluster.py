@@ -48,6 +48,7 @@ def locate_node(node_data: schemas.Node, cluster_data: dict):
         elif former_cluster == cluster_data["name"]:
             former_cluster = cluster_data
             return found, former_cluster
+    return False, None
     # Changed this
 
 
