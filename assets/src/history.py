@@ -1,4 +1,7 @@
+import asyncio
 from typing import List
+
+import sqlalchemy.exc
 
 from assets.src import schemas, api, database
 
@@ -32,8 +35,14 @@ async def node_data(node_data: schemas.Node, _configuration):
 
 async def write(data: List[schemas.Node]):
     """Write user/subscriber node data from automatic check to database"""
-    async with database.SessionLocal() as session:
-        db = session
-        if data is not None:
-            for d in data:
-                await database.post_data(data=d, db=db)
+    for d in data:
+        while True:
+            try:
+                async with database.SessionLocal() as session:
+                    db = session
+                    if data is not None:
+                        await database.post_data(data=d, db=db)
+                    break
+            except sqlalchemy.exc.IntegrityError:
+                await asyncio.sleep(0)
+
