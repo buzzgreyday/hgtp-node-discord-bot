@@ -46,7 +46,7 @@ async def main(ctx, process_msg, requester, name, layer, _configuration) -> None
     latest_tessellation_version = await preliminaries.latest_version_github(_configuration)
     cluster_data = await preliminaries.supported_clusters(name, layer, _configuration)
     await bot.wait_until_ready()
-    data = await user.check(latest_tessellation_version, requester, cluster_data, dt_start, process_msg, _configuration)
+    data = await user.check(latest_tessellation_version, name, layer, requester, cluster_data, dt_start, process_msg, _configuration)
     process_msg = await discord.update_request_process_msg(process_msg, 5, None)
     data = await determine_module.notify(data, _configuration)
     process_msg = await discord.update_request_process_msg(process_msg, 6, None)
@@ -122,7 +122,9 @@ async def r(ctx):
             await ctx.message.delete(delay=3)
         guild, member, role = await discord.return_guild_member_role(bot, ctx)
         if role:
-            await main(ctx, process_msg, requester, None, None, _configuration)
+            for name in _configuration["modules"].keys():
+                for layer in _configuration["modules"][name].keys():
+                    await main(ctx, process_msg, requester, name, layer, _configuration)
         else:
             logging.getLogger(__name__).info(f"discord.py - User {ctx.message.author} does not have the appropriate role")
             await discord.messages.subscriber_role_deny_request(process_msg)
