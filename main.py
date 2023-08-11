@@ -29,12 +29,14 @@ def generate_runtimes() -> list:
 
     start = datetime.strptime(_configuration['general']['loop_init_time'], "%H:%M:%S")
     end = (datetime.strptime(_configuration['general']['loop_init_time'], "%H:%M:%S") + timedelta(hours=24))
-    return [(start + timedelta(hours=(_configuration['general']['loop_interval_minutes']) * i / 60)).strftime("%H:%M:%S")
-            for i in
-            range(int((end - start).total_seconds() / 60.0 / (_configuration['general']['loop_interval_minutes'])))]
+    return [
+        (start + timedelta(hours=(_configuration['general']['loop_interval_minutes']) * i / 60)).strftime("%H:%M:%S")
+        for i in
+        range(int((end - start).total_seconds() / 60.0 / (_configuration['general']['loop_interval_minutes'])))]
 
 
 async def main(ctx, process_msg, requester, name, layer, _configuration) -> None:
+    print(latest_tessellation_version)
     if requester is None:
         logging.getLogger(__name__).info(f"main.py - Automatic {name, layer} check initiated")
     else:
@@ -43,11 +45,11 @@ async def main(ctx, process_msg, requester, name, layer, _configuration) -> None
     process_msg = await discord.update_request_process_msg(process_msg, 1, None)
     _configuration = await config.load()
     # Github should be made variable
-    latest_tessellation_version = await preliminaries.latest_version_github(_configuration)
     cluster_data = await preliminaries.supported_clusters(name, layer, _configuration)
     print(cluster_data.name, cluster_data.layer)
     await bot.wait_until_ready()
-    data = await user.check(latest_tessellation_version, name, layer, requester, cluster_data, dt_start, process_msg, _configuration)
+    data = await user.check(latest_tessellation_version, name, layer, requester, cluster_data, dt_start, process_msg,
+                            _configuration)
     process_msg = await discord.update_request_process_msg(process_msg, 5, None)
     data = await determine_module.notify(data, _configuration)
     process_msg = await discord.update_request_process_msg(process_msg, 6, None)
@@ -59,9 +61,11 @@ async def main(ctx, process_msg, requester, name, layer, _configuration) -> None
     gc.collect()
     dt_stop, timer_stop = dt.timing()
     if requester is None:
-        logging.getLogger(__name__).info(f"main.py - Automatic {name, layer} check completed in {round(timer_stop - timer_start, 2)} seconds")
+        logging.getLogger(__name__).info(
+            f"main.py - Automatic {name, layer} check completed in {round(timer_stop - timer_start, 2)} seconds")
     else:
-        logging.getLogger(__name__).info(f"main.py - Request from {requester} completed in {round(timer_stop - timer_start, 2)} seconds")
+        logging.getLogger(__name__).info(
+            f"main.py - Request from {requester} completed in {round(timer_stop - timer_start, 2)} seconds")
 
 
 async def command_error(ctx, bot):
@@ -82,7 +86,8 @@ async def on_message(message):
         return
     ctx = await bot.get_context(message)
     if ctx.valid:
-        logging.getLogger(__name__).info(f"main.py - Command received from {ctx.message.author} in {ctx.message.channel}")
+        logging.getLogger(__name__).info(
+            f"main.py - Command received from {ctx.message.author} in {ctx.message.channel}")
         await bot.process_commands(message)
     else:
         if ctx.message.channel.id in (977357753947402281, 974431346850140204, 1030007676257710080, 1134396471639277648):
@@ -127,12 +132,18 @@ async def r(ctx):
                 for layer in _configuration["modules"][name].keys():
                     await main(ctx, process_msg, requester, name, layer, _configuration)
         else:
-            logging.getLogger(__name__).info(f"discord.py - User {ctx.message.author} does not have the appropriate role")
+            logging.getLogger(__name__).info(
+                f"discord.py - User {ctx.message.author} does not have the appropriate role")
             await discord.messages.subscriber_role_deny_request(process_msg)
     else:
         if not isinstance(ctx.channel, nextcord.DMChannel):
             await ctx.message.delete(delay=3)
         logging.getLogger(__name__).info(f"discord.py - User {ctx.message.author} does not allow DMs")
+
+
+def tessllation_updater():
+    global latest_tessellation_version
+    latest_tessellation_version = await preliminaries.latest_version_github(_configuration)
 
 
 async def loop():
@@ -141,6 +152,7 @@ async def loop():
         logging.getLogger(__name__).info(f"main.py - {name, layer} runtime schedule:\n\t{times}")
         while True:
             if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
+
                 try:
                     await main(None, None, None, name, layer, _configuration)
                 except Exception as e:
@@ -154,7 +166,7 @@ async def loop():
         for layer in _configuration["modules"][name].keys():
             tasks.append(asyncio.create_task(loop_de_loop(name, layer)))
     for task in tasks:
-            await task
+        await task
 
 
 @bot.event
@@ -168,21 +180,22 @@ async def s(ctx, *args):
     """This function treats a Discord message (context) as a line of arguments and attempts to create a new user subscription"""
     logging.getLogger(__name__).info(f"main.py - Subscription request received from {ctx.message.author}: {args}")
     process_msg = await discord.send_subscription_process_msg(ctx)
-    valid_user_data, invalid_user_data = await User.discord(_configuration, process_msg, "subscribe", str(ctx.message.author), int(ctx.message.author.id), *args)
+    valid_user_data, invalid_user_data = await User.discord(_configuration, process_msg, "subscribe",
+                                                            str(ctx.message.author), int(ctx.message.author.id), *args)
     if valid_user_data:
         process_msg = await discord.update_subscription_process_msg(process_msg, 3, None)
         await user.write_db(valid_user_data)
         guild, member, role = await discord.return_guild_member_role(bot, ctx)
         await member.add_roles(role)
         await discord.update_subscription_process_msg(process_msg, 4, invalid_user_data)
-        logging.getLogger(__name__).info(f"main.py - Subscription successful for {ctx.message.author}: {valid_user_data}\n\tDenied for: {invalid_user_data}")
+        logging.getLogger(__name__).info(
+            f"main.py - Subscription successful for {ctx.message.author}: {valid_user_data}\n\tDenied for: {invalid_user_data}")
     else:
         await discord.deny_subscription(process_msg)
         logging.getLogger(__name__).info(f"main.py - Subscription denied for {ctx.message.author}: {args}")
 
     if not isinstance(ctx.channel, nextcord.DMChannel):
         await ctx.message.delete(delay=3)
-
 
 
 @bot.command()
@@ -212,10 +225,11 @@ def run_uvicorn():
 
 
 if __name__ == "__main__":
-
     bot.loop.create_task(loop())
 
     # Create a thread for running uvicorn
     uvicorn_thread = threading.Thread(target=run_uvicorn)
+    tessellation_updater_thread = threading.Thread(target=tessllation_updater)
     uvicorn_thread.start()
+    tessellation_updater_thread.start()
     bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))

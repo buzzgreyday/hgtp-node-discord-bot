@@ -13,7 +13,7 @@ async def latest_version_github(configuration):
     i = 0
     while True:
         i += 1
-        sleep = 3 * i
+        sleep = 3 ** i
         data = await api.safe_request(
             f"{configuration['tessellation']['github']['url']}/"
             f"{configuration['tessellation']['github']['releases']['latest']}", configuration)
