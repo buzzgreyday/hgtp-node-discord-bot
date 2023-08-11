@@ -179,11 +179,11 @@ async def get_node(ip: str, public_port: int, db: AsyncSession = Depends(get_db)
     return {"node": node}
 
 
-@api.get("/user/ids/contact/{contact}")
-async def get_contact_node_id(contact, db: AsyncSession = Depends(get_db)):
+@api.get("/user/ids/contact/{contact}/layer/{layer}")
+async def get_contact_node_id(contact, layer, db: AsyncSession = Depends(get_db)):
     """INSTEAD RETURN A TUPLE CONTAINING ID, IP, PORT!!!! Return user by contact"""
     list_of_tuples = []
-    results = await db.execute(select(User).where(User.contact == contact))
+    results = await db.execute(select(User).where((User.contact == contact) & (User.layer == layer)))
     ids = results.scalars().all()
     for values in ids:
         list_of_tuples.append((values.id, values.ip, values.public_port, values.layer))

@@ -36,7 +36,7 @@ async def locate_ids(layer, requester, _configuration):
     if requester is None:
         return await api.safe_request(f"http://127.0.0.1:8000/user/ids/layer/{layer}", _configuration)
     else:
-        return await api.Request(f"http://127.0.0.1:8000/user/ids/contact/{requester}").json(_configuration)
+        return await api.Request(f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}").json(_configuration)
 
 
 async def locate_node(_configuration, requester, id_, ip, port):
