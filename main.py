@@ -147,6 +147,7 @@ async def loop():
                     break
             await asyncio.sleep(1)
         await loop_de_loop(name, layer)
+
     tasks = []
     for name in _configuration["modules"].keys():
         for layer in _configuration["modules"][name].keys():
