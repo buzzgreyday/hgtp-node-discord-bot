@@ -48,6 +48,7 @@ async def main(ctx, process_msg, requester, name, layer, _configuration) -> None
     await bot.wait_until_ready()
     data = await user.check(latest_tessellation_version, requester, cluster_data, dt_start, process_msg, _configuration)
     process_msg = await discord.update_request_process_msg(process_msg, 5, None)
+    print(data)
     data = await determine_module.notify(data, _configuration)
     process_msg = await discord.update_request_process_msg(process_msg, 6, None)
     if process_msg is None:

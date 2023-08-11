@@ -37,18 +37,16 @@ async def check(bot, process_msg, requester, subscriber, port, layer, latest_tes
     loc_timer_start = dt.timing()[1]
     node_data = await history.node_data(node_data, configuration)
     found_in_cluster, cluster_data = cluster.locate_node(node_data, cluster_data)
-    if found_in_cluster and cluster_data:
-        loc_timer_stop = dt.timing()[1]
-        node_data = merge_data(node_data, found_in_cluster, cluster_data)
-        process_msg = await discord.update_request_process_msg(process_msg, 3, None)
-        # HERE YOU ALSO NEED A DEFAULT CLUSTER MODULE? THINK ABOUT WHAT SUCH A MODULE COULD CONTRIBUTE WITH
-        node_data, process_msg = await cluster.get_module_data(process_msg, node_data, configuration)
-        if node_data.cluster_name is not None and cluster_data is not None and configuration["modules"][node_data.cluster_name][node_data.layer]["rewards"]:
-            node_data = determine_module.set_module(node_data.cluster_name, configuration).check_rewards(node_data, cluster_data)
-        elif node_data.former_cluster_name is not None and cluster_data is not None and configuration["modules"][node_data.former_cluster_name][node_data.layer]["rewards"]:
-            node_data = determine_module.set_module(node_data.former_cluster_name, configuration).check_rewards(node_data, cluster_data)
-        elif node_data.last_known_cluster_name is not None and cluster_data is not None and configuration["modules"][node_data.last_known_cluster_name][node_data.layer]["rewards"]:
-            node_data = determine_module.set_module(node_data.last_known_cluster_name, configuration).check_rewards(node_data, cluster_data)
+    loc_timer_stop = dt.timing()[1]
+    node_data = merge_data(node_data, found_in_cluster, cluster_data)
+    process_msg = await discord.update_request_process_msg(process_msg, 3, None)
+    # HERE YOU ALSO NEED A DEFAULT CLUSTER MODULE? THINK ABOUT WHAT SUCH A MODULE COULD CONTRIBUTE WITH
+    node_data, process_msg = await cluster.get_module_data(process_msg, node_data, configuration)
+    if node_data.cluster_name is not None and cluster_data is not None and configuration["modules"][node_data.cluster_name][node_data.layer]["rewards"]:
+        node_data = determine_module.set_module(node_data.cluster_name, configuration).check_rewards(node_data, cluster_data)
+    elif node_data.former_cluster_name is not None and cluster_data is not None and configuration["modules"][node_data.former_cluster_name][node_data.layer]["rewards"]:
+        node_data = determine_module.set_module(node_data.former_cluster_name, configuration).check_rewards(node_data, cluster_data)
+    elif node_data.last_known_cluster_name is not None and cluster_data is not None and configuration["modules"][node_data.last_known_cluster_name][node_data.layer]["rewards"]:
+        node_data = determine_module.set_module(node_data.last_known_cluster_name, configuration).check_rewards(node_data, cluster_data)
 
-        return node_data, process_msg
-    return None, process_msg
+    return node_data, process_msg
