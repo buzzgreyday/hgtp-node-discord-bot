@@ -146,7 +146,7 @@ async def loop():
                     logging.getLogger(__name__).info(f"main.py - {name, layer} traceback:\n\t{traceback.print_exc()}")
                     break
             await asyncio.sleep(1)
-        await loop_de_loop()
+        await loop_de_loop(name, layer)
     tasks = []
     for name in _configuration["modules"].keys():
         for layer in _configuration["modules"][name].keys():
