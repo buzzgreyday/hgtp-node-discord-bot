@@ -31,7 +31,7 @@ from assets.src import schemas, config, cluster, api
 # ---------------------------------------------------------------------------------------------------------------------
 
 
-async def request_cluster_data(url, layer, name, configuration):
+async def request_cluster_data(url, layer, name, configuration) -> schemas.Cluster:
     cluster_resp = await api.safe_request(
         f"{url}/{configuration['modules'][name][layer]['info']['cluster']}", configuration)
     node_resp = await api.safe_request(
@@ -59,7 +59,7 @@ async def request_cluster_data(url, layer, name, configuration):
                                        peer_data=sorted(cluster_resp, key=lambda d: d['id']) if cluster_resp is not None else []
                                        )
     await config.update_config_with_latest_values(cluster_data, configuration)
-    return cluster_data.dict()
+    return cluster_data
 
 # THE ABOVE FUNCTION ALSO REQUEST THE MOST RECENT REWARDED ADDRESSES. THIS FUNCTION LOCATES THESE ADDRESSES BY
 # REQUESTING THE RELEVANT API'S.

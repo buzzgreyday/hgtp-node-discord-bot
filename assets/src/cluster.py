@@ -1,4 +1,3 @@
-# Third-party imports
 import logging
 
 from aiofiles import os
@@ -32,7 +31,7 @@ async def locate_id_offline(layer, name, configuration):
     return configuration["modules"][name][layer]["id"]
 
 
-def locate_node(node_data: schemas.Node, cluster_data: dict):
+def locate_node(node_data: schemas.Node, cluster_data: schemas.Cluster):
     """THIS IS THE REASON A CLUSTER CAN COME OUT AS NONE!!! This function loops through all cluster data supported by the bot and returns the relevant cluster data"""
     found = False
     for val in (node_data.former_cluster_name, node_data.last_known_cluster_name):
@@ -41,11 +40,11 @@ def locate_node(node_data: schemas.Node, cluster_data: dict):
             break
         else:
             former_cluster = None
-    if cluster_data["layer"] == node_data.layer:
-        if locate_node_binary(node_data, cluster_data["peer_data"]):
+    if cluster_data.layer == node_data.layer:
+        if locate_node_binary(node_data, cluster_data.peer_data):
             found = True
             return found, cluster_data
-        elif former_cluster == cluster_data["name"]:
+        elif former_cluster == cluster_data.name:
             former_cluster = cluster_data
             return found, former_cluster
     return False, None
