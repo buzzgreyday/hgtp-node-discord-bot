@@ -23,7 +23,7 @@ async def check(latest_tessellation_version, requester, cluster_data, dt_start, 
             subscriber = pd.DataFrame(subscriber)
             futures.append(asyncio.create_task(
                 node.check(bot, process_msg, requester, subscriber, port, layer,
-                           latest_tessellation_version, all_cluster_data, dt_start,
+                           latest_tessellation_version, cluster_data, dt_start,
                            _configuration)))
         for async_process in futures:
             d, process_msg = await async_process
