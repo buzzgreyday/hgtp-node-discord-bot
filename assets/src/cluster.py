@@ -32,7 +32,7 @@ async def locate_id_offline(layer, name, configuration):
     return configuration["modules"][name][layer]["id"]
 
 
-def locate_node(node_data: schemas.Node, all_cluster_data: List[dict]):
+def locate_node(node_data: schemas.Node, cluster_data: dict):
     """THIS IS THE REASON A CLUSTER CAN COME OUT AS NONE!!! This function loops through all cluster data supported by the bot and returns the relevant cluster data"""
     found = False
     for val in (node_data.former_cluster_name, node_data.last_known_cluster_name):
@@ -41,13 +41,12 @@ def locate_node(node_data: schemas.Node, all_cluster_data: List[dict]):
             break
         else:
             former_cluster = None
-    for cluster in all_cluster_data:
-        if cluster["layer"] == node_data.layer:
-            if locate_node_binary(node_data, cluster["peer_data"]):
-                found = True
-                return found, cluster
-            if former_cluster == cluster["name"]:
-                former_cluster = cluster
+    if cluster_data["layer"] == node_data.layer:
+        if locate_node_binary(node_data, cluster_data["peer_data"]):
+            found = True
+            return found, cluster_data
+        if former_cluster == cluster_data["name"]:
+            former_cluster = cluster_data
     return found, former_cluster
     # Changed this
 
