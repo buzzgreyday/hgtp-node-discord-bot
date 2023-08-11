@@ -143,7 +143,7 @@ async def post_data(data: NodeModel, db: AsyncSession = Depends(get_db)):
         await db.commit()
         await db.refresh(node_data)
     except sqlalchemy.exc.IntegrityError:
-        print(data_dict)
+        await post_data(data, db)
     return jsonable_encoder(data_dict)
 
 
