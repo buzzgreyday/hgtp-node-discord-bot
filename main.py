@@ -145,10 +145,12 @@ async def loop():
                     break
             await asyncio.sleep(1)
         await loop_de_loop()
-
+    tasks = []
     for name in _configuration["modules"].keys():
         for layer in _configuration["modules"][name].keys():
-            await loop_de_loop(name, layer)
+            tasks.append(asyncio.create_task(loop_de_loop(name, layer)))
+    for task in tasks:
+            await task
 
 
 @bot.event
