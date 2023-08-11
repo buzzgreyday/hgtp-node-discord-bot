@@ -152,10 +152,10 @@ async def get_users(db: AsyncSession = Depends(get_db)):
 
 
 @api.get("/user/ids/layer/{layer}")
-async def get_user_ids(name: str, layer: int, db: AsyncSession = Depends(get_db)):
+async def get_user_ids(layer: int, db: AsyncSession = Depends(get_db)):
     """INSTEAD RETURN A TUPLE CONTAINING ID, IP, PORT!!!! Returns a list of all user IDs currently subscribed"""
     list_of_tuples = []
-    results = await db.execute(select(User).where((User.layer == layer) & (User.name == name)))
+    results = await db.execute(select(User).where(User.layer == layer))
     ids = results.scalars().all()
     for values in ids:
         list_of_tuples.append((values.id, values.ip, values.public_port))
