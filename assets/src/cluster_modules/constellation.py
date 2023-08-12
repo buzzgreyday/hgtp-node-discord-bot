@@ -598,6 +598,7 @@ def build_embed(node_data: schemas.Node, module_name):
 
 def mark_notify(d: schemas.Node, configuration):
     # The hardcoded values should be adjustable in config_new.yml
+    print(d.cluster_connectivity)
     if d.cluster_connectivity in ("new association", "new dissociation"):
         d.notify = True
         d.last_notified_timestamp = d.timestamp_index
@@ -622,10 +623,7 @@ def mark_notify(d: schemas.Node, configuration):
                     d.last_notified_timestamp = d.timestamp_index
     # IF NO FORMER DATA
     else:
-        if d.cluster_connectivity in ("new association", "new dissociation"):
-            d.notify = True
-            d.last_notified_timestamp = d.timestamp_index
-        elif d.reward_state is False:
+        if d.reward_state is False:
             d.notify = True
             d.last_notified_timestamp = d.timestamp_index
         elif d.version != d.cluster_version:
