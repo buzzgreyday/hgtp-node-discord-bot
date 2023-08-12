@@ -182,23 +182,23 @@ async def main(ctx, process_msg, requester, name, layer, _configuration) -> None
 
 
 async def loop():
-    async def loop_de_loop(name, layer):
+    async def loop_per_cluster_and_layer(cluster_name, layer):
         times = preliminaries.generate_runtimes(_configuration)
-        logging.getLogger(__name__).info(f"main.py - {name, layer} runtime schedule:\n\t{times}")
+        logging.getLogger(__name__).info(f"main.py - {cluster_name, layer} runtime schedule:\n\t{times}")
         while True:
             if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
                 try:
-                    await main(None, None, None, name, layer, _configuration)
+                    await main(None, None, None, cluster_name, layer, _configuration)
                 except Exception as e:
-                    logging.getLogger(__name__).info(f"main.py - {name, layer} traceback:\n\t{traceback.print_exc()}")
+                    logging.getLogger(__name__).info(f"main.py - {cluster_name, layer} traceback:\n\t{traceback.print_exc()}")
                     break
             await asyncio.sleep(1)
-        await loop_de_loop(name, layer)
+        await loop_per_cluster_and_layer(cluster_name, layer)
 
     tasks = []
-    for name in _configuration["modules"].keys():
-        for layer in _configuration["modules"][name].keys():
-            tasks.append(asyncio.create_task(loop_de_loop(name, layer)))
+    for cluster_name in _configuration["modules"].keys():
+        for layer in _configuration["modules"][cluster_name].keys():
+            tasks.append(asyncio.create_task(loop_per_cluster_and_layer(cluster_name, layer)))
     for task in tasks:
         await task
 
