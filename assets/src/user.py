@@ -38,7 +38,7 @@ async def node_status_check(process_msg, requester, subscriber, latest_tessellat
     return node_data, process_msg
 
 
-async def process_node_data_per_user(latest_tessellation_version, name, layer, ids, requester, cluster_data, dt_start, process_msg, _configuration) -> List[schemas.Node]:
+async def process_node_data_per_user(latest_tessellation_version, name, ids, requester, cluster_data, process_msg, _configuration) -> List[schemas.Node]:
     futures = []
     data = []
     if ids is not None:
