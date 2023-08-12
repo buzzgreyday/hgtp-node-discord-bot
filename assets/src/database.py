@@ -13,8 +13,7 @@ from fastapi.encoders import jsonable_encoder
 from assets.src.schemas import User as UserModel
 from assets.src.schemas import Node as NodeModel
 
-WORKING_DIR = f'{str(Path.home())}/bot'
-engine = create_async_engine(f"sqlite+aiosqlite:///{WORKING_DIR}/assets/data/db/database.db", connect_args={"check_same_thread": False})
+engine = create_async_engine(f"sqlite+aiosqlite:///assets/data/db/database.db", connect_args={"check_same_thread": False})
 
 SessionLocal = async_sessionmaker(engine, class_=AsyncSession)
 

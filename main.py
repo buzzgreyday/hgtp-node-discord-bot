@@ -3,8 +3,11 @@ import asyncio
 import gc
 import logging
 import threading
+import time
 import traceback
 from datetime import datetime
+
+import requests as requests
 
 from assets.src.schemas import User
 from assets.src import history, config, dt, preliminaries, user, determine_module
@@ -53,7 +56,7 @@ async def main(ctx, process_msg, requester, name, layer, _configuration) -> None
     process_msg = await discord.update_request_process_msg(process_msg, 5, None)
     data = await determine_module.notify(data, _configuration)
     process_msg = await discord.update_request_process_msg(process_msg, 6, None)
-    if process_msg is None:
+    if not process_msg:
         await history.write(data)
     await discord.send(ctx, process_msg, bot, data, _configuration)
     await discord.update_request_process_msg(process_msg, 7, None)
@@ -141,9 +144,21 @@ async def r(ctx):
         logging.getLogger(__name__).info(f"discord.py - User {ctx.message.author} does not allow DMs")
 
 
-def tessllation_updater():
+def get_tessellation_version():
     global latest_tessellation_version
-    latest_tessellation_version = await preliminaries.latest_version_github(_configuration)
+    latest_tessellation_version = "0"
+    i = 0
+    while True:
+        i += 1
+        sleep = 3 ** i
+        res = requests.get(f"{_configuration['tessellation']['github']['url']}/"
+                           f"{_configuration['tessellation']['github']['releases']['latest']}")
+        if res:
+            latest_tessellation_version = res.json()["tag_name"][1:]
+            time.sleep(30)
+        else:
+            logging.getLogger(__name__).warning(f"preliminaries.py - {_configuration['tessellation']['github']['url']}/{_configuration['tessellation']['github']['releases']['latest']} not reachable; forcing retry in {sleep} seconds")
+            time.sleep(sleep)
 
 
 async def loop():
@@ -229,7 +244,7 @@ if __name__ == "__main__":
 
     # Create a thread for running uvicorn
     uvicorn_thread = threading.Thread(target=run_uvicorn)
-    tessellation_updater_thread = threading.Thread(target=tessllation_updater)
+    get_tessellation_version_thread = threading.Thread(target=get_tessellation_version)
+    get_tessellation_version_thread.start()
     uvicorn_thread.start()
-    tessellation_updater_thread.start()
     bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))

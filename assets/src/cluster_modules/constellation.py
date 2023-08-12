@@ -162,15 +162,15 @@ async def node_cluster_data(node_data: schemas.Node, module_name, configuration:
     return node_data
 
 
-def check_rewards(node_data: schemas.Node, cluster_data):
+def check_rewards(node_data: schemas.Node, cluster_data: schemas.Cluster):
 
-    if node_data.wallet_address in cluster_data["recently_rewarded"]:
+    if node_data.wallet_address in cluster_data.recently_rewarded:
         node_data.reward_state = True
         former_reward_count = 0 if node_data.reward_true_count is None else node_data.reward_true_count
         node_data.reward_true_count = former_reward_count + 1
         if node_data.reward_false_count is None:
             node_data.reward_false_count = 0
-    elif node_data.wallet_address not in cluster_data["recently_rewarded"]:
+    elif node_data.wallet_address not in cluster_data.recently_rewarded:
         node_data.reward_state = False
         former_reward_count = 0 if node_data.reward_false_count is None else node_data.reward_false_count
         node_data.reward_false_count = former_reward_count + 1
@@ -622,7 +622,10 @@ def mark_notify(d: schemas.Node, configuration):
                     d.last_notified_timestamp = d.timestamp_index
     # IF NO FORMER DATA
     else:
-        if d.reward_state is False:
+        if d.cluster_connectivity in ("new association", "new dissociation"):
+            d.notify = True
+            d.last_notified_timestamp = d.timestamp_index
+        elif d.reward_state is False:
             d.notify = True
             d.last_notified_timestamp = d.timestamp_index
         elif d.version != d.cluster_version:

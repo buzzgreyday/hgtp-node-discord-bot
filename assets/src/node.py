@@ -2,26 +2,26 @@ from assets.src import schemas, history, dt, cluster, determine_module
 from assets.src.discord import discord
 
 
-def merge_data(node_data: schemas.Node, found: bool, cluster_data: dict):
+def merge_data(node_data: schemas.Node, found: bool, cluster_data: schemas.Cluster):
     if not found and cluster_data is not None:
-        node_data.last_known_cluster_name = cluster_data["name"]
-        node_data.latest_cluster_session = cluster_data["session"]
-        node_data.cluster_version = cluster_data["version"]
-        node_data.cluster_peer_count = cluster_data["peer_count"]
-        node_data.cluster_state = cluster_data["state"]
+        node_data.last_known_cluster_name = cluster_data.name
+        node_data.latest_cluster_session = cluster_data.session
+        node_data.cluster_version = cluster_data.version
+        node_data.cluster_peer_count = cluster_data.peer_count
+        node_data.cluster_state = cluster_data.state
     elif found and cluster_data is not None:
-        if node_data.layer == cluster_data["layer"]:
-            node_data.cluster_name = cluster_data["name"]
-            node_data.latest_cluster_session = cluster_data["session"]
-            node_data.cluster_version = cluster_data["version"]
-            node_data.cluster_peer_count = cluster_data["peer_count"]
-            node_data.cluster_state = cluster_data["state"]
+        if node_data.layer == cluster_data.layer:
+            node_data.cluster_name = cluster_data.name
+            node_data.latest_cluster_session = cluster_data.session
+            node_data.cluster_version = cluster_data.version
+            node_data.cluster_peer_count = cluster_data.peer_count
+            node_data.cluster_state = cluster_data.state
 
     return node_data
 
 
 async def check(bot, process_msg, requester, subscriber, port, layer, latest_tessellation_version: str,
-                cluster_data: dict, dt_start, configuration: dict) -> tuple:
+                cluster_data: schemas.Cluster, dt_start, configuration: dict) -> tuple:
     process_msg = await discord.update_request_process_msg(process_msg, 2, None)
     node_data = schemas.Node(name=subscriber.name.values[0],
                              contact=subscriber.contact.values[0],
