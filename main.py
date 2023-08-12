@@ -76,9 +76,9 @@ async def r(ctx):
             await ctx.message.delete(delay=3)
         guild, member, role = await discord.return_guild_member_role(bot, ctx)
         if role:
-            for name in _configuration["modules"].keys():
-                for layer in _configuration["modules"][name].keys():
-                    await main(ctx, process_msg, requester, name, layer, _configuration)
+            for cluster_name in _configuration["modules"].keys():
+                for layer in _configuration["modules"][cluster_name].keys():
+                    await main(ctx, process_msg, requester, cluster_name, layer, _configuration)
         else:
             logging.getLogger(__name__).info(
                 f"discord.py - User {ctx.message.author} does not have the appropriate role")
