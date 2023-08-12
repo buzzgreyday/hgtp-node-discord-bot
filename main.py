@@ -27,38 +27,7 @@ logging.basicConfig(filename=_configuration["file settings"]["locations"]["log"]
                     format='[%(asctime)s] %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 
-
-async def main(ctx, process_msg, requester, name, layer, _configuration) -> None:
-    if requester is None:
-        logging.getLogger(__name__).info(f"main.py - Automatic {name, layer} check initiated")
-    else:
-        logging.getLogger(__name__).info(f"main.py - Request from {requester} initiated")
-    dt_start, timer_start = dt.timing()
-    process_msg = await discord.update_request_process_msg(process_msg, 1, None)
-    _configuration = await config.load()
-    cluster_data = await preliminaries.supported_clusters(name, layer, _configuration)
-    ids = await user.get_user_ids(layer, requester, _configuration)
-    await bot.wait_until_ready()
-    data = await user.process_node_data_per_user(latest_tessellation_version, name, ids, requester, cluster_data, process_msg, _configuration)
-    process_msg = await discord.update_request_process_msg(process_msg, 5, None)
-    data = await determine_module.notify(data, _configuration)
-    process_msg = await discord.update_request_process_msg(process_msg, 6, None)
-    if not process_msg:
-        await history.write(data)
-    await discord.send(ctx, process_msg, bot, data, _configuration)
-    await discord.update_request_process_msg(process_msg, 7, None)
-    await asyncio.sleep(3)
-    gc.collect()
-    dt_stop, timer_stop = dt.timing()
-    if requester is None:
-        logging.getLogger(__name__).info(
-            f"main.py - Automatic {name, layer} check completed in {round(timer_stop - timer_start, 2)} seconds")
-    else:
-        logging.getLogger(__name__).info(
-            f"main.py - Request from {requester} completed in {round(timer_stop - timer_start, 2)} seconds")
-
-
-
+"""DISCORD COMMANDS"""
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
@@ -120,45 +89,6 @@ async def r(ctx):
         logging.getLogger(__name__).info(f"discord.py - User {ctx.message.author} does not allow DMs")
 
 
-def get_version_from_github():
-    global latest_tessellation_version
-    latest_tessellation_version = "0"
-    i = 0
-    while True:
-        i += 1
-        sleep = 3 ** i
-        res = requests.get(f"{_configuration['tessellation']['github']['url']}/"
-                           f"{_configuration['tessellation']['github']['releases']['latest']}")
-        if res:
-            latest_tessellation_version = res.json()["tag_name"][1:]
-            time.sleep(30)
-        else:
-            logging.getLogger(__name__).warning(f"preliminaries.py - {_configuration['tessellation']['github']['url']}/{_configuration['tessellation']['github']['releases']['latest']} not reachable; forcing retry in {sleep} seconds")
-            time.sleep(sleep)
-
-
-async def loop():
-    async def loop_de_loop(name, layer):
-        times = preliminaries.generate_runtimes(_configuration)
-        logging.getLogger(__name__).info(f"main.py - {name, layer} runtime schedule:\n\t{times}")
-        while True:
-            if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
-                try:
-                    await main(None, None, None, name, layer, _configuration)
-                except Exception as e:
-                    logging.getLogger(__name__).info(f"main.py - {name, layer} traceback:\n\t{traceback.print_exc()}")
-                    break
-            await asyncio.sleep(1)
-        await loop_de_loop(name, layer)
-
-    tasks = []
-    for name in _configuration["modules"].keys():
-        for layer in _configuration["modules"][name].keys():
-            tasks.append(asyncio.create_task(loop_de_loop(name, layer)))
-    for task in tasks:
-        await task
-
-
 @bot.event
 async def on_ready():
     """Prints a message to the logs when connection to Discord is established (bot is running)"""
@@ -194,12 +124,83 @@ async def u(ctx, *args):
     logging.getLogger(__name__).info(f"main.py - Unubscription request received from {ctx.message.author}: {args}")
 
 
+"""THREADS"""
+def get_version_from_github():
+    global latest_tessellation_version
+    latest_tessellation_version = "0"
+    i = 0
+    while True:
+        i += 1
+        sleep = 3 ** i
+        res = requests.get(f"{_configuration['tessellation']['github']['url']}/"
+                           f"{_configuration['tessellation']['github']['releases']['latest']}")
+        if res:
+            latest_tessellation_version = res.json()["tag_name"][1:]
+            time.sleep(30)
+        else:
+            logging.getLogger(__name__).warning(f"preliminaries.py - {_configuration['tessellation']['github']['url']}/{_configuration['tessellation']['github']['releases']['latest']} not reachable; forcing retry in {sleep} seconds")
+            time.sleep(sleep)
+
+
 def run_uvicorn():
     host = "127.0.0.1"
     port = 8000
     log_level = 'debug'
     logging.getLogger(__name__).info(f"main.py - Uvicorn running on {host}:{port}")
     uvicorn.run(database_api, host=host, port=port, log_level=log_level, log_config=f'assets/data/logs/bot/uvicorn.ini')
+
+
+"""MAIN LOOP"""
+async def main(ctx, process_msg, requester, name, layer, _configuration) -> None:
+    if requester is None:
+        logging.getLogger(__name__).info(f"main.py - Automatic {name, layer} check initiated")
+    else:
+        logging.getLogger(__name__).info(f"main.py - Request from {requester} initiated")
+    dt_start, timer_start = dt.timing()
+    process_msg = await discord.update_request_process_msg(process_msg, 1, None)
+    _configuration = await config.load()
+    cluster_data = await preliminaries.supported_clusters(name, layer, _configuration)
+    ids = await user.get_user_ids(layer, requester, _configuration)
+    await bot.wait_until_ready()
+    data = await user.process_node_data_per_user(latest_tessellation_version, name, ids, requester, cluster_data, process_msg, _configuration)
+    process_msg = await discord.update_request_process_msg(process_msg, 5, None)
+    data = await determine_module.notify(data, _configuration)
+    process_msg = await discord.update_request_process_msg(process_msg, 6, None)
+    if not process_msg:
+        await history.write(data)
+    await discord.send(ctx, process_msg, bot, data, _configuration)
+    await discord.update_request_process_msg(process_msg, 7, None)
+    await asyncio.sleep(3)
+    gc.collect()
+    dt_stop, timer_stop = dt.timing()
+    if requester is None:
+        logging.getLogger(__name__).info(
+            f"main.py - Automatic {name, layer} check completed in {round(timer_stop - timer_start, 2)} seconds")
+    else:
+        logging.getLogger(__name__).info(
+            f"main.py - Request from {requester} completed in {round(timer_stop - timer_start, 2)} seconds")
+
+
+async def loop():
+    async def loop_de_loop(name, layer):
+        times = preliminaries.generate_runtimes(_configuration)
+        logging.getLogger(__name__).info(f"main.py - {name, layer} runtime schedule:\n\t{times}")
+        while True:
+            if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
+                try:
+                    await main(None, None, None, name, layer, _configuration)
+                except Exception as e:
+                    logging.getLogger(__name__).info(f"main.py - {name, layer} traceback:\n\t{traceback.print_exc()}")
+                    break
+            await asyncio.sleep(1)
+        await loop_de_loop(name, layer)
+
+    tasks = []
+    for name in _configuration["modules"].keys():
+        for layer in _configuration["modules"][name].keys():
+            tasks.append(asyncio.create_task(loop_de_loop(name, layer)))
+    for task in tasks:
+        await task
 
 
 if __name__ == "__main__":
