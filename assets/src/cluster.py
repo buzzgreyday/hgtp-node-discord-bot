@@ -7,6 +7,25 @@ from assets.src import schemas, determine_module
 from assets.src.discord import discord
 
 
+
+def merge_data(node_data: schemas.Node, found: bool, cluster_data: schemas.Cluster):
+    if not found and cluster_data is not None:
+        node_data.last_known_cluster_name = cluster_data.name
+        node_data.latest_cluster_session = cluster_data.session
+        node_data.cluster_version = cluster_data.version
+        node_data.cluster_peer_count = cluster_data.peer_count
+        node_data.cluster_state = cluster_data.state
+    elif found and cluster_data is not None:
+        if node_data.layer == cluster_data.layer:
+            node_data.cluster_name = cluster_data.name
+            node_data.latest_cluster_session = cluster_data.session
+            node_data.cluster_version = cluster_data.version
+            node_data.cluster_peer_count = cluster_data.peer_count
+            node_data.cluster_state = cluster_data.state
+
+    return node_data
+
+
 def locate_node_binary(node_data: schemas.Node, peer_data: List[dict]):
     """This function does a binary search to see if the Node ID is a peer in a cluster supported by the bot."""
     start = 0
