@@ -27,7 +27,6 @@ async def check(latest_tessellation_version, name, layer, requester, cluster_dat
                            _configuration)))
         for async_process in futures:
             d, process_msg = await async_process
-            print(d.cluster_name, name)
             if d.cluster_name == name:
                 data.append(d)
         return data

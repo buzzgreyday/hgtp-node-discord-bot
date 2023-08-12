@@ -39,7 +39,6 @@ def generate_runtimes() -> list:
 
 
 async def main(ctx, process_msg, requester, name, layer, _configuration) -> None:
-    print(latest_tessellation_version)
     if requester is None:
         logging.getLogger(__name__).info(f"main.py - Automatic {name, layer} check initiated")
     else:
@@ -49,7 +48,6 @@ async def main(ctx, process_msg, requester, name, layer, _configuration) -> None
     _configuration = await config.load()
     # Github should be made variable
     cluster_data = await preliminaries.supported_clusters(name, layer, _configuration)
-    print(cluster_data.name, cluster_data.layer)
     await bot.wait_until_ready()
     data = await user.check(latest_tessellation_version, name, layer, requester, cluster_data, dt_start, process_msg,
                             _configuration)
