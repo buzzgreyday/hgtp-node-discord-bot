@@ -1,11 +1,10 @@
 import asyncio
-from typing import List
 
 import aiohttp
 from aiohttp import client_exceptions
 import logging
 
-from assets.src import schemas, database
+from assets.src import schemas
 
 
 class Request:
