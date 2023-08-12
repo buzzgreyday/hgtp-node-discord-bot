@@ -36,7 +36,6 @@ async def main(ctx, process_msg, requester, name, layer, _configuration) -> None
     dt_start, timer_start = dt.timing()
     process_msg = await discord.update_request_process_msg(process_msg, 1, None)
     _configuration = await config.load()
-    # Github should be made variable
     cluster_data = await preliminaries.supported_clusters(name, layer, _configuration)
     ids = await user.get_user_ids(layer, requester, _configuration)
     await bot.wait_until_ready()
@@ -121,7 +120,7 @@ async def r(ctx):
         logging.getLogger(__name__).info(f"discord.py - User {ctx.message.author} does not allow DMs")
 
 
-def get_tessellation_version():
+def get_version_from_github():
     global latest_tessellation_version
     latest_tessellation_version = "0"
     i = 0
@@ -208,7 +207,7 @@ if __name__ == "__main__":
 
     # Create a thread for running uvicorn
     uvicorn_thread = threading.Thread(target=run_uvicorn)
-    get_tessellation_version_thread = threading.Thread(target=get_tessellation_version)
+    get_tessellation_version_thread = threading.Thread(target=get_version_from_github)
     get_tessellation_version_thread.start()
     uvicorn_thread.start()
     bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))
