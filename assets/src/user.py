@@ -10,8 +10,8 @@ from assets.src.discord import discord
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 
 
-async def node_status_check(bot, process_msg, requester, subscriber, port, layer, latest_tessellation_version: str,
-                cluster_data: schemas.Cluster, dt_start, configuration: dict) -> tuple:
+async def node_status_check(process_msg, requester, subscriber, latest_tessellation_version: str,
+                cluster_data: schemas.Cluster, configuration: dict) -> tuple:
     process_msg = await discord.update_request_process_msg(process_msg, 2, None)
     node_data = schemas.Node(name=subscriber.name.values[0],
                              contact=subscriber.contact.values[0],
@@ -49,9 +49,8 @@ async def process_node_data_per_user(latest_tessellation_version, name, layer, i
             subscriber = await locate_node(_configuration, requester, id_, ip, port)
             subscriber = pd.DataFrame(subscriber)
             futures.append(asyncio.create_task(
-                node_status_check(bot, process_msg, requester, subscriber, port, layer,
-                           latest_tessellation_version, cluster_data, dt_start,
-                           _configuration)))
+                node_status_check(process_msg, requester, subscriber, latest_tessellation_version, cluster_data,
+                                  _configuration)))
 
         for async_process in futures:
             d, process_msg = await async_process
