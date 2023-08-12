@@ -151,18 +151,18 @@ def run_uvicorn():
 
 
 """MAIN LOOP"""
-async def main(ctx, process_msg, requester, name, layer, _configuration) -> None:
+async def main(ctx, process_msg, requester, cluster_name, layer, _configuration) -> None:
     if requester is None:
-        logging.getLogger(__name__).info(f"main.py - Automatic {name, layer} check initiated")
+        logging.getLogger(__name__).info(f"main.py - Automatic {cluster_name, layer} check initiated")
     else:
         logging.getLogger(__name__).info(f"main.py - Request from {requester} initiated")
     dt_start, timer_start = dt.timing()
     process_msg = await discord.update_request_process_msg(process_msg, 1, None)
     _configuration = await config.load()
-    cluster_data = await preliminaries.supported_clusters(name, layer, _configuration)
+    cluster_data = await preliminaries.supported_clusters(cluster_name, layer, _configuration)
     ids = await api.get_user_ids(layer, requester, _configuration)
     await bot.wait_until_ready()
-    data = await user.process_node_data_per_user(latest_tessellation_version, name, ids, requester, cluster_data, process_msg, _configuration)
+    data = await user.process_node_data_per_user(latest_tessellation_version, cluster_name, ids, requester, cluster_data, process_msg, _configuration)
     process_msg = await discord.update_request_process_msg(process_msg, 5, None)
     data = await determine_module.notify(data, _configuration)
     process_msg = await discord.update_request_process_msg(process_msg, 6, None)
@@ -175,7 +175,7 @@ async def main(ctx, process_msg, requester, name, layer, _configuration) -> None
     dt_stop, timer_stop = dt.timing()
     if requester is None:
         logging.getLogger(__name__).info(
-            f"main.py - Automatic {name, layer} check completed in {round(timer_stop - timer_start, 2)} seconds")
+            f"main.py - Automatic {cluster_name, layer} check completed in {round(timer_stop - timer_start, 2)} seconds")
     else:
         logging.getLogger(__name__).info(
             f"main.py - Request from {requester} completed in {round(timer_stop - timer_start, 2)} seconds")
