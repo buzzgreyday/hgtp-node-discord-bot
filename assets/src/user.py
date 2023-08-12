@@ -9,10 +9,9 @@ from assets.src.discord.services import bot
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 
 
-async def check(latest_tessellation_version, name, layer, requester, cluster_data, dt_start, process_msg, _configuration) -> List[schemas.Node]:
+async def process_node_data_per_user(latest_tessellation_version, name, layer, ids, requester, cluster_data, dt_start, process_msg, _configuration) -> List[schemas.Node]:
     futures = []
     data = []
-    ids = await locate_ids(layer, requester, _configuration)
     if ids is not None:
         for lst in ids:
             id_ = lst[0]
@@ -20,11 +19,11 @@ async def check(latest_tessellation_version, name, layer, requester, cluster_dat
             port = lst[2]
             subscriber = await locate_node(_configuration, requester, id_, ip, port)
             subscriber = pd.DataFrame(subscriber)
-
             futures.append(asyncio.create_task(
                 node.check(bot, process_msg, requester, subscriber, port, layer,
                            latest_tessellation_version, cluster_data, dt_start,
                            _configuration)))
+
         for async_process in futures:
             d, process_msg = await async_process
             if d.cluster_name == name:
@@ -32,8 +31,8 @@ async def check(latest_tessellation_version, name, layer, requester, cluster_dat
         return data
 
 
-async def locate_ids(layer, requester, _configuration):
-    """NOT FUNCTIONING PROPERLY, HERE WE NEED A LIST/SET OF TUPLES CONTAINING ID, IP, PORT"""
+async def get_user_ids(layer, requester, _configuration):
+    """RETURNS A LIST/SET OF TUPLES CONTAINING ID, IP, PORT (PER LAYER)"""
     if requester is None:
         return await api.safe_request(f"http://127.0.0.1:8000/user/ids/layer/{layer}", _configuration)
     else:

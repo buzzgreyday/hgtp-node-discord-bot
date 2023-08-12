@@ -10,7 +10,7 @@ from datetime import datetime
 import requests as requests
 
 from assets.src.schemas import User
-from assets.src import history, config, dt, preliminaries, user, determine_module
+from assets.src import history, config, dt, preliminaries, user, determine_module, exception
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
 from assets.src.database import api as database_api
@@ -27,16 +27,6 @@ logging.basicConfig(filename=_configuration["file settings"]["locations"]["log"]
                     format='[%(asctime)s] %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 
-def generate_runtimes() -> list:
-    from datetime import datetime, timedelta
-
-    start = datetime.strptime(_configuration['general']['loop_init_time'], "%H:%M:%S")
-    end = (datetime.strptime(_configuration['general']['loop_init_time'], "%H:%M:%S") + timedelta(hours=24))
-    return [
-        (start + timedelta(hours=(_configuration['general']['loop_interval_minutes']) * i / 60)).strftime("%H:%M:%S")
-        for i in
-        range(int((end - start).total_seconds() / 60.0 / (_configuration['general']['loop_interval_minutes'])))]
-
 
 async def main(ctx, process_msg, requester, name, layer, _configuration) -> None:
     if requester is None:
@@ -48,8 +38,9 @@ async def main(ctx, process_msg, requester, name, layer, _configuration) -> None
     _configuration = await config.load()
     # Github should be made variable
     cluster_data = await preliminaries.supported_clusters(name, layer, _configuration)
+    ids = await user.get_user_ids(layer, requester, _configuration)
     await bot.wait_until_ready()
-    data = await user.check(latest_tessellation_version, name, layer, requester, cluster_data, dt_start, process_msg,
+    data = await user.process_node_data_per_user(latest_tessellation_version, name, layer, ids, requester, cluster_data, dt_start, process_msg,
                             _configuration)
     process_msg = await discord.update_request_process_msg(process_msg, 5, None)
     data = await determine_module.notify(data, _configuration)
@@ -68,17 +59,6 @@ async def main(ctx, process_msg, requester, name, layer, _configuration) -> None
         logging.getLogger(__name__).info(
             f"main.py - Request from {requester} completed in {round(timer_stop - timer_start, 2)} seconds")
 
-
-async def command_error(ctx, bot):
-    embed = nextcord.Embed(title="Not a valid command".upper(),
-                           color=nextcord.Color.orange())
-    embed.add_field(name=f"\U00002328` {ctx.message.content}`",
-                    value=f"`ⓘ You didn't input a valid command`",
-                    inline=False)
-    embed.set_author(name=ctx.message.author,
-                     icon_url=bot.get_user(
-                         ctx.message.author.id).display_avatar.url)
-    return embed
 
 
 @bot.event
@@ -116,7 +96,7 @@ async def on_message(message):
             await message.add_reaction("\U0000274C")
             if not isinstance(ctx.message.channel, nextcord.DMChannel):
                 await message.delete(delay=3)
-            embed = await command_error(ctx, bot)
+            embed = await exception.command_error(ctx, bot)
             await ctx.message.author.send(embed=embed)
 
 
@@ -161,11 +141,10 @@ def get_tessellation_version():
 
 async def loop():
     async def loop_de_loop(name, layer):
-        times = generate_runtimes()
+        times = preliminaries.generate_runtimes(_configuration)
         logging.getLogger(__name__).info(f"main.py - {name, layer} runtime schedule:\n\t{times}")
         while True:
             if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
-
                 try:
                     await main(None, None, None, name, layer, _configuration)
                 except Exception as e:
@@ -212,21 +191,9 @@ async def s(ctx, *args):
 
 
 @bot.command()
-async def leave(ctx):
-    pass
-    """guild = await bot.fetch_guild(974431346850140201)
-    member = await guild.fetch_member(ctx.id)
-    role = nextcord.utils.get(guild.roles, name="tester")
-    await member.remove_roles(role)
-    await guild.leave()
-    # unsubscribe"""
-
-
-@bot.command()
 async def u(ctx, *args):
     """This function treats a Discord message (context) as a line of arguments and attempts to unsubscribe the user"""
     logging.getLogger(__name__).info(f"main.py - Unubscription request received from {ctx.message.author}: {args}")
-    pass
 
 
 def run_uvicorn():
