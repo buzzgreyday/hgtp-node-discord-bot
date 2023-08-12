@@ -13,7 +13,7 @@ from assets.src.schemas import User
 from assets.src import history, config, dt, preliminaries, user, determine_module, exception
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
-from assets.src.database import api as database_api
+from assets.src.database import api as database_api, api
 import nextcord
 import yaml
 import uvicorn
@@ -160,7 +160,7 @@ async def main(ctx, process_msg, requester, name, layer, _configuration) -> None
     process_msg = await discord.update_request_process_msg(process_msg, 1, None)
     _configuration = await config.load()
     cluster_data = await preliminaries.supported_clusters(name, layer, _configuration)
-    ids = await user.get_user_ids(layer, requester, _configuration)
+    ids = await api.get_user_ids(layer, requester, _configuration)
     await bot.wait_until_ready()
     data = await user.process_node_data_per_user(latest_tessellation_version, name, ids, requester, cluster_data, process_msg, _configuration)
     process_msg = await discord.update_request_process_msg(process_msg, 5, None)

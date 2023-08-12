@@ -1,9 +1,11 @@
 import asyncio
+from typing import List
+
 import aiohttp
 from aiohttp import client_exceptions
 import logging
 
-from assets.src import schemas
+from assets.src import schemas, database
 
 
 class Request:
@@ -64,3 +66,18 @@ async def safe_request(request_url: str, configuration: dict):
             logging.getLogger(__name__).warning(f"api.py - {request_url} is unreachable ({retry_count}/{configuration['general']['request retry (count)']})")
         except (aiohttp.client_exceptions.ClientConnectorError, aiohttp.client_exceptions.InvalidURL):
             return None
+
+
+async def get_user_ids(layer, requester, _configuration):
+    """RETURNS A LIST/SET OF TUPLES CONTAINING ID, IP, PORT (PER LAYER)"""
+    if requester is None:
+        return await safe_request(f"http://127.0.0.1:8000/user/ids/layer/{layer}", _configuration)
+    else:
+        return await Request(f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}").json(_configuration)
+
+
+async def locate_node(_configuration, requester, id_, ip, port):
+    """Locate every subscription where ID is id_
+    return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])"""
+    return await safe_request(f"http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port}", _configuration)
+

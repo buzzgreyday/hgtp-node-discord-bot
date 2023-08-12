@@ -4,7 +4,6 @@ from typing import List
 import pandas as pd
 
 from assets.src import schemas, database, api, history, dt, cluster, determine_module
-from assets.src.discord.services import bot
 from assets.src.discord import discord
 
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
@@ -46,7 +45,7 @@ async def process_node_data_per_user(latest_tessellation_version, name, ids, req
             id_ = lst[0]
             ip = lst[1]
             port = lst[2]
-            subscriber = await locate_node(_configuration, requester, id_, ip, port)
+            subscriber = await api.locate_node(_configuration, requester, id_, ip, port)
             subscriber = pd.DataFrame(subscriber)
             futures.append(asyncio.create_task(
                 node_status_check(process_msg, requester, subscriber, latest_tessellation_version, cluster_data,
@@ -57,20 +56,6 @@ async def process_node_data_per_user(latest_tessellation_version, name, ids, req
             if d.cluster_name == name:
                 data.append(d)
         return data
-
-
-async def get_user_ids(layer, requester, _configuration):
-    """RETURNS A LIST/SET OF TUPLES CONTAINING ID, IP, PORT (PER LAYER)"""
-    if requester is None:
-        return await api.safe_request(f"http://127.0.0.1:8000/user/ids/layer/{layer}", _configuration)
-    else:
-        return await api.Request(f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}").json(_configuration)
-
-
-async def locate_node(_configuration, requester, id_, ip, port):
-    """Locate every subscription where ID is id_
-    return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])"""
-    return await api.safe_request(f"http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port}", _configuration)
 
 
 async def write_db(data: List[schemas.User]):
