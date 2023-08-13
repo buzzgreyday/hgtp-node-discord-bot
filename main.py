@@ -47,8 +47,8 @@ async def on_message(message):
             logging.getLogger(__name__).info(
                 f"main.py - Received a message in the verify channel")
             try:
-                await ctx.message.author.send(f":hammer: ***\*banging on pipes***\*\n"
-                                              f"> Return to the {ctx.channel.mention} channel")
+                await ctx.message.author.send(f":hammer: ***\*Banging on the data pipeline***\*\n"
+                                              f"> Please return to the {ctx.channel.mention} channel")
                 await discord.track_reactions(ctx, bot)
             except nextcord.Forbidden:
                 await discord.verification_denied(ctx)
@@ -156,6 +156,7 @@ async def main(ctx, process_msg, requester, cluster_name, layer, _configuration)
         logging.getLogger(__name__).info(f"main.py - Automatic {cluster_name, layer} check initiated")
     else:
         logging.getLogger(__name__).info(f"main.py - Request from {requester} initiated")
+    # GET GITHUB VERSION HERE
     dt_start, timer_start = dt.timing()
     process_msg = await discord.update_request_process_msg(process_msg, 1, None)
     _configuration = await config.load()
@@ -208,7 +209,7 @@ if __name__ == "__main__":
 
     # Create a thread for running uvicorn
     uvicorn_thread = threading.Thread(target=run_uvicorn)
-    get_tessellation_version_thread = threading.Thread(target=get_version_from_github)
+    get_tessellation_version_thread = threading.Thread(target=preliminaries.VersionManager.check_github_version)
     get_tessellation_version_thread.start()
     uvicorn_thread.start()
     bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))
