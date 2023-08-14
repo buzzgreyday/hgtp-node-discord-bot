@@ -210,7 +210,7 @@ if __name__ == "__main__":
 
     # Create a thread for running uvicorn
     uvicorn_thread = threading.Thread(target=run_uvicorn)
-    get_tessellation_version_thread = threading.Thread(target=preliminaries.VersionManager(_configuration).check_github_version)
+    get_tessellation_version_thread = threading.Thread(target=preliminaries.VersionManager(_configuration).update_version)
     get_tessellation_version_thread.start()
     uvicorn_thread.start()
     bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))

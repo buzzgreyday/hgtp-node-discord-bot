@@ -18,10 +18,11 @@ class VersionManager:
 
     def update_version(self):
         while True:
+            # Sets the version to the latest, every 30 seconds
+            self.version = self.check_github_version()
+            print(self.version)
             time.sleep(30)
-            with self.lock:
-                # Sets the version to the latest, every 30 seconds
-                self.version = self.check_github_version()
+
 
     def check_github_version(self):
         # Actual version check logic here
@@ -42,8 +43,8 @@ class VersionManager:
 
     def get_version(self):
         # Returns the version
-        with self.lock:
-            return self.version
+        print(f"Got version: {self.version}")
+        return self.version
 
 """async def latest_version_github(configuration):
     i = 0
