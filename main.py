@@ -146,8 +146,6 @@ async def main(ctx, process_msg, requester, cluster_name, layer, _configuration)
         await history.write(data)
     await discord.send(ctx, process_msg, bot, data, _configuration)
     await discord.update_request_process_msg(process_msg, 7, None)
-    await asyncio.sleep(3)
-    gc.collect()
     dt_stop, timer_stop = dt.timing()
     if requester is None:
         logging.getLogger(__name__).info(
@@ -165,6 +163,8 @@ async def loop():
             if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
                 try:
                     await main(None, None, None, cluster_name, layer, _configuration)
+                    await asyncio.sleep(3)
+                    gc.collect()
                 except Exception as e:
                     logging.getLogger(__name__).info(f"main.py - {cluster_name, layer} traceback:\n\t{traceback.print_exc()}")
                     break
