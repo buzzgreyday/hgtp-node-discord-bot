@@ -134,7 +134,6 @@ async def main(ctx, process_msg, requester, cluster_name, layer, _configuration)
     # GET GITHUB VERSION HERE
     dt_start, timer_start = dt.timing()
     process_msg = await discord.update_request_process_msg(process_msg, 1, None)
-    _configuration = await config.load()
     cluster_data = await preliminaries.supported_clusters(cluster_name, layer, _configuration)
     ids = await api.get_user_ids(layer, requester, _configuration)
 
