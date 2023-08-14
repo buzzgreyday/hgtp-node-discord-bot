@@ -10,7 +10,7 @@ IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4]
 
 
 async def node_status_check(process_msg, requester, subscriber,
-                cluster_data: schemas.Cluster, configuration: dict) -> tuple:
+                cluster_data: schemas.Cluster, version_manager, configuration: dict) -> tuple:
     process_msg = await discord.update_request_process_msg(process_msg, 2, None)
     node_data = schemas.Node(name=subscriber.name.values[0],
                              contact=subscriber.contact.values[0],
@@ -19,7 +19,7 @@ async def node_status_check(process_msg, requester, subscriber,
                              public_port=subscriber.public_port.values[0],
                              id=subscriber.id.values[0],
                              wallet_address=subscriber.wallet.values[0],
-                             latest_version=preliminaries.VersionManager(configuration).get_version(),
+                             latest_version=version_manager.get_version(),
                              notify=False if requester is None else True,
                              timestamp_index=dt.datetime.utcnow())
     node_data = await history.node_data(node_data, configuration)
@@ -37,7 +37,7 @@ async def node_status_check(process_msg, requester, subscriber,
     return node_data, process_msg
 
 
-async def process_node_data_per_user(name, ids, requester, cluster_data, process_msg, _configuration) -> List[schemas.Node]:
+async def process_node_data_per_user(name, ids, requester, cluster_data, process_msg, version_manager, _configuration) -> List[schemas.Node]:
     futures = []
     data = []
     if ids is not None:
@@ -48,7 +48,7 @@ async def process_node_data_per_user(name, ids, requester, cluster_data, process
             subscriber = await api.locate_node(_configuration, requester, id_, ip, port)
             subscriber = pd.DataFrame(subscriber)
             futures.append(asyncio.create_task(
-                node_status_check(process_msg, requester, subscriber, cluster_data,
+                node_status_check(process_msg, requester, subscriber, cluster_data, version_manager,
                                   _configuration)))
 
         for async_process in futures:

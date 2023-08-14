@@ -10,17 +10,17 @@ from assets.src import api, determine_module, schemas
 
 
 class VersionManager:
-
     def __init__(self, configuration):
-        self.version = None
-        self.lock = threading.Lock
+        self.lock = threading.Lock()
         self.configuration = configuration
+        self.version = self.check_github_version()  # Set the initial version in __init__
 
     def update_version(self):
         while True:
             # Sets the version to the latest, every 30 seconds
-            self.version = self.check_github_version()
-            print(self.version)
+            with self.lock:
+                self.version = self.check_github_version()
+                print(self.version)
             time.sleep(30)
 
     def check_github_version(self):
@@ -42,8 +42,9 @@ class VersionManager:
 
     def get_version(self):
         # Returns the version
-        print(f"Got version: {self.version}")
-        return self.version
+        with self.lock:
+            print(f"Got version: {self.version}")
+            return self.version
 
 
 async def supported_clusters(name: str, layer: int, configuration: dict) -> schemas.Cluster:
