@@ -162,6 +162,7 @@ async def main(ctx, process_msg, requester, cluster_name, layer, _configuration)
     _configuration = await config.load()
     cluster_data = await preliminaries.supported_clusters(cluster_name, layer, _configuration)
     ids = await api.get_user_ids(layer, requester, _configuration)
+
     await bot.wait_until_ready()
     data = await user.process_node_data_per_user(latest_tessellation_version, cluster_name, ids, requester, cluster_data, process_msg, _configuration)
     process_msg = await discord.update_request_process_msg(process_msg, 5, None)
@@ -209,7 +210,7 @@ if __name__ == "__main__":
 
     # Create a thread for running uvicorn
     uvicorn_thread = threading.Thread(target=run_uvicorn)
-    get_tessellation_version_thread = threading.Thread(target=preliminaries.VersionManager.check_github_version)
+    get_tessellation_version_thread = threading.Thread(target=preliminaries.VersionManager(_configuration).check_github_version)
     get_tessellation_version_thread.start()
     uvicorn_thread.start()
     bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))

@@ -10,31 +10,32 @@ from assets.src import api, determine_module, schemas
 
 class VersionManager:
 
-    def __init__(self):
+    def __init__(self, configuration):
         self.version = None
         self.lock = threading.Lock
+        self.configuration = configuration
 
-    def update_version(self, configuration):
+    def update_version(self):
         while True:
             time.sleep(30)
             with self.lock:
                 # Sets the version to the latest, every 30 seconds
-                self.version = self.check_github_version(configuration)
+                self.version = self.check_github_version()
 
-    def check_github_version(self, configuration):
+    def check_github_version(self):
         # Actual version check logic here
         i = 0
         while True:
             i += 1
             sleep = 3 ** i
             data = await api.safe_request(
-                f"{configuration['tessellation']['github']['url']}/"
-                f"{configuration['tessellation']['github']['releases']['latest']}", configuration)
+                f"{self.configuration['tessellation']['github']['url']}/"
+                f"{self.configuration['tessellation']['github']['releases']['latest']}", self.configuration)
             if data is not None:
                 return data["tag_name"][1:]
             else:
                 logging.getLogger(__name__).warning(
-                    f"preliminaries.py - {configuration['tessellation']['github']['url']}/{configuration['tessellation']['github']['releases']['latest']} not reachable; forcing retry in {sleep} seconds")
+                    f"preliminaries.py - {self.configuration['tessellation']['github']['url']}/{self.configuration['tessellation']['github']['releases']['latest']} not reachable; forcing retry in {sleep} seconds")
                 await asyncio.sleep(sleep)
 
     def get_version(self):
@@ -42,7 +43,7 @@ class VersionManager:
         with self.lock:
             return self.version
 
-async def latest_version_github(configuration):
+"""async def latest_version_github(configuration):
     i = 0
     while True:
         i += 1
@@ -54,7 +55,7 @@ async def latest_version_github(configuration):
             return data["tag_name"][1:]
         else:
             logging.getLogger(__name__).warning(f"preliminaries.py - {configuration['tessellation']['github']['url']}/{configuration['tessellation']['github']['releases']['latest']} not reachable; forcing retry in {sleep} seconds")
-            await asyncio.sleep(sleep)
+            await asyncio.sleep(sleep)"""
 
 
 async def supported_clusters(name: str, layer: int, configuration: dict) -> schemas.Cluster:

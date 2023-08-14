@@ -3,7 +3,7 @@ from typing import List
 
 import pandas as pd
 
-from assets.src import schemas, database, api, history, dt, cluster, determine_module
+from assets.src import schemas, database, api, history, dt, cluster, determine_module, preliminaries
 from assets.src.discord import discord
 
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
@@ -19,7 +19,7 @@ async def node_status_check(process_msg, requester, subscriber, latest_tessellat
                              public_port=subscriber.public_port.values[0],
                              id=subscriber.id.values[0],
                              wallet_address=subscriber.wallet.values[0],
-                             latest_version=latest_tessellation_version,
+                             latest_version=preliminaries.VersionManager(configuration).get_version(),
                              notify=False if requester is None else True,
                              timestamp_index=dt.datetime.utcnow())
     node_data = await history.node_data(node_data, configuration)
