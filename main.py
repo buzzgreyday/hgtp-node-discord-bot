@@ -164,7 +164,7 @@ async def main(ctx, process_msg, requester, cluster_name, layer, _configuration)
     ids = await api.get_user_ids(layer, requester, _configuration)
 
     await bot.wait_until_ready()
-    data = await user.process_node_data_per_user(latest_tessellation_version, cluster_name, ids, requester, cluster_data, process_msg, _configuration)
+    data = await user.process_node_data_per_user(cluster_name, ids, requester, cluster_data, process_msg, _configuration)
     process_msg = await discord.update_request_process_msg(process_msg, 5, None)
     data = await determine_module.notify(data, _configuration)
     process_msg = await discord.update_request_process_msg(process_msg, 6, None)

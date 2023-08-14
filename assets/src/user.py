@@ -9,7 +9,7 @@ from assets.src.discord import discord
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 
 
-async def node_status_check(process_msg, requester, subscriber, latest_tessellation_version: str,
+async def node_status_check(process_msg, requester, subscriber,
                 cluster_data: schemas.Cluster, configuration: dict) -> tuple:
     process_msg = await discord.update_request_process_msg(process_msg, 2, None)
     node_data = schemas.Node(name=subscriber.name.values[0],
@@ -37,7 +37,7 @@ async def node_status_check(process_msg, requester, subscriber, latest_tessellat
     return node_data, process_msg
 
 
-async def process_node_data_per_user(latest_tessellation_version, name, ids, requester, cluster_data, process_msg, _configuration) -> List[schemas.Node]:
+async def process_node_data_per_user(name, ids, requester, cluster_data, process_msg, _configuration) -> List[schemas.Node]:
     futures = []
     data = []
     if ids is not None:
@@ -48,7 +48,7 @@ async def process_node_data_per_user(latest_tessellation_version, name, ids, req
             subscriber = await api.locate_node(_configuration, requester, id_, ip, port)
             subscriber = pd.DataFrame(subscriber)
             futures.append(asyncio.create_task(
-                node_status_check(process_msg, requester, subscriber, latest_tessellation_version, cluster_data,
+                node_status_check(process_msg, requester, subscriber, cluster_data,
                                   _configuration)))
 
         for async_process in futures:

@@ -3,6 +3,7 @@ import logging
 import threading
 import time
 
+import requests
 from aiofiles import os
 
 from assets.src import api, determine_module, schemas
@@ -28,15 +29,16 @@ class VersionManager:
         while True:
             i += 1
             sleep = 3 ** i
-            data = await api.safe_request(
+            data = requests.get(
                 f"{self.configuration['tessellation']['github']['url']}/"
-                f"{self.configuration['tessellation']['github']['releases']['latest']}", self.configuration)
+                f"{self.configuration['tessellation']['github']['releases']['latest']}")
             if data is not None:
+                data = data.json()
                 return data["tag_name"][1:]
             else:
                 logging.getLogger(__name__).warning(
                     f"preliminaries.py - {self.configuration['tessellation']['github']['url']}/{self.configuration['tessellation']['github']['releases']['latest']} not reachable; forcing retry in {sleep} seconds")
-                await asyncio.sleep(sleep)
+                time.sleep(sleep)
 
     def get_version(self):
         # Returns the version
