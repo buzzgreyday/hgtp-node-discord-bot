@@ -132,15 +132,15 @@ red_color_trigger = False
 
 async def node_cluster_data(node_data: schemas.Node, module_name, configuration: dict) -> schemas.Node:
     """Get node data. IMPORTANT: Create Pydantic Schema for node data"""
-    if node_data.public_port is not None:
+    if node_data.public_port:
         node_info_data = await api.safe_request(
             f"http://{node_data.ip}:{node_data.public_port}/"
             f"{configuration['modules'][module_name][node_data.layer]['info']['node']}", configuration)
         node_data.state = "offline" if node_info_data is None else node_info_data["state"].lower()
-        # CHECK IF Public_Port has changed
-        if node_info_data is not None:
+        if node_info_data:
             node_data.node_cluster_session = str(node_info_data["clusterSession"])
             node_data.version = node_info_data["version"]
+            node_data.id = node_info_data["id"]
         if node_data.state != "offline":
             cluster_data = await api.safe_request(
                 f"http://{node_data.ip}:{node_data.public_port}/"
@@ -148,13 +148,14 @@ async def node_cluster_data(node_data: schemas.Node, module_name, configuration:
             metrics_data = await api.safe_request(
                 f"http://{node_data.ip}:{node_data.public_port}/"
                 f"{configuration['modules'][module_name][node_data.layer]['info']['metrics']}", configuration)
-            node_data.id = node_info_data["id"]
-            node_data.node_peer_count = len(cluster_data) if cluster_data is not None else 0
-            node_data.cluster_association_time = metrics_data.cluster_association_time
-            node_data.cpu_count = metrics_data.cpu_count
-            node_data.one_m_system_load_average = metrics_data.one_m_system_load_average
-            node_data.disk_space_free = metrics_data.disk_space_free
-            node_data.disk_space_total = metrics_data.disk_space_total
+            if cluster_data:
+                node_data.node_peer_count = len(cluster_data)
+            if metrics_data:
+                node_data.cluster_association_time = metrics_data.cluster_association_time
+                node_data.cpu_count = metrics_data.cpu_count
+                node_data.one_m_system_load_average = metrics_data.one_m_system_load_average
+                node_data.disk_space_free = metrics_data.disk_space_free
+                node_data.disk_space_total = metrics_data.disk_space_total
         node_data = await request_wallet_data(node_data, module_name, configuration)
         node_data = set_connectivity_specific_node_data_values(node_data, module_name)
         node_data = set_association_time(node_data)
