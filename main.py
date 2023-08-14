@@ -152,7 +152,7 @@ def run_uvicorn():
 
 
 """MAIN LOOP"""
-async def main(ctx, process_msg, requester, cluster_name, layer, version_manager, _configuration) -> None:
+async def main(ctx, process_msg, requester, cluster_name, layer, _configuration) -> None:
     if requester is None:
         logging.getLogger(__name__).info(f"main.py - Automatic {cluster_name, layer} check initiated")
     else:
@@ -191,7 +191,7 @@ async def loop():
         while True:
             if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
                 try:
-                    await main(None, None, None, cluster_name, layer, version_manager, _configuration)
+                    await main(None, None, None, cluster_name, layer, _configuration)
                 except Exception as e:
                     logging.getLogger(__name__).info(f"main.py - {cluster_name, layer} traceback:\n\t{traceback.print_exc()}")
                     break
