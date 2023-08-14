@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import threading
 import time
@@ -6,8 +5,12 @@ import time
 import requests
 from aiofiles import os
 
-from assets.src import api, determine_module, schemas
+from assets.src import determine_module, schemas
+from assets.src.database import api as database_api
+import uvicorn
 
+
+"""THREADS"""
 
 class VersionManager:
     def __init__(self, configuration):
@@ -45,12 +48,26 @@ class VersionManager:
             return self.version
 
 
+def run_uvicorn():
+    host = "127.0.0.1"
+    port = 8000
+    log_level = 'debug'
+    logging.getLogger(__name__).info(f"main.py - Uvicorn running on {host}:{port}")
+    uvicorn.run(database_api, host=host, port=port, log_level=log_level, log_config=f'assets/data/logs/bot/uvicorn.ini')
+
+
+"""REQUEST DATA"""
+
+
 async def supported_clusters(name: str, layer: int, configuration: dict) -> schemas.Cluster:
     url = configuration["modules"][name][layer]["url"][0]
     if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{name}.py"):
         module = determine_module.set_module(name, configuration)
         cluster = await module.request_cluster_data(url, layer, name, configuration)
         return cluster
+
+
+"""RUNTIME"""
 
 
 def generate_runtimes(configuration) -> list:

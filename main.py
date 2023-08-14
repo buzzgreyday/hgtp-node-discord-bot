@@ -3,20 +3,16 @@ import asyncio
 import gc
 import logging
 import threading
-import time
 import traceback
 from datetime import datetime
-
-import requests as requests
 
 from assets.src.schemas import User
 from assets.src import history, config, dt, preliminaries, user, determine_module, exception, api
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
-from assets.src.database import api as database_api
+
 import nextcord
 import yaml
-import uvicorn
 
 """LOAD CONFIGURATION"""
 with open('config.yml', 'r') as file:
@@ -77,9 +73,12 @@ async def r(ctx):
             await ctx.message.delete(delay=3)
         guild, member, role = await discord.return_guild_member_role(bot, ctx)
         if role:
+            fut = []
             for cluster_name in _configuration["modules"].keys():
                 for layer in _configuration["modules"][cluster_name].keys():
-                    await main(ctx, process_msg, requester, cluster_name, layer, _configuration)
+                    fut.append(asyncio.create_task(main(ctx, process_msg, requester, cluster_name, layer, _configuration)))
+            for task in fut:
+                await task
         else:
             logging.getLogger(__name__).info(
                 f"discord.py - User {ctx.message.author} does not have the appropriate role")
@@ -124,31 +123,6 @@ async def u(ctx, *args):
     """This function treats a Discord message (context) as a line of arguments and attempts to unsubscribe the user"""
     logging.getLogger(__name__).info(f"main.py - Unubscription request received from {ctx.message.author}: {args}")
 
-
-"""THREADS"""
-def get_version_from_github():
-    global latest_tessellation_version
-    latest_tessellation_version = "0"
-    i = 0
-    while True:
-        i += 1
-        sleep = 3 ** i
-        res = requests.get(f"{_configuration['tessellation']['github']['url']}/"
-                           f"{_configuration['tessellation']['github']['releases']['latest']}")
-        if res:
-            latest_tessellation_version = res.json()["tag_name"][1:]
-            time.sleep(30)
-        else:
-            logging.getLogger(__name__).warning(f"preliminaries.py - {_configuration['tessellation']['github']['url']}/{_configuration['tessellation']['github']['releases']['latest']} not reachable; forcing retry in {sleep} seconds")
-            time.sleep(sleep)
-
-
-def run_uvicorn():
-    host = "127.0.0.1"
-    port = 8000
-    log_level = 'debug'
-    logging.getLogger(__name__).info(f"main.py - Uvicorn running on {host}:{port}")
-    uvicorn.run(database_api, host=host, port=port, log_level=log_level, log_config=f'assets/data/logs/bot/uvicorn.ini')
 
 
 """MAIN LOOP"""
@@ -210,7 +184,7 @@ if __name__ == "__main__":
     bot.loop.create_task(loop())
 
     # Create a thread for running uvicorn
-    uvicorn_thread = threading.Thread(target=run_uvicorn)
+    uvicorn_thread = threading.Thread(target=preliminaries.run_uvicorn)
     get_tessellation_version_thread = threading.Thread(target=version_manager.update_version)
     get_tessellation_version_thread.daemon = True
     get_tessellation_version_thread.start()
