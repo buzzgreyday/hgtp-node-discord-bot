@@ -84,8 +84,9 @@ async def locate_rewarded_addresses(layer, name, configuration):
                     f"global-snapshots/{ordinal}/rewards", configuration
                 )))
             for task in tasks:
-                addresses.extend(await task)
-                addresses = list(set(addresses))
+                if task:
+                    addresses.extend(await task)
+                    addresses = list(set(addresses))
     except KeyError:
         latest_ordinal = None; latest_timestamp = None; addresses = []
     return latest_ordinal, latest_timestamp, addresses
@@ -113,7 +114,7 @@ async def request_snapshot(request_url, configuration):
 
 async def request_reward_addresses_per_snapshot(request_url, configuration):
     data = await api.safe_request(request_url, configuration)
-    if data is not None:
+    if data:
         return list(data_dictionary["destination"] for data_dictionary in data["data"])
     else:
         logging.getLogger(__name__).warning(f"constellation.py - {request_url} not reachable; forcing retry")
