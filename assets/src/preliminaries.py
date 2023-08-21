@@ -31,7 +31,7 @@ class VersionManager:
         i = 0
         while True:
             i += 1
-            sleep = 3 ** i
+            sleep = 15 ** i
             data = requests.get(
                 f"{self.configuration['tessellation']['github']['url']}/"
                 f"{self.configuration['tessellation']['github']['releases']['latest']}")

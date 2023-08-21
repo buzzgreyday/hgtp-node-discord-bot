@@ -101,6 +101,7 @@ async def verify(interaction = nextcord.Interaction):
             await interaction.user.send(content=f"{interaction.user.mention}, your settings were verified!")
     return
 
+
 @bot.command()
 async def s(ctx, *args):
     """This function treats a Discord message (context) as a line of arguments and attempts to create a new user subscription"""
