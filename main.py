@@ -39,21 +39,10 @@ async def on_message(message):
             # IGNORE INTERPRETING MESSAGES IN THESE CHANNELS AS COMMANDS
             logging.getLogger(__name__).info(
                 f"main.py - Received a command in an non-command channel")
-            pass
         elif ctx.message.channel.id == 1136386732628115636:
             logging.getLogger(__name__).info(
                 f"main.py - Received a message in the verify channel")
-            try:
-                await ctx.message.author.send(f":hammer: ***\*Banging on the data pipeline***\*\n"
-                                              f"> Please return to the {ctx.channel.mention} channel")
-                await discord.track_reactions(ctx, bot)
-            except nextcord.Forbidden:
-                await discord.verification_denied(ctx)
-                logging.getLogger(__name__).info(f"discord.py - Verification of {ctx.message.author} denied")
-            except asyncio.TimeoutError:
-                logging.getLogger(__name__).info(f"discord.py - Verification of {ctx.message.author} denied: timed out")
-                await ctx.message.delete()
-
+            await discord.delete_message(ctx)
         else:
             logging.getLogger(__name__).info(
                 f"main.py - Received an unknown command from {ctx.message.author} in {ctx.message.channel}")
@@ -62,6 +51,7 @@ async def on_message(message):
                 await message.delete(delay=3)
             embed = await exception.command_error(ctx, bot)
             await ctx.message.author.send(embed=embed)
+    return
 
 
 @bot.command()

@@ -81,6 +81,7 @@ async def send_request_process_msg(ctx):
 
 
 
+
 async def return_guild_member_role(bot, ctx):
     guild = await bot.fetch_guild(974431346850140201)
     member = await guild.fetch_member(ctx.author.id)
@@ -88,28 +89,9 @@ async def return_guild_member_role(bot, ctx):
     return guild, member, role
 
 
-async def track_reactions(ctx, bot):
-    timeout = 60
-    def check(reaction, user):
-        return user != bot.user and reaction.message.id == verify_msg.id
-    verify_msg = await messages.assign_verified(ctx)
-    await bot.wait_for("reaction_add", check=check, timeout=timeout)  # Adjust the timeout as needed
-    guild = await bot.fetch_guild(974431346850140201)
-    role = nextcord.utils.get(guild.roles, name="verified")
-    await ctx.message.author.add_roles(role)
+async def delete_message(ctx, sleep=2):
+    await asyncio.sleep(sleep)
     await ctx.message.delete()
-    await verify_msg.delete()
-    confirm_msg = await messages.confirm_verified(ctx)
-    await asyncio.sleep(timeout)
-    await confirm_msg.delete()
-    logging.getLogger(__name__).info(f"discord.py - Verification of {ctx.message.author} accepted, granted role")
-
-async def verification_denied(ctx):
-    timeout = 60
-    await ctx.message.delete()
-    deny_msg = await messages.deny_verified(ctx)
-    await asyncio.sleep(timeout)
-    await deny_msg.delete()
 
 
 async def update_request_process_msg(process_msg, process_num, foo):
