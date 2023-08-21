@@ -11,6 +11,7 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta
+from typing import List
 
 import nextcord
 import pandas as pd
@@ -84,9 +85,8 @@ async def locate_rewarded_addresses(layer, name, configuration):
                     f"global-snapshots/{ordinal}/rewards", configuration
                 )))
             for task in tasks:
-                if task:
-                    addresses.extend(await task)
-                    addresses = list(set(addresses))
+                addresses.extend(await task)
+                addresses = list(set(addresses))
     except KeyError:
         latest_ordinal = None; latest_timestamp = None; addresses = []
     return latest_ordinal, latest_timestamp, addresses
@@ -115,9 +115,10 @@ async def request_snapshot(request_url, configuration):
 async def request_reward_addresses_per_snapshot(request_url, configuration):
     data = await api.safe_request(request_url, configuration)
     if data:
-        return list(data_dictionary["destination"] for data_dictionary in data["data"])
+        lst = list(data_dictionary["destination"] for data_dictionary in data["data"])
+        return lst if lst else await request_reward_addresses_per_snapshot(request_url, configuration)
     else:
-        logging.getLogger(__name__).warning(f"constellation.py - {request_url} not reachable; forcing retry")
+        logging.getLogger(__name__).warning(f"constellation.py - {request_url} returned {data} forcing retry")
         await request_reward_addresses_per_snapshot(request_url, configuration)
 
 """

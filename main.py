@@ -7,7 +7,7 @@ import traceback
 from datetime import datetime
 
 from assets.src.schemas import User
-from assets.src import history, config, dt, preliminaries, user, determine_module, exception, api
+from assets.src import history, dt, preliminaries, user, determine_module, exception, api
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
 
