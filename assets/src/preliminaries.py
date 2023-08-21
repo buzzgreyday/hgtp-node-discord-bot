@@ -35,7 +35,7 @@ class VersionManager:
             data = requests.get(
                 f"{self.configuration['tessellation']['github']['url']}/"
                 f"{self.configuration['tessellation']['github']['releases']['latest']}")
-            if data is not None:
+            if data:
                 data = data.json()
                 try:
                     version = data["tag_name"][1:]
