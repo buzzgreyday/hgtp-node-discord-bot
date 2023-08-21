@@ -24,14 +24,14 @@ class VersionManager:
             # Sets the version to the latest, every 30 seconds
             with self.lock:
                 self.version = self.check_github_version()
-            time.sleep(30)
+            time.sleep(300)
 
     def check_github_version(self):
         # Actual version check logic here
         i = 0
         while True:
             i += 1
-            sleep = 15 ** i
+            sleep = 20 * i
             data = requests.get(
                 f"{self.configuration['tessellation']['github']['url']}/"
                 f"{self.configuration['tessellation']['github']['releases']['latest']}")
