@@ -1,6 +1,7 @@
 import logging
 import threading
 import time
+import traceback
 
 import requests
 from aiofiles import os
@@ -36,7 +37,14 @@ class VersionManager:
                 f"{self.configuration['tessellation']['github']['releases']['latest']}")
             if data is not None:
                 data = data.json()
-                return data["tag_name"][1:]
+                try:
+                    version = data["tag_name"][1:]
+                except KeyError:
+                    logging.getLogger(__name__).warning(
+                        f"preliminaries.py - {self.configuration['tessellation']['github']['url']}/{self.configuration['tessellation']['github']['releases']['latest']} KeyError: forcing retry in {sleep} seconds\n\t{traceback.print_exc()}")
+                    time.sleep(sleep)
+                else:
+                    return data["tag_name"][1:]
             else:
                 logging.getLogger(__name__).warning(
                     f"preliminaries.py - {self.configuration['tessellation']['github']['url']}/{self.configuration['tessellation']['github']['releases']['latest']} not reachable; forcing retry in {sleep} seconds")

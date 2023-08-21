@@ -95,6 +95,22 @@ async def on_ready():
     logging.getLogger(__name__).info(f"main.py - Discord connection established")
 
 
+@bot.slash_command(name="verify", description="Verify your server settings to gain access", guild_ids=[974431346850140201], dm_permission=True)
+async def verify(interaction = nextcord.Interaction):
+    try:
+        await interaction.user.send(f"Checking Discord server settings...")
+    except nextcord.Forbidden:
+        await interaction.send(content=f"{interaction.user.mention}, to gain access you need to navigate to `Privacy Settings` an enable `Direct Messages` from server members. If you experience issues, please contact an admin.", ephemeral=True)
+        logging.getLogger(__name__).info(f"discord.py - Verification of {interaction.user} denied")
+    else:
+        guild = await bot.fetch_guild(974431346850140201)
+        role = nextcord.utils.get(guild.roles, name="verified")
+        if role:
+            await interaction.user.add_roles(role)
+            await interaction.send(content=f"{interaction.user.mention}, your settings were verified!", ephemeral=True)
+            await interaction.user.send(content=f"{interaction.user.mention}, your settings were verified!")
+    return
+
 @bot.command()
 async def s(ctx, *args):
     """This function treats a Discord message (context) as a line of arguments and attempts to create a new user subscription"""
