@@ -116,7 +116,7 @@ async def request_reward_addresses_per_snapshot(request_url, configuration):
     data = await api.safe_request(request_url, configuration)
     if data:
         lst = list(data_dictionary["destination"] for data_dictionary in data["data"])
-        return lst if lst else None
+        return lst if lst else []
     else:
         logging.getLogger(__name__).warning(f"constellation.py - {request_url} returned {data} forcing retry")
         await request_reward_addresses_per_snapshot(request_url, configuration)
