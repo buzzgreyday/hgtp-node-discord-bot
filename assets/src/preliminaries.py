@@ -24,7 +24,7 @@ class VersionManager:
             # Sets the version to the latest, every 30 seconds
             with self.lock:
                 self.version = self.check_github_version()
-            time.sleep(300)
+            time.sleep(180)
 
     def check_github_version(self):
         # Actual version check logic here
@@ -41,8 +41,8 @@ class VersionManager:
                     version = data["tag_name"][1:]
                 except KeyError:
                     logging.getLogger(__name__).warning(
-                        f"preliminaries.py - {self.configuration['tessellation']['github']['url']}/{self.configuration['tessellation']['github']['releases']['latest']} KeyError: forcing retry in {sleep} seconds\n\t{traceback.print_exc()}")
-                    time.sleep(sleep)
+                        f"preliminaries.py - {self.configuration['tessellation']['github']['url']}/{self.configuration['tessellation']['github']['releases']['latest']} KeyError: forcing retry in {3660} seconds\n\t{traceback.print_exc()}")
+                    time.sleep(3660)
                 else:
                     return version
             else:
