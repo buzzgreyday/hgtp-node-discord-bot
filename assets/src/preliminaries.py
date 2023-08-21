@@ -44,7 +44,7 @@ class VersionManager:
                         f"preliminaries.py - {self.configuration['tessellation']['github']['url']}/{self.configuration['tessellation']['github']['releases']['latest']} KeyError: forcing retry in {sleep} seconds\n\t{traceback.print_exc()}")
                     time.sleep(sleep)
                 else:
-                    return data["tag_name"][1:]
+                    return version
             else:
                 logging.getLogger(__name__).warning(
                     f"preliminaries.py - {self.configuration['tessellation']['github']['url']}/{self.configuration['tessellation']['github']['releases']['latest']} not reachable; forcing retry in {sleep} seconds")
