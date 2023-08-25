@@ -17,6 +17,7 @@ class Request:
             async with session.get(
                     self.url,
                     timeout=aiohttp.ClientTimeout(total=configuration["general"]["request timeout (sec)"])) as resp:
+                await asyncio.sleep(0)
 
                 if resp.status == 200:
                     data = await resp.json()
@@ -30,6 +31,7 @@ class Request:
         timeout = aiohttp.ClientTimeout(total=configuration["general"]["request timeout (sec)"])
         async with aiohttp.ClientSession() as session:
             async with session.get(self.url, timeout=timeout) as resp:
+                await asyncio.sleep(0)
                 if resp.status == 200:
                     text = await resp.text()
                     obj = schemas.NodeMetrics.from_txt(text)
@@ -45,10 +47,8 @@ async def safe_request(request_url: str, configuration: dict):
         try:
             if "metrics" in request_url.split("/"):
                 data = await Request(request_url).text(configuration)
-                await asyncio.sleep(0)
             else:
                 data = await Request(request_url).json(configuration)
-                await asyncio.sleep(0)
             if retry_count >= configuration['general']['request retry (count)']:
                 return None
             elif data is not None:
