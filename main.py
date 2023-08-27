@@ -187,8 +187,6 @@ async def loop():
 
 
 if __name__ == "__main__":
-    name_logger = logging.getLogger(__name__)
-    name_logger.disabled = False
     bot.loop.create_task(loop())
 
     # Create a thread for running uvicorn
