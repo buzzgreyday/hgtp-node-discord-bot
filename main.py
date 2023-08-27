@@ -20,7 +20,7 @@ with open('config.yml', 'r') as file:
 
 """DEFINE LOGGING LEVEL AND LOCATION"""
 logging.basicConfig(filename=_configuration["file settings"]["locations"]["log"], filemode='w',
-                    format='[%(asctime)s] %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+                    format='[%(asctime)s] %(name)s - %(levelname)s - %(message)s', level=logging.ERROR)
 
 version_manager = preliminaries.VersionManager(_configuration)
 
@@ -187,7 +187,8 @@ async def loop():
 
 
 if __name__ == "__main__":
-    logging.getLogger(__name__).setLevel(logging.getLevelName(logging.ERROR))
+    name_logger = logging.getLogger(__name__)
+    name_logger.disabled = False
     bot.loop.create_task(loop())
 
     # Create a thread for running uvicorn
