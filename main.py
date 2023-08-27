@@ -187,6 +187,7 @@ async def loop():
 
 
 if __name__ == "__main__":
+    logging.getLogger(__name__).setLevel(logging.getLevelName(logging.ERROR))
     bot.loop.create_task(loop())
 
     # Create a thread for running uvicorn
