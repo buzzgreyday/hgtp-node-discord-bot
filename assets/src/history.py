@@ -2,6 +2,7 @@ import asyncio
 import logging
 from typing import List
 
+import aiohttp.client_exceptions
 import sqlalchemy.exc
 
 from assets.src import schemas, api, database, exception
@@ -12,8 +13,8 @@ async def node_data(node_data: schemas.Node, _configuration):
     while True:
         try:
             data = await api.Request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").json(_configuration)
-        except asyncio.exceptions.TimeoutError as te:
-            logging.getLogger(__name__).warning(f"history.py - localhost timeout: {te}")
+        except (asyncio.exceptions.TimeoutError, aiohttp.client_exceptions.ClientOSError, aiohttp.client_exceptions.ClientConnectorError) as te:
+            logging.getLogger(__name__).error(f"history.py - localhost error: {te}")
             await asyncio.sleep(1)
         else:
             break
@@ -44,14 +45,15 @@ async def node_data(node_data: schemas.Node, _configuration):
 
 async def write(data: List[schemas.Node]):
     """Write user/subscriber node data from automatic check to database"""
-    for d in data:
-        while True:
-            try:
-                async with database.SessionLocal() as session:
-                    db = session
-                    if data is not None:
-                        await database.post_data(data=d, db=db)
-                    break
-            except sqlalchemy.exc.IntegrityError:
-                await asyncio.sleep(0)
+    if data:
+        for d in data:
+            while True:
+                try:
+                    async with database.SessionLocal() as session:
+                        db = session
+                        if data is not None:
+                            await database.post_data(data=d, db=db)
+                        break
+                except sqlalchemy.exc.IntegrityError:
+                    await asyncio.sleep(0)
 
