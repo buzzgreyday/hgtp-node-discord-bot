@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 WAIT=3
-PY_VERSION="python3.11"
+PY_VERSION="python3.10"
 
 function create_dir_structure() {
       # Create dir structure
