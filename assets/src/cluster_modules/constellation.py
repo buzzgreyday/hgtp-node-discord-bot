@@ -223,9 +223,6 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
         elif curr_name == module_name and former_name == curr_name:
             logging.getLogger(__name__).debug(f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
             node_data.cluster_connectivity = "association"
-        else:
-            logging.getLogger(__name__).warning(f"constellation.py - Unknown cluster association or connectivity (dissociation) for {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
-            node_data.cluster_connectivity = "dissociation"
 
     elif session == latest_session:
         # If new connection is made with this node then alert
@@ -238,9 +235,9 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
         elif curr_name == former_name and session != former_session:
             logging.getLogger(__name__).debug(f"constellation.py - {module_name.title()} has forked but is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
             node_data.cluster_connectivity = "association"
-        else:
-            logging.getLogger(__name__).warning(f"constellation.py - Unknown cluster association or connectivity (dissociation) for {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
-            node_data.cluster_connectivity = "dissociation"
+    else:
+        logging.getLogger(__name__).warning(f"constellation.py - Unknown cluster association or connectivity (dissociation) for {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})")
+        node_data.cluster_connectivity = "dissociation"
     return node_data
 
 
@@ -604,13 +601,10 @@ def mark_notify(d: schemas.Node, configuration):
         d.notify = True
         d.last_notified_timestamp = d.timestamp_index
     elif d.last_notified_timestamp:
-        if d.reward_state is False:
+        if d.reward_state is False or d.cluster_connectivity == "dissociation":
             if (d.timestamp_index - d.last_notified_timestamp).total_seconds() >= timedelta(
                     hours=configuration["general"]["notifications"]["free disk space sleep (hours)"]).seconds:
                 # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
-                """if d["layer"] == 1:
-                    d["notify"] = False
-                else:"""
                 d.notify = True
                 d.last_notified_timestamp = d.timestamp_index
         elif (d.version != d.cluster_version) and ((d.timestamp_index.second - d.last_notified_timestamp.second) >= timedelta(hours=6).seconds):
