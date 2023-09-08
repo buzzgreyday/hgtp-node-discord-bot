@@ -21,8 +21,6 @@ function create_dir_structure() {
 function create_swap_file() {
   if [ -f "/swap.img" ]; then
     echo "Bot: Swap-file found: swap creation skipped"
-
-    sudo swapoff /swap.img
   else
     sudo fallocate -l 8G /swapfile &&
     sudo chmod 0600 /swapfile &&
