@@ -12,3 +12,4 @@ intents.reactions = True
 intents.members = True
 
 bot = commands.Bot(command_prefix='!', description=description, intents=intents)
+

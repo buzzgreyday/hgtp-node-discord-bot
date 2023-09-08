@@ -80,8 +80,6 @@ async def send_request_process_msg(ctx):
         return None
 
 
-
-
 async def return_guild_member_role(bot, ctx):
     guild = await bot.fetch_guild(974431346850140201)
     member = await guild.fetch_member(ctx.author.id)
