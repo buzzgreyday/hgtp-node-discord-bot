@@ -18,11 +18,15 @@ def merge_data(node_data: schemas.Node, found: bool, cluster_data: schemas.Clust
     elif found and cluster_data is not None:
         if node_data.layer == cluster_data.layer:
             node_data.cluster_name = cluster_data.name
+            # Added the below value
+            node_data.last_known_cluster_name = cluster_data.name
             node_data.latest_cluster_session = cluster_data.session
             node_data.cluster_version = cluster_data.version
             node_data.cluster_peer_count = cluster_data.peer_count
             node_data.cluster_state = cluster_data.state
-
+    # This was not present before refactoring
+    else:
+        node_data.last_known_cluster_name = node_data.former_cluster_name
     return node_data
 
 
