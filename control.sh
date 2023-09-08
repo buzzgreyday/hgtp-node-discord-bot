@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 WAIT=3
+PY_VERSION="python3.11"
 
 function create_dir_structure() {
       # Create dir structure
@@ -59,10 +60,10 @@ function start_bot() {
     create_dir_structure
     create_swap_file
     start_venv
-    cd "$HOME/bot" && $HOME/bot/venv/bin/python3.10 main.py &
+    cd "$HOME/bot" && $HOME/bot/venv/bin/$PY_VERSION main.py &
     echo "Bot: The app started, waiting $WAIT seconds to fetch process ID"
     sleep $WAIT
-    pid=$(pidof -s python3 main.py)
+    pid=$(pidof -s $HOME/bot/venv/bin/$PY_VERSION main.py)
     echo "Bot: Got process ID $pid"
     echo "$pid" &> "$HOME/bot/tmp/pid-store"
   fi
