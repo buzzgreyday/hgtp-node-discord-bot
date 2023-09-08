@@ -111,7 +111,7 @@ function update_bot() {
       git -C "$HOME/bot" checkout experimental
     fi
     start_venv
-    pip3.11 install -r "$HOME/bot/requirements.txt"
+    $HOME/venv/bin/pip3.11 install -r "$HOME/bot/requirements.txt"
   fi
   main
 }
