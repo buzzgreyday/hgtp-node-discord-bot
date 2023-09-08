@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from pydantic.error_wrappers import ValidationError
 
 from assets.src import api
-from assets.src.encode import id_to_dag_address
+from assets.src.encode_decode import id_to_dag_address
 
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 
