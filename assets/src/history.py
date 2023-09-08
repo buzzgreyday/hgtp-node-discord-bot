@@ -11,11 +11,14 @@ from assets.src import schemas, api, database, exception
 
 async def node_data(node_data: schemas.Node, _configuration):
     """Get historic node data"""
-    try:
-        data = await api.Request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").json(_configuration)
-    except (asyncio.exceptions.TimeoutError, aiohttp.client_exceptions.ClientOSError, aiohttp.client_exceptions.ClientConnectorError):
-        logging.getLogger(__name__).error("history.py - localhost error", exc_info=True)
-        await asyncio.sleep(1)
+    while True:
+        try:
+            data = await api.Request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").json(_configuration)
+        except (asyncio.exceptions.TimeoutError, aiohttp.client_exceptions.ClientOSError, aiohttp.client_exceptions.ClientConnectorError):
+            logging.getLogger(__name__).error(f"history.py - localhost error: {traceback.print_exc(50)}")
+            await asyncio.sleep(1)
+        else:
+            break
 
     if data is not None:
         data = schemas.Node(**data)
