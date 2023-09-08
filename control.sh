@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 WAIT=3
-PY_VERSION="python3.11"
+PY_VERSION="python3"
 
 function create_dir_structure() {
       # Create dir structure
@@ -34,6 +34,7 @@ function create_swap_file() {
 
 
 function start_venv() {
+  # NOT FUNCTIONING YET
   if [ ! -d "$HOME/bot/venv" ]; then
     python3 -m venv "$HOME/venv"
     source "$HOME/bot/venv/bin/activate"
@@ -111,7 +112,7 @@ function update_bot() {
       git -C "$HOME/bot" checkout experimental
     fi
     start_venv
-    pip install -r "$HOME/bot/requirements.txt"
+    pip3 install -r "$HOME/bot/requirements.txt"
   fi
   main
 }
@@ -129,7 +130,7 @@ function install_bot() {
   sudo apt install -y libssl-dev
   git clone "https://pypergraph:$GITHUB_TOKEN@github.com/pypergraph/hgtp-node-discord-bot" "$HOME/bot/"
   start_venv
-  pip install -r "$HOME/bot/requirements.txt"
+  pip3 install -r "$HOME/bot/requirements.txt"
   main
 }
 
