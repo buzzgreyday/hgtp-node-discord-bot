@@ -19,23 +19,11 @@ function create_dir_structure() {
 
 
 function create_swap_file() {
-  read -rp "Bot: Create 8GB swap-file? [y] " input
-  if [ "$input" == 'y' ]; then
-    if [ -f "/swap.img" ]; then
-      sudo swapoff /swap.img
-    fi
-    sudo fallocate -l 8G /swapfile &&
-    sudo chmod 0600 /swapfile &&
-    sudo mkswap /swapfile &&
-    sudo swapon /swapfile &&
-    echo "Bot: Swap-file creation done"
-    free -h
-  elif [ "$input" == 'n' ]; then
-    echo "Bot: Swap-file creation: Skipped"
+  if [ -f "/swap.img" ]; then
+    echo "Bot: Swap-file found: swap creation skipped"
+
+    sudo swapoff /swap.img
   else
-    if [ -f "/swap.img" ]; then
-      sudo swapoff /swap.img
-    fi
     sudo fallocate -l 8G /swapfile &&
     sudo chmod 0600 /swapfile &&
     sudo mkswap /swapfile &&
@@ -73,7 +61,7 @@ function start_bot() {
     create_dir_structure
     create_swap_file
     start_venv
-    cd "$HOME/bot" && python3 main.py &
+    cd "$HOME/bot" && $HOME/bot/venv/bin/python3.11 main.py &
     echo "Bot: The app started, waiting $WAIT seconds to fetch process ID"
     sleep $WAIT
     pid=$(pidof -s python3 main.py)
@@ -84,7 +72,7 @@ function start_bot() {
 
 function stop_bot() {
   if [ -f "$HOME/bot/tmp/pid-store" ]; then
-    pid=$(cat "$HOME/bot/tmp/pid-store") && kill "$pid" && echo "Bot: Killed process [$pid]" && rm "$HOME/bot/tmp/pid-store"
+    pid=$(cat "$HOME/bot/tmp/pid-store") && kill "$pid" && rm "$HOME/bot/tmp/pid-store" && echo "Bot: Killed process [$pid]"
   else
     echo "Bot: Could not kill process - no saved process found"
   fi
