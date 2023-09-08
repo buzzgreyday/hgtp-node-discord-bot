@@ -35,7 +35,7 @@ function create_swap_file() {
 
 function start_venv() {
   if [ ! -d "$HOME/bot/venv" ]; then
-    python3 -m venv "$HOME/bot/venv"
+    python3 -m venv "$HOME/venv"
     source "$HOME/bot/venv/bin/activate"
   else
     source "$HOME/bot/venv/bin/activate"
@@ -60,10 +60,10 @@ function start_bot() {
     create_dir_structure
     create_swap_file
     start_venv
-    cd "$HOME/bot" && $HOME/venv/bin/$PY_VERSION main.py &
+    cd "$HOME/bot" && $PY_VERSION main.py &
     echo "Bot: The app started, waiting $WAIT seconds to fetch process ID"
     sleep $WAIT
-    pid=$(pidof -s $HOME/venv/bin/$PY_VERSION main.py)
+    pid=$(pidof -s $PY_VERSION main.py)
     echo "Bot: Got process ID $pid"
     echo "$pid" &> "$HOME/bot/tmp/pid-store"
   fi
@@ -111,7 +111,7 @@ function update_bot() {
       git -C "$HOME/bot" checkout experimental
     fi
     start_venv
-    $HOME/venv/bin/pip3.11 install -r "$HOME/bot/requirements.txt"
+    pip install -r "$HOME/bot/requirements.txt"
   fi
   main
 }
