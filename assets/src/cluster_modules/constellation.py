@@ -462,7 +462,7 @@ def build_system_node_version(node_data: schemas.Node):
             elif node_data.cluster_version < node_data.latest_version:
                 field_info = f"`ⓘ  You are running the latest version but a new release ({node_data.latest_version}) should be available soon"
             elif node_data.cluster_version > node_data.latest_version:
-                field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest official version is {node_data.latest_version}`"
+                field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is {node_data.latest_version}`"
             else:
                 field_info = "`ⓘ  This line should not be seen`"
             return version_field(), red_color_trigger, False
