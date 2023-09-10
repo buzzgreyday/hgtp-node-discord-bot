@@ -102,18 +102,22 @@ async def locate_rewarded_addresses(layer, name, configuration):
 
 
 async def request_snapshot(request_url, configuration):
-    data = await api.safe_request(request_url, configuration)
-    if data is not None:
-        ordinal = data["data"]["ordinal"]
-        try:
-            timestamp = datetime.strptime(data["data"]["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ")
-        except ValueError:
-            timestamp = datetime.strptime(data["data"]["timestamp"], "%Y-%m-%dT%H:%M:%SZ")
-        return ordinal, timestamp
-    elif data is None:
-        ordinal = None
-        timestamp = None
-        return ordinal, timestamp
+    while True:
+        data = await api.safe_request(request_url, configuration)
+        if data is not None:
+            ordinal = data["data"]["ordinal"]
+            try:
+                timestamp = datetime.strptime(data["data"]["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ")
+            except ValueError:
+                timestamp = datetime.strptime(data["data"]["timestamp"], "%Y-%m-%dT%H:%M:%SZ")
+            return ordinal, timestamp
+        """elif data is None:
+            ordinal = None
+            timestamp = None
+            return ordinal, timestamp"""
+        else:
+            await asyncio.sleep(3)
+
 
 
 async def request_reward_addresses_per_snapshot(request_url, configuration):
