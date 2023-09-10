@@ -71,25 +71,31 @@ async def request_cluster_data(url, layer, name, configuration) -> schemas.Clust
 
 async def locate_rewarded_addresses(layer, name, configuration):
     """layer 1 doesn't have a block explorer: defaulting to 0"""
-    try:
-        addresses = []
-        latest_ordinal, latest_timestamp = \
-            await request_snapshot(
-                f"{configuration['modules'][name][0]['be']['url'][0]}/"
-                f"{configuration['modules'][name][0]['be']['info']['latest snapshot']}", configuration)
-        if latest_ordinal:
-            tasks = []
-            for ordinal in range(latest_ordinal-50, latest_ordinal):
-                tasks.append(asyncio.create_task(request_reward_addresses_per_snapshot(
+    # Can still not properly handle if latest_ordinal is None
+    while True:
+        try:
+            addresses = []
+            latest_ordinal, latest_timestamp = \
+                await request_snapshot(
                     f"{configuration['modules'][name][0]['be']['url'][0]}/"
-                    f"global-snapshots/{ordinal}/rewards", configuration
-                )))
-            for task in tasks:
-                addresses.extend(await task)
-                addresses = list(set(addresses))
-    except KeyError:
-        latest_ordinal = None; latest_timestamp = None; addresses = []
-    return latest_ordinal, latest_timestamp, addresses
+                    f"{configuration['modules'][name][0]['be']['info']['latest snapshot']}", configuration)
+            if latest_ordinal:
+                tasks = []
+                for ordinal in range(latest_ordinal-50, latest_ordinal):
+                    tasks.append(asyncio.create_task(request_reward_addresses_per_snapshot(
+                        f"{configuration['modules'][name][0]['be']['url'][0]}/"
+                        f"global-snapshots/{ordinal}/rewards", configuration
+                    )))
+                for task in tasks:
+                    addresses.extend(await task)
+                    addresses = list(set(addresses))
+                return latest_ordinal, latest_timestamp, addresses
+            else:
+                await asyncio.sleep(3)
+        except KeyError:
+            await asyncio.sleep(3)
+            # latest_ordinal = None; latest_timestamp = None; addresses = []
+    # return latest_ordinal, latest_timestamp, addresses
 
 # IN THE FUNCTIOM ABOVE WE NEED TO REQUEST SNAPSHOT DATA, BEFORE BEING ABLE TO KNOW WHICH REWARD SNAPSHOTS WE WANT TO
 # CHECK AGAINST. THIS IS DONE IN THE FUNCTION BELOW.
