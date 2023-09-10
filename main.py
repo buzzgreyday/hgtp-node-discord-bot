@@ -74,7 +74,6 @@ async def loop():
                 await asyncio.sleep(3)
                 gc.collect()
             await asyncio.sleep(1)
-        await loop_per_cluster_and_layer(cluster_name, layer)
 
     tasks = []
     for cluster_name in _configuration["modules"].keys():
