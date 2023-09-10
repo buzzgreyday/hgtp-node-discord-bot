@@ -70,13 +70,9 @@ async def loop():
         logging.getLogger(__name__).info(f"main.py - {cluster_name, layer} runtime schedule:\n\t{times}")
         while True:
             if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
-                try:
-                    await run_process.main(None, None, None, cluster_name, layer, _configuration)
-                    await asyncio.sleep(3)
-                    gc.collect()
-                except Exception as e:
-                    logging.getLogger(__name__).info(f"main.py - {cluster_name, layer} traceback:\n\t{traceback.print_exc()}")
-                    break
+                await run_process.main(None, None, None, cluster_name, layer, _configuration)
+                await asyncio.sleep(3)
+                gc.collect()
             await asyncio.sleep(1)
         await loop_per_cluster_and_layer(cluster_name, layer)
 
