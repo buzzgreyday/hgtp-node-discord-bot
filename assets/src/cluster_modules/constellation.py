@@ -111,10 +111,10 @@ async def request_snapshot(request_url, configuration):
             except ValueError:
                 timestamp = datetime.strptime(data["data"]["timestamp"], "%Y-%m-%dT%H:%M:%SZ")
             return ordinal, timestamp
-        """elif data is None:
-            ordinal = None
-            timestamp = None
-            return ordinal, timestamp"""
+            """elif data is None:
+                ordinal = None
+                timestamp = None
+                return ordinal, timestamp"""
         else:
             await asyncio.sleep(3)
 
