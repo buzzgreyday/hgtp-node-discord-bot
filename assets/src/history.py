@@ -11,7 +11,7 @@ from assets.src import schemas, api, database, exception
 
 async def node_data(node_data: schemas.Node, _configuration):
     """Get historic node data"""
-    data = await api.Request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").json(_configuration)
+    data = await api.safe_request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}", _configuration)
     if data is None:
         logging.getLogger(__name__).warning(f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} returned {data}")
 
