@@ -104,7 +104,7 @@ async def locate_rewarded_addresses(layer, name, configuration):
 async def request_snapshot(request_url, configuration):
     while True:
         data = await api.safe_request(request_url, configuration)
-        if data is not None:
+        if data:
             ordinal = data["data"]["ordinal"]
             try:
                 timestamp = datetime.strptime(data["data"]["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ")

@@ -70,10 +70,15 @@ async def loop():
         logging.getLogger(__name__).info(f"main.py - {cluster_name, layer} runtime schedule:\n\t{times}")
         while True:
             if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
-                await run_process.main(None, None, None, cluster_name, layer, _configuration)
+                try:
+                    await run_process.main(None, None, None, cluster_name, layer, _configuration)
+                except Exception as e:
+                    logging.getLogger(__name__).error(f"main.py - error: {e} - restarting {cluster_name}, layer {layer}")
+                    break
                 await asyncio.sleep(3)
                 gc.collect()
             await asyncio.sleep(1)
+        await loop_per_cluster_and_layer(cluster_name, layer)
 
     tasks = []
     for cluster_name in _configuration["modules"].keys():
