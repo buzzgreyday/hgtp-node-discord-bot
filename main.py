@@ -73,7 +73,7 @@ async def loop():
                 try:
                     await run_process.main(None, None, None, cluster_name, layer, _configuration)
                 except Exception as e:
-                    logging.getLogger(__name__).error(f"main.py - error: {e} - restarting {cluster_name}, layer {layer}")
+                    logging.getLogger(__name__).error(f"main.py - error: {traceback.print_exc()} - restarting {cluster_name}, layer {layer}")
                     break
                 await asyncio.sleep(3)
                 gc.collect()
