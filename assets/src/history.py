@@ -16,7 +16,7 @@ async def node_data(node_data: schemas.Node, _configuration):
             data = await api.Request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").json(_configuration)
         except asyncio.TimeoutError:
             logging.getLogger(__name__).warning(
-                f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} returned {data}")
+                f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port}")
             await asyncio.sleep(1)
         else:
             if data:
