@@ -1,5 +1,7 @@
+import asyncio
 import datetime
 import logging
+import sqlite3
 from typing import Optional
 from pathlib import Path
 
@@ -122,13 +124,20 @@ async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
     # You only need one result that matches
     result = result.fetchone()
     if result:
-        logging.getLogger(__name__).info(f"main.py - The user {data.name} already exists for {data.ip}:{data.public_port}")
+        logging.getLogger(__name__).info(f"database.py - The user {data.name} already exists for {data.ip}:{data.public_port}")
     else:
         db.add(user)
-        await db.commit()
+        while True:
+            try:
+                await db.commit()
+            except sqlite3.OperationalError:
+                logging.getLogger(__name__).info(
+                    f"database.py - A new subscription recorded for {data.name} ({data.ip}:{data.public_port})")
+                await asyncio.sleep(1)
+            else:
+                break
         await db.refresh(user)
         await db.close()
-        logging.getLogger(__name__).info(f"main.py - A new subscription recorded for {data.name} ({data.ip}:{data.public_port})")
     return jsonable_encoder(data_dict)
 
 
@@ -140,7 +149,14 @@ async def post_data(data: NodeModel, db: AsyncSession = Depends(get_db)):
     data_dict = data.dict()
     node_data = NodeData(**data_dict)
     db.add(node_data)
-    await db.commit()
+    while True:
+        try:
+            await db.commit()
+        except sqlite3.OperationalError:
+            logging.getLogger(__name__).info(f"database.py - A new subscription recorded for {data.name} ({data.ip}:{data.public_port}, {data.last_known_cluster_name})")
+            await asyncio.sleep(1)
+        else:
+            break
     await db.refresh(node_data)
     await db.close()
     return jsonable_encoder(data_dict)
