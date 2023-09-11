@@ -11,17 +11,15 @@ from assets.src import schemas, api, database, exception
 
 async def node_data(node_data: schemas.Node, _configuration):
     """Get historic node data"""
-    while True:
-        try:
-            data = await api.Request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").json(_configuration)
-        except (asyncio.TimeoutError, aiohttp.client_exceptions.ClientOSError):
-            logging.getLogger(__name__).warning(
-                f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port}")
-            await asyncio.sleep(1)
-        else:
-            if data:
-                break
 
+    #
+    # This here is the biggest problem it seems
+    # The problem seems to be with requesting sqlite3 async from different tasks. It locks or times out.
+
+    data = await api.safe_request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}", _configuration)
+    # This section won't do. We need to get the historic data; the first lines won't work we need loop to ensure we get the data, only if it doesn't exist, we can continue.
+    if data is None:
+        logging.getLogger(__name__).warning(f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} returned {data}")
 
     if data is not None:
         data = schemas.Node(**data)
@@ -51,12 +49,13 @@ async def write(data: List[schemas.Node]):
     """Write user/subscriber node data from automatic check to database"""
     if data:
         for d in data:
-            while True:
-                try:
-                    async with database.SessionLocal() as session:
-                        db = session
-                        await database.post_data(data=d, db=db)
-                        break
-                except sqlalchemy.exc.IntegrityError:
-                    await asyncio.sleep(0)
+            if d.cluster_name or d.former_cluster_name or d.last_known_cluster_name:
+                while True:
+                    try:
+                        async with database.SessionLocal() as session:
+                            db = session
+                            await database.post_data(data=d, db=db)
+                            break
+                    except sqlalchemy.exc.IntegrityError:
+                        await asyncio.sleep(0)
 
