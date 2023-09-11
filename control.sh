@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 WAIT=3
-PY_VERSION="python3.10"
+PY_VERSION="python3"
 
 function create_dir_structure() {
       # Create dir structure
@@ -32,6 +32,18 @@ function create_swap_file() {
   fi
 }
 
+
+function start_venv() {
+  # NOT FUNCTIONING YET
+  if [ ! -d "$HOME/bot/venv" ]; then
+    python3 -m venv "$HOME/venv"
+    source "$HOME/bot/venv/bin/activate"
+  else
+    source "$HOME/bot/venv/bin/activate"
+  fi
+}
+
+
 function start_bot() {
   if [ ! -d "$HOME/bot/" ]; then
     echo "Bot: The bot app doesn't seem to be installed"
@@ -48,6 +60,7 @@ function start_bot() {
   else
     create_dir_structure
     create_swap_file
+    start_venv
     cd "$HOME/bot" && $PY_VERSION main.py &
     echo "Bot: The app started, waiting $WAIT seconds to fetch process ID"
     sleep $WAIT
