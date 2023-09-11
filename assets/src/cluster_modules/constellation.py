@@ -72,28 +72,27 @@ async def request_cluster_data(url, layer, name, configuration) -> schemas.Clust
 async def locate_rewarded_addresses(layer, name, configuration):
     """layer 1 doesn't have a block explorer: defaulting to 0"""
     # Can still not properly handle if latest_ordinal is None
-    while True:
-        try:
-            addresses = []
-            latest_ordinal, latest_timestamp = \
-                await request_snapshot(
+    try:
+        addresses = []
+        latest_ordinal, latest_timestamp = \
+            await request_snapshot(
+                f"{configuration['modules'][name][0]['be']['url'][0]}/"
+                f"{configuration['modules'][name][0]['be']['info']['latest snapshot']}", configuration)
+        if latest_ordinal:
+            tasks = []
+            for ordinal in range(latest_ordinal-50, latest_ordinal):
+                tasks.append(asyncio.create_task(request_reward_addresses_per_snapshot(
                     f"{configuration['modules'][name][0]['be']['url'][0]}/"
-                    f"{configuration['modules'][name][0]['be']['info']['latest snapshot']}", configuration)
-            if latest_ordinal:
-                tasks = []
-                for ordinal in range(latest_ordinal-50, latest_ordinal):
-                    tasks.append(asyncio.create_task(request_reward_addresses_per_snapshot(
-                        f"{configuration['modules'][name][0]['be']['url'][0]}/"
-                        f"global-snapshots/{ordinal}/rewards", configuration
-                    )))
-                for task in tasks:
-                    addresses.extend(await task)
-                    addresses = list(set(addresses))
-                return latest_ordinal, latest_timestamp, addresses
-            else:
-                await asyncio.sleep(3)
-        except KeyError:
+                    f"global-snapshots/{ordinal}/rewards", configuration
+                )))
+            for task in tasks:
+                addresses.extend(await task)
+                addresses = list(set(addresses))
+            return latest_ordinal, latest_timestamp, addresses
+        else:
             await asyncio.sleep(3)
+    except KeyError:
+        await asyncio.sleep(3)
             # latest_ordinal = None; latest_timestamp = None; addresses = []
     # return latest_ordinal, latest_timestamp, addresses
 
@@ -111,10 +110,6 @@ async def request_snapshot(request_url, configuration):
             except ValueError:
                 timestamp = datetime.strptime(data["data"]["timestamp"], "%Y-%m-%dT%H:%M:%SZ")
             return ordinal, timestamp
-            """elif data is None:
-                ordinal = None
-                timestamp = None
-                return ordinal, timestamp"""
         else:
             await asyncio.sleep(3)
 
@@ -270,7 +265,7 @@ def set_association_time(node_data: schemas.Node):
     if node_data.cluster_connectivity == "association":
         node_data.cluster_association_time = time_difference + node_data.former_cluster_association_time
         node_data.cluster_dissociation_time = node_data.former_cluster_dissociation_time
-    elif node_data.cluster_connectivity == "disociation":
+    elif node_data.cluster_connectivity == "dissociation":
         node_data.cluster_dissociation_time = time_difference + node_data.former_cluster_dissociation_time
         node_data.cluster_association_time = node_data.former_cluster_association_time
     elif node_data.cluster_connectivity in ("new association", "new dissociation"):
@@ -285,9 +280,9 @@ def set_association_time(node_data: schemas.Node):
 
 
 def build_title(node_data: schemas.Node):
-    if node_data.cluster_connectivity in ("new association", "associated"):
+    if node_data.cluster_connectivity in ("new association", "associateion"):
         title_ending = f"is up"
-    elif node_data.cluster_connectivity in ("new dissociation", "dissociated"):
+    elif node_data.cluster_connectivity in ("new dissociation", "dissociation"):
         title_ending = f"is down"
     else:
         title_ending = f"report"
@@ -611,7 +606,7 @@ def mark_notify(d: schemas.Node, configuration):
         d.notify = True
         d.last_notified_timestamp = d.timestamp_index
     elif d.last_notified_timestamp:
-        if d.reward_state is False or d.cluster_connectivity == "dissociation":
+        if d.reward_state is False:
             if (d.timestamp_index - d.last_notified_timestamp).total_seconds() >= timedelta(
                     hours=configuration["general"]["notifications"]["free disk space sleep (hours)"]).seconds:
                 # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
