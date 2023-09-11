@@ -45,7 +45,10 @@ async def process_node_data_per_user(name, ids, requester, cluster_data, process
             id_ = lst[0]
             ip = lst[1]
             port = lst[2]
-            subscriber = await api.locate_node(_configuration, requester, id_, ip, port)
+            while True:
+                subscriber = await api.locate_node(_configuration, requester, id_, ip, port)
+                if subscriber:
+                    break
             subscriber = pd.DataFrame(subscriber)
             futures.append(asyncio.create_task(
                 node_status_check(process_msg, requester, subscriber, cluster_data, version_manager,
