@@ -17,6 +17,7 @@ async def node_data(node_data: schemas.Node, _configuration):
     # The problem seems to be with requesting sqlite3 async from different tasks. It locks or times out.
 
     data = await api.safe_request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}", _configuration)
+    # This section won't do. We need to get the historic data; the first lines won't work we need loop to ensure we get the data, only if it doesn't exist, we can continue.
     if data is None:
         logging.getLogger(__name__).warning(f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} returned {data}")
 
