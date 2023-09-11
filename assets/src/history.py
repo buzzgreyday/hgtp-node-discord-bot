@@ -12,12 +12,16 @@ from assets.src import schemas, api, database, exception
 async def node_data(node_data: schemas.Node, _configuration):
     """Get historic node data"""
     while True:
-        data = await api.Request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").json(_configuration)
-        if data:
-            break
-        else:
-            logging.getLogger(__name__).warning(f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} returned {data}")
+        try:
+            data = await api.Request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").json(_configuration)
+        except asyncio.TimeoutError:
+            logging.getLogger(__name__).warning(
+                f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} returned {data}")
             await asyncio.sleep(1)
+        else:
+            if data:
+                break
+
 
     if data is not None:
         data = schemas.Node(**data)
