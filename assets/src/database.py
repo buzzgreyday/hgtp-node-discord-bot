@@ -105,6 +105,7 @@ async def get_db() -> AsyncSession:
 async def get_next_index(Model, db: AsyncSession) -> int:
     """Fetch the last assigned index from the separate table"""
     result = await db.execute(select(Model.index).order_by(Model.index.desc()).limit(1))
+    await db.close()
     last_index = result.scalar_one_or_none()
     return 0 if last_index is None else last_index + 1
 
@@ -126,6 +127,7 @@ async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
         db.add(user)
         await db.commit()
         await db.refresh(user)
+        await db.close()
         logging.getLogger(__name__).info(f"main.py - A new subscription recorded for {data.name} ({data.ip}:{data.public_port})")
     return jsonable_encoder(data_dict)
 
@@ -140,6 +142,7 @@ async def post_data(data: NodeModel, db: AsyncSession = Depends(get_db)):
     db.add(node_data)
     await db.commit()
     await db.refresh(node_data)
+    await db.close()
     return jsonable_encoder(data_dict)
 
 
@@ -148,6 +151,7 @@ async def post_data(data: NodeModel, db: AsyncSession = Depends(get_db)):
 async def get_users(db: AsyncSession = Depends(get_db)):
     """Returns a list of all user data"""
     results = await db.execute(select(User))
+    await db.close()
     users = results.scalars().all()
     return {"users": users}
 
@@ -157,6 +161,7 @@ async def get_user_ids(layer: int, db: AsyncSession = Depends(get_db)):
     """INSTEAD RETURN A TUPLE CONTAINING ID, IP, PORT!!!! Returns a list of all user IDs currently subscribed"""
     list_of_tuples = []
     results = await db.execute(select(User).where(User.layer == layer))
+    await db.close()
     ids = results.scalars().all()
     for values in ids:
         list_of_tuples.append((values.id, values.ip, values.public_port))
@@ -168,6 +173,7 @@ async def get_user_ids(layer: int, db: AsyncSession = Depends(get_db)):
 async def get_nodes(id_: str, ip: str, port: int, db: AsyncSession = Depends(get_db)):
     """Return user by ID"""
     results = await db.execute(select(User).where((User.id == id_) & (User.ip == ip) & (User.public_port == port)))
+    await db.close()
     nodes = results.scalars().all()
     return nodes
 
@@ -176,6 +182,7 @@ async def get_nodes(id_: str, ip: str, port: int, db: AsyncSession = Depends(get
 async def get_node(ip: str, public_port: int, db: AsyncSession = Depends(get_db)):
     """Return user by IP and port"""
     results = await db.execute(select(User).where((User.ip == ip) & (User.public_port == public_port)))
+    await db.close()
     node = results.scalars().all()
     return {"node": node}
 
@@ -185,6 +192,7 @@ async def get_contact_node_id(contact, layer, db: AsyncSession = Depends(get_db)
     """INSTEAD RETURN A TUPLE CONTAINING ID, IP, PORT!!!! Return user by contact"""
     list_of_tuples = []
     results = await db.execute(select(User).where((User.contact == contact) & (User.layer == layer)))
+    await db.close()
     ids = results.scalars().all()
     for values in ids:
         list_of_tuples.append((values.id, values.ip, values.public_port, values.layer))
@@ -200,5 +208,6 @@ async def get_node_data(ip, public_port, db: AsyncSession = Depends(get_db)):
                     .where((NodeData.ip == ip) & (NodeData.public_port == public_port))
                     .order_by(NodeData.timestamp_index.desc())
                     .limit(1))
+    await db.close()
     node = results.scalar_one_or_none()
     return node
