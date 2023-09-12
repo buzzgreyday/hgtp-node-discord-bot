@@ -18,13 +18,27 @@ class Request:
                     self.url,
                     timeout=aiohttp.ClientTimeout(total=configuration["general"]["request timeout (sec)"])) as resp:
                 await asyncio.sleep(0)
-
                 if resp.status == 200:
                     data = await resp.json()
                     return data
 
                 else:
+                    print(self.url, resp.status)
                     return None
+
+    async def db_json(self, configuration: dict):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                    self.url,
+                    timeout=aiohttp.ClientTimeout(total=25)) as resp:
+                await asyncio.sleep(0)
+                if resp.status == 200:
+                    data = await resp.json()
+                    return data, resp.status
+
+                else:
+                    print(self.url, resp.status)
+                    return None, resp.status
 
     async def text(self, configuration: dict):
 
@@ -69,14 +83,41 @@ async def safe_request(request_url: str, configuration: dict):
 
 async def get_user_ids(layer, requester, _configuration):
     """RETURNS A LIST/SET OF TUPLES CONTAINING ID, IP, PORT (PER LAYER)"""
-    if requester is None:
-        return await safe_request(f"http://127.0.0.1:8000/user/ids/layer/{layer}", _configuration)
-    else:
-        return await Request(f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}").json(_configuration)
+    while True:
+        try:
+            if requester is None:
+                data, resp_status = await Request(f"http://127.0.0.1:8000/user/ids/layer/{layer}").db_json(_configuration)
+            else:
+                data, resp_status = await Request(f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}").db_json(_configuration)
+        except asyncio.TimeoutError:
+            logging.getLogger(__name__).warning(
+                f"api.py - localhost error: http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer} timeout")
+            await asyncio.sleep(0)
+        else:
+            if resp_status == 200:
+                return data
+            else:
+                logging.getLogger(__name__).warning(
+                    f"api.py - localhost error: http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer} return status {resp_status}")
+                await asyncio.sleep(0)
 
 
 async def locate_node(_configuration, requester, id_, ip, port):
     """Locate every subscription where ID is id_
     return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])"""
-    return await safe_request(f"http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port}", _configuration)
+    while True:
+        try:
+            data, resp_status = await Request(f"http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port}").db_json(_configuration)
+        except asyncio.TimeoutError:
+            logging.getLogger(__name__).warning(
+                f"api.py - localhost error: http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port} timeout")
+            await asyncio.sleep(0)
+        else:
+            if resp_status == 200:
+                return data
+            else:
+                logging.getLogger(__name__).warning(
+                    f"api.py - localhost error: http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port} returned status {resp_status}")
+                await asyncio.sleep(0)
+
 
