@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import logging
 from typing import Optional
@@ -18,6 +19,8 @@ engine = create_async_engine(f"sqlite+aiosqlite:///assets/data/db/database.db", 
 SessionLocal = async_sessionmaker(engine, class_=AsyncSession)
 
 api = FastAPI()
+
+db_lock = asyncio.Lock()
 
 
 class SQLBase(DeclarativeBase):
@@ -104,10 +107,11 @@ async def get_db() -> AsyncSession:
 
 async def get_next_index(Model, db: AsyncSession) -> int:
     """Fetch the last assigned index from the separate table"""
-    result = await db.execute(select(Model.index).order_by(Model.index.desc()).limit(1))
-    await db.close()
-    last_index = result.scalar_one_or_none()
-    return 0 if last_index is None else last_index + 1
+    async with db_lock:
+        result = await db.execute(select(Model.index).order_by(Model.index.desc()).limit(1))
+        await db.close()
+        last_index = result.scalar_one_or_none()
+        return 0 if last_index is None else last_index + 1
 
 
 @api.post("/user/create")
@@ -118,18 +122,20 @@ async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
     data.date = datetime.datetime.utcnow()
     data_dict = data.dict()
     user = User(**data_dict)
-    result = await db.execute(select(User).where((User.ip == data.ip) & (User.public_port == data.public_port)))
-    # You only need one result that matches
-    result = result.fetchone()
-    if result:
-        logging.getLogger(__name__).info(f"main.py - The user {data.name} already exists for {data.ip}:{data.public_port}")
-    else:
-        db.add(user)
-        await db.commit()
-        await db.refresh(user)
-        await db.close()
-        logging.getLogger(__name__).info(f"main.py - A new subscription recorded for {data.name} ({data.ip}:{data.public_port})")
-    return jsonable_encoder(data_dict)
+    async with db_lock:
+
+        result = await db.execute(select(User).where((User.ip == data.ip) & (User.public_port == data.public_port)))
+        # You only need one result that matches
+        result = result.fetchone()
+        if result:
+            logging.getLogger(__name__).info(f"main.py - The user {data.name} already exists for {data.ip}:{data.public_port}")
+        else:
+            db.add(user)
+            await db.commit()
+            await db.refresh(user)
+            await db.close()
+            logging.getLogger(__name__).info(f"main.py - A new subscription recorded for {data.name} ({data.ip}:{data.public_port})")
+        return jsonable_encoder(data_dict)
 
 
 @api.post("/data/create")
