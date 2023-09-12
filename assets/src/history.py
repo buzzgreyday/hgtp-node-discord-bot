@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import sqlite3
 import traceback
 from typing import List
 
@@ -15,11 +16,21 @@ async def node_data(node_data: schemas.Node, _configuration):
     #
     # This here is the biggest problem it seems
     # The problem seems to be with requesting sqlite3 async from different tasks. It locks or times out.
+    while True:
+        try:
+            data, resp_status = await api.Request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").db_json(_configuration)
+        except asyncio.TimeoutError:
+            logging.getLogger(__name__).warning(
+                f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} timeout")
 
-    data = await api.safe_request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}", _configuration)
-    # This section won't do. We need to get the historic data; the first lines won't work we need loop to ensure we get the data, only if it doesn't exist, we can continue.
-    if data is None:
-        logging.getLogger(__name__).warning(f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} returned {data}")
+            await asyncio.sleep(0)
+        else:
+        # This section won't do. We need to get the historic data; the first lines won't work we need loop to ensure we get the data, only if it doesn't exist, we can continue.
+            if resp_status == 200:
+                break
+            else:
+                logging.getLogger(__name__).warning(f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} returned status {resp_status}")
+                await asyncio.sleep(0)
 
     if data is not None:
         data = schemas.Node(**data)
@@ -58,4 +69,6 @@ async def write(data: List[schemas.Node]):
                             break
                     except sqlalchemy.exc.IntegrityError:
                         await asyncio.sleep(0)
+                    except (sqlite3.OperationalError, asyncio.TimeoutError):
+                        await asyncio.sleep(1)
 
