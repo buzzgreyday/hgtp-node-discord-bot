@@ -72,8 +72,9 @@ async def loop():
             if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
                 try:
                     await run_process.main(None, None, None, cluster_name, layer, _configuration)
-                except Exception as e:
-                    logging.getLogger(__name__).error(f"main.py - error: {e} - restarting {cluster_name}, layer {layer}")
+                except Exception:
+                    logging.getLogger(__name__).error(f"main.py - error: {traceback.format_exc()} - restarting {cluster_name}, layer {layer}")
+                    await discord.messages.send_traceback(bot, traceback.format_exc())
                     break
                 await asyncio.sleep(3)
                 gc.collect()
