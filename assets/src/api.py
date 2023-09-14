@@ -23,7 +23,6 @@ class Request:
                     return data
 
                 else:
-                    print(self.url, resp.status)
                     return None
 
     async def db_json(self, configuration: dict):
@@ -37,7 +36,6 @@ class Request:
                     return data, resp.status
 
                 else:
-                    print(self.url, resp.status)
                     return None, resp.status
 
     async def text(self, configuration: dict):
