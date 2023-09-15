@@ -75,9 +75,9 @@ async def safe_request(request_url: str, configuration: dict):
                 return None
             retry_count += 1
             await asyncio.sleep(configuration['general']['request retry interval (sec)'])
-            logging.getLogger(__name__).warning(f"api.py - {request_url} returned {traceback.print_exc()} ({retry_count}/{configuration['general']['request retry (count)']})")
-        except (aiohttp.client_exceptions.ClientConnectorError, aiohttp.client_exceptions.InvalidURL):
-            logging.getLogger(__name__).warning(f"api.py - {request_url} returned {traceback.print_exc()} ({retry_count}/{configuration['general']['request retry (count)']})")
+            logging.getLogger(__name__).warning(f"api.py - {request_url} returned \"{e}\" ({retry_count}/{configuration['general']['request retry (count)']})")
+        except (aiohttp.client_exceptions.ClientConnectorError, aiohttp.client_exceptions.InvalidURL) as e:
+            logging.getLogger(__name__).warning(f"api.py - {request_url} returned \"{e}\" ({retry_count}/{configuration['general']['request retry (count)']})")
             return None
 
 
