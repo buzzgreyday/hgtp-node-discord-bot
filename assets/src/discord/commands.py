@@ -48,10 +48,9 @@ async def r(ctx):
             guild, member, role = await discord.return_guild_member_role(bot, ctx)
             if role:
                 fut = []
-                for cluster_name in _configuration["modules"].keys():
-                    for layer in _configuration["modules"][cluster_name].keys():
-                        fut.append(asyncio.create_task(
-                            run_process.request_report(ctx, process_msg, layer, requester, _configuration)))
+                for layer in (0, 1):
+                    fut.append(asyncio.create_task(
+                        run_process.request_report(ctx, process_msg, layer, requester, _configuration)))
                 for task in fut:
                     await task
             else:
