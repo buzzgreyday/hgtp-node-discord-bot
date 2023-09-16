@@ -47,7 +47,7 @@ async def request_check(process_msg, layer, requester, _configuration):
                                      id=subscriber.id.values[0],
                                      wallet_address=subscriber.wallet.values[0],
                                      latest_version=version_manager.get_version(),
-                                     notify=False if requester is None else True,
+                                     notify=True,
                                      timestamp_index=dt.datetime.utcnow())
             # Historic and current is the same
             process_msg = await discord.update_request_process_msg(process_msg, 2, None)
