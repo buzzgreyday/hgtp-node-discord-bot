@@ -74,6 +74,14 @@ def locate_node(node_data: schemas.Node, cluster_data: schemas.Cluster):
 
 
 async def get_module_data(node_data: schemas.Node, configuration):
+    last_known_cluster, layer = await determine_module.get_module_name_and_layer(node_data, configuration)
+
+    if last_known_cluster:
+        process_msg = await discord.update_request_process_msg(process_msg, 4,
+                                                               f"{last_known_cluster} layer {layer}")
+        module = determine_module.set_module(last_known_cluster, configuration)
+        node_data = await module.node_cluster_data(node_data, last_known_cluster, configuration)
+
     if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{node_data.cluster_name}.py"):
         module = determine_module.set_module(node_data.cluster_name, configuration)
         node_data = await module.node_cluster_data(node_data, node_data.cluster_name, configuration)
