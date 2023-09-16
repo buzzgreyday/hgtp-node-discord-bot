@@ -11,17 +11,9 @@ from assets.src import schemas
 async def notify(data: List[schemas.Node], configuration):
     if data:
         for idx, d in enumerate(data):
-            if await os.path.exists(
-                    f"{configuration['file settings']['locations']['cluster modules']}/{d.cluster_name}.py"):
-                module = set_module(d.cluster_name, configuration)
-                data[idx] = module.mark_notify(d, configuration)
-            elif await os.path.exists(
-                    f"{configuration['file settings']['locations']['cluster modules']}/{d.former_cluster_name}.py"):
-                module = set_module(d.former_cluster_name, configuration)
-                data[idx] = module.mark_notify(d, configuration)
-            elif await os.path.exists(
-                    f"{configuration['file settings']['locations']['cluster modules']}/{d.last_known_cluster_name}.py"):
-                module = set_module(d.last_known_cluster_name, configuration)
+            latest_known_cluster, layer = await get_module_name_and_layer(d, configuration)
+            if latest_known_cluster:
+                module = set_module(latest_known_cluster, configuration)
                 data[idx] = module.mark_notify(d, configuration)
     return data
 
