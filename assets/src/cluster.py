@@ -1,6 +1,5 @@
 import logging
 
-from aiofiles import os
 from typing import List
 
 from assets.src import schemas, determine_module
