@@ -8,7 +8,7 @@ import sys
 from assets.src import schemas
 
 
-async def get_module_name_and_layer(d, configuration):
+async def get_module_name_and_layer(d, configuration) -> tuple:
     paths = [f"{configuration['file settings']['locations']['cluster modules']}/{d.cluster_name}.py",
              f"{configuration['file settings']['locations']['cluster modules']}/{d.former_cluster_name}.py",
              f"{configuration['file settings']['locations']['cluster modules']}/{d.last_known_cluster_name}.py"]
@@ -18,7 +18,7 @@ async def get_module_name_and_layer(d, configuration):
         return name[0], d.layer
 
 
-async def notify(data: List[schemas.Node], configuration):
+async def notify(data: List[schemas.Node], configuration) -> List[schemas.Node]:
     if data:
         for idx, d in enumerate(data):
             latest_known_cluster, layer = await get_module_name_and_layer(d, configuration)
