@@ -26,7 +26,7 @@ def merge_data(node_data: schemas.Node, found: bool, cluster_data: schemas.Clust
             node_data.cluster_state = cluster_data.state
     # This was not present before refactoring
     else:
-        node_data.last_known_cluster_name = node_data.former_cluster_name
+        node_data.last_known_cluster_name = node_data.last_known_cluster_name
     return node_data
 
 

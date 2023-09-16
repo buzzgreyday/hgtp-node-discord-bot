@@ -344,7 +344,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
         elif node_data.cluster_association_time not in (0, None) and node_data.cluster_dissociation_time == 0:
             return round(float(node_data.cluster_association_time)*100/float(node_data.cluster_association_time)+float(0.0), 2)
         elif node_data.cluster_association_time in (0, None) and node_data.cluster_dissociation_time not in (0, None):
-            return round(float(node_data.cluster_association_time)*100/float(0.0)+float(node_data.cluster_dissociation_time), 2)
+            return round(float(node_data.cluster_association_time)*100/(float(0.0)+float(node_data.cluster_dissociation_time)), 2)
         else:
             return 0
     # This here needs to take former cluster and current cluser states into account

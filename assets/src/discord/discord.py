@@ -162,28 +162,31 @@ async def send(ctx, process_msg, bot, data: List[schemas.Node], configuration):
     logging.getLogger(__name__).info(f"discord.py - Handling {len(data)} node(s)")
     guild = await bot.fetch_guild(974431346850140201)
     futures = []
-    for node_data in data:
-        if node_data.notify is True:
-            module_name = list(str(value) for value in (node_data.cluster_name, node_data.former_cluster_name, node_data.last_known_cluster_name) if value is not None)
-            if module_name:
-                module_name = module_name[0]
-            else:
-                module_name = None
-            if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{module_name}.py"):
-                logging.getLogger(__name__).info(f"discord.py - Choosing {module_name} module embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})")
-                module = determine_module.set_module(module_name, configuration)
-                embed = module.build_embed(node_data, module_name)
-            else:
-                logging.getLogger(__name__).info(f"discord.py - Choosing default embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})")
-                embed = defaults.build_embed(node_data)
-            if process_msg is not None:
-                logging.getLogger(__name__).info(f"discord.py - Sending node report to {node_data.name} ({node_data.ip}, L{node_data.layer})")
-                futures.append((asyncio.create_task(ctx.author.send(embed=embed))))
-                logging.getLogger(__name__).info(f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}")
-            elif process_msg is None:
-                member = await guild.fetch_member(int(node_data.contact))
-                futures.append(asyncio.create_task(member.send(embed=embed)))
-                logging.getLogger(__name__).info(f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}")
+    if data:
+        for node_data in data:
+            if node_data.notify is True:
+                module_name = list(str(value) for value in (node_data.cluster_name, node_data.former_cluster_name, node_data.last_known_cluster_name) if value is not None)
+                if module_name:
+                    module_name = module_name[0]
+                else:
+                    module_name = None
+                if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{module_name}.py"):
+                    logging.getLogger(__name__).info(f"discord.py - Choosing {module_name} module embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})")
+                    module = determine_module.set_module(module_name, configuration)
+                    embed = module.build_embed(node_data, module_name)
+                else:
+                    # This will not work because there won't be any data if no last_know_cluster exists.
+                    # Therefore, we need to request database for the last known data upon request.
+                    logging.getLogger(__name__).info(f"discord.py - Choosing default embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})")
+                    embed = defaults.build_embed(node_data)
+                if process_msg is not None:
+                    logging.getLogger(__name__).info(f"discord.py - Sending node report to {node_data.name} ({node_data.ip}, L{node_data.layer})")
+                    futures.append((asyncio.create_task(ctx.author.send(embed=embed))))
+                    logging.getLogger(__name__).info(f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}")
+                elif process_msg is None:
+                    member = await guild.fetch_member(int(node_data.contact))
+                    futures.append(asyncio.create_task(member.send(embed=embed)))
+                    logging.getLogger(__name__).info(f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}")
 
     for i, fut in enumerate(futures):
         try:
@@ -192,5 +195,43 @@ async def send(ctx, process_msg, bot, data: List[schemas.Node], configuration):
             logging.getLogger(__name__).warning(
                 f"discord.py - Discord message could not be sent to {data[i].name, data[i].ip, data[i].public_port}. The member doesn't allow DMs.")
 
+async def request_send(ctx, process_msg, bot, node_data: schemas.Node, configuration):
+    logging.getLogger(__name__).info(f"discord.py - Handling:\n\t{node_data}")
+    guild = await bot.fetch_guild(974431346850140201)
+    futures = []
+    module_name = list(str(value) for value in
+                       (node_data.cluster_name, node_data.former_cluster_name, node_data.last_known_cluster_name) if
+                       value is not None)
+    if module_name:
+        module_name = module_name[0]
+    else:
+        module_name = None
+    if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{module_name}.py"):
+        logging.getLogger(__name__).info(
+            f"discord.py - Choosing {module_name} module embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})")
+        module = determine_module.set_module(module_name, configuration)
+        embed = module.build_embed(node_data, module_name)
+    else:
+        # This will not work because there won't be any data if no last_know_cluster exists.
+        # Therefore, we need to request database for the last known data upon request.
+        logging.getLogger(__name__).info(
+            f"discord.py - Choosing default embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})")
+        embed = defaults.build_embed(node_data)
+    if process_msg is not None:
+        logging.getLogger(__name__).info(
+            f"discord.py - Sending node report to {node_data.name} ({node_data.ip}, L{node_data.layer})")
+        futures.append((asyncio.create_task(ctx.author.send(embed=embed))))
+        logging.getLogger(__name__).info(
+            f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}")
+    elif process_msg is None:
+        member = await guild.fetch_member(int(node_data.contact))
+        futures.append(asyncio.create_task(member.send(embed=embed)))
+        logging.getLogger(__name__).info(
+            f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}")
 
-
+    for i, fut in enumerate(futures):
+        try:
+            await fut
+        except nextcord.Forbidden:
+            logging.getLogger(__name__).warning(
+                f"discord.py - Discord message could not be sent to {node_data.name, node_data.ip, node_data.public_port}. The member doesn't allow DMs.")

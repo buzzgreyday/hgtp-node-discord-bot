@@ -51,7 +51,7 @@ async def r(ctx):
                 for cluster_name in _configuration["modules"].keys():
                     for layer in _configuration["modules"][cluster_name].keys():
                         fut.append(asyncio.create_task(
-                            run_process.main(ctx, process_msg, requester, cluster_name, layer, _configuration)))
+                            run_process.request_report(ctx, process_msg, layer, requester, _configuration)))
                 for task in fut:
                     await task
             else:

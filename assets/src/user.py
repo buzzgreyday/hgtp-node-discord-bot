@@ -22,8 +22,9 @@ async def node_status_check(process_msg, requester, subscriber,
                              latest_version=version_manager.get_version(),
                              notify=False if requester is None else True,
                              timestamp_index=dt.datetime.utcnow())
-    node_data = await history.node_data(node_data, configuration)
+    node_data = await history.node_data(requester, node_data, configuration)
     found_in_cluster, cluster_data = cluster.locate_node(node_data, cluster_data)
+    # last_known_cluster missing
     node_data = cluster.merge_data(node_data, found_in_cluster, cluster_data)
     process_msg = await discord.update_request_process_msg(process_msg, 3, None)
     node_data, process_msg = await cluster.get_module_data(process_msg, node_data, configuration)
@@ -33,7 +34,6 @@ async def node_status_check(process_msg, requester, subscriber,
         node_data = determine_module.set_module(node_data.former_cluster_name, configuration).check_rewards(node_data, cluster_data)
     elif node_data.last_known_cluster_name is not None and cluster_data is not None and configuration["modules"][node_data.last_known_cluster_name][node_data.layer]["rewards"]:
         node_data = determine_module.set_module(node_data.last_known_cluster_name, configuration).check_rewards(node_data, cluster_data)
-
     return node_data, process_msg
 
 
@@ -56,8 +56,10 @@ async def process_node_data_per_user(name, ids, requester, cluster_data, process
 
         for async_process in futures:
             d, process_msg = await async_process
-            if d.cluster_name == name:
+
+            if d.last_known_cluster_name == name:
                 data.append(d)
+                print(data)
         return data
 
 
