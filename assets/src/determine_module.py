@@ -8,6 +8,16 @@ import sys
 from assets.src import schemas
 
 
+async def get_module_name_and_layer(d, configuration):
+    paths = [f"{configuration['file settings']['locations']['cluster modules']}/{d.cluster_name}.py",
+             f"{configuration['file settings']['locations']['cluster modules']}/{d.former_cluster_name}.py",
+             f"{configuration['file settings']['locations']['cluster modules']}/{d.last_known_cluster_name}.py"]
+    names = [d.cluster_name, d.former_cluster_name, d.last_known_cluster_name]
+    name = [name for path, name in zip(paths, names) if await os.path.exists(path)]
+    if name:
+        return name[0], d.layer
+
+
 async def notify(data: List[schemas.Node], configuration):
     if data:
         for idx, d in enumerate(data):
