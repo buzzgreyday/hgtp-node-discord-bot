@@ -287,9 +287,9 @@ def build_title(node_data: schemas.Node):
     else:
         title_ending = f"report"
     if node_data.cluster_name is not None:
-        return f"{node_data.cluster_name.title()} layer {node_data.layer} node ({node_data.ip}) {title_ending}"
+        return f"{node_data.cluster_name.title()} layer {node_data.layer} node ({node_data.ip}) {title_ending} (TEST)"
     else:
-        return f"layer {node_data.layer} node ({node_data.ip}) {title_ending}"
+        return f"layer {node_data.layer} node ({node_data.ip}) {title_ending} (TEST)"
 
 
 def build_general_node_state(node_data: schemas.Node):

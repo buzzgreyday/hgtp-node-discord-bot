@@ -1,13 +1,11 @@
 import asyncio
 import logging
 import sqlite3
-import traceback
 from typing import List
 
-import aiohttp.client_exceptions
 import sqlalchemy.exc
 
-from assets.src import schemas, api, database, exception
+from assets.src import schemas, api, database
 
 
 async def node_data(requester, node_data: schemas.Node, _configuration):
@@ -48,21 +46,19 @@ async def node_data(requester, node_data: schemas.Node, _configuration):
             node_data.last_notified_timestamp = data.last_notified_timestamp
             node_data.former_cluster_peer_count = data.cluster_peer_count
             node_data.former_cluster_state = data.state
-            # The following has no effect here
-            if node_data.state == "Offline":
-                node_data.id = data.id
-                node_data.wallet_address = data.wallet_address
-                node_data.version = data.version
-                node_data.cpu_count = data.cpu_count
-                node_data.disk_space_total = data.disk_space_total
-                node_data.disk_space_free = data.disk_space_free
+            # This used to only if state is offline
+            node_data.id = data.id
+            node_data.wallet_address = data.wallet_address
+            node_data.version = data.version
+            node_data.cpu_count = data.cpu_count
+            node_data.disk_space_total = data.disk_space_total
+            node_data.disk_space_free = data.disk_space_free
     return node_data
     # return pd.DataFrame([data]) if data is not None else data
 
 
 async def write(data: List[schemas.Node]):
     """Write user/subscriber node data from automatic check to database"""
-    print("Write:", data)
     if data:
         for d in data:
             while True:

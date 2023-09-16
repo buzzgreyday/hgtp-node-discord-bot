@@ -50,7 +50,7 @@ async def r(ctx):
                 fut = []
                 for layer in (0, 1):
                     fut.append(asyncio.create_task(
-                        run_process.request_report(ctx, process_msg, layer, requester, _configuration)))
+                        run_process.request_check(ctx, process_msg, layer, requester, _configuration)))
                 for task in fut:
                     await task
             else:

@@ -6,7 +6,7 @@ import threading
 import traceback
 from datetime import datetime
 
-from assets.src import history, dt, preliminaries, user, determine_module, exception, api, run_process
+from assets.src import preliminaries, exception, run_process
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
 
@@ -24,6 +24,7 @@ logging.basicConfig(filename=_configuration["file settings"]["locations"]["log"]
 version_manager = preliminaries.VersionManager(_configuration)
 
 """DISCORD COMMANDS"""
+
 
 @bot.event
 async def on_message(message):
@@ -60,7 +61,6 @@ async def on_ready():
     logging.getLogger(__name__).info(f"main.py - Discord connection established")
 
 
-
 """MAIN LOOP"""
 
 
@@ -71,9 +71,9 @@ async def loop():
         while True:
             if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
                 try:
-                    await run_process.main(None, None, None, cluster_name, layer, _configuration)
+                    await run_process.automatic_check(cluster_name, layer, _configuration)
                 except Exception:
-                    logging.getLogger(__name__).error(f"main.py - error: {traceback.format_exc()} - restarting {cluster_name}, layer {layer}")
+                    logging.getLogger(__name__).error(f"main.py - error: {traceback.format_exc()}\n\tRestarting {cluster_name}, L{layer}")
                     await discord.messages.send_traceback(bot, traceback.format_exc())
                     break
                 await asyncio.sleep(3)

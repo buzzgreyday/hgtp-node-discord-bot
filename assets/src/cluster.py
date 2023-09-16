@@ -4,8 +4,6 @@ from aiofiles import os
 from typing import List
 
 from assets.src import schemas, determine_module
-from assets.src.discord import discord
-
 
 
 def merge_data(node_data: schemas.Node, found: bool, cluster_data: schemas.Cluster):
@@ -75,28 +73,24 @@ def locate_node(node_data: schemas.Node, cluster_data: schemas.Cluster):
     # Changed this
 
 
-async def get_module_data(process_msg, node_data: schemas.Node, configuration):
+async def get_module_data(node_data: schemas.Node, configuration):
     if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{node_data.cluster_name}.py"):
-        process_msg = await discord.update_request_process_msg(process_msg, 4, f"{node_data.cluster_name} layer {node_data.layer}")
         module = determine_module.set_module(node_data.cluster_name, configuration)
-        node_data = await module.node_cluster_data(node_data, node_data.cluster_name,configuration)
-
-        return node_data, process_msg
+        node_data = await module.node_cluster_data(node_data, node_data.cluster_name, configuration)
+        return node_data
 
     elif await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{node_data.former_cluster_name}.py"):
-        process_msg = await discord.update_request_process_msg(process_msg, 4, f"{node_data.former_cluster_name} layer {node_data.layer}")
         module = determine_module.set_module(node_data.former_cluster_name, configuration)
-        node_data = await module.node_cluster_data(node_data, node_data.former_cluster_name,configuration)
+        node_data = await module.node_cluster_data(node_data, node_data.former_cluster_name, configuration)
 
-        return node_data, process_msg
+        return node_data
 
     elif await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{node_data.last_known_cluster_name}.py"):
-        process_msg = await discord.update_request_process_msg(process_msg, 4, f"{node_data.last_known_cluster_name} layer {node_data.layer}")
         module = determine_module.set_module(node_data.last_known_cluster_name, configuration)
         node_data = await module.node_cluster_data(node_data, node_data.last_known_cluster_name, configuration)
 
-        return node_data, process_msg
+        return node_data
 
     else:
         logging.getLogger(__name__).warning(f"cluster.py - No module found while processing:\n{node_data.dict()}")
-        return node_data, process_msg
+        return node_data
