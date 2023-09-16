@@ -25,7 +25,7 @@ async def automatic_check(cluster_name, layer, _configuration) -> None:
         f"main.py - Automatic L{layer} check {cluster_name} completed in completed in {round(timer_stop - timer_start, 2)} seconds")
 
 
-async def request_check(ctx, process_msg, layer, requester, _configuration):
+async def request_check(process_msg, layer, requester, _configuration):
     process_msg = await discord.update_request_process_msg(process_msg, 1, None)
     ids = await api.get_user_ids(layer, requester, _configuration)
     await bot.wait_until_ready()
