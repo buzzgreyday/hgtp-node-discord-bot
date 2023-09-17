@@ -320,6 +320,8 @@ def build_general_node_state(node_data: schemas.Node):
         field_symbol = ":green_square:"
         if node_data.cluster_peer_count in (None, 0):
             field_info = f"`ⓘ  The node is not connected to any known cluster`"
+        elif node_data.node_peer_count in (None, 0):
+            field_info = f"`ⓘ  The node is not connected to any known cluster`"
         else:
             field_info = f"`ⓘ  Connected to {round(float(node_data.node_peer_count*100/node_data.cluster_peer_count), 2)}% of the cluster peers`"
         node_state = node_data.state.title()
