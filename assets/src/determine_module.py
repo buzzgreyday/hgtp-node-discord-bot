@@ -16,6 +16,8 @@ async def get_module_name_and_layer(d, configuration) -> tuple:
     name = [name for path, name in zip(paths, names) if await os.path.exists(path)]
     if name:
         return name[0], d.layer
+    else:
+        return None, d.layer
 
 
 async def notify(data: List[schemas.Node], configuration) -> List[schemas.Node]:
