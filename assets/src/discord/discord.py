@@ -137,7 +137,7 @@ async def update_request_process_msg(process_msg, process_num, foo):
             return await process_msg.edit("**`✓ 1. Add report request to queue`**\n"
                                           "**`✓ 2. Process data`**\n"
                                           "**`➭ 3. Report`**\n"
-                                          "**`  ✓  Build and send report(s)`\n")
+                                          "**`  ✓  Build and send report(s)`**\n")
 
 
 async def get_requester(ctx):
@@ -146,7 +146,6 @@ async def get_requester(ctx):
 
 async def send(bot, node_data: schemas.Node, configuration):
 
-    logging.getLogger(__name__).info(f"discord.py - Handling:\n\t{node_data}")
     guild = await bot.fetch_guild(974431346850140201)
     module_name = list(str(value) for value in
                        (node_data.cluster_name, node_data.former_cluster_name, node_data.last_known_cluster_name) if
@@ -167,14 +166,9 @@ async def send(bot, node_data: schemas.Node, configuration):
             f"discord.py - Choosing default embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})")
         embed = defaults.build_embed(node_data)
     try:
-        """if process_msg is not None:
-            logging.getLogger(__name__).info(
-                f"discord.py - Sending node report to {node_data.name} ({node_data.ip}, L{node_data.layer})")
-            await ctx.author.send(embed=embed)
-            logging.getLogger(__name__).info(
-                f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}")
-        elif process_msg is None:"""
         member = await guild.fetch_member(int(node_data.contact))
+        embed.set_footer(text=f"Data collected at {node_data.timestamp_index.utcnow()} UTC\n"
+                              f"Build: {configuration['general']['version']}", icon_url="https://i.imgur.com/uZIlRnK.png")
         await member.send(embed=embed)
         logging.getLogger(__name__).info(
             f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}")

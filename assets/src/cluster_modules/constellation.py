@@ -280,16 +280,20 @@ def set_association_time(node_data: schemas.Node):
 
 
 def build_title(node_data: schemas.Node):
+    cluster_name = None
+    names = [node_data.cluster_name, node_data.former_cluster_name, node_data.last_known_cluster_name]
+    if names:
+        cluster_name = names[0]
     if node_data.cluster_connectivity in ("new association", "associateion"):
         title_ending = f"is up"
     elif node_data.cluster_connectivity in ("new dissociation", "dissociation"):
         title_ending = f"is down"
     else:
         title_ending = f"report"
-    if node_data.cluster_name is not None:
-        return f"{node_data.cluster_name.title()} layer {node_data.layer} node ({node_data.ip}) {title_ending} (TEST)"
+    if cluster_name is not None:
+        return f"{node_data.cluster_name.title()} layer {node_data.layer} node ({node_data.ip}) {title_ending}"
     else:
-        return f"layer {node_data.layer} node ({node_data.ip}) {title_ending} (TEST)"
+        return f"layer {node_data.layer} node ({node_data.ip}) {title_ending}"
 
 
 def build_general_node_state(node_data: schemas.Node):
@@ -317,7 +321,7 @@ def build_general_node_state(node_data: schemas.Node):
         if node_data.cluster_peer_count in (None, 0):
             field_info = f"`ⓘ  The node is not connected to any known cluster`"
         else:
-            field_info = f"`ⓘ  Connected to {node_data.node_peer_count*100/node_data.cluster_peer_count}% of the cluster peers`"
+            field_info = f"`ⓘ  Connected to {round(float(node_data.node_peer_count*100/node_data.cluster_peer_count), 2)}% of the cluster peers`"
         node_state = node_data.state.title()
         return node_state_field(), False, yellow_color_trigger
     elif node_data.state == "offline":
@@ -339,14 +343,14 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
                f"{field_info}"
 
     def association_percent():
-        if node_data.cluster_association_time and node_data.cluster_dissociation_time not in (0, None):
+        if node_data.cluster_association_time not in (0, None) and node_data.cluster_dissociation_time not in (0, None):
             return round(float(node_data.cluster_association_time)*100/float(node_data.cluster_association_time)+float(node_data.cluster_dissociation_time), 2)
-        elif node_data.cluster_association_time not in (0, None) and node_data.cluster_dissociation_time == 0:
+        elif node_data.cluster_association_time not in (0, None) and node_data.cluster_dissociation_time in (0, None):
             return round(float(node_data.cluster_association_time)*100/float(node_data.cluster_association_time)+float(0.0), 2)
         elif node_data.cluster_association_time in (0, None) and node_data.cluster_dissociation_time not in (0, None):
-            return round(float(node_data.cluster_association_time)*100/(float(0.0)+float(node_data.cluster_dissociation_time)), 2)
+            return round(float(0.0), 2)
         else:
-            return 0
+            return round(float(0.0), 2)
     # This here needs to take former cluster and current cluser states into account
     if node_data.cluster_connectivity == "new association":
         field_symbol = ":green_square:"
@@ -406,13 +410,15 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                 return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
             elif module_name in ("integrationnet", "testnet"):
                 field_symbol = ":green_square:"
-                field_info = f":red_circle:` The wallet recently stopped receiving rewards. However, the cluster is a test environment which means this is not the associated mainnet wallet`"
+                field_info = f":red_circle:` The wallet recently stopped receive rewards, " \
+                             f"but the above wallet is not a Mainnet wallet. " \
+                             f"The balance and reward data listed above is not associated with your Mainnet wallet`"
                 return wallet_field(field_symbol, reward_percentage, field_info), False, False
         elif node_data.reward_state in (False, None) and node_data.former_reward_state in (False, None):
             if node_data.layer == 1:
                 field_symbol = ":green_square:"
-                field_info = f"`ⓘ  {module_name.title()} layer one does not currently distribute rewards. Please refer to the " \
-                             f"layer 0 report`"
+                field_info = f"`ⓘ  {module_name.title()} layer one does not currently distribute rewards. " \
+                             f"Please refer to the layer 0 report`"
                 return wallet_field(field_symbol, reward_percentage, field_info), False, False
             else:
                 if module_name == "mainnet":
@@ -422,7 +428,9 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                     return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, False
                 elif module_name in ("integrationnet", "testnet"):
                     field_symbol = ":green_square:"
-                    field_info = f":red_circle:` The wallet doesn't receive rewards. However, the cluster is a test environment which means this is not the associated mainnet wallet`"
+                    field_info = f":red_circle:` The wallet still doesn't currently receive rewards, " \
+                                 f"but the above wallet is not a Mainnet wallet. " \
+                                 f"The balance and reward data listed above is not associated with your Mainnet wallet`"
                     return wallet_field(field_symbol, reward_percentage, field_info), False, False
         elif node_data.reward_state is True and node_data.former_reward_state in (False, None):
             field_symbol = ":green_square:"
@@ -482,9 +490,9 @@ def build_system_node_version(node_data: schemas.Node):
         if node_data.version > node_data.latest_version:
             field_symbol = ":green_square:"
             if node_data.version == node_data.cluster_version:
-                field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest official version is {node_data.latest_version}`"
+                field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is {node_data.latest_version}`"
             else:
-                field_info = f"`ⓘ  You seem to be running a test-release. Latest official version is {node_data.latest_version}`"
+                field_info = f"`ⓘ  You seem to be running a test-release. Latest stable version is {node_data.latest_version}`"
             return version_field(), red_color_trigger, False
         else:
             field_symbol = ":yellow_square:"

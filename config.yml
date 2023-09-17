@@ -15,7 +15,7 @@ general:
   request retry (count): 3
   request retry interval (sec): 1
   request timeout (sec): 6
-  version: alpha-1.7
+  version: 5.0.alpha-13
 modules:
   integrationnet:
     0:
