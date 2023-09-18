@@ -1,6 +1,5 @@
 import importlib.util
 from typing import List
-from pathlib import Path
 
 from aiofiles import os
 import sys
