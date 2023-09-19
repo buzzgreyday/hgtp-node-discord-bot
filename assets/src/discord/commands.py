@@ -36,31 +36,33 @@ async def verify(interaction=nextcord.Interaction):
             await interaction.user.send(content=f"{interaction.user.mention}, your settings were verified!")
     return
 
+
 @bot.command()
 async def r(ctx):
-    with open('config.yml', 'r') as file:
-        _configuration = yaml.safe_load(file)
-        process_msg = await discord.send_request_process_msg(ctx)
-        if process_msg:
-            requester = await discord.get_requester(ctx)
-            if not isinstance(ctx.channel, nextcord.DMChannel):
-                await ctx.message.delete(delay=3)
-            guild, member, role = await discord.return_guild_member_role(bot, ctx)
-            if role:
-                fut = []
-                for layer in (0, 1):
-                    fut.append(asyncio.create_task(
-                        run_process.request_check(process_msg, layer, requester, _configuration)))
-                for task in fut:
-                    await task
+    async with bot:
+        with open('config.yml', 'r') as file:
+            _configuration = yaml.safe_load(file)
+            process_msg = await discord.send_request_process_msg(ctx)
+            if process_msg:
+                requester = await discord.get_requester(ctx)
+                if not isinstance(ctx.channel, nextcord.DMChannel):
+                    await ctx.message.delete(delay=3)
+                guild, member, role = await discord.return_guild_member_role(bot, ctx)
+                if role:
+                    fut = []
+                    for layer in (0, 1):
+                        fut.append(asyncio.create_task(
+                            run_process.request_check(process_msg, layer, requester, _configuration)))
+                    for task in fut:
+                        await task
+                else:
+                    logging.getLogger(__name__).info(
+                        f"discord.py - User {ctx.message.author} does not have the appropriate role")
+                    await discord.messages.subscriber_role_deny_request(process_msg)
             else:
-                logging.getLogger(__name__).info(
-                    f"discord.py - User {ctx.message.author} does not have the appropriate role")
-                await discord.messages.subscriber_role_deny_request(process_msg)
-        else:
-            if not isinstance(ctx.channel, nextcord.DMChannel):
-                await ctx.message.delete(delay=3)
-            logging.getLogger(__name__).info(f"discord.py - User {ctx.message.author} does not allow DMs")
+                if not isinstance(ctx.channel, nextcord.DMChannel):
+                    await ctx.message.delete(delay=3)
+                logging.getLogger(__name__).info(f"discord.py - User {ctx.message.author} does not allow DMs")
 
 @bot.command()
 async def s(ctx, *args):
