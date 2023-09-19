@@ -81,13 +81,12 @@ async def loop():
             await asyncio.sleep(1)
         await loop_per_cluster_and_layer(cluster_name, layer)
 
-    async with bot:
-        tasks = []
-        for cluster_name in _configuration["modules"].keys():
-            for layer in _configuration["modules"][cluster_name].keys():
-                tasks.append(asyncio.create_task(loop_per_cluster_and_layer(cluster_name, layer)))
-        for task in tasks:
-            await task
+    tasks = []
+    for cluster_name in _configuration["modules"].keys():
+        for layer in _configuration["modules"][cluster_name].keys():
+            tasks.append(asyncio.create_task(loop_per_cluster_and_layer(cluster_name, layer)))
+    for task in tasks:
+        await task
 
 
 if __name__ == "__main__":

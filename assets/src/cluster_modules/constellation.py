@@ -33,9 +33,9 @@ from assets.src import schemas, config, cluster, api
 
 
 async def request_cluster_data(url, layer, name, configuration) -> schemas.Cluster:
-    cluster_resp = await api.safe_request(
+    cluster_resp, status_code = await api.safe_request(
         f"{url}/{configuration['modules'][name][layer]['info']['cluster']}", configuration)
-    node_resp = await api.safe_request(
+    node_resp, status_code = await api.safe_request(
         f"{url}/{configuration['modules'][name][layer]['info']['node']}", configuration)
     latest_ordinal, latest_timestamp, addresses = await locate_rewarded_addresses(layer, name, configuration)
 
@@ -102,7 +102,7 @@ async def locate_rewarded_addresses(layer, name, configuration):
 
 async def request_snapshot(request_url, configuration):
     while True:
-        data = await api.safe_request(request_url, configuration)
+        data, status_code = await api.safe_request(request_url, configuration)
         if data:
             ordinal = data["data"]["ordinal"]
             try:
@@ -117,7 +117,7 @@ async def request_snapshot(request_url, configuration):
 
 async def request_reward_addresses_per_snapshot(request_url, configuration):
     while True:
-        data = await api.safe_request(request_url, configuration)
+        data, status_code = await api.safe_request(request_url, configuration)
         if data:
             lst = list(data_dictionary["destination"] for data_dictionary in data["data"])
             return lst if lst else []
@@ -139,7 +139,7 @@ red_color_trigger = False
 async def node_cluster_data(node_data: schemas.Node, module_name, configuration: dict) -> schemas.Node:
     """Get node data. IMPORTANT: Create Pydantic Schema for node data"""
     if node_data.public_port:
-        node_info_data = await api.safe_request(
+        node_info_data, status_code = await api.safe_request(
             f"http://{node_data.ip}:{node_data.public_port}/"
             f"{configuration['modules'][module_name][node_data.layer]['info']['node']}", configuration)
         node_data.state = "offline" if node_info_data is None else node_info_data["state"].lower()
@@ -148,10 +148,10 @@ async def node_cluster_data(node_data: schemas.Node, module_name, configuration:
             node_data.version = node_info_data["version"]
             node_data.id = node_info_data["id"]
         if node_data.state != "offline":
-            cluster_data = await api.safe_request(
+            cluster_data, status_code = await api.safe_request(
                 f"http://{node_data.ip}:{node_data.public_port}/"
                 f"{configuration['modules'][module_name][node_data.layer]['info']['cluster']}", configuration)
-            metrics_data = await api.safe_request(
+            metrics_data, status_code = await api.safe_request(
                 f"http://{node_data.ip}:{node_data.public_port}/"
                 f"{configuration['modules'][module_name][node_data.layer]['info']['metrics']}", configuration)
             if cluster_data:
@@ -189,9 +189,12 @@ def check_rewards(node_data: schemas.Node, cluster_data: schemas.Cluster):
 
 async def request_wallet_data(node_data: schemas.Node, module_name, configuration) -> schemas.Node:
 
-    wallet_data = await api.safe_request(f"{configuration['modules'][module_name.lower()][0]['be']['url'][0]}/addresses/{node_data.wallet_address}/balance", configuration)
+    wallet_data, status_code = await api.safe_request(f"{configuration['modules'][module_name.lower()][0]['be']['url'][0]}/addresses/{node_data.wallet_address}/balance", configuration)
     if wallet_data is not None:
         node_data.wallet_balance = wallet_data["data"]["balance"]
+    else:
+        logging.getLogger(__name__).warning(
+            f"constellation.py - {configuration['modules'][module_name.lower()][0]['be']['url'][0]}/addresses/{node_data.wallet_address}/balance returned code={status_code}")
 
     return node_data
 

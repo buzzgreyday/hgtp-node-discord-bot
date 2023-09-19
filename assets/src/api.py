@@ -21,15 +21,15 @@ class Request:
                 await asyncio.sleep(0)
                 if resp.status == 200:
                     data = await resp.json()
-                    return data
+                    return data, resp.status
 
                 else:
-                    return None
+                    return None, resp.status
 
     async def db_json(self, configuration: dict):
         async with aiohttp.ClientSession() as session:
             # Timeout needs to be long or None for the async to work
-            async with session.get(self.url) as resp:
+            async with session.get(self.url, timeout=aiohttp.ClientTimeout(total=25)) as resp:
                 await asyncio.sleep(0)
                 if resp.status == 200:
                     data = await resp.json()
@@ -48,36 +48,37 @@ class Request:
                     text = await resp.text()
                     obj = schemas.NodeMetrics.from_txt(text)
                     del text
-                    return obj
+                    return obj, resp.status
                 else:
-                    return None
+                    return None, resp.status
 
 
 async def safe_request(request_url: str, configuration: dict):
     retry_count = 0
+    status_code = None
     while True:
         try:
             if "metrics" in request_url.split("/"):
-                data = await Request(request_url).text(configuration)
+                data, status_code = await Request(request_url).text(configuration)
             else:
-                data = await Request(request_url).json(configuration)
+                data, status_code = await Request(request_url).json(configuration)
             if retry_count >= configuration['general']['request retry (count)']:
-                return None
+                return None, status_code
             elif data is not None:
-                return data
+                return data, status_code
             else:
                 retry_count += 1
                 await asyncio.sleep(configuration['general']['request retry interval (sec)'])
         except (asyncio.exceptions.TimeoutError, aiohttp.client_exceptions.ClientOSError,
-                aiohttp.client_exceptions.ServerDisconnectedError, aiohttp.client_exceptions.ClientPayloadError) as e:
+                aiohttp.client_exceptions.ServerDisconnectedError, aiohttp.client_exceptions.ClientPayloadError):
             if retry_count >= configuration['general']['request retry (count)']:
-                return None
+                return None, status_code
             retry_count += 1
             await asyncio.sleep(configuration['general']['request retry interval (sec)'])
-            logging.getLogger(__name__).warning(f"api.py - {request_url} returned \"{e}\" ({retry_count}/{configuration['general']['request retry (count)']})")
+            logging.getLogger(__name__).warning(f"api.py - {request_url} returned \"{traceback.format_exc()}\" ({retry_count}/{configuration['general']['request retry (count)']})")
         except (aiohttp.client_exceptions.ClientConnectorError, aiohttp.client_exceptions.InvalidURL) as e:
-            logging.getLogger(__name__).warning(f"api.py - {request_url} returned \"{e}\" ({retry_count}/{configuration['general']['request retry (count)']})")
-            return None
+            logging.getLogger(__name__).warning(f"api.py - {request_url} returned \"{traceback.format_exc()}\" ({retry_count}/{configuration['general']['request retry (count)']})")
+            return None, status_code
 
 
 async def get_user_ids(layer, requester, _configuration):

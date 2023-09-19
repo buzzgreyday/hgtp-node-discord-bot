@@ -117,7 +117,7 @@ class User(NodeBase):
     async def get_id(ip: str, port: str, mode, configuration):
         """Will need refactoring before metagraph release. Some other way to validate node?"""
         if mode == "subscribe":
-            node_data = await api.safe_request(f"http://{ip}:{port}/node/info", configuration)
+            node_data, status_code = await api.safe_request(f"http://{ip}:{port}/node/info", configuration)
             return str(node_data["id"]) if node_data is not None else None
         else:
             return None
