@@ -102,32 +102,28 @@ async def update_request_process_msg(process_msg, process_num, foo):
                                           "`  *  Current node data`\n"
                                           f"`  *  Process aggregated data`\n"
                                           "`  3. Report`\n"
-                                          "`  *  Build report(s)`\n"
-                                          "`  *  Send report(s)`\n")
+                                          "`  *  Build and send report(s)`\n")
         elif process_num == 2:
             return await process_msg.edit("**`✓ 1. Add report request to queue`**\n"
                                           "**`➭ 2. Process data`**\n"
                                           "`  >  Current node data`\n"
                                           f"`  *  Process aggregated data`\n"
                                           "`  3. Report`\n"
-                                          "`  *  Build report(s)`\n"
-                                          "`  *  Send report(s)`\n")
+                                          "`  *  Build and send report(s)`\n")
         elif process_num == 3:
             return await process_msg.edit("**`✓ 1. Add report request to queue`**\n"
                                           "**`➭ 2. Process data`**\n"
                                           "**`  ✓  Current node data`**\n"
                                           f"`  >  Process aggregated data`\n"
                                           "`  3. Report`\n"
-                                          "`  *  Build report(s)`\n"
-                                          "`  *  Send report(s)`\n")
+                                          "`  *  Build and send report(s)`\n")
         elif process_num == 4:
             return await process_msg.edit("**`✓ 1. Add report request to queue`**\n"
                                           "**`➭ 2. Process data`**\n"
                                           "**`  ✓  Current node data`**\n"
                                           f"`  >  Processing {foo.title()} data`\n"
                                           "`  3. Report`\n"
-                                          "`  *  Build report(s)`\n"
-                                          "`  *  Send report(s)`\n")
+                                          "`  *  Build and send report(s)`\n")
         elif process_num == 5:
             return await process_msg.edit("**`✓ 1. Add report request to queue`**\n"
                                           "**`✓ 2. Process data`**\n"
@@ -167,9 +163,9 @@ async def send(bot, node_data: schemas.Node, configuration):
         embed = defaults.build_embed(node_data)
     try:
         await bot.wait_until_ready()
-        member = await guild.fetch_member(794353079825727500)
-        # member = await guild.fetch_member(int(node_data.contact))
-        embed.set_footer(text=f"Data collected at {node_data.timestamp_index.utcnow().strftime('%d-%m-%Y %H:%M')} UTC\n"
+        # member = await guild.fetch_member(794353079825727500)
+        member = await guild.fetch_member(int(node_data.contact))
+        embed.set_footer(text=f"Data: {node_data.timestamp_index.utcnow().strftime('%d-%m-%Y %H:%M')} UTC\n"
                               f"Build: {configuration['general']['version']}", icon_url="https://i.imgur.com/uZIlRnK.png")
         await member.send(embed=embed)
         logging.getLogger(__name__).info(

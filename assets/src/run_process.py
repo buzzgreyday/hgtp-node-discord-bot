@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 import pandas as pd
@@ -39,6 +40,7 @@ async def request_check(process_msg, layer, requester, _configuration):
                 subscriber = await api.locate_node(_configuration, requester, id_, ip, port)
                 if subscriber:
                     break
+                await asyncio.sleep(1)
             subscriber = pd.DataFrame(subscriber)
             node_data = schemas.Node(name=subscriber.name.values[0],
                                      contact=subscriber.contact.values[0],

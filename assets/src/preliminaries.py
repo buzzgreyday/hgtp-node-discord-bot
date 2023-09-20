@@ -48,8 +48,7 @@ class VersionManager:
             else:
                 logging.getLogger(__name__).warning(
                     f"preliminaries.py - {self.configuration['tessellation']['github']['url']}/{self.configuration['tessellation']['github']['releases']['latest']} not reachable; forcing retry in {sleep} seconds")
-                return 1.11
-                # time.sleep(sleep)
+                time.sleep(sleep)
 
     def get_version(self):
         # Returns the version
