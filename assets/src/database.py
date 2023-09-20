@@ -134,9 +134,9 @@ async def post_user(data: UserModel, db: AsyncSession = Depends(get_db)):
         while True:
             try:
                 await db.commit()
-            except sqlite3.OperationalError:
-                logging.getLogger(__name__).info(
-                    f"database.py - A new subscription recorded for {data.name} ({data.ip}:{data.public_port})")
+            except (sqlalchemy.exc.OperationalError, sqlite3.OperationalError):
+                logging.getLogger(__name__).error(
+                    f"database.py - Operational error while posting user data {data.name} ({data.ip}:{data.public_port})")
                 await asyncio.sleep(1)
             else:
                 break
@@ -157,8 +157,8 @@ async def post_data(data: NodeModel, db: AsyncSession = Depends(get_db)):
     while True:
         try:
             await db.commit()
-        except sqlite3.OperationalError:
-            logging.getLogger(__name__).info(f"database.py - A new subscription recorded for {data.name} ({data.ip}:{data.public_port}, {data.last_known_cluster_name})")
+        except (sqlalchemy.exc.OperationalError, sqlite3.OperationalError):
+            logging.getLogger(__name__).info(f"database.py - Operational error while posting node data  {data.name} ({data.ip}:{data.public_port}, {data.last_known_cluster_name})")
             await asyncio.sleep(1)
         else:
             break
