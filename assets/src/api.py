@@ -1,5 +1,4 @@
 import asyncio
-import traceback
 
 import aiohttp
 from aiohttp import client_exceptions
@@ -29,7 +28,7 @@ class Request:
     async def db_json(self, configuration: dict):
         async with aiohttp.ClientSession() as session:
             # Timeout needs to be long or None for the async to work
-            async with session.get(self.url, timeout=aiohttp.ClientTimeout(total=25)) as resp:
+            async with session.get(self.url, timeout=aiohttp.ClientTimeout(total=60)) as resp:
                 await asyncio.sleep(0)
                 if resp.status == 200:
                     data = await resp.json()
@@ -75,9 +74,9 @@ async def safe_request(request_url: str, configuration: dict):
                 return None, status_code
             retry_count += 1
             await asyncio.sleep(configuration['general']['request retry interval (sec)'])
-            logging.getLogger(__name__).warning(f"api.py - {request_url} returned \"{traceback.format_exc()}\" ({retry_count}/{configuration['general']['request retry (count)']})")
+            logging.getLogger(__name__).warning(f"api.py - {request_url} returned \"{status_code}\" ({retry_count}/{configuration['general']['request retry (count)']})")
         except (aiohttp.client_exceptions.ClientConnectorError, aiohttp.client_exceptions.InvalidURL) as e:
-            logging.getLogger(__name__).warning(f"api.py - {request_url} returned \"{traceback.format_exc()}\" ({retry_count}/{configuration['general']['request retry (count)']})")
+            logging.getLogger(__name__).warning(f"api.py - {request_url} returned \"{status_code}\" ({retry_count}/{configuration['general']['request retry (count)']})")
             return None, status_code
 
 
