@@ -166,6 +166,7 @@ async def send(bot, node_data: schemas.Node, configuration):
             f"discord.py - Choosing default embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})")
         embed = defaults.build_embed(node_data)
     try:
+        await bot.wait_until_ready()
         member = await guild.fetch_member(794353079825727500)
         # member = await guild.fetch_member(int(node_data.contact))
         embed.set_footer(text=f"Data collected at {node_data.timestamp_index.utcnow().strftime('%d-%m-%Y %H:%M')} UTC\n"
