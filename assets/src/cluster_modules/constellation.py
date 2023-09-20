@@ -349,9 +349,12 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
 
     def association_percent():
         if node_data.cluster_association_time not in (0, None) and node_data.cluster_dissociation_time not in (0, None):
-            return round(float(node_data.cluster_association_time)*100/float(node_data.cluster_association_time)+float(node_data.cluster_dissociation_time), 2)
+            down_percent = float(node_data.cluster_dissociation_time)/(float(node_data.cluster_association_time)+float(node_data.cluster_dissociation_time))
+            up_percent = float(1-down_percent)*100
+
+            return round(float(up_percent), 2)
         elif node_data.cluster_association_time not in (0, None) and node_data.cluster_dissociation_time in (0, None):
-            return round(float(node_data.cluster_association_time)*100/float(node_data.cluster_association_time)+float(0.0), 2)
+            return round(float(100.0), 2)
         elif node_data.cluster_association_time in (0, None) and node_data.cluster_dissociation_time not in (0, None):
             return round(float(0.0), 2)
         else:
