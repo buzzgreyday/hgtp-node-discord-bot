@@ -122,7 +122,7 @@ async def request_reward_addresses_per_snapshot(request_url, configuration):
             lst = list(data_dictionary["destination"] for data_dictionary in data["data"])
             return lst if lst else []
         else:
-            logging.getLogger(__name__).warning(f"constellation.py - {request_url} returned {data} forcing retry")
+            logging.getLogger(__name__).warning(f"constellation.py - {request_url} returned {data} code={status_code}: forcing retry")
             await asyncio.sleep(3)
 
 """
