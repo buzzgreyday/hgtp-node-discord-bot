@@ -63,10 +63,8 @@ async def write(data: List[schemas.Node]):
         for d in data:
             while True:
                 try:
-                    async with database.SessionLocal() as session:
-                        db = session
-                        await database.post_data(data=d, db=db)
-                        break
+                    await database.post_data(data=d)
+                    break
                 except sqlalchemy.exc.IntegrityError:
                     await asyncio.sleep(0)
                 except (sqlite3.OperationalError, asyncio.TimeoutError):

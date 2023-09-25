@@ -1,13 +1,22 @@
 import logging
 from datetime import datetime
+import os
+from dotenv import load_dotenv
 
-from models import UserModel, NodeModel
+from assets.src.database.models import UserModel, NodeModel
 from assets.src.schemas import User as UserSchema
 from assets.src.schemas import Node as NodeSchema
-from database import engine
-from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
+from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
 from sqlalchemy import select
 from fastapi.encoders import jsonable_encoder
+
+load_dotenv()
+
+
+engine = create_async_engine(
+    url=os.getenv("DB_URL"),
+    echo=True
+)
 
 session = async_sessionmaker(bind=engine, expire_on_commit=False)
 
@@ -69,6 +78,7 @@ class CRUD:
             statement = select(UserModel).where(UserModel.layer == layer)
             results = await session.execute(statement)
             ids = results.scalars().all()
+            print(ids)
             for values in ids:
                 list_of_tuples.append((values.id, values.ip, values.public_port))
             return list_of_tuples
