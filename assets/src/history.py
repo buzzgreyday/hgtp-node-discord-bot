@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import sqlite3
+import traceback
 from typing import List
 
 import sqlalchemy.exc
@@ -62,12 +63,7 @@ async def write(data: List[schemas.Node]):
     """Write user/subscriber node data from automatic check to database"""
     if data:
         for d in data:
-            while True:
-                try:
-                    await database.post_data(data=d)
-                    break
-                except sqlalchemy.exc.IntegrityError:
-                    await asyncio.sleep(0)
-                except (sqlite3.OperationalError, asyncio.TimeoutError):
-                    await asyncio.sleep(1)
+            await database.post_data(data=d)
+            break
+
 

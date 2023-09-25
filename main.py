@@ -6,7 +6,7 @@ import threading
 import traceback
 from datetime import datetime
 
-from assets.src import preliminaries, exception, run_process
+from assets.src import preliminaries, exception, run_process, history
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
 
@@ -63,6 +63,19 @@ async def on_ready():
 
 """MAIN LOOP"""
 
+db_semaphore = asyncio.Semaphore(1)
+data_queue = asyncio.Queue()
+
+async def write_data_to_db():
+    logging.getLogger(__name__).info(f"main.py - Asyncio queue created")
+    while True:
+        data = await data_queue.get()
+        if data is None:
+            break
+
+        # Write data to the database here
+        async with db_semaphore:
+            await history.write(data)
 
 async def loop():
     async def loop_per_cluster_and_layer(cluster_name, layer):
@@ -71,11 +84,12 @@ async def loop():
         while True:
             if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
                 try:
-                    await run_process.automatic_check(cluster_name, layer, _configuration)
+                    data = await run_process.automatic_check(cluster_name, layer, _configuration)
                 except Exception:
                     logging.getLogger(__name__).error(f"main.py - error: {traceback.format_exc()}\n\tRestarting {cluster_name}, L{layer}")
                     await discord.messages.send_traceback(bot, traceback.format_exc())
                     break
+                await data_queue.put(data)
                 await asyncio.sleep(3)
                 gc.collect()
             await asyncio.sleep(1)
@@ -93,6 +107,7 @@ if __name__ == "__main__":
     bot.load_extension('assets.src.discord.commands')
 
     bot.loop.create_task(loop())
+    bot.loop.create_task(write_data_to_db())
 
     # Create a thread for running uvicorn
     uvicorn_thread = threading.Thread(target=preliminaries.run_uvicorn)

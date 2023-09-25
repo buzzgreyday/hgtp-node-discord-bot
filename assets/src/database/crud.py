@@ -1,4 +1,6 @@
+import asyncio
 import logging
+import traceback
 from datetime import datetime
 import os
 from dotenv import load_dotenv
@@ -61,7 +63,12 @@ class CRUD:
             data_dict = data.dict()
             node_data = NodeModel(**data_dict)
             session.add(node_data)
-            await session.commit()
+            try:
+                await session.commit()
+            except Exception:
+                logging.getLogger(__name__).error(
+                    f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} returned {traceback.format_exc()}")
+                await asyncio.sleep(60)
             return jsonable_encoder(data_dict)
 
     async def get_users(self, async_session:async_sessionmaker[AsyncSession]):

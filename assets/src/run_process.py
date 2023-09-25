@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from typing import List
 
 import pandas as pd
 
@@ -9,7 +10,7 @@ from assets.src.discord.services import bot
 from main import version_manager
 
 
-async def automatic_check(cluster_name, layer, _configuration) -> None:
+async def automatic_check(cluster_name, layer, _configuration) -> List:
     logging.getLogger(__name__).info(f"main.py - Automatic {cluster_name, layer} check initiated")
     # GET GITHUB VERSION HERE
     dt_start, timer_start = dt.timing()
@@ -19,12 +20,15 @@ async def automatic_check(cluster_name, layer, _configuration) -> None:
     await bot.wait_until_ready()
     data = await user.process_node_data_per_user(cluster_name, ids, cluster_data, version_manager, _configuration)
     data = await determine_module.notify(data, _configuration)
-    await history.write(data)
+    # Acquire the semaphore to ensure exclusive access to the database
+    async with db_semaphore:
+        await history.write(data)
     logging.getLogger(__name__).info(f"discord.py - Handling {len(data), cluster_name} L{layer} nodes")
     await discord.send_notification(bot, data, _configuration)
     dt_stop, timer_stop = dt.timing()
     logging.getLogger(__name__).info(
         f"main.py - Automatic L{layer} check {cluster_name} completed in completed in {round(timer_stop - timer_start, 2)} seconds")
+    return data
 
 
 async def request_check(process_msg, layer, requester, _configuration):
