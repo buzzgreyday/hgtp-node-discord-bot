@@ -85,10 +85,8 @@ async def get_user_ids(layer, requester, _configuration):
     while True:
         try:
             if requester is None:
-                print(f"http://127.0.0.1:8000/user/ids/layer/{layer}")
                 data, resp_status = await Request(f"http://127.0.0.1:8000/user/ids/layer/{layer}").db_json(_configuration)
             else:
-                print(f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}")
                 data, resp_status = await Request(f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}").db_json(_configuration)
         except asyncio.TimeoutError:
             logging.getLogger(__name__).warning(
@@ -100,7 +98,7 @@ async def get_user_ids(layer, requester, _configuration):
             else:
                 logging.getLogger(__name__).warning(
                     f"api.py - localhost error: http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer} return status {resp_status}")
-                await asyncio.sleep(0)
+                await asyncio.sleep(3)
 
 
 async def locate_node(_configuration, requester, id_, ip, port):
