@@ -63,10 +63,10 @@ async def on_ready():
 
 """MAIN LOOP"""
 
-db_semaphore = asyncio.Semaphore(1)
 data_queue = asyncio.Queue()
 
 async def write_data_to_db():
+    db_semaphore = asyncio.Semaphore(1)
     logging.getLogger(__name__).info(f"main.py - Asyncio queue created")
     while True:
         data = await data_queue.get()
