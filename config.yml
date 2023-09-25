@@ -5,7 +5,7 @@ file settings:
     log: assets/data/logs/bot/exec.log
 general:
   loop_init_time: '12:00:00'
-  loop_interval_minutes: 1
+  loop_interval_minutes: 360000
   name: Hgtp-Node-Discord-Bot
   notifications:
     free disk space sleep (hours): 6
