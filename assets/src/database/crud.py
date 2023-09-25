@@ -78,7 +78,6 @@ class CRUD:
             statement = select(UserModel).where(UserModel.layer == layer)
             results = await session.execute(statement)
             ids = results.scalars().all()
-            print(ids)
             for values in ids:
                 list_of_tuples.append((values.id, values.ip, values.public_port))
             return list_of_tuples

@@ -85,19 +85,19 @@ async def get_user_ids(layer, requester, _configuration):
     while True:
         try:
             if requester is None:
-                data, resp_status = await Request(f"http://127.0.0.1:8000/user/ids/layer/{layer}").db_json(_configuration)
+                data, resp_status = await Request(f"http://127.0.0.1:5432/user/ids/layer/{layer}").db_json(_configuration)
             else:
-                data, resp_status = await Request(f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}").db_json(_configuration)
+                data, resp_status = await Request(f"http://127.0.0.1:5432/user/ids/contact/{requester}/layer/{layer}").db_json(_configuration)
         except asyncio.TimeoutError:
             logging.getLogger(__name__).warning(
-                f"api.py - localhost error: http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer} timeout")
+                f"api.py - localhost error: http://127.0.0.1:5432/user/ids/contact/{requester}/layer/{layer} timeout")
             await asyncio.sleep(0)
         else:
             if resp_status == 200:
                 return data
             else:
                 logging.getLogger(__name__).warning(
-                    f"api.py - localhost error: http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer} return status {resp_status}")
+                    f"api.py - localhost error: http://127.0.0.1:5432/user/ids/contact/{requester}/layer/{layer} return status {resp_status}")
                 await asyncio.sleep(0)
 
 
@@ -106,17 +106,17 @@ async def locate_node(_configuration, requester, id_, ip, port):
     return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])"""
     while True:
         try:
-            data, resp_status = await Request(f"http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port}").db_json(_configuration)
+            data, resp_status = await Request(f"http://127.0.0.1:5432/user/ids/{id_}/{ip}/{port}").db_json(_configuration)
         except asyncio.TimeoutError:
             logging.getLogger(__name__).warning(
-                f"api.py - localhost error: http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port} timeout")
+                f"api.py - localhost error: http://127.0.0.1:5432/user/ids/{id_}/{ip}/{port} timeout")
             await asyncio.sleep(0)
         else:
             if resp_status == 200:
                 return data
             else:
                 logging.getLogger(__name__).warning(
-                    f"api.py - localhost error: http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port} returned status {resp_status}")
+                    f"api.py - localhost error: http://127.0.0.1:5432/user/ids/{id_}/{ip}/{port} returned status {resp_status}")
                 await asyncio.sleep(0)
 
 
