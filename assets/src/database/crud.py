@@ -1,7 +1,8 @@
 import logging
 from datetime import datetime
 
-from models import User, NodeData
+from assets.src.schemas import User as UserModel
+from assets.src.schemas import Node as NodeModel
 from database import engine
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 from sqlalchemy import select
@@ -20,14 +21,14 @@ class CRUD:
         last_index = result.scalar_one_or_none()
         return 0 if last_index is None else last_index + 1
 
-    async def post_user(self, data: User, async_session: async_sessionmaker[AsyncSession]):
+    async def post_user(self, data: UserModel, async_session: async_sessionmaker[AsyncSession]):
         """Creates a new user subscription"""
         async with async_session() as session:
-            next_index = await CRUD().get_next_index(User, session)
+            next_index = await CRUD().get_next_index(UserModel, session)
             data.index = next_index
             data.date = datetime.utcnow()
             data_dict = data.dict()
-            user = User(**data_dict)
+            user = UserModel(**data_dict)
             # async with db_lock:
             statement = select(User).where((User.ip == data.ip) & (User.public_port == data.public_port))
             result = await session.execute(statement)
