@@ -6,11 +6,11 @@ import datetime
 class SQLBase(DeclarativeBase):
     pass
 
-class User(SQLBase):
+class UserModel(SQLBase):
     """SQL Base for user subscription data"""
     __tablename__ = "users"
 
-    index: Mapped[int] = mapped_column(primary_key=True)
+    index: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str]
     wallet: Mapped[str]
     id: Mapped[str]
@@ -22,12 +22,12 @@ class User(SQLBase):
     type: Mapped[str]
 
 
-class NodeData(SQLBase):
+class NodeModel(SQLBase):
     """SQL Base for automatic check node data"""
 
     __tablename__ = "data"
 
-    index: Mapped[int] = mapped_column(primary_key=True)
+    index: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     one_m_system_load_average: Mapped[Optional[float]] = mapped_column(nullable=True)
     cluster_association_time: Mapped[Optional[float]] = mapped_column(nullable=True)
     cluster_connectivity: Mapped[Optional[str]] = mapped_column(nullable=True)
