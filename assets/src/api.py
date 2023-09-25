@@ -117,6 +117,6 @@ async def locate_node(_configuration, requester, id_, ip, port):
             else:
                 logging.getLogger(__name__).warning(
                     f"api.py - localhost error: http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port} returned status {resp_status}")
-                await asyncio.sleep(0)
+                await asyncio.sleep(6)
 
 
