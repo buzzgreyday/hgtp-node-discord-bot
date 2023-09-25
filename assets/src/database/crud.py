@@ -78,8 +78,7 @@ class CRUD:
         async with async_session() as session:
             statement = select(UserModel).where((UserModel.id == id_) & (UserModel.ip == ip) & (UserModel.public_port == port))
             results = await session.execute(statement)
-            nodes = results.scalars().all()
-            return nodes
+            return results.scalars().all()
 
     async def get_node(self, ip: str, public_port: int, async_session: async_sessionmaker[AsyncSession]):
         """Return user by IP and port"""
@@ -105,6 +104,5 @@ class CRUD:
             statement = select(NodeModel).where((NodeModel.ip == ip) & (NodeModel.public_port == public_port)).order_by(NodeModel.timestamp_index.desc()).limit(1)
             results = await session.execute(statement)
             await session.close()
-            node = results.scalar_one_or_none()
-            return node
+            return results.scalar_one_or_none()
 
