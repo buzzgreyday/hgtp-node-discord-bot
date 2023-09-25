@@ -1,7 +1,9 @@
 from os import getenv
-
+from dotenv import load_dotenv
 import nextcord
 from nextcord.ext import commands
+
+load_dotenv()
 
 """LOAD DISCORD SERVER TOKEN FROM ENVIRONMENT"""
 discord_token = getenv("DISCORD_TOKEN")

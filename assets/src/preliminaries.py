@@ -7,7 +7,7 @@ import requests
 from aiofiles import os
 
 from assets.src import determine_module, schemas
-from assets.src.database import api as database_api
+from assets.src.database.database import api as database_api
 import uvicorn
 
 
@@ -58,7 +58,7 @@ class VersionManager:
 
 def run_uvicorn():
     host = "127.0.0.1"
-    port = 8000
+    port = 5431
     log_level = 'debug'
     logging.getLogger(__name__).info(f"main.py - Uvicorn running on {host}:{port}")
     uvicorn.run(database_api, host=host, port=port, log_level=log_level, log_config=f'assets/data/logs/bot/uvicorn.ini')
