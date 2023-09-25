@@ -6,6 +6,7 @@ from typing import List
 import sqlalchemy.exc
 
 from assets.src import schemas, api, database
+from assets.src.database import database
 
 
 async def node_data(requester, node_data: schemas.Node, _configuration):
