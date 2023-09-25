@@ -66,7 +66,6 @@ async def on_ready():
 data_queue = asyncio.Queue()
 
 async def write_data_to_db():
-    db_semaphore = asyncio.Semaphore(1)
     logging.getLogger(__name__).info(f"main.py - Asyncio queue created")
     while True:
         data = await data_queue.get()
@@ -74,8 +73,7 @@ async def write_data_to_db():
             break
 
         # Write data to the database here
-        async with db_semaphore:
-            await history.write(data)
+        await history.write(data)
 
 async def loop():
     async def loop_per_cluster_and_layer(cluster_name, layer):
