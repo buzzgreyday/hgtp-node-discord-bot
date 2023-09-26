@@ -21,7 +21,7 @@ async def automatic_check(cluster_name, layer, _configuration) -> List:
     data = await user.process_node_data_per_user(cluster_name, ids, cluster_data, version_manager, _configuration)
     data = await determine_module.notify(data, _configuration)
     # Acquire the semaphore to ensure exclusive access to the database
-    await history.write(data)
+    # await history.write(data)
     logging.getLogger(__name__).info(f"discord.py - Handling {len(data), cluster_name} L{layer} nodes")
     await discord.send_notification(bot, data, _configuration)
     dt_stop, timer_stop = dt.timing()

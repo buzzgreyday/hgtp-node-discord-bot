@@ -73,16 +73,17 @@ async def loop_per_cluster_and_layer(cluster_name, layer):
         gc.collect()
         return data
 
+
 async def main_loop():
-    data_queue = asyncio.Queue()
-    tasks = []
     times = preliminaries.generate_runtimes(_configuration)
     logging.getLogger(__name__).info(f"main.py - runtime schedule:\n\t{times}")
     while True:
+        data_queue = asyncio.Queue()
+        tasks = []
         if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
             for cluster_name in _configuration["modules"].keys():
                 for layer in _configuration["modules"][cluster_name].keys():
-                    task = asyncio.create_task(loop_per_cluster_and_layer(cluster_name, layer))
+                    task = loop_per_cluster_and_layer(cluster_name, layer)
                     tasks.append(task)
             for completed_task in asyncio.as_completed(tasks):
                 data = await completed_task
@@ -90,17 +91,12 @@ async def main_loop():
             while not data_queue.empty():
                 data = await data_queue.get()
                 await history.write(data)
-
-
-async def main():
-    await bot.start(discord_token, reconnect=True)
+        await asyncio.sleep(1)
 
 if __name__ == "__main__":
     bot.load_extension('assets.src.discord.commands')
 
-    loop = asyncio.get_event_loop()
-    loop.create_task(main_loop())
-    loop.create_task(main())
+    bot.loop.create_task(main_loop())
 
     # Create a thread for running uvicorn
     uvicorn_thread = threading.Thread(target=preliminaries.run_uvicorn)
@@ -108,4 +104,5 @@ if __name__ == "__main__":
     get_tessellation_version_thread.daemon = True
     get_tessellation_version_thread.start()
     uvicorn_thread.start()
-    loop.run_forever()
+    bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))
+
