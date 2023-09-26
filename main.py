@@ -6,12 +6,12 @@ import threading
 import traceback
 from datetime import datetime
 
+import nextcord
+import yaml
+
 from assets.src import preliminaries, exception, run_process, history
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
-
-import nextcord
-import yaml
 
 """LOAD CONFIGURATION"""
 with open('config.yml', 'r') as file:
@@ -24,7 +24,6 @@ logging.basicConfig(filename=_configuration["file settings"]["locations"]["log"]
 version_manager = preliminaries.VersionManager(_configuration)
 
 """DISCORD COMMANDS"""
-
 
 @bot.event
 async def on_message(message):
@@ -39,7 +38,7 @@ async def on_message(message):
         if ctx.message.channel.id in (977357753947402281, 974431346850140204, 1030007676257710080, 1134396471639277648):
             # IGNORE INTERPRETING MESSAGES IN THESE CHANNELS AS COMMANDS
             logging.getLogger(__name__).info(
-                f"main.py - Received a command in an non-command channel")
+                f"main.py - Received a command in a non-command channel")
         elif ctx.message.channel.id == 1136386732628115636:
             logging.getLogger(__name__).info(
                 f"main.py - Received a message in the verify channel")
@@ -52,60 +51,56 @@ async def on_message(message):
                 await message.delete(delay=3)
             embed = await exception.command_error(ctx, bot)
             await ctx.message.author.send(embed=embed)
-    return
-
 
 @bot.event
 async def on_ready():
-    """Prints a message to the logs when connection to Discord is established (bot is running)"""
+    """Prints a message to the logs when a connection to Discord is established (bot is running)"""
     logging.getLogger(__name__).info(f"main.py - Discord connection established")
-
 
 """MAIN LOOP"""
 
-data_queue = asyncio.Queue()
 
-async def write_data_to_db():
-    logging.getLogger(__name__).info(f"main.py - Asyncio queue created")
-    while True:
-        data = await data_queue.get()
-        if data is None:
-            break
-
-        # Write data to the database here
-        await history.write(data)
-
-async def loop():
-    async def loop_per_cluster_and_layer(cluster_name, layer):
-        times = preliminaries.generate_runtimes(_configuration)
-        logging.getLogger(__name__).info(f"main.py - {cluster_name, layer} runtime schedule:\n\t{times}")
-        while True:
-            if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
-                try:
-                    data = await run_process.automatic_check(cluster_name, layer, _configuration)
-                except Exception:
-                    logging.getLogger(__name__).error(f"main.py - error: {traceback.format_exc()}\n\tRestarting {cluster_name}, L{layer}")
-                    await discord.messages.send_traceback(bot, traceback.format_exc())
-                    break
-                await data_queue.put(data)
-                await asyncio.sleep(3)
-                gc.collect()
-            await asyncio.sleep(1)
+async def loop_per_cluster_and_layer(cluster_name, layer):
+    try:
+        data = await run_process.automatic_check(cluster_name, layer, _configuration)
+    except Exception:
+        logging.getLogger(__name__).error(f"main.py - error: {traceback.format_exc()}\n\tRestarting {cluster_name}, L{layer}")
+        await discord.messages.send_traceback(bot, traceback.format_exc())
+        await asyncio.sleep(3)
         await loop_per_cluster_and_layer(cluster_name, layer)
+    else:
+        await asyncio.sleep(3)
+        gc.collect()
+        return data
 
+async def main_loop():
+    data_queue = asyncio.Queue()
     tasks = []
-    for cluster_name in _configuration["modules"].keys():
-        for layer in _configuration["modules"][cluster_name].keys():
-            tasks.append(asyncio.create_task(loop_per_cluster_and_layer(cluster_name, layer)))
-    for task in tasks:
-        await task
+    times = preliminaries.generate_runtimes(_configuration)
+    logging.getLogger(__name__).info(f"main.py - runtime schedule:\n\t{times}")
+    while True:
+        if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
+            for cluster_name in _configuration["modules"].keys():
+                for layer in _configuration["modules"][cluster_name].keys():
+                    task = asyncio.create_task(loop_per_cluster_and_layer(cluster_name, layer))
+                    tasks.append(task)
+            for completed_task in asyncio.as_completed(tasks):
+                data = await completed_task
+                await data_queue.put(data)
+            while not data_queue.empty():
+                data = await data_queue.get()
+                await history.write(data)
 
+
+async def main():
+    await bot.start(discord_token, reconnect=True)
 
 if __name__ == "__main__":
     bot.load_extension('assets.src.discord.commands')
 
-    bot.loop.create_task(loop())
-    bot.loop.create_task(write_data_to_db())
+    loop = asyncio.get_event_loop()
+    loop.create_task(main_loop())
+    loop.create_task(main())
 
     # Create a thread for running uvicorn
     uvicorn_thread = threading.Thread(target=preliminaries.run_uvicorn)
@@ -113,4 +108,4 @@ if __name__ == "__main__":
     get_tessellation_version_thread.daemon = True
     get_tessellation_version_thread.start()
     uvicorn_thread.start()
-    bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))
+    loop.run_forever()

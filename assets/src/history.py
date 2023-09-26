@@ -9,7 +9,6 @@ import sqlalchemy.exc
 from assets.src import schemas, api, database
 from assets.src.database import database
 
-db_semaphore = asyncio.Semaphore(1)
 
 
 async def node_data(requester, node_data: schemas.Node, _configuration):
@@ -65,7 +64,6 @@ async def write(data: List[schemas.Node]):
     """Write user/subscriber node data from automatic check to database"""
     if data:
         for d in data:
-            async with db_semaphore:
-                await database.post_data(data=d)
+            await database.post_data(data=d)
 
 
