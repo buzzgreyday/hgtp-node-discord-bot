@@ -6,10 +6,9 @@ import threading
 import traceback
 from datetime import datetime
 
-import nextcord
 import yaml
 
-from assets.src import preliminaries, exception, run_process, history
+from assets.src import preliminaries, run_process, history
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
 
