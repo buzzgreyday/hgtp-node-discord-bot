@@ -26,9 +26,6 @@ def load_configuration():
         sys.exit(1)
 
 
-"""DISCORD COMMANDS"""
-
-
 """MAIN LOOP"""
 
 
