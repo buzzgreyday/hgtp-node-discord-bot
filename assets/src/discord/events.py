@@ -1,4 +1,3 @@
-import asyncio
 import logging
 
 from assets.src import exception
