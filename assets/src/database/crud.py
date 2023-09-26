@@ -23,7 +23,7 @@ engine = create_async_engine(
     poolclass=NullPool
 )
 
-session = async_sessionmaker(bind=engine, expire_on_commit=True)
+session = async_sessionmaker(bind=engine, expire_on_commit=False)
 
 
 class CRUD:
@@ -127,4 +127,9 @@ class CRUD:
             statement = select(NodeModel).where((NodeModel.ip == str(ip)) & (NodeModel.public_port == int(public_port))).order_by(NodeModel.timestamp_index.desc()).limit(1)
             results = await session.execute(statement)
         return results.scalar_one_or_none()
+
+    async def delete_old_entries(self, async_session: async_sessionmaker[AsyncSession]):
+        from datetime import timedelta
+        async with async_session() as session:
+            pass
 

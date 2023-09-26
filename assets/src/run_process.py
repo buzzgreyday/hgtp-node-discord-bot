@@ -7,10 +7,9 @@ import pandas as pd
 from assets.src import dt, preliminaries, user, determine_module, api, history, schemas, cluster
 from assets.src.discord import discord
 from assets.src.discord.services import bot
-from main import version_manager
 
 
-async def automatic_check(cluster_name, layer, _configuration) -> List:
+async def automatic_check(cluster_name, layer, version_manager,  _configuration) -> List:
     logging.getLogger(__name__).info(f"main.py - Automatic {cluster_name, layer} check initiated")
     # GET GITHUB VERSION HERE
     dt_start, timer_start = dt.timing()
