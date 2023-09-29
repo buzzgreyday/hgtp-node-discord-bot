@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 WAIT=3
-PY_VERSION="python3"
+PY_VERSION="venv/bin/python3.10"
 
 function create_dir_structure() {
       # Create dir structure
@@ -36,7 +36,7 @@ function create_swap_file() {
 function start_venv() {
   # NOT FUNCTIONING YET
   if [ ! -d "$HOME/bot/venv" ]; then
-    python3 -m venv "$HOME/venv"
+    python3.10 -m venv "$HOME/bot/venv"
     source "$HOME/bot/venv/bin/activate"
   else
     source "$HOME/bot/venv/bin/activate"
@@ -96,23 +96,23 @@ function update_bot() {
   else
     echo "[1] Master"
     echo "[2] Develop"
-    echo "[3] Experimental"
+    echo "[3] Sprint"
     echo
     read -rp "Bot: choose a number " input
     if [ "$input" == 1 ]; then
-      git -C "$HOME/bot" checkout master
-      git -C "$HOME/bot" pull
+      cd $HOME/bot && git checkout master
+      cd $HOME/bot && git pull
     elif [ "$input" == 2 ]; then
-      git -C "$HOME/bot" checkout master
-      git -C "$HOME/bot" pull origin develop
-      git -C "$HOME/bot" checkout develop
+      cd $HOME/bot && git checkout master
+      cd $HOME/bot && git pull origin develop
+      cd $HOME/bot && git checkout develop
     elif [ "$input" == 3 ]; then
-      git -C "$HOME/bot" checkout master
-      git -C "$HOME/bot" pull origin experimental
-      git -C "$HOME/bot" checkout experimental
+      cd $HOME/bot && git checkout master
+      cd $HOME/bot && git pull origin sprint
+      cd $HOME/bot && git checkout experimental
     fi
     start_venv
-    pip3 install -r "$HOME/bot/requirements.txt"
+    cd "$HOME/bot" && venv/bin/pip3 install -r "$HOME/bot/requirements.txt"
   fi
   main
 }
@@ -130,7 +130,7 @@ function install_bot() {
   sudo apt install -y libssl-dev
   git clone "https://pypergraph:$GITHUB_TOKEN@github.com/pypergraph/hgtp-node-discord-bot" "$HOME/bot/"
   start_venv
-  pip3 install -r "$HOME/bot/requirements.txt"
+  cd "$HOME/bot" && venv/bin/pip3 install -r "$HOME/bot/requirements.txt"
   main
 }
 

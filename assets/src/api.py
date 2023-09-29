@@ -27,7 +27,6 @@ class Request:
 
     async def db_json(self, configuration: dict):
         async with aiohttp.ClientSession() as session:
-            # Timeout needs to be long or None for the async to work
             async with session.get(self.url) as resp:
                 await asyncio.sleep(0)
                 if resp.status == 200:
@@ -90,7 +89,7 @@ async def get_user_ids(layer, requester, _configuration):
                 data, resp_status = await Request(f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}").db_json(_configuration)
         except asyncio.TimeoutError:
             logging.getLogger(__name__).warning(
-                f"api.py - localhost error: http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer} timeout")
+                f"api.py - localhost error: http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer} get_user_ids timeout")
             await asyncio.sleep(0)
         else:
             if resp_status == 200:
@@ -109,8 +108,8 @@ async def locate_node(_configuration, requester, id_, ip, port):
             data, resp_status = await Request(f"http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port}").db_json(_configuration)
         except asyncio.TimeoutError:
             logging.getLogger(__name__).warning(
-                f"api.py - localhost error: http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port} timeout")
-            await asyncio.sleep(0)
+                f"api.py - localhost error: http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port} locate node timeout")
+            await asyncio.sleep(6)
         else:
             if resp_status == 200:
                 return data

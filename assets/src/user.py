@@ -10,6 +10,7 @@ IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4]
 
 
 async def node_status_check(subscriber, cluster_data: schemas.Cluster, version_manager, configuration: dict) -> schemas.Node:
+    print(subscriber.contact)
     node_data = schemas.Node(name=subscriber.name.values[0],
                              contact=subscriber.contact.values[0],
                              ip=subscriber.ip.values[0],

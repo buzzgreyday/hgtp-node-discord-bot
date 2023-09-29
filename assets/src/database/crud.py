@@ -113,6 +113,7 @@ class CRUD:
     async def get_contact_node_id(self, contact: str, layer: int, async_session: async_sessionmaker[AsyncSession]):
         """INSTEAD RETURN A TUPLE CONTAINING ID, IP, PORT!!!! Return user by contact"""
         list_of_tuples = []
+        # Contact is sometimes None. This is the cause for the timeout error?
         async with async_session() as session:
             results = await session.execute(select(UserModel).where((UserModel.contact == str(contact)) & (UserModel.layer == int(layer))))
             ids = results.scalars().all()
