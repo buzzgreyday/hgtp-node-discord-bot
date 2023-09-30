@@ -2,6 +2,8 @@
 
 WAIT=3
 PY_VERSION="venv/bin/python3.10"
+DB_NAME="db_name"
+DB_USER="postgres"
 
 function create_dir_structure() {
       # Create dir structure
@@ -123,11 +125,20 @@ function install_bot() {
   fi
   sudo add-apt-repository ppa:deadsnakes/ppa -y
   sudo apt update
-  sudo apt install -y pip
+  sudo apt install -y python3-pip
   sudo apt install -y python3.10
   sudo apt install -y python3.10-venv
+  sudo apt install -y postgresql
+  sudo apt install -y postgresql-contrib
   sudo apt install -y libcurl4-openssl-dev
   sudo apt install -y libssl-dev
+  read -p "SET PASSWORD:"$'\n' -s DB_PASS
+  read -p "PASTE IN THE DISCORD BOT TOKEN:"$'\n' TOKEN
+
+  echo "DB_URL=postgresql+asyncpg://$DB_USER:$DB_PASS@localhost/postgres" > $HOME/bot/.env
+  echo "DISCORD_TOKEN=$TOKEN" >> $HOME/bot/.env
+
+  sudo psql -U "$DB_USER" -d "template1" -c "ALTER USER postgres PASSWORD '$DB_PASS'"
   git clone "https://pypergraph:$GITHUB_TOKEN@github.com/pypergraph/hgtp-node-discord-bot" "$HOME/bot/"
   start_venv
   cd "$HOME/bot" && venv/bin/pip3 install -r "$HOME/bot/requirements.txt"

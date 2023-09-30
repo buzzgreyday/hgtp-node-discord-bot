@@ -19,7 +19,7 @@ load_dotenv()
 engine = create_async_engine(
     url=os.getenv("DB_URL"),
     future=True,
-    echo=True,
+    # echo=True,
     poolclass=NullPool
 )
 
@@ -28,19 +28,9 @@ session = async_sessionmaker(bind=engine, expire_on_commit=False)
 
 class CRUD:
 
-    @staticmethod
-    async def get_next_index(Model, session) -> int:
-        """Fetch the last assigned index from the separate table"""
-        statement = select(Model.index).order_by(Model.index.desc()).limit(1)
-        result = await session.execute(statement)
-        last_index = result.scalar_one_or_none()
-        return 0 if last_index is None else last_index + 1
-
     async def post_user(self, data: UserSchema, async_session: async_sessionmaker[AsyncSession]):
         """Creates a new user subscription"""
         async with async_session() as session:
-            # next_index = await self.get_next_index(UserModel, session)
-            # data.index = next_index
             data.date = datetime.utcnow()
             data_dict = data.dict()
             user = UserModel(**data_dict)
@@ -56,14 +46,11 @@ class CRUD:
                     f"crud.py - The user {data.name} ({data.ip}:{data.public_port}) was added to the list of subscribers")
                 session.add(user)
                 await session.commit()
-                await engine.dispose()
         return jsonable_encoder(data_dict)
 
     async def post_data(self, data: NodeSchema, async_session: async_sessionmaker[AsyncSession]):
         """Inserts node data from automatic check into database file"""
         async with async_session() as session:
-            # next_index = await self.get_next_index(NodeModel, session)
-            # data.index = next_index
             data_dict = data.dict()
             node_data = NodeModel(**data_dict)
             session.add(node_data)
@@ -73,8 +60,6 @@ class CRUD:
                 logging.getLogger(__name__).error(
                     f"history.py - localhost error: {traceback.format_exc()}")
                 await asyncio.sleep(60)
-            else:
-                await engine.dispose()
         return jsonable_encoder(data_dict)
 
     async def get_users(self, async_session:async_sessionmaker[AsyncSession]):
@@ -113,13 +98,11 @@ class CRUD:
     async def get_contact_node_id(self, contact: str, layer: int, async_session: async_sessionmaker[AsyncSession]):
         """INSTEAD RETURN A TUPLE CONTAINING ID, IP, PORT!!!! Return user by contact"""
         list_of_tuples = []
-        # Contact is sometimes None. This is the cause for the timeout error?
         async with async_session() as session:
             results = await session.execute(select(UserModel).where((UserModel.contact == str(contact)) & (UserModel.layer == int(layer))))
             ids = results.scalars().all()
             for values in ids:
                 list_of_tuples.append((values.id, values.ip, values.public_port, values.layer))
-            await engine.dispose()
         return list_of_tuples
 
     async def get_node_data(self, ip: str, public_port: int, async_session: async_sessionmaker[AsyncSession]):

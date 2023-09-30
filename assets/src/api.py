@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 
 import aiohttp
 from aiohttp import client_exceptions
@@ -26,8 +27,9 @@ class Request:
                     return None, resp.status
 
     async def db_json(self, configuration: dict):
+        timeout = aiohttp.ClientTimeout(total=300)
         async with aiohttp.ClientSession() as session:
-            async with session.get(self.url) as resp:
+            async with session.get(self.url, timeout=timeout) as resp:
                 await asyncio.sleep(0)
                 if resp.status == 200:
                     data = await resp.json()
@@ -88,9 +90,9 @@ async def get_user_ids(layer, requester, _configuration):
             else:
                 data, resp_status = await Request(f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}").db_json(_configuration)
         except asyncio.TimeoutError:
-            logging.getLogger(__name__).warning(
-                f"api.py - localhost error: http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer} get_user_ids timeout")
-            await asyncio.sleep(0)
+            logging.getLogger(__name__).error(
+                f"api.py - get_user_ids timeout timeout error!\n\t{traceback.format_exc()}")
+            await asyncio.sleep(6)
         else:
             if resp_status == 200:
                 return data
