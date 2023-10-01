@@ -4,11 +4,10 @@ from fastapi import FastAPI
 from assets.src.database.crud import CRUD, engine
 
 
-api = FastAPI(title="Hypergraph Node Status Bot", description="This is a Node Bot", docs_url="/")
-session = async_sessionmaker(
-    bind=engine,
-    expire_on_commit=False
+api = FastAPI(
+    title="Hypergraph Node Status Bot", description="This is a Node Bot", docs_url="/"
 )
+session = async_sessionmaker(bind=engine, expire_on_commit=False)
 db = CRUD()
 
 

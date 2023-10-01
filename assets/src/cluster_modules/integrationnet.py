@@ -26,8 +26,11 @@ from assets.src.cluster_modules import constellation
 
 
 async def request_cluster_data(url, layer, name, configuration) -> dict:
-    cluster_data = await constellation.request_cluster_data(url, layer, name, configuration)
+    cluster_data = await constellation.request_cluster_data(
+        url, layer, name, configuration
+    )
     return cluster_data
+
 
 # THE ABOVE FUNCTION ALSO REQUEST THE MOST RECENT REWARDED ADDRESSES. THIS FUNCTION LOCATES THESE ADDRESSES BY
 # REQUESTING THE RELEVANT API'S.
@@ -44,9 +47,13 @@ async def request_cluster_data(url, layer, name, configuration) -> dict:
 # ---------------------------------------------------------------------------------------------------------------------
 
 
-async def node_cluster_data(node_data: schemas.Node, module_name, configuration: dict) -> schemas.Node:
+async def node_cluster_data(
+    node_data: schemas.Node, module_name, configuration: dict
+) -> schemas.Node:
     """Get node data. IMPORTANT: Create Pydantic Schema for node data"""
-    node_data = await constellation.node_cluster_data(node_data, module_name, configuration)
+    node_data = await constellation.node_cluster_data(
+        node_data, module_name, configuration
+    )
     return node_data
 
 
@@ -73,4 +80,3 @@ def build_embed(node_data: schemas.Node, module_name):
 def mark_notify(d: schemas.Node, configuration):
     d = constellation.mark_notify(d, configuration)
     return d
-

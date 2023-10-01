@@ -16,9 +16,9 @@ def id_to_dag_address(node_id: str):
 
     node_id = sha256(bytes.fromhex(node_id)).hexdigest()
     node_id = base58.b58encode(bytes.fromhex(node_id)).decode()
-    node_id = node_id[len(node_id)-36:]
+    node_id = node_id[len(node_id) - 36 :]
 
-    check_digits = re.sub('[^0-9]+', '', node_id)
+    check_digits = re.sub("[^0-9]+", "", node_id)
     check_digit = 0
     for n in check_digits:
         check_digit += int(n)

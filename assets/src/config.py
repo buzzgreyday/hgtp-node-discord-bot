@@ -4,7 +4,7 @@ from pathlib import Path
 
 from assets.src import schemas
 
-WORKING_DIR = f'{str(Path.home())}/bot'
+WORKING_DIR = f"{str(Path.home())}/bot"
 
 
 async def update_config_with_latest_values(cluster: schemas.Cluster, configuration):
@@ -17,5 +17,5 @@ async def update_config_with_latest_values(cluster: schemas.Cluster, configurati
 
 async def load():
     """Load configuration file"""
-    async with aiofiles.open(f'{WORKING_DIR}/config.yml', 'r') as file:
+    async with aiofiles.open(f"{WORKING_DIR}/config.yml", "r") as file:
         return yaml.safe_load(await file.read())

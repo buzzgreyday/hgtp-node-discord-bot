@@ -37,7 +37,6 @@ async def update_subscription_process_msg(process_msg, process_num, foo):
             "`   *  Process data`\n"
             "`   3. Subscribe`\n"
             "`   *  Write to database and assign role`\n"
-
         )
     elif process_num == 2:
         return await process_msg.edit(
@@ -97,43 +96,55 @@ async def update_request_process_msg(process_msg, process_num, foo):
         return None
     elif process_msg is not None:
         if process_num == 1:
-            return await process_msg.edit("**`✓ 1. Add report request to queue`**\n"
-                                          "**`➭ 2. Process data`**\n"
-                                          "`  *  Current node data`\n"
-                                          f"`  *  Process aggregated data`\n"
-                                          "`  3. Report`\n"
-                                          "`  *  Build and send report(s)`\n")
+            return await process_msg.edit(
+                "**`✓ 1. Add report request to queue`**\n"
+                "**`➭ 2. Process data`**\n"
+                "`  *  Current node data`\n"
+                f"`  *  Process aggregated data`\n"
+                "`  3. Report`\n"
+                "`  *  Build and send report(s)`\n"
+            )
         elif process_num == 2:
-            return await process_msg.edit("**`✓ 1. Add report request to queue`**\n"
-                                          "**`➭ 2. Process data`**\n"
-                                          "`  >  Current node data`\n"
-                                          f"`  *  Process aggregated data`\n"
-                                          "`  3. Report`\n"
-                                          "`  *  Build and send report(s)`\n")
+            return await process_msg.edit(
+                "**`✓ 1. Add report request to queue`**\n"
+                "**`➭ 2. Process data`**\n"
+                "`  >  Current node data`\n"
+                f"`  *  Process aggregated data`\n"
+                "`  3. Report`\n"
+                "`  *  Build and send report(s)`\n"
+            )
         elif process_num == 3:
-            return await process_msg.edit("**`✓ 1. Add report request to queue`**\n"
-                                          "**`➭ 2. Process data`**\n"
-                                          "**`  ✓  Current node data`**\n"
-                                          f"`  >  Process aggregated data`\n"
-                                          "`  3. Report`\n"
-                                          "`  *  Build and send report(s)`\n")
+            return await process_msg.edit(
+                "**`✓ 1. Add report request to queue`**\n"
+                "**`➭ 2. Process data`**\n"
+                "**`  ✓  Current node data`**\n"
+                f"`  >  Process aggregated data`\n"
+                "`  3. Report`\n"
+                "`  *  Build and send report(s)`\n"
+            )
         elif process_num == 4:
-            return await process_msg.edit("**`✓ 1. Add report request to queue`**\n"
-                                          "**`➭ 2. Process data`**\n"
-                                          "**`  ✓  Current node data`**\n"
-                                          f"`  >  Processing {foo.title()} data`\n"
-                                          "`  3. Report`\n"
-                                          "`  *  Build and send report(s)`\n")
+            return await process_msg.edit(
+                "**`✓ 1. Add report request to queue`**\n"
+                "**`➭ 2. Process data`**\n"
+                "**`  ✓  Current node data`**\n"
+                f"`  >  Processing {foo.title()} data`\n"
+                "`  3. Report`\n"
+                "`  *  Build and send report(s)`\n"
+            )
         elif process_num == 5:
-            return await process_msg.edit("**`✓ 1. Add report request to queue`**\n"
-                                          "**`✓ 2. Process data`**\n"
-                                          "**`➭ 3. Report`**\n"
-                                          "`  >  Build and send report(s)`\n")
+            return await process_msg.edit(
+                "**`✓ 1. Add report request to queue`**\n"
+                "**`✓ 2. Process data`**\n"
+                "**`➭ 3. Report`**\n"
+                "`  >  Build and send report(s)`\n"
+            )
         elif process_num == 6:
-            return await process_msg.edit("**`✓ 1. Add report request to queue`**\n"
-                                          "**`✓ 2. Process data`**\n"
-                                          "**`➭ 3. Report`**\n"
-                                          "**`  ✓  Build and send report(s)`**\n")
+            return await process_msg.edit(
+                "**`✓ 1. Add report request to queue`**\n"
+                "**`✓ 2. Process data`**\n"
+                "**`➭ 3. Report`**\n"
+                "**`  ✓  Build and send report(s)`**\n"
+            )
 
 
 async def get_requester(ctx):
@@ -141,38 +152,52 @@ async def get_requester(ctx):
 
 
 async def send(bot, node_data: schemas.Node, configuration):
-
     guild = await bot.fetch_guild(974431346850140201)
-    module_name = list(str(value) for value in
-                       (node_data.cluster_name, node_data.former_cluster_name, node_data.last_known_cluster_name) if
-                       value is not None)
+    module_name = list(
+        str(value)
+        for value in (
+            node_data.cluster_name,
+            node_data.former_cluster_name,
+            node_data.last_known_cluster_name,
+        )
+        if value is not None
+    )
     if module_name:
         module_name = module_name[0]
     else:
         module_name = None
-    if await os.path.exists(f"{configuration['file settings']['locations']['cluster modules']}/{module_name}.py"):
+    if await os.path.exists(
+        f"{configuration['file settings']['locations']['cluster modules']}/{module_name}.py"
+    ):
         logging.getLogger(__name__).info(
-            f"discord.py - Choosing {module_name} module embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})")
+            f"discord.py - Choosing {module_name} module embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})"
+        )
         module = determine_module.set_module(module_name, configuration)
         embed = module.build_embed(node_data, module_name)
     else:
         # This will not work because there won't be any data if no last_know_cluster exists.
         # Therefore, we need to request database for the last known data upon request.
         logging.getLogger(__name__).info(
-            f"discord.py - Choosing default embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})")
+            f"discord.py - Choosing default embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})"
+        )
         embed = defaults.build_embed(node_data)
     try:
         await bot.wait_until_ready()
         member = await guild.fetch_member(794353079825727500)
         # member = await guild.fetch_member(int(node_data.contact))
-        embed.set_footer(text=f"Data: {node_data.timestamp_index.utcnow().strftime('%d-%m-%Y %H:%M')} UTC\n"
-                              f"Build: {configuration['general']['version']}", icon_url="https://i.imgur.com/uZIlRnK.png")
+        embed.set_footer(
+            text=f"Data: {node_data.timestamp_index.utcnow().strftime('%d-%m-%Y %H:%M')} UTC\n"
+            f"Build: {configuration['general']['version']}",
+            icon_url="https://i.imgur.com/uZIlRnK.png",
+        )
         await member.send(embed=embed)
         logging.getLogger(__name__).info(
-            f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}")
+            f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}"
+        )
     except nextcord.Forbidden:
         logging.getLogger(__name__).warning(
-            f"discord.py - Discord message could not be sent to {node_data.name, node_data.ip, node_data.public_port}. The member doesn't allow DMs.")
+            f"discord.py - Discord message could not be sent to {node_data.name, node_data.ip, node_data.public_port}. The member doesn't allow DMs."
+        )
 
 
 async def send_notification(bot, data: List[schemas.Node], configuration):
@@ -180,4 +205,3 @@ async def send_notification(bot, data: List[schemas.Node], configuration):
         for node_data in data:
             if node_data.notify is True:
                 await send(bot, node_data, configuration)
-

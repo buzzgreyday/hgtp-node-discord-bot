@@ -6,7 +6,6 @@ from assets.src import schemas, api, database
 from assets.src.database import database
 
 
-
 async def node_data(requester, node_data: schemas.Node, _configuration):
     """Get historic node data"""
 
@@ -15,18 +14,23 @@ async def node_data(requester, node_data: schemas.Node, _configuration):
     # The problem seems to be with requesting sqlite3 async from different tasks. It locks or times out.
     while True:
         try:
-            data, resp_status = await api.Request(f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}").db_json(_configuration)
+            data, resp_status = await api.Request(
+                f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}"
+            ).db_json(_configuration)
         except asyncio.TimeoutError:
             logging.getLogger(__name__).warning(
-                f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} timeout")
+                f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} timeout"
+            )
 
             await asyncio.sleep(0)
         else:
-        # This section won't do. We need to get the historic data; the first lines won't work we need loop to ensure we get the data, only if it doesn't exist, we can continue.
+            # This section won't do. We need to get the historic data; the first lines won't work we need loop to ensure we get the data, only if it doesn't exist, we can continue.
             if resp_status == 200:
                 break
             else:
-                logging.getLogger(__name__).warning(f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} returned status {resp_status}")
+                logging.getLogger(__name__).warning(
+                    f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} returned status {resp_status}"
+                )
                 await asyncio.sleep(0)
 
     if data is not None:
@@ -61,5 +65,3 @@ async def write(data: List[schemas.Node]):
     if data:
         for d in data:
             await database.post_data(data=d)
-
-

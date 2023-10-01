@@ -3,11 +3,14 @@ from typing import Optional
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 import datetime
 
+
 class SQLBase(DeclarativeBase):
     pass
 
+
 class UserModel(SQLBase):
     """SQL Base for user subscription data"""
+
     __tablename__ = "users"
 
     index: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -41,18 +44,26 @@ class NodeModel(SQLBase):
     cpu_count: Mapped[Optional[int]] = mapped_column(nullable=True)
     disk_space_free: Mapped[Optional[float]] = mapped_column(nullable=True)
     disk_space_total: Mapped[Optional[float]] = mapped_column(nullable=True)
-    former_cluster_association_time: Mapped[Optional[float]] = mapped_column(nullable=True)
+    former_cluster_association_time: Mapped[Optional[float]] = mapped_column(
+        nullable=True
+    )
     former_cluster_connectivity: Mapped[Optional[str]] = mapped_column(nullable=True)
     former_node_cluster_session: Mapped[Optional[str]] = mapped_column(nullable=True)
-    former_cluster_dissociation_time: Mapped[Optional[float]] = mapped_column(nullable=True)
+    former_cluster_dissociation_time: Mapped[Optional[float]] = mapped_column(
+        nullable=True
+    )
     former_cluster_name: Mapped[Optional[str]] = mapped_column(nullable=True)
     former_cluster_peer_count: Mapped[Optional[int]] = mapped_column(nullable=True)
     former_cluster_state: Mapped[Optional[str]] = mapped_column(nullable=True)
     former_reward_state: Mapped[Optional[bool]] = mapped_column(nullable=True)
-    former_timestamp_index: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
+    former_timestamp_index: Mapped[Optional[datetime.datetime]] = mapped_column(
+        nullable=True
+    )
     ip: Mapped[Optional[str]] = mapped_column(nullable=True)
     id: Mapped[Optional[str]] = mapped_column(nullable=True)
-    last_notified_timestamp: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
+    last_notified_timestamp: Mapped[Optional[datetime.datetime]] = mapped_column(
+        nullable=True
+    )
     latest_cluster_session: Mapped[Optional[str]] = mapped_column(nullable=True)
     latest_version: Mapped[Optional[str]] = mapped_column(nullable=True)
     layer: Mapped[Optional[int]] = mapped_column(nullable=True)

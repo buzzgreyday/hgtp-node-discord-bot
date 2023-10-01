@@ -13,6 +13,7 @@ IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4]
 
 class NodeBase(BaseModel):
     """This class is the base from which any node related object inherits, it's also the base for user data"""
+
     name: str
     id: str = None
     ip: str
@@ -34,21 +35,31 @@ class NodeMetrics(BaseModel):
     def from_txt(cls, text):
         """Only mainnet or testnet is currently supported"""
 
-        lst = ['process_uptime_seconds{application=', 'system_cpu_count{application=',
-               'system_load_average_1m{application=', 'disk_free_bytes{application=',
-               'disk_total_bytes{application=']
+        lst = [
+            "process_uptime_seconds{application=",
+            "system_cpu_count{application=",
+            "system_load_average_1m{application=",
+            "disk_free_bytes{application=",
+            "disk_total_bytes{application=",
+        ]
         for line in text.split("\n"):
             for idx, item in enumerate(lst):
                 if type(item) != str:
                     continue
                 elif line.startswith(item):
                     lst[idx] = float(line.split(" ")[1])
-        return cls(cluster_association_time=int(lst[0]), cpu_count=int(lst[1]),
-                   one_m_system_load_average=lst[2], disk_space_free=int(lst[3]), disk_space_total=int(lst[4]))
+        return cls(
+            cluster_association_time=int(lst[0]),
+            cpu_count=int(lst[1]),
+            one_m_system_load_average=lst[2],
+            disk_space_free=int(lst[3]),
+            disk_space_total=int(lst[4]),
+        )
 
 
 class Node(NodeBase, NodeMetrics):
     """The base model for every user node check"""
+
     index: Optional[int]
     p2p_port: int = None
     wallet_address: str = None
@@ -86,6 +97,7 @@ class Node(NodeBase, NodeMetrics):
 
 class Cluster(BaseModel):
     """Will need to be tied to a wallet! The base model for every cluster data, this object is created pre-user node checks"""
+
     name: str
     id: str = None
     ip: str = None
@@ -105,6 +117,7 @@ class Cluster(BaseModel):
 
 class User(NodeBase):
     """This class can create a user object which can be subscribed using different methods and transformations"""
+
     date: Optional[dt.datetime]
     # UserRead should be UserEnum
     index: Optional[int]
@@ -117,15 +130,20 @@ class User(NodeBase):
     async def get_id(ip: str, port: str, mode, configuration):
         """Will need refactoring before metagraph release. Some other way to validate node?"""
         if mode == "subscribe":
-            node_data, status_code = await api.safe_request(f"http://{ip}:{port}/node/info", configuration)
+            node_data, status_code = await api.safe_request(
+                f"http://{ip}:{port}/node/info", configuration
+            )
             return str(node_data["id"]) if node_data is not None else None
         else:
             return None
 
     @classmethod
-    async def discord(cls, configuration, process_msg, mode: str, name: str, contact: int, *args):
+    async def discord(
+        cls, configuration, process_msg, mode: str, name: str, contact: int, *args
+    ):
         """Treats a Discord message as a line of arguments and returns a list of subscribable user objects"""
         from assets.src.discord.discord import update_subscription_process_msg
+
         user_data = []
         invalid_user_data = []
         wallet = None
@@ -134,20 +152,35 @@ class User(NodeBase):
         ip_idx = [args.index(ip) for ip in ips]
         for idx in range(0, len(ip_idx)):
             # Split arguments into lists before each IP
-            arg = args[ip_idx[idx]:ip_idx[idx + 1]] if idx + 1 < len(ip_idx) else args[ip_idx[idx]:]
+            arg = (
+                args[ip_idx[idx] : ip_idx[idx + 1]]
+                if idx + 1 < len(ip_idx)
+                else args[ip_idx[idx] :]
+            )
             for i, val in enumerate(arg):
                 if val.lower() in ("z", "-z", "zero", "--zero", "l0", "-l0"):
-                    for port in arg[i + 1:]:
+                    for port in arg[i + 1 :]:
                         if port.isdigit():
-                            process_msg = await update_subscription_process_msg(process_msg, 2, f"{arg[0]}:{port}")
+                            process_msg = await update_subscription_process_msg(
+                                process_msg, 2, f"{arg[0]}:{port}"
+                            )
                             # Check if port is subscribed?
                             id_ = await User.get_id(arg[0], port, mode, configuration)
                             if id_ is not None:
                                 wallet = id_to_dag_address(id_)
                                 try:
                                     user_data.append(
-                                        cls(name=name, contact=contact, id=id_, wallet=wallet,
-                                            ip=arg[0], public_port=port, layer=0, type="discord"))
+                                        cls(
+                                            name=name,
+                                            contact=contact,
+                                            id=id_,
+                                            wallet=wallet,
+                                            ip=arg[0],
+                                            public_port=port,
+                                            layer=0,
+                                            type="discord",
+                                        )
+                                    )
                                 except ValidationError:
                                     pass
                             else:
@@ -155,16 +188,27 @@ class User(NodeBase):
                         else:
                             break
                 elif val.lower() in ("o", "-o", "one", "--one", "l1", "-l1"):
-                    for port in arg[i + 1:]:
+                    for port in arg[i + 1 :]:
                         if port.isdigit():
-                            process_msg = await update_subscription_process_msg(process_msg, 2, f"{arg[0]}:{port}")
+                            process_msg = await update_subscription_process_msg(
+                                process_msg, 2, f"{arg[0]}:{port}"
+                            )
                             id_ = await User.get_id(arg[0], port, mode, configuration)
                             if id_ is not None:
                                 wallet = id_to_dag_address(id_)
                                 try:
                                     user_data.append(
-                                        cls(name=name, contact=contact, id=id_, wallet=wallet,
-                                            ip=arg[0], public_port=port, layer=1, type="discord"))
+                                        cls(
+                                            name=name,
+                                            contact=contact,
+                                            id=id_,
+                                            wallet=wallet,
+                                            ip=arg[0],
+                                            public_port=port,
+                                            layer=1,
+                                            type="discord",
+                                        )
+                                    )
                                 except ValidationError:
                                     pass
                             else:

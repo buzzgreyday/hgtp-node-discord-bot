@@ -33,10 +33,13 @@ def locate_node_binary(node_data: schemas.Node, peer_data: List[dict]):
     end = len(peer_data) - 1
 
     while start <= end:
-
         mid = (start + end) // 2
         peer = peer_data[mid]
-        if peer["id"] == node_data.id and peer["ip"] == node_data.ip and peer["publicPort"] == node_data.public_port:
+        if (
+            peer["id"] == node_data.id
+            and peer["ip"] == node_data.ip
+            and peer["publicPort"] == node_data.public_port
+        ):
             return True
 
         if node_data.id < peer["id"]:
@@ -73,15 +76,20 @@ def locate_node(node_data: schemas.Node, cluster_data: schemas.Cluster):
 
 
 async def get_module_data(node_data: schemas.Node, configuration):
-    last_known_cluster, layer = await determine_module.get_module_name_and_layer(node_data, configuration)
+    last_known_cluster, layer = await determine_module.get_module_name_and_layer(
+        node_data, configuration
+    )
 
     if last_known_cluster:
         module = determine_module.set_module(last_known_cluster, configuration)
-        node_data = await module.node_cluster_data(node_data, last_known_cluster, configuration)
+        node_data = await module.node_cluster_data(
+            node_data, last_known_cluster, configuration
+        )
 
         return node_data
 
     else:
         logging.getLogger(__name__).warning(
-            f"cluster.py - No module found while processing: {node_data.name}, {node_data.ip}, {node_data.public_port}, {node_data.layer}")
+            f"cluster.py - No module found while processing: {node_data.name}, {node_data.ip}, {node_data.public_port}, {node_data.layer}"
+        )
         return node_data
