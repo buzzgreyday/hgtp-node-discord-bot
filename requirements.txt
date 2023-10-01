@@ -10,3 +10,4 @@ uvicorn>=0.23.2
 pydantic>=2.4.2
 base58>=2.1.1
 requests>=2.31.0
+asyncpg>=0.28.0
