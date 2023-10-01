@@ -2,7 +2,7 @@
 
 WAIT=3
 PY_VERSION="venv/bin/python3.10"
-DB_NAME="db_name"
+DB_NAME="postgres"
 DB_USER="postgres"
 
 function create_dir_structure() {
