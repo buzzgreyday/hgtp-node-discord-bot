@@ -764,18 +764,18 @@ def build_embed(node_data: schemas.Node, module_name):
         title = build_title(node_data).upper()
         if yellow_color_trigger and red_color_trigger is False:
             embed = nextcord.Embed(title=title, colour=nextcord.Color.orange())
-            embed.set_thumbnail(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/logo-encased-teal.png")
+            embed.set_thumbnail(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png")
             # embed.set_image(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/banner-color.png")
             return embed
         elif red_color_trigger:
             embed = nextcord.Embed(title=title, colour=nextcord.Color.brand_red())
-            embed.set_thumbnail(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/logo-encased-red.png")
+            embed.set_thumbnail(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-red.png")
             # embed.set_image(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/banner-color.png")
 
             return embed
         else:
             embed = nextcord.Embed(title=title, colour=nextcord.Color.dark_teal())
-            embed.set_thumbnail(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/logo-encased-teal.png")
+            embed.set_thumbnail(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png")
             # embed.set_image(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/banner-color.png")
 
             return embed
@@ -857,7 +857,7 @@ def build_embed(node_data: schemas.Node, module_name):
         embed = determine_color_and_create_embed(
             yellow_color_trigger, red_color_trigger
         )
-    embed.set_author(name=node_data.name, icon_url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/logo-encased-color.png")
+    embed.set_author(name=node_data.name)
     embed.add_field(name="\u200B", value=node_state)
     embed.add_field(name=f"\u200B", value=cluster_state)
     if node_data.wallet_address is not None:
