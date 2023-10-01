@@ -128,13 +128,15 @@ function install_bot() {
   sudo apt install -y postgresql-contrib
   sudo apt install -y libcurl4-openssl-dev
   sudo apt install -y libssl-dev
-  read -p "SET PASSWORD:"$'\n' -s DB_PASS
+  read -p "SET DATABASE PASSWORD:"$'\n' -s DB_PASS
   read -p "PASTE IN THE DISCORD BOT TOKEN:"$'\n' TOKEN
 
   echo "DB_URL=postgresql+asyncpg://$DB_USER:$DB_PASS@localhost/postgres" > $HOME/bot/.env
   echo "DISCORD_TOKEN=$TOKEN" >> $HOME/bot/.env
 
-  sudo psql -U "$DB_USER" -d "template1" -c "ALTER USER postgres PASSWORD '$DB_PASS'"
+  sudo psql -U "$DB_USER" -d "template1" -c "ALTER USER postgres with encrypted password'$DB_PASS'"
+  sudo psql -U "$DB_USER" -d "template1" -c "CREATE ROLE $USER"
+  sudo psql -U "$DB_USER" -d "template1" -c "GRANT ALL PRIVILEGES ON DATABASE 'postgres' to $USER"
   git clone "https://pypergraph:$GITHUB_TOKEN@github.com/pypergraph/hgtp-node-discord-bot" "$HOME/bot/"
   start_venv
   cd "$HOME/bot" && venv/bin/pip3 install -r "$HOME/bot/requirements.txt"
