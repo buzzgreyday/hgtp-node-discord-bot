@@ -51,7 +51,9 @@ async def request_check(process_msg, layer, requester, _configuration):
     if ids is not None:
         version_manager = preliminaries.VersionManager(_configuration)
         for lst in ids:
-            id_, ip, port = lst
+            id_  = lst[0]
+            ip = lst[1]
+            port = lst[2]
             while True:
                 subscriber = await api.locate_node(
                     _configuration, requester, id_, ip, port

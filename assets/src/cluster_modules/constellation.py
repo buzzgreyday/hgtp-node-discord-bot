@@ -12,6 +12,7 @@ import asyncio
 import logging
 from datetime import datetime, timedelta
 
+import discord
 import nextcord
 import pandas as pd
 
@@ -362,7 +363,7 @@ def build_title(node_data: schemas.Node):
     names = [
         node_data.cluster_name,
         node_data.former_cluster_name,
-        node_data.last_known_cluster_name,
+        node_data.last_known_cluster_name
     ]
     if names:
         cluster_name = names[0]
@@ -415,7 +416,7 @@ def build_general_node_state(node_data: schemas.Node):
     elif node_data.state == "offline":
         field_symbol = f":red_square:"
         field_info = (
-            f"`ⓘ  The node is connected to 0% of the previously associated cluster`"
+            f"`ⓘ  The node is not connected to to any of the previously associated cluster`"
         )
         node_state = "Offline"
         red_color_trigger = True
@@ -457,15 +458,16 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
         else:
             return round(float(0.0), 2)
 
-    # This here needs to take former cluster and current cluser states into account
     if node_data.cluster_connectivity == "new association":
         field_symbol = ":green_square:"
         field_info = f"`ⓘ  Association with the cluster was recently established`"
-        return general_cluster_state_field(), False, yellow_color_trigger
+        red_color_trigger = False
+        return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
     elif node_data.cluster_connectivity == "association":
         field_symbol = ":green_square:"
         field_info = f"`ⓘ  The node is consecutively associated with the cluster`"
-        return general_cluster_state_field(), False, yellow_color_trigger
+        red_color_trigger = False
+        return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
     elif node_data.cluster_connectivity == "new dissociation":
         field_symbol = ":red_square:"
         field_info = f"`ⓘ  The node was recently dissociated from the cluster`"
@@ -512,10 +514,11 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
             field_symbol = ":red_square:"
             field_info = f"`⚠ The wallet doesn't hold sufficient collateral`"
             red_color_trigger = True
+            yellow_color_trigger = False
             return (
                 wallet_field(field_symbol, reward_percentage, field_info),
                 red_color_trigger,
-                False,
+                yellow_color_trigger,
             )
         elif (
             node_data.reward_state in (False, None)
@@ -527,10 +530,11 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                     f":red_circle:` The wallet recently stopped receiving rewards`"
                 )
                 red_color_trigger = True
+                yellow_color_trigger = False
                 return (
                     wallet_field(field_symbol, reward_percentage, field_info),
                     red_color_trigger,
-                    False,
+                    yellow_color_trigger,
                 )
             elif module_name in ("integrationnet", "testnet"):
                 field_symbol = ":green_square:"
@@ -539,10 +543,12 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                     f"but the above wallet is not a Mainnet wallet. "
                     f"The balance and reward data listed above is not associated with your Mainnet wallet`"
                 )
+                red_color_trigger = False
+                yellow_color_trigger = False
                 return (
                     wallet_field(field_symbol, reward_percentage, field_info),
-                    False,
-                    False,
+                    red_color_trigger,
+                    yellow_color_trigger,
                 )
         elif node_data.reward_state in (
             False,
@@ -554,20 +560,23 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                     f"`ⓘ  {module_name.title()} layer one does not currently distribute rewards. "
                     f"Please refer to the layer 0 report`"
                 )
+                red_color_trigger = False
+                yellow_color_trigger = False
                 return (
                     wallet_field(field_symbol, reward_percentage, field_info),
-                    False,
-                    False,
+                    red_color_trigger,
+                    yellow_color_trigger,
                 )
             else:
                 if module_name == "mainnet":
                     field_symbol = ":red_square:"
                     field_info = f":red_circle:` The wallet doesn't receive rewards`"
                     red_color_trigger = True
+                    yellow_color_trigger = False
                     return (
                         wallet_field(field_symbol, reward_percentage, field_info),
                         red_color_trigger,
-                        False,
+                        yellow_color_trigger,
                     )
                 elif module_name in ("integrationnet", "testnet"):
                     field_symbol = ":green_square:"
@@ -576,10 +585,12 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                         f"but the above wallet is not a Mainnet wallet. "
                         f"The balance and reward data listed above is not associated with your Mainnet wallet`"
                     )
+                    red_color_trigger = False
+                    yellow_color_trigger = False
                     return (
                         wallet_field(field_symbol, reward_percentage, field_info),
-                        False,
-                        False,
+                        red_color_trigger,
+                        yellow_color_trigger,
                     )
         elif node_data.reward_state is True and node_data.former_reward_state in (
             False,
@@ -587,18 +598,22 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
         ):
             field_symbol = ":green_square:"
             field_info = f":coin:` The wallet recently started receiving rewards`"
+            red_color_trigger = False
+            yellow_color_trigger = False
             return (
                 wallet_field(field_symbol, reward_percentage, field_info),
-                False,
-                False,
+                red_color_trigger,
+                yellow_color_trigger,
             )
         elif node_data.reward_state is True and node_data.former_reward_state is True:
             field_symbol = ":green_square:"
             field_info = f":coin:` The wallet receives rewards`"
+            red_color_trigger = False
+            yellow_color_trigger = False
             return (
                 wallet_field(field_symbol, reward_percentage, field_info),
-                False,
-                False,
+                red_color_trigger,
+                yellow_color_trigger,
             )
         else:
             field_symbol = ":yellow_square:"
@@ -606,10 +621,11 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                 f"`ⓘ  The wallet reward state is unknown. Please report`\n"
                 f"`ⓘ  No minimum collateral required`"
             )
+            red_color_trigger = False
             yellow_color_trigger = True
             return (
                 wallet_field(field_symbol, reward_percentage, field_info),
-                False,
+                red_color_trigger,
                 yellow_color_trigger,
             )
 
@@ -744,13 +760,23 @@ def build_embed(node_data: schemas.Node, module_name):
     embed_created = False
 
     def determine_color_and_create_embed(yellow_color_trigger, red_color_trigger):
+        color_logo = nextcord.File("logo-encased-color.png")
+        teal_logo = nextcord.File("logo-encased-teal.png")
+        red_logo = nextcord.File("logo-encased-red.png")
+
         title = build_title(node_data).upper()
-        if yellow_color_trigger and red_color_trigger is False:
-            return nextcord.Embed(title=title, colour=nextcord.Color.orange())
+        if yellow_color_trigger is False and red_color_trigger is False:
+            embed = nextcord.Embed(title=title, colour=nextcord.Color.orange())
+            embed.set_thumbnail(url=f"attachment://{teal_logo.filename}")
+            return embed
         elif red_color_trigger:
-            return nextcord.Embed(title=title, colour=nextcord.Color.brand_red())
+            embed = nextcord.Embed(title=title, colour=nextcord.Color.brand_red())
+            embed.set_thumbnail(url=f"attachment://{red_logo.filename}")
+            return embed
         else:
-            return nextcord.Embed(title=title, colour=nextcord.Color.dark_green())
+            embed = nextcord.Embed(title=title, colour=nextcord.Color.dark_green())
+            embed.set_thumbnail(url=f"attachment://{teal_logo.filename}")
+            return embed
 
     node_state, red_color_trigger, yellow_color_trigger = build_general_node_state(
         node_data
