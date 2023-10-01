@@ -66,9 +66,7 @@ async def process_node_data_per_user(
     data = []
     if ids is not None:
         for lst in ids:
-            id_ = lst[0]
-            ip = lst[1]
-            port = lst[2]
+            id_, ip, port = lst
             while True:
                 subscriber = await api.locate_node(_configuration, None, id_, ip, port)
                 if subscriber:
