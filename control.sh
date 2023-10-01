@@ -137,9 +137,10 @@ function install_bot() {
   sudo psql -U "$DB_USER" -d "template1" -c "ALTER USER postgres with encrypted password'$DB_PASS'"
   sudo psql -U "$DB_USER" -d "template1" -c "CREATE ROLE $USER"
   sudo psql -U "$DB_USER" -d "template1" -c "GRANT ALL PRIVILEGES ON DATABASE 'postgres' to $USER"
-  git clone "https://pypergraph:$GITHUB_TOKEN@github.com/pypergraph/hgtp-node-discord-bot" "$HOME/bot/"
+  # git clone "https://pypergraph:$GITHUB_TOKEN@github.com/pypergraph/hgtp-node-discord-bot" "$HOME/bot/"
   start_venv
   cd "$HOME/bot" && venv/bin/pip3 install -r "$HOME/bot/requirements.txt"
+  venv/bin/python3 assets/src/database/create_db.py
   main
 }
 
