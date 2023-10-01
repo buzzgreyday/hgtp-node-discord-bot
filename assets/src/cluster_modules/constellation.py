@@ -56,7 +56,7 @@ async def request_cluster_data(url, layer, name, configuration) -> schemas.Clust
             contact=None,
             state=node_resp["state"].lower(),
             id=node_resp["id"],
-            session=node_resp["clusterSession"],
+            session=str(node_resp["clusterSession"]),
             version=node_resp["version"],
             ip=node_resp["host"],
             public_port=node_resp["publicPort"],
