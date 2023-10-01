@@ -7,10 +7,6 @@ DB_USER="postgres"
 
 function create_dir_structure() {
       # Create dir structure
-  if [ ! -d "$HOME/bot/assets/data/db" ]; then
-    echo "Bot: Creating $HOME/assets/data/db"
-    mkdir -p "$HOME/bot/assets/data/db"
-  fi
   if [ ! -d "$HOME/bot/assets/data/logs/bot" ]; then
     mkdir -p "$HOME/bot/assets/data/logs/bot"
   fi
