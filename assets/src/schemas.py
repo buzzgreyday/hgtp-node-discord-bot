@@ -69,7 +69,7 @@ class Node(NodeBase, NodeMetrics):
     last_known_cluster_name: str = None
     state: str = None
     cluster_state: str = None
-    former_cluster_state: str = None
+    former_state: str = None
     cluster_connectivity: str = None
     former_cluster_connectivity: str = None
     former_node_cluster_session: str = None
@@ -123,6 +123,7 @@ class User(NodeBase):
     index: Optional[int]
     type: str
     wallet: str
+    alias: Optional[str]
 
     # VALIDATE ID VALUE, CREATE CUSTOM EXCEPTION!
 

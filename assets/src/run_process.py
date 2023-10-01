@@ -81,5 +81,6 @@ async def request_check(process_msg, layer, requester, _configuration):
             )
             node_data = await cluster.get_module_data(node_data, _configuration)
             process_msg = await discord.update_request_process_msg(process_msg, 5, None)
+            print(node_data.dict())
             await discord.send(bot, node_data, _configuration)
             await discord.update_request_process_msg(process_msg, 6, None)

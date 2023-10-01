@@ -23,6 +23,7 @@ class UserModel(SQLBase):
     contact: Mapped[str]
     date: Mapped[datetime.datetime]
     type: Mapped[str]
+    alias: Mapped[Optional[str]] = mapped_column(nullable=True)
 
 
 class NodeModel(SQLBase):
@@ -54,7 +55,7 @@ class NodeModel(SQLBase):
     )
     former_cluster_name: Mapped[Optional[str]] = mapped_column(nullable=True)
     former_cluster_peer_count: Mapped[Optional[int]] = mapped_column(nullable=True)
-    former_cluster_state: Mapped[Optional[str]] = mapped_column(nullable=True)
+    former_state: Mapped[Optional[str]] = mapped_column(nullable=True)
     former_reward_state: Mapped[Optional[bool]] = mapped_column(nullable=True)
     former_timestamp_index: Mapped[Optional[datetime.datetime]] = mapped_column(
         nullable=True

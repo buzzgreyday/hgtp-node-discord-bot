@@ -48,7 +48,7 @@ async def node_data(requester, node_data: schemas.Node, _configuration):
             node_data.former_timestamp_index = data.timestamp_index
             node_data.last_notified_timestamp = data.last_notified_timestamp
             node_data.former_cluster_peer_count = data.cluster_peer_count
-            node_data.former_cluster_state = data.state
+            node_data.former_state = data.state
             # This used to only if state is offline
             node_data.id = data.id
             node_data.wallet_address = data.wallet_address

@@ -1,11 +1,27 @@
 import asyncio
 import logging
+import os
 import threading
-from database import engine
+from fastapi import FastAPI
+from sqlalchemy.pool import NullPool
+from sqlalchemy.ext.asyncio import create_async_engine
 from models import SQLBase
 import uvicorn
-from database import api as database_api
+from dotenv import load_dotenv
 
+load_dotenv()
+
+engine = create_async_engine(
+    url=os.getenv("DB_URL"),
+    future=True,
+    # echo=True,
+    poolclass=NullPool,
+    connect_args={"server_settings": {"statement_timeout": "9000"}},
+)
+
+database_api = FastAPI(
+    title="Hypergraph Node Status Bot", description="This is a Node Bot", docs_url="/"
+)
 
 def run_uvicorn():
     host = "127.0.0.1"
