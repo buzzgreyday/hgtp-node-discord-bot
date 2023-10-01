@@ -81,7 +81,7 @@ async def safe_request(request_url: str, configuration: dict):
             aiohttp.client_exceptions.ClientPayloadError,
         ):
             logging.getLogger(__name__).warning(
-                f"api.py - {request_url} returned \"{status_code}\" ({retry_count}/{configuration['general']['request retry (count)']})"
+                f"api.py - {request_url} returned \"{status_code}\" ({retry_count}/{configuration['general']['request retry (count)']}): {traceback.format_exc()}"
             )
             if retry_count >= configuration["general"]["request retry (count)"]:
                 return None, status_code
@@ -94,7 +94,7 @@ async def safe_request(request_url: str, configuration: dict):
             aiohttp.client_exceptions.InvalidURL,
         ) as e:
             logging.getLogger(__name__).warning(
-                f"api.py - {request_url} returned \"{status_code}\" ({retry_count}/{configuration['general']['request retry (count)']})"
+                f"api.py - {request_url} returned \"{status_code}\" ({retry_count}/{configuration['general']['request retry (count)']}) ): {traceback.format_exc()}"
             )
             return None, status_code
 
