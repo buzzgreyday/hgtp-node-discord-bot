@@ -120,7 +120,7 @@ function install_bot() {
     mkdir "$HOME/bot/"
   fi
   sudo add-apt-repository ppa:deadsnakes/ppa -y
-  sudo apt update
+  sudo apt update && sudo apt upgrade -y
   sudo apt install -y python3-pip
   sudo apt install -y python3.10
   sudo apt install -y python3.10-venv
@@ -135,11 +135,10 @@ function install_bot() {
   echo "DISCORD_TOKEN=$TOKEN" >> $HOME/bot/.env
   sudo -u postgres psql -U "$DB_USER" -d "template1" -c "ALTER USER postgres PASSWORD '$DB_PASS'"
   sudo -u postgres psql -U "$DB_USER" -d "template1" -c "CREATE ROLE $USER"
-  # git clone "https://pypergraph:$GITHUB_TOKEN@github.com/pypergraph/hgtp-node-discord-bot" "$HOME/bot/"
   start_venv
   cd "$HOME/bot" && venv/bin/pip3 install -r "$HOME/bot/requirements.txt"
   venv/bin/python3 assets/src/database/create_db.py
-  sudo -u postgres psql -U "$DB_USER" -d "template1" -c "GRANT ALL PRIVILEGES ON DATABASE 'postgres' to $USER"
+  sudo -u postgres psql -U "$DB_USER" -d "template1" -c "GRANT ALL PRIVILEGES ON DATABASE postgres to $USER"
   main
 }
 
