@@ -133,10 +133,9 @@ function install_bot() {
 
   echo "DB_URL=postgresql+asyncpg://$DB_USER:$DB_PASS@localhost/postgres" > $HOME/bot/.env
   echo "DISCORD_TOKEN=$TOKEN" >> $HOME/bot/.env
-  sudo su postgres
-  sudo psql -U "$DB_USER" -d "template1" -c "ALTER USER postgres PASSWORD '$DB_PASS'"
-  sudo psql -U "$DB_USER" -d "template1" -c "CREATE ROLE $USER"
-  sudo psql -U "$DB_USER" -d "template1" -c "GRANT ALL PRIVILEGES ON DATABASE 'postgres' to $USER"
+  sudo -u postgres psql -U "$DB_USER" -d "template1" -c "ALTER USER postgres PASSWORD '$DB_PASS'"
+  sudo -u postgres psql -U "$DB_USER" -d "template1" -c "CREATE ROLE $USER"
+  sudo -u postgres psql -U "$DB_USER" -d "template1" -c "GRANT ALL PRIVILEGES ON DATABASE 'postgres' to $USER"
   # git clone "https://pypergraph:$GITHUB_TOKEN@github.com/pypergraph/hgtp-node-discord-bot" "$HOME/bot/"
   start_venv
   cd "$HOME/bot" && venv/bin/pip3 install -r "$HOME/bot/requirements.txt"
