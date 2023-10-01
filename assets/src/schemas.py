@@ -2,8 +2,7 @@ import re
 from typing import List, Optional
 import datetime as dt
 
-from pydantic import BaseModel
-from pydantic.error_wrappers import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from assets.src import api
 from assets.src.encode_decode import id_to_dag_address
