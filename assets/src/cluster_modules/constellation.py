@@ -12,7 +12,6 @@ import asyncio
 import logging
 from datetime import datetime, timedelta
 
-import discord
 import nextcord
 import pandas as pd
 
