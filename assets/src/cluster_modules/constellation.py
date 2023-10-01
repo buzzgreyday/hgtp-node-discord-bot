@@ -774,7 +774,7 @@ def build_embed(node_data: schemas.Node, module_name):
 
             return embed
         else:
-            embed = nextcord.Embed(title=title, colour=nextcord.Color.dark_green())
+            embed = nextcord.Embed(title=title, colour=nextcord.Color.dark_teal())
             embed.set_thumbnail(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/logo-encased-teal.png")
             # embed.set_image(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/banner-color.png")
 
