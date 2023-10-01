@@ -11,7 +11,6 @@ from assets.src.discord.services import bot
 
 async def automatic_check(cluster_name, layer, version_manager,  _configuration) -> List:
     logging.getLogger(__name__).info(f"main.py - Automatic {cluster_name, layer} check initiated")
-    # GET GITHUB VERSION HERE
     dt_start, timer_start = dt.timing()
     cluster_data = await preliminaries.supported_clusters(cluster_name, layer, _configuration)
     ids = await api.get_user_ids(layer, None, _configuration)
@@ -19,8 +18,6 @@ async def automatic_check(cluster_name, layer, version_manager,  _configuration)
     await bot.wait_until_ready()
     data = await user.process_node_data_per_user(cluster_name, ids, cluster_data, version_manager, _configuration)
     data = await determine_module.notify(data, _configuration)
-    # Acquire the semaphore to ensure exclusive access to the database
-    # await history.write(data)
     logging.getLogger(__name__).info(f"discord.py - Handling {len(data), cluster_name} L{layer} nodes")
     await discord.send_notification(bot, data, _configuration)
     dt_stop, timer_stop = dt.timing()
@@ -34,10 +31,9 @@ async def request_check(process_msg, layer, requester, _configuration):
     ids = await api.get_user_ids(layer, requester, _configuration)
     await bot.wait_until_ready()
     if ids is not None:
+        version_manager = preliminaries.VersionManager(_configuration)
         for lst in ids:
-            id_ = lst[0]
-            ip = lst[1]
-            port = lst[2]
+            id_, ip, port = lst
             while True:
                 subscriber = await api.locate_node(_configuration, requester, id_, ip, port)
                 if subscriber:
@@ -54,7 +50,6 @@ async def request_check(process_msg, layer, requester, _configuration):
                                      latest_version=version_manager.get_version(),
                                      notify=True,
                                      timestamp_index=dt.datetime.utcnow())
-            # Historic and current is the same
             process_msg = await discord.update_request_process_msg(process_msg, 2, None)
             node_data = await history.node_data(requester, node_data, _configuration)
             process_msg = await discord.update_request_process_msg(process_msg, 3, f"{node_data.cluster_name} layer {node_data.layer}")

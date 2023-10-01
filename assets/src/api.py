@@ -27,9 +27,8 @@ class Request:
                     return None, resp.status
 
     async def db_json(self, configuration: dict):
-        timeout = aiohttp.ClientTimeout(total=300)
         async with aiohttp.ClientSession() as session:
-            async with session.get(self.url, timeout=timeout) as resp:
+            async with session.get(self.url) as resp:
                 await asyncio.sleep(0)
                 if resp.status == 200:
                     data = await resp.json()
