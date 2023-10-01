@@ -48,7 +48,7 @@ async def request_check(process_msg, layer, requester, _configuration):
     process_msg = await discord.update_request_process_msg(process_msg, 1, None)
     ids = await api.get_user_ids(layer, requester, _configuration)
     await bot.wait_until_ready()
-    if ids is not None:
+    if ids:
         version_manager = preliminaries.VersionManager(_configuration)
         for lst in ids:
             id_  = lst[0]

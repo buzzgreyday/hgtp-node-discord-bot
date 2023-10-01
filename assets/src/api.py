@@ -80,15 +80,16 @@ async def safe_request(request_url: str, configuration: dict):
             aiohttp.client_exceptions.ServerDisconnectedError,
             aiohttp.client_exceptions.ClientPayloadError,
         ):
+            logging.getLogger(__name__).warning(
+                f"api.py - {request_url} returned \"{status_code}\" ({retry_count}/{configuration['general']['request retry (count)']})"
+            )
             if retry_count >= configuration["general"]["request retry (count)"]:
                 return None, status_code
             retry_count += 1
             await asyncio.sleep(
                 configuration["general"]["request retry interval (sec)"]
             )
-            logging.getLogger(__name__).warning(
-                f"api.py - {request_url} returned \"{status_code}\" ({retry_count}/{configuration['general']['request retry (count)']})"
-            )
+
         except (
             aiohttp.client_exceptions.InvalidURL,
         ) as e:
