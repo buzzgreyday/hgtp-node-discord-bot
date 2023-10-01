@@ -75,6 +75,7 @@ async def safe_request(request_url: str, configuration: dict):
                 )
         except (
             asyncio.exceptions.TimeoutError,
+            aiohttp.client_exceptions.ClientConnectorError,
             aiohttp.client_exceptions.ClientOSError,
             aiohttp.client_exceptions.ServerDisconnectedError,
             aiohttp.client_exceptions.ClientPayloadError,
@@ -89,7 +90,6 @@ async def safe_request(request_url: str, configuration: dict):
                 f"api.py - {request_url} returned \"{status_code}\" ({retry_count}/{configuration['general']['request retry (count)']})"
             )
         except (
-            aiohttp.client_exceptions.ClientConnectorError,
             aiohttp.client_exceptions.InvalidURL,
         ) as e:
             logging.getLogger(__name__).warning(
