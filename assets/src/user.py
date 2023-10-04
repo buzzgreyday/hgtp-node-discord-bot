@@ -24,7 +24,7 @@ async def node_status_check(
         notify=False,
         timestamp_index=dt.datetime.utcnow(),
     )
-    node_data = await history.node_data(node_data, configuration)
+    node_data = await history.node_data(None, node_data, configuration)
     found_in_cluster, cluster_data = cluster.locate_node(node_data, cluster_data)
     node_data = cluster.merge_data(node_data, found_in_cluster, cluster_data)
     node_data = await cluster.get_module_data(node_data, configuration)
