@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import logging
 from typing import List
 
@@ -6,7 +7,7 @@ from assets.src import schemas, api, database
 from assets.src.database import database
 
 
-async def node_data(requester, node_data: schemas.Node, _configuration):
+async def node_data(node_data: schemas.Node, _configuration):
     """Get historic node data"""
 
     #
@@ -22,7 +23,7 @@ async def node_data(requester, node_data: schemas.Node, _configuration):
                 f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} timeout"
             )
 
-            await asyncio.sleep(0)
+            await asyncio.sleep(1)
         else:
             # This section won't do. We need to get the historic data; the first lines won't work we need loop to ensure we get the data, only if it doesn't exist, we can continue.
             if resp_status == 200:
@@ -31,31 +32,33 @@ async def node_data(requester, node_data: schemas.Node, _configuration):
                 logging.getLogger(__name__).warning(
                     f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} returned status {resp_status}"
                 )
-                await asyncio.sleep(0)
-
-    if data is not None:
-        if requester:
-            node_data = schemas.Node(**data)
-        else:
-            data = schemas.Node(**data)
-            node_data.former_cluster_name = data.cluster_name
-            node_data.last_known_cluster_name = data.last_known_cluster_name
-            node_data.former_reward_state = data.reward_state
-            node_data.former_cluster_connectivity = data.cluster_connectivity
-            node_data.former_node_cluster_session = data.node_cluster_session
-            node_data.former_cluster_association_time = data.cluster_association_time
-            node_data.former_cluster_dissociation_time = data.cluster_dissociation_time
-            node_data.former_timestamp_index = data.timestamp_index
-            node_data.last_notified_timestamp = data.last_notified_timestamp
-            node_data.former_cluster_peer_count = data.cluster_peer_count
-            node_data.former_state = data.state
-            # This used to only if state is offline
-            node_data.id = data.id
-            node_data.wallet_address = data.wallet_address
-            node_data.version = data.version
-            node_data.cpu_count = data.cpu_count
-            node_data.disk_space_total = data.disk_space_total
-            node_data.disk_space_free = data.disk_space_free
+                await asyncio.sleep(1)
+    if data:
+        try:
+            timestamp = datetime.datetime.strptime(data['timestamp_index'], '%Y-%m-%dT%H:%M:%S.%f')
+            last_notified_timestamp = datetime.datetime.strptime(data['last_notified_timestamp'], '%Y-%m-%dT%H:%M:%S.%f')
+        except TypeError:
+            timestamp = datetime.datetime.strptime(data['timestamp_index'], '%Y-%m-%dT%H:%M:%S')
+            last_notified_timestamp = datetime.datetime.strptime(data['last_notified_timestamp'], '%Y-%m-%dT%H:%M:%S')
+        # data = schemas.Node(**data)
+        node_data.former_cluster_name = data['cluster_name']
+        node_data.last_known_cluster_name = data['last_known_cluster_name']
+        node_data.former_reward_state = data['reward_state']
+        node_data.former_cluster_connectivity = data['cluster_connectivity']
+        node_data.former_node_cluster_session = data['node_cluster_session']
+        node_data.former_cluster_association_time = data['cluster_association_time']
+        node_data.former_cluster_dissociation_time = data['cluster_dissociation_time']
+        node_data.former_timestamp_index = timestamp
+        node_data.last_notified_timestamp = last_notified_timestamp
+        node_data.former_cluster_peer_count = data['cluster_peer_count']
+        node_data.former_state = data['state']
+        # This used to only if state is offline
+        node_data.id = data['id']
+        node_data.wallet_address = data['wallet_address']
+        node_data.version = data['version']
+        node_data.cpu_count = data['cpu_count']
+        node_data.disk_space_total = data['disk_space_total']
+        node_data.disk_space_free = data['disk_space_free']
     return node_data
     # return pd.DataFrame([data]) if data is not None else data
 

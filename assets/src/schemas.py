@@ -1,4 +1,5 @@
 import re
+import traceback
 from typing import List, Optional
 import datetime as dt
 
@@ -59,7 +60,7 @@ class NodeMetrics(BaseModel):
 class Node(NodeBase, NodeMetrics):
     """The base model for every user node check"""
 
-    index: Optional[int]
+    index: Optional[int] = None
     p2p_port: int = None
     wallet_address: str = None
     wallet_balance: float = None
@@ -117,12 +118,12 @@ class Cluster(BaseModel):
 class User(NodeBase):
     """This class can create a user object which can be subscribed using different methods and transformations"""
 
-    date: Optional[dt.datetime]
+    date: dt.datetime = dt.datetime.utcnow()
     # UserRead should be UserEnum
     index: Optional[int]
     type: str
     wallet: str
-    alias: Optional[str]
+    alias: Optional[str | None] = None
 
     # VALIDATE ID VALUE, CREATE CUSTOM EXCEPTION!
 
@@ -171,8 +172,10 @@ class User(NodeBase):
                                 try:
                                     user_data.append(
                                         cls(
+                                            index=None,
                                             name=name,
-                                            contact=contact,
+                                            date=dt.datetime.utcnow(),
+                                            contact=str(contact),
                                             id=id_,
                                             wallet=wallet,
                                             ip=arg[0],
@@ -182,7 +185,7 @@ class User(NodeBase):
                                         )
                                     )
                                 except ValidationError:
-                                    pass
+                                    print(traceback.format_exc())
                             else:
                                 invalid_user_data.append((arg[0], port, 0))
                         else:
@@ -199,8 +202,10 @@ class User(NodeBase):
                                 try:
                                     user_data.append(
                                         cls(
+                                            index=None,
                                             name=name,
-                                            contact=contact,
+                                            date=dt.datetime.utcnow(),
+                                            contact=str(contact),
                                             id=id_,
                                             wallet=wallet,
                                             ip=arg[0],
@@ -210,7 +215,7 @@ class User(NodeBase):
                                         )
                                     )
                                 except ValidationError:
-                                    pass
+                                    print(traceback.format_exc())
                             else:
                                 invalid_user_data.append((arg[0], port, 1))
                         else:

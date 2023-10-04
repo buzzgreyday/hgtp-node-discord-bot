@@ -23,7 +23,7 @@ class UserModel(SQLBase):
     contact: Mapped[str]
     date: Mapped[datetime.datetime]
     type: Mapped[str]
-    alias: Mapped[Optional[str]] = mapped_column(nullable=True)
+    alias: Mapped[Optional[str | None]] = mapped_column(nullable=True)
 
 
 class NodeModel(SQLBase):
