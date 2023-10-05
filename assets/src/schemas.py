@@ -1,3 +1,4 @@
+import logging
 import re
 import traceback
 from typing import List, Optional
@@ -25,11 +26,11 @@ class NodeBase(BaseModel):
 class NodeMetrics(BaseModel):
     """These node metrics can be set by accessing the "from_text(text)" classmethod using main- or testnet text resp"""
 
-    cluster_association_time: float = None
-    cpu_count: int = None
-    one_m_system_load_average: float = None
-    disk_space_free: float = None
-    disk_space_total: float = None
+    cluster_association_time: Optional[float] = None
+    cpu_count: Optional[int] = None
+    one_m_system_load_average: Optional[float] = None
+    disk_space_free: Optional[float] = None
+    disk_space_total: Optional[float] = None
 
     @classmethod
     def from_txt(cls, text):
@@ -185,7 +186,9 @@ class User(NodeBase):
                                         )
                                     )
                                 except ValidationError:
-                                    print(traceback.format_exc())
+                                    logging.getLogger(__name__).warning(
+                                        f"schemas.py - Pydantic ValidationError - subscription failed with the following traceback: {traceback.format_exc()}"
+                                    )
                             else:
                                 invalid_user_data.append((arg[0], port, 0))
                         else:
@@ -215,7 +218,9 @@ class User(NodeBase):
                                         )
                                     )
                                 except ValidationError:
-                                    print(traceback.format_exc())
+                                    logging.getLogger(__name__).warning(
+                                        f"schemas.py - Pydantic ValidationError - subscription failed with the following traceback: {traceback.format_exc()}"
+                                    )
                             else:
                                 invalid_user_data.append((arg[0], port, 1))
                         else:
