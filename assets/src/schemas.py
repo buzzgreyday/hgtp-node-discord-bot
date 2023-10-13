@@ -104,7 +104,6 @@ class Cluster(BaseModel):
     ip: str = None
     public_port: int = None
     layer: int
-    contact: str | int | None
     wallet: str = None
     state: str = "offline"
     peer_count: int = 0

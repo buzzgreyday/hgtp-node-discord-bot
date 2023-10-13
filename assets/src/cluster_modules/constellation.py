@@ -53,7 +53,6 @@ async def request_cluster_data(url, layer, name, configuration) -> schemas.Clust
         cluster_data = schemas.Cluster(
             layer=layer,
             name=name,
-            contact=None,
             state=node_resp["state"].lower(),
             id=node_resp["id"],
             session=str(node_resp["clusterSession"]),
