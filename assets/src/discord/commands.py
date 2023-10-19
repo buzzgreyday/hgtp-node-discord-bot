@@ -27,7 +27,6 @@ class SelectMenu(Select):
         # You can access the selected option with self.values[0]
         self.selected_value = self.values[0]
 
-        await interaction.response.send_message(content=f"You selected {self.values[0]}", ephemeral=True)
 
 
 def setup(bot):
@@ -46,13 +45,11 @@ async def unsub_menu(interaction):
     msg = "Select the IP you want to unsubscribe"
     view = nextcord.ui.View()
     ip_menu = SelectMenu(msg, values)
+    port_menu = SelectMenu("Select port", ["9000", "9010"])
     view.add_item(ip_menu)
+    view.add_item(port_menu)
     # Send the message with the view
-    await interaction.response.send_message(content="Here is a menu of IP addresses:", ephemeral=True, view=view)
-
-    @bot.event
-    async def on_interaction(interaction):
-        print(f"You selected {ip_menu.selected_value}")
+    await interaction.response.send_message(content="Here is a menu", ephemeral=True, view=view)
 
 
 @bot.slash_command(
