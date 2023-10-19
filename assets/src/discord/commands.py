@@ -41,10 +41,8 @@ def setup(bot):
 async def unsub_menu(interaction):
     # This is the slash command that sends the message with the SelectMenu
     # Create a view that contains the SelectMenu
-    values = ["192.168.0.1", "127.0.0.0", "0.0.0.0"]
-    msg = "Select the IP you want to unsubscribe"
     view = nextcord.ui.View()
-    ip_menu = SelectMenu(msg, values)
+    ip_menu = SelectMenu("Select the IP you want to unsubscribe", ["192.168.0.1", "127.0.0.0", "0.0.0.0"])
     port_menu = SelectMenu("Select port", ["9000", "9010"])
     view.add_item(ip_menu)
     view.add_item(port_menu)
