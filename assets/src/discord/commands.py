@@ -3,6 +3,7 @@ import logging
 
 import yaml
 
+import assets.src.database.database
 from assets.src import user, run_process
 from assets.src.discord import discord
 from assets.src.discord.services import bot
@@ -40,8 +41,11 @@ def setup(bot):
     dm_permission=True,)
 async def unsub_menu(interaction):
     async def on_button_click(interaction):
+        # Check if the port matches the subscribed IP
         await interaction.response.send_message(content=f"You chose {ip_menu.selected_value, port_menu.selected_value}", ephemeral=True)
-        print("OK")
+
+    data, resp_status = await assets.src.api.Request(f"http://127.0.0.1:8000/user/{str(interaction.user)}").db_json()
+    print(f"OK: {data}")
 
     # This is the slash command that sends the message with the SelectMenu
     # Create a view that contains the SelectMenu

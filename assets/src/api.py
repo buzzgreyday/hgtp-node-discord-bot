@@ -28,7 +28,7 @@ class Request:
                 else:
                     return None, resp.status
 
-    async def db_json(self, configuration: dict):
+    async def db_json(self, configuration=None):
         async with aiohttp.ClientSession() as session:
             async with session.get(self.url) as resp:
                 await asyncio.sleep(0)

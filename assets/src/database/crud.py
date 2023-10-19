@@ -71,12 +71,12 @@ class CRUD:
                 await asyncio.sleep(60)
         return jsonable_encoder(data_dict)
 
-    async def get_users(self, async_session: async_sessionmaker[AsyncSession]):
+    async def get_user(self, name, async_session: async_sessionmaker[AsyncSession]):
         """Returns a list of all user data"""
         async with async_session() as session:
-            results = await session.execute(select(UserModel))
-            users = results.scalars().all()
-        return {"users": users}
+            results = await session.execute(select(UserModel).where(UserModel.name == name))
+
+        return results.scalars().all()
 
     async def get_user_ids(
         self, layer: int, async_session: async_sessionmaker[AsyncSession]

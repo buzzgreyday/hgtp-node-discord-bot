@@ -23,10 +23,10 @@ async def post_data(data):
     return await db.post_data(data, session)
 
 
-@api.get("/user")
-async def get_users():
+@api.get("/user/{name}")
+async def get_user(name: str):
     """Returns a list of all user data"""
-    return await db.get_users(session)
+    return await db.get_user(name, session)
 
 
 @api.get("/user/ids/layer/{layer}")
