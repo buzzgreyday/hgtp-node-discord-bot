@@ -9,10 +9,50 @@ from assets.src.discord.services import bot
 from assets.src.schemas import User
 
 import nextcord
+from nextcord import SelectOption
+from nextcord.ui import Select
+
+
+class SelectMenu(Select):
+    def __init__(self, msg, values):
+        # Define the options for the SelectMenu
+        options = [SelectOption(label=val, value=val) for val in values]
+
+        # Initialize the SelectMenu with the options and a placeholder
+        super().__init__(placeholder=msg, options=options)
+        self.selected_value = None
+
+    async def callback(self, interaction):
+        # This method is called when the user selects an option
+        # You can access the selected option with self.values[0]
+        self.selected_value = self.values[0]
+
+        await interaction.response.send_message(content=f"You selected {self.values[0]}", ephemeral=True)
 
 
 def setup(bot):
     pass
+
+
+@bot.slash_command(
+    name="unsubscribe",
+    description="Unsubscribe from an IP address.",
+    guild_ids=[974431346850140201],
+    dm_permission=True,)
+async def unsub_menu(interaction):
+    # This is the slash command that sends the message with the SelectMenu
+    # Create a view that contains the SelectMenu
+    values = ["192.168.0.1", "127.0.0.0", "0.0.0.0"]
+    msg = "Select the IP you want to unsubscribe"
+    view = nextcord.ui.View()
+    ip_menu = SelectMenu(msg, values)
+    view.add_item(ip_menu)
+    # Send the message with the view
+    await interaction.response.send_message(content="Here is a menu of IP addresses:", ephemeral=True, view=view)
+
+    @bot.event
+    async def on_interaction(interaction):
+        print(f"You selected {ip_menu.selected_value}")
 
 
 @bot.slash_command(
