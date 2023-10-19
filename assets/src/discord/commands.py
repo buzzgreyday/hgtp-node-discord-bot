@@ -42,16 +42,28 @@ def setup(bot):
 async def unsub_menu(interaction):
     async def on_button_click(interaction):
         # Check if the port matches the subscribed IP
-        await interaction.response.send_message(content=f"You chose {ip_menu.selected_value, port_menu.selected_value}", ephemeral=True)
+        for data in lst:
+            if ip_menu.selected_value == data["ip"] and port_menu.selected_value == str(data["public_port"]):
+                print("OK")
+                await interaction.response.send_message(
+                    content=f"You chose {ip_menu.selected_value, port_menu.selected_value}", ephemeral=True)
 
-    data, resp_status = await assets.src.api.Request(f"http://127.0.0.1:8000/user/{str(interaction.user)}").db_json()
-    print(f"OK: {data}")
+            else:
+                # Try again
+                print("NO MATCH")
+
+    lst, resp_status = await assets.src.api.Request(f"http://127.0.0.1:8000/user/{str(interaction.user)}").db_json()
+    ips = []
+    ports = []
+    for data in lst:
+        ips.append(data["ip"])
+        ports.append(data["public_port"])
 
     # This is the slash command that sends the message with the SelectMenu
     # Create a view that contains the SelectMenu
     view = nextcord.ui.View()
-    ip_menu = SelectMenu("Select the IP you want to unsubscribe", ["192.168.0.1", "127.0.0.0", "0.0.0.0"])
-    port_menu = SelectMenu("Select port", ["9000", "9010"])
+    ip_menu = SelectMenu("Select the IP you want to unsubscribe", set(ips))
+    port_menu = SelectMenu("Select port", set(ports))
     button = nextcord.ui.Button(style=nextcord.ButtonStyle.primary, label="Click Me")
     button.callback = on_button_click  # Set the callback for the button
     view.add_item(ip_menu)
