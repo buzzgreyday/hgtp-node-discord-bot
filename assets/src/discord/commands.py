@@ -39,15 +39,23 @@ def setup(bot):
     guild_ids=[974431346850140201],
     dm_permission=True,)
 async def unsub_menu(interaction):
+    async def on_button_click(interaction):
+        await interaction.response.send_message(content=f"You chose {ip_menu.selected_value, port_menu.selected_value}", ephemeral=True)
+        print("OK")
+
     # This is the slash command that sends the message with the SelectMenu
     # Create a view that contains the SelectMenu
     view = nextcord.ui.View()
     ip_menu = SelectMenu("Select the IP you want to unsubscribe", ["192.168.0.1", "127.0.0.0", "0.0.0.0"])
     port_menu = SelectMenu("Select port", ["9000", "9010"])
+    button = nextcord.ui.Button(style=nextcord.ButtonStyle.primary, label="Click Me")
+    button.callback = on_button_click  # Set the callback for the button
     view.add_item(ip_menu)
     view.add_item(port_menu)
+    view.add_item(button)
     # Send the message with the view
     await interaction.response.send_message(content="Here is a menu", ephemeral=True, view=view)
+
 
 
 @bot.slash_command(
