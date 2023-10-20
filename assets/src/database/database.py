@@ -23,10 +23,10 @@ async def post_data(data):
     return await db.post_data(data, session)
 
 
-@api.get("/user")
-async def get_users():
+@api.get("/user/{name}")
+async def get_user(name: str):
     """Returns a list of all user data"""
-    return await db.get_users(session)
+    return await db.get_user(name, session)
 
 
 @api.get("/user/ids/layer/{layer}")
@@ -57,3 +57,9 @@ async def get_contact_node_id(contact, layer):
 async def get_node_data(ip, public_port):
     """Return latest node data fetched via automatic check by IP and port"""
     return await db.get_node_data(ip, public_port, session)
+
+
+@api.get("/user/delete")
+async def delete_user_entry(data):
+    """Delete the user subscription based on name, ip, port"""
+    return await db.delete_user_entry(data, session)

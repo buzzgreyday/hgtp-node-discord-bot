@@ -6,11 +6,12 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy.pool import NullPool
 
+from assets.src import schemas
 from assets.src.database.models import UserModel, NodeModel
 from assets.src.schemas import User as UserSchema
 from assets.src.schemas import Node as NodeSchema
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from fastapi.encoders import jsonable_encoder
 
 load_dotenv()
@@ -71,12 +72,12 @@ class CRUD:
                 await asyncio.sleep(60)
         return jsonable_encoder(data_dict)
 
-    async def get_users(self, async_session: async_sessionmaker[AsyncSession]):
+    async def get_user(self, name, async_session: async_sessionmaker[AsyncSession]):
         """Returns a list of all user data"""
         async with async_session() as session:
-            results = await session.execute(select(UserModel))
-            users = results.scalars().all()
-        return {"users": users}
+            results = await session.execute(select(UserModel).where(UserModel.name == name))
+
+        return results.scalars().all()
 
     async def get_user_ids(
         self, layer: int, async_session: async_sessionmaker[AsyncSession]
@@ -155,6 +156,16 @@ class CRUD:
             )
             results = await session.execute(statement)
         return results.scalar_one_or_none()
+
+    async def delete_user_entry(self, data: UserModel, async_session: async_sessionmaker[AsyncSession]):
+        """Delete the user subscription based on name, ip, port"""
+
+        async with async_session() as session:
+            statement = delete(UserModel).where(
+                (UserModel.ip == data.ip) & (UserModel.public_port == data.public_port)
+            )
+            await session.execute(statement)
+            await session.commit()
 
     async def delete_old_entries(self, async_session: async_sessionmaker[AsyncSession]):
         from datetime import timedelta
