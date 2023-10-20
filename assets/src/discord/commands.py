@@ -62,7 +62,7 @@ async def unsubscibe_menu(interaction):
                 f"main.py - Unubscription request denied for {str(interaction.user)}: {ip_menu.selected_value}:{port_menu.selected_value}"
             )
         if entries:
-            confirm_msg = await interaction.response.send_message(
+            await interaction.response.send_message(
                 content=f"**Unsubscription received**", ephemeral=True)
             await user.delete_db(entries)
             view.stop()
