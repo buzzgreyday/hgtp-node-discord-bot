@@ -42,38 +42,27 @@ def setup(bot):
     dm_permission=True,)
 async def unsubscibe_menu(interaction):
     """This is a slash_command that sends a View() that contains a SelectMenu and a button to confirm user selection"""
-
+    def append_entries(entries, data):
+        entries.append(models.UserModel(**data))
+        logging.getLogger(__name__).info(
+            f"main.py - Unubscription request accepted from {str(interaction.user)}: {ip_menu.selected_value}:{port_menu.selected_value}"
+        )
     async def on_button_click(interaction):
-        # Check if the port matches the subscribed IP
+        """When the button is clicked"""
         entries = []
         for data in lst:
 
             if (str(interaction.user) == data["name"]) and (ip_menu.selected_value == "All") and (port_menu.selected_value in ("All", None)):
-                entry = models.UserModel(**data)
-                entries.append(entry)
-                logging.getLogger(__name__).info(
-                    f"main.py - Unubscription request accepted from {str(interaction.user)}: {ip_menu.selected_value}:{port_menu.selected_value}"
-                )
+                append_entries(entries, data)
                 print(f"Unsubscribe: {data['name'], data['ip'], data['public_port']}")
-
             elif (str(interaction.user) == data["name"]) and (ip_menu.selected_value == data["ip"]) and (port_menu.selected_value == str(data["public_port"])):
-                entry = models.UserModel(**data)
-                entries.append(entry)
-                logging.getLogger(__name__).info(
-                    f"main.py - Unubscription request accepted from {str(interaction.user)}: {ip_menu.selected_value}:{port_menu.selected_value}"
-                )
+                append_entries(entries, data)
                 print(f"Unsubscribe: {data['name'], data['ip'], data['public_port']}")
                 await interaction.response.send_message(
                     content=f"You chose {ip_menu.selected_value, port_menu.selected_value}", ephemeral=True)
-
             elif (str(interaction.user) == data["name"]) and (ip_menu.selected_value == data["ip"]) and (port_menu.selected_value in ("All", None)):
-                entry = models.UserModel(**data)
-                entries.append(entry)
-                logging.getLogger(__name__).info(
-                    f"main.py - Unubscription request accepted from {str(interaction.user)}: {ip_menu.selected_value}:{port_menu.selected_value}"
-                )
+                append_entries(entries, data)
                 print(f"Unsubscribe: {data['name'], data['ip'], data['public_port']}")
-
             logging.getLogger(__name__).info(
                 f"main.py - Unubscription request denied from {str(interaction.user)}: {ip_menu.selected_value}:{port_menu.selected_value}"
             )
