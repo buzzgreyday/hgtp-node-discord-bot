@@ -45,7 +45,7 @@ async def unsubscibe_menu(interaction):
     def append_entries(entries, data):
         entries.append(models.UserModel(**data))
         logging.getLogger(__name__).info(
-            f"main.py - Unubscription request accepted from {str(interaction.user)}: {ip_menu.selected_value}:{port_menu.selected_value}"
+            f"main.py - Unubscription request accepted for {str(interaction.user)}: {ip_menu.selected_value}:{port_menu.selected_value}"
         )
     async def on_button_click(interaction):
         """When the button is clicked"""
@@ -58,15 +58,16 @@ async def unsubscibe_menu(interaction):
             elif (str(interaction.user) == data["name"]) and (ip_menu.selected_value == data["ip"]) and (port_menu.selected_value == str(data["public_port"])):
                 append_entries(entries, data)
                 print(f"Unsubscribe: {data['name'], data['ip'], data['public_port']}")
-                await interaction.response.send_message(
-                    content=f"You chose {ip_menu.selected_value, port_menu.selected_value}", ephemeral=True)
             elif (str(interaction.user) == data["name"]) and (ip_menu.selected_value == data["ip"]) and (port_menu.selected_value in ("All", None)):
                 append_entries(entries, data)
                 print(f"Unsubscribe: {data['name'], data['ip'], data['public_port']}")
             logging.getLogger(__name__).info(
-                f"main.py - Unubscription request denied from {str(interaction.user)}: {ip_menu.selected_value}:{port_menu.selected_value}"
+                f"main.py - Unubscription request denied for {str(interaction.user)}: {ip_menu.selected_value}:{port_menu.selected_value}"
             )
         if entries:
+            await interaction.response.send_message(
+                content=f"**yaml\n"
+                        f"Unsubscription received**", ephemeral=True)
             await user.delete_db(entries)
 
     lst, resp_status = await assets.src.api.Request(f"http://127.0.0.1:8000/user/{str(interaction.user)}").db_json()
@@ -87,7 +88,8 @@ async def unsubscibe_menu(interaction):
         view.add_item(port_menu)
         view.add_item(button)
         # Send the message with the view
-        await interaction.response.send_message(content="Unsubscribe", ephemeral=True, view=view)
+        await interaction.response.send_message(content="**```fix\n"
+                                                        "Unsubscribe**", ephemeral=True, view=view)
     else:
         await interaction.response.send_message(
             content=f"No subscription found", ephemeral=True)
