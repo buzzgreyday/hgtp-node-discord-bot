@@ -66,8 +66,7 @@ async def unsubscibe_menu(interaction):
             )
         if entries:
             await interaction.response.send_message(
-                content=f"**yaml\n"
-                        f"Unsubscription received**", ephemeral=True)
+                content=f"**Unsubscription received**", ephemeral=True)
             await user.delete_db(entries)
 
     lst, resp_status = await assets.src.api.Request(f"http://127.0.0.1:8000/user/{str(interaction.user)}").db_json()
@@ -88,8 +87,7 @@ async def unsubscibe_menu(interaction):
         view.add_item(port_menu)
         view.add_item(button)
         # Send the message with the view
-        await interaction.response.send_message(content="**```fix\n"
-                                                        "Unsubscribe**", ephemeral=True, view=view)
+        await interaction.response.send_message(content="**Unsubscribe**", ephemeral=True, view=view)
     else:
         await interaction.response.send_message(
             content=f"No subscription found", ephemeral=True)
