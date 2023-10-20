@@ -65,6 +65,7 @@ async def unsubscibe_menu(interaction):
             await interaction.response.send_message(
                 content=f"**Unsubscription received**", ephemeral=True)
             await user.delete_db(entries)
+            # Nothing more to do
             view.stop()
             return
 
@@ -75,6 +76,11 @@ async def unsubscibe_menu(interaction):
         for data in lst:
             ips.append(data["ip"])
             ports.append(data["public_port"])
+
+        # Sort the ips and ports lists while making sure "All" is at the beginning
+        ips.sort(key=lambda x: x != "All")
+        ports.sort(key=lambda x: x != "All")
+
         # This is the slash command that sends the message with the SelectMenu
         # Create a view that contains the SelectMenu
         view = nextcord.ui.View(timeout=60)
@@ -86,10 +92,11 @@ async def unsubscibe_menu(interaction):
         view.add_item(port_menu)
         view.add_item(button)
         # Send the message with the view
-        await interaction.response.send_message(content="**Unsubscribe**", ephemeral=True, view=view)
+        await interaction.response.send_message(content="**Unsubscribe by IP(s) and Public Port**", ephemeral=True, view=view)
     else:
         await interaction.response.send_message(
             content=f"No subscription found", ephemeral=True)
+        # Nothing more to do
         return
 
 
