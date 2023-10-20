@@ -37,8 +37,8 @@ def setup(bot):
 
 @bot.slash_command(
     name="unsubscribe",
-    description="Unsubscribe from an IP address.",
-    guild_ids=[974431346850140201],
+    description="Unsubscribe by IP and Public Port",
+    guild_ids=[993895415873273916],
     dm_permission=True,)
 async def unsubscibe_menu(interaction):
     """This is a slash_command that sends a View() that contains a SelectMenu and a button to confirm user selection"""
@@ -65,9 +65,11 @@ async def unsubscibe_menu(interaction):
                 f"main.py - Unubscription request denied for {str(interaction.user)}: {ip_menu.selected_value}:{port_menu.selected_value}"
             )
         if entries:
-            await interaction.response.send_message(
+            confirm_msg = await interaction.response.send_message(
                 content=f"**Unsubscription received**", ephemeral=True)
             await user.delete_db(entries)
+            view.stop()
+            return
 
     lst, resp_status = await assets.src.api.Request(f"http://127.0.0.1:8000/user/{str(interaction.user)}").db_json()
     if lst:
@@ -78,7 +80,7 @@ async def unsubscibe_menu(interaction):
             ports.append(data["public_port"])
         # This is the slash command that sends the message with the SelectMenu
         # Create a view that contains the SelectMenu
-        view = nextcord.ui.View()
+        view = nextcord.ui.View(timeout=60)
         ip_menu = SelectMenu("Select the IP you want to unsubscribe", set(ips))
         port_menu = SelectMenu("Select port", set(ports))
         button = nextcord.ui.Button(style=nextcord.ButtonStyle.primary, label="Confirm")
@@ -91,6 +93,7 @@ async def unsubscibe_menu(interaction):
     else:
         await interaction.response.send_message(
             content=f"No subscription found", ephemeral=True)
+        return
 
 
 @bot.slash_command(
