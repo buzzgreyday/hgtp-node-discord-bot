@@ -4,7 +4,7 @@ from typing import List
 import pandas as pd
 
 from assets.src import schemas, database, api, history, dt, cluster, determine_module
-from assets.src.database import database
+from assets.src.database import database, models
 
 IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 
@@ -90,3 +90,8 @@ async def process_node_data_per_user(
 async def write_db(data: List[schemas.User]):
     for d in data:
         await database.post_user(data=d)
+
+
+async def delete_db(data: List[models.UserModel]):
+    for d in data:
+        await database.delete_user_entry(d)

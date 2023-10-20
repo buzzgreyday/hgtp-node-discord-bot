@@ -57,3 +57,9 @@ async def get_contact_node_id(contact, layer):
 async def get_node_data(ip, public_port):
     """Return latest node data fetched via automatic check by IP and port"""
     return await db.get_node_data(ip, public_port, session)
+
+
+@api.get("/user/delete")
+async def delete_user_entry(data):
+    """Delete the user subscription based on name, ip, port"""
+    return await db.delete_user_entry(data, session)
