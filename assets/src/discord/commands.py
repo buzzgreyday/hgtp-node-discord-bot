@@ -77,13 +77,9 @@ async def unsubscibe_menu(interaction):
             ips.append(data["ip"])
             ports.append(data["public_port"])
 
-        # Sort the ips and ports lists while making sure "All" is at the beginning
-        ips.sort(key=lambda x: x != "All")
-        ports.sort(key=lambda x: x != "All")
-
         # This is the slash command that sends the message with the SelectMenu
         # Create a view that contains the SelectMenu
-        view = nextcord.ui.View(timeout=60)
+        view = nextcord.ui.View(timeout=90)
         ip_menu = SelectMenu("Select the IP you want to unsubscribe", set(ips))
         port_menu = SelectMenu("Select port", set(ports))
         button = nextcord.ui.Button(style=nextcord.ButtonStyle.primary, label="Confirm")
