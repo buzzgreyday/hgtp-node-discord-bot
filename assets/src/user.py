@@ -10,7 +10,7 @@ IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4]
 
 
 async def node_status_check(
-    subscriber, cluster_data: schemas.Cluster, version_manager, configuration: dict
+    session, subscriber, cluster_data: schemas.Cluster, version_manager, configuration: dict
 ) -> schemas.Node:
     node_data = schemas.Node(
         name=subscriber.name.values[0],
@@ -24,10 +24,10 @@ async def node_status_check(
         notify=False,
         timestamp_index=dt.datetime.utcnow(),
     )
-    node_data = await history.node_data(None, node_data, configuration)
+    node_data = await history.node_data(session, None, node_data, configuration)
     found_in_cluster, cluster_data = cluster.locate_node(node_data, cluster_data)
     node_data = cluster.merge_data(node_data, found_in_cluster, cluster_data)
-    node_data = await cluster.get_module_data(node_data, configuration)
+    node_data = await cluster.get_module_data(session, node_data, configuration)
     if (
         node_data.cluster_name is not None
         and cluster_data is not None
@@ -60,7 +60,7 @@ async def node_status_check(
 
 
 async def process_node_data_per_user(
-    name, ids, cluster_data, version_manager, _configuration
+    session, name, ids, cluster_data, version_manager, _configuration
 ) -> List[schemas.Node]:
     futures = []
     data = []
@@ -68,14 +68,14 @@ async def process_node_data_per_user(
         for lst in ids:
             id_, ip, port = lst
             while True:
-                subscriber = await api.locate_node(_configuration, None, id_, ip, port)
+                subscriber = await api.locate_node(session, _configuration, None, id_, ip, port)
                 if subscriber:
                     break
             subscriber = pd.DataFrame(subscriber)
             futures.append(
                 asyncio.create_task(
                     node_status_check(
-                        subscriber, cluster_data, version_manager, _configuration
+                        session, subscriber, cluster_data, version_manager, _configuration
                     )
                 )
             )

@@ -129,10 +129,11 @@ class User(NodeBase):
     # VALIDATE ID VALUE, CREATE CUSTOM EXCEPTION!
 
     @staticmethod
-    async def get_id(ip: str, port: str, mode, configuration):
+    async def get_id(session, ip: str, port: str, mode, configuration):
         """Will need refactoring before metagraph release. Some other way to validate node?"""
         if mode == "subscribe":
             node_data, status_code = await api.safe_request(
+                session,
                 f"http://{ip}:{port}/node/info", configuration
             )
             return str(node_data["id"]) if node_data is not None else None
@@ -141,7 +142,7 @@ class User(NodeBase):
 
     @classmethod
     async def discord(
-        cls, configuration, process_msg, mode: str, name: str, contact: int, *args
+        cls, session, configuration, process_msg, mode: str, name: str, contact: int, *args
     ):
         """Treats a Discord message as a line of arguments and returns a list of subscribable user objects"""
         from assets.src.discord.discord import update_subscription_process_msg
@@ -167,7 +168,7 @@ class User(NodeBase):
                                 process_msg, 2, f"{arg[0]}:{port}"
                             )
                             # Check if port is subscribed?
-                            id_ = await User.get_id(arg[0], port, mode, configuration)
+                            id_ = await User.get_id(session, arg[0], port, mode, configuration)
                             if id_ is not None:
                                 wallet = id_to_dag_address(id_)
                                 try:
@@ -199,7 +200,7 @@ class User(NodeBase):
                             process_msg = await update_subscription_process_msg(
                                 process_msg, 2, f"{arg[0]}:{port}"
                             )
-                            id_ = await User.get_id(arg[0], port, mode, configuration)
+                            id_ = await User.get_id(session, arg[0], port, mode, configuration)
                             if id_ is not None:
                                 wallet = id_to_dag_address(id_)
                                 try:

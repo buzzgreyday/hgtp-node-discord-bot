@@ -75,7 +75,7 @@ def locate_node(node_data: schemas.Node, cluster_data: schemas.Cluster):
     # Changed this
 
 
-async def get_module_data(node_data: schemas.Node, configuration):
+async def get_module_data(session, node_data: schemas.Node, configuration):
     last_known_cluster, layer = await determine_module.get_module_name_and_layer(
         node_data, configuration
     )
@@ -83,7 +83,7 @@ async def get_module_data(node_data: schemas.Node, configuration):
     if last_known_cluster:
         module = determine_module.set_module(last_known_cluster, configuration)
         node_data = await module.node_cluster_data(
-            node_data, last_known_cluster, configuration
+            session, node_data, last_known_cluster, configuration
         )
 
         return node_data

@@ -5,6 +5,7 @@ import threading
 import traceback
 from datetime import datetime
 
+import aiohttp
 import yaml
 
 from assets.src import preliminaries, run_process, history
@@ -35,29 +36,30 @@ async def main_loop(version_manager, _configuration):
     times = preliminaries.generate_runtimes(_configuration)
     logging.getLogger(__name__).info(f"main.py - runtime schedule:\n\t{times}")
     while True:
-        try:
-            data_queue = asyncio.Queue()
-            tasks = []
-            if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
-                for cluster_name in _configuration["modules"].keys():
-                    for layer in _configuration["modules"][cluster_name].keys():
-                        task = run_process.automatic_check(
-                            cluster_name, layer, version_manager, _configuration
-                        )
-                        tasks.append(task)
-                for completed_task in asyncio.as_completed(tasks):
-                    data = await completed_task
-                    await data_queue.put(data)
-                while not data_queue.empty():
-                    data = await data_queue.get()
-                    await history.write(data)
-        except Exception:
-            logging.getLogger(__name__).error(
-                f"main.py - error: {traceback.format_exc()}\n\tCurrent check exited..."
-            )
-            await discord.messages.send_traceback(bot, traceback.format_exc())
-        finally:
-            await asyncio.sleep(1)
+        async with aiohttp.ClientSession() as session:
+            try:
+                data_queue = asyncio.Queue()
+                tasks = []
+                if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
+                    for cluster_name in _configuration["modules"].keys():
+                        for layer in _configuration["modules"][cluster_name].keys():
+                            task = run_process.automatic_check(
+                                session, cluster_name, layer, version_manager, _configuration
+                            )
+                            tasks.append(task)
+                    for completed_task in asyncio.as_completed(tasks):
+                        data = await completed_task
+                        await data_queue.put(data)
+                    while not data_queue.empty():
+                        data = await data_queue.get()
+                        await history.write(data)
+            except Exception:
+                logging.getLogger(__name__).error(
+                    f"main.py - error: {traceback.format_exc()}\n\tCurrent check exited..."
+                )
+                await discord.messages.send_traceback(bot, traceback.format_exc())
+            finally:
+                await asyncio.sleep(1)
 
 
 def main():
