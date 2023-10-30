@@ -9,61 +9,59 @@ from assets.src import schemas
 
 
 class Request:
-    def __init__(self, url):
+    def __init__(self, session, url):
         self.url = url
+        self.session = session
 
     async def json(self, configuration: dict):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                self.url,
-                timeout=aiohttp.ClientTimeout(
-                    total=configuration["general"]["request timeout (sec)"]
-                ),
-            ) as resp:
-                await asyncio.sleep(0)
-                if resp.status == 200:
-                    data = await resp.json()
-                    return data, resp.status
+        async with self.session.get(
+            self.url,
+            timeout=aiohttp.ClientTimeout(
+                total=configuration["general"]["request timeout (sec)"]
+            ),
+        ) as resp:
+            await asyncio.sleep(0)
+            if resp.status == 200:
+                data = await resp.json()
+                return data, resp.status
 
-                else:
-                    return None, resp.status
+            else:
+                return None, resp.status
 
     async def db_json(self, configuration=None):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(self.url) as resp:
-                await asyncio.sleep(0)
-                if resp.status == 200:
-                    data = await resp.json()
-                    return data, resp.status
+        async with self.session.get(self.url) as resp:
+            await asyncio.sleep(0)
+            if resp.status == 200:
+                data = await resp.json()
+                return data, resp.status
 
-                else:
-                    return None, resp.status
+            else:
+                return None, resp.status
 
     async def text(self, configuration: dict):
         timeout = aiohttp.ClientTimeout(
             total=configuration["general"]["request timeout (sec)"]
         )
-        async with aiohttp.ClientSession() as session:
-            async with session.get(self.url, timeout=timeout) as resp:
-                await asyncio.sleep(0)
-                if resp.status == 200:
-                    text = await resp.text()
-                    obj = schemas.NodeMetrics.from_txt(text)
-                    del text
-                    return obj, resp.status
-                else:
-                    return None, resp.status
+        async with self.session.get(self.url, timeout=timeout) as resp:
+            await asyncio.sleep(0)
+            if resp.status == 200:
+                text = await resp.text()
+                obj = schemas.NodeMetrics.from_txt(text)
+                del text
+                return obj, resp.status
+            else:
+                return None, resp.status
 
 
-async def safe_request(request_url: str, configuration: dict):
+async def safe_request(session, request_url: str, configuration: dict):
     retry_count = 0
     status_code = None
     while True:
         try:
             if "metrics" in request_url.split("/"):
-                data, status_code = await Request(request_url).text(configuration)
+                data, status_code = await Request(session, request_url).text(configuration)
             else:
-                data, status_code = await Request(request_url).json(configuration)
+                data, status_code = await Request(session, request_url).json(configuration)
             if retry_count >= configuration["general"]["request retry (count)"]:
                 return None, status_code
             elif data is not None:
@@ -99,16 +97,18 @@ async def safe_request(request_url: str, configuration: dict):
             return None, status_code
 
 
-async def get_user_ids(layer, requester, _configuration):
+async def get_user_ids(session, layer, requester, _configuration):
     """RETURNS A LIST/SET OF TUPLES CONTAINING ID, IP, PORT (PER LAYER)"""
     while True:
         try:
             if requester is None:
                 data, resp_status = await Request(
+                    session,
                     f"http://127.0.0.1:8000/user/ids/layer/{layer}"
                 ).db_json(_configuration)
             else:
                 data, resp_status = await Request(
+                    session,
                     f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}"
                 ).db_json(_configuration)
         except asyncio.TimeoutError:
@@ -126,13 +126,14 @@ async def get_user_ids(layer, requester, _configuration):
                 await asyncio.sleep(3)
 
 
-async def locate_node(_configuration, requester, id_, ip, port):
+async def locate_node(session, _configuration, requester, id_, ip, port):
     """Locate every subscription where ID is id_
     return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])
     """
     while True:
         try:
             data, resp_status = await Request(
+                session,
                 f"http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port}"
             ).db_json(_configuration)
         except asyncio.TimeoutError:

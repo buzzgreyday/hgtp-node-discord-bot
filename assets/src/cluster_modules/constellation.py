@@ -31,16 +31,16 @@ from assets.src import schemas, config, cluster, api
 # ---------------------------------------------------------------------------------------------------------------------
 
 
-async def request_cluster_data(url, layer, name, configuration) -> schemas.Cluster:
+async def request_cluster_data(session, url, layer, name, configuration) -> schemas.Cluster:
     cluster_resp, status_code = await api.safe_request(
-        f"{url}/{configuration['modules'][name][layer]['info']['cluster']}",
+        session, f"{url}/{configuration['modules'][name][layer]['info']['cluster']}",
         configuration,
     )
     node_resp, status_code = await api.safe_request(
-        f"{url}/{configuration['modules'][name][layer]['info']['node']}", configuration
+        session, f"{url}/{configuration['modules'][name][layer]['info']['node']}", configuration
     )
     latest_ordinal, latest_timestamp, addresses = await locate_rewarded_addresses(
-        layer, name, configuration
+        session, layer, name, configuration
     )
 
     if node_resp is None:
@@ -78,12 +78,13 @@ async def request_cluster_data(url, layer, name, configuration) -> schemas.Clust
 #     YOU MIGHT ALSO BE ABLE TO IMPROVE ON THE TRY/EXCEPT BLOCK LENGTH.
 
 
-async def locate_rewarded_addresses(layer, name, configuration):
+async def locate_rewarded_addresses(session, layer, name, configuration):
     """layer 1 doesn't have a block explorer: defaulting to 0"""
     # Can still not properly handle if latest_ordinal is None
     try:
         addresses = []
         latest_ordinal, latest_timestamp = await request_snapshot(
+            session,
             f"{configuration['modules'][name][0]['be']['url'][0]}/"
             f"{configuration['modules'][name][0]['be']['info']['latest snapshot']}",
             configuration,
@@ -94,6 +95,7 @@ async def locate_rewarded_addresses(layer, name, configuration):
                 tasks.append(
                     asyncio.create_task(
                         request_reward_addresses_per_snapshot(
+                            session,
                             f"{configuration['modules'][name][0]['be']['url'][0]}/"
                             f"global-snapshots/{ordinal}/rewards",
                             configuration,
@@ -103,11 +105,9 @@ async def locate_rewarded_addresses(layer, name, configuration):
             for task in tasks:
                 addresses.extend(await task)
                 addresses = list(set(addresses))
-            return latest_ordinal, latest_timestamp, addresses
-        else:
-            await asyncio.sleep(3)
+        return latest_ordinal, latest_timestamp, addresses
     except KeyError:
-        await asyncio.sleep(3)
+        return None, None, []
         # latest_ordinal = None; latest_timestamp = None; addresses = []
     # return latest_ordinal, latest_timestamp, addresses
 
@@ -116,9 +116,9 @@ async def locate_rewarded_addresses(layer, name, configuration):
 # CHECK AGAINST. THIS IS DONE IN THE FUNCTION BELOW.
 
 
-async def request_snapshot(request_url, configuration):
+async def request_snapshot(session, request_url, configuration):
     while True:
-        data, status_code = await api.safe_request(request_url, configuration)
+        data, status_code = await api.safe_request(session, request_url, configuration)
         if data:
             ordinal = data["data"]["ordinal"]
             try:
@@ -134,9 +134,9 @@ async def request_snapshot(request_url, configuration):
             await asyncio.sleep(3)
 
 
-async def request_reward_addresses_per_snapshot(request_url, configuration):
+async def request_reward_addresses_per_snapshot(session, request_url, configuration):
     while True:
-        data, status_code = await api.safe_request(request_url, configuration)
+        data, status_code = await api.safe_request(session, request_url, configuration)
         if data:
             lst = list(
                 data_dictionary["destination"] for data_dictionary in data["data"]
@@ -161,11 +161,12 @@ red_color_trigger = False
 
 
 async def node_cluster_data(
-    node_data: schemas.Node, module_name, configuration: dict
+    session, node_data: schemas.Node, module_name, configuration: dict
 ) -> schemas.Node:
     """Get node data. IMPORTANT: Create Pydantic Schema for node data"""
     if node_data.public_port:
         node_info_data, status_code = await api.safe_request(
+            session,
             f"http://{node_data.ip}:{node_data.public_port}/"
             f"{configuration['modules'][module_name][node_data.layer]['info']['node']}",
             configuration,
@@ -179,11 +180,13 @@ async def node_cluster_data(
             node_data.id = node_info_data["id"]
         if node_data.state != "offline":
             cluster_data, status_code = await api.safe_request(
+                session,
                 f"http://{node_data.ip}:{node_data.public_port}/"
                 f"{configuration['modules'][module_name][node_data.layer]['info']['cluster']}",
                 configuration,
             )
             metrics_data, status_code = await api.safe_request(
+                session,
                 f"http://{node_data.ip}:{node_data.public_port}/"
                 f"{configuration['modules'][module_name][node_data.layer]['info']['metrics']}",
                 configuration,
@@ -200,7 +203,7 @@ async def node_cluster_data(
                 )
                 node_data.disk_space_free = metrics_data.disk_space_free
                 node_data.disk_space_total = metrics_data.disk_space_total
-        node_data = await request_wallet_data(node_data, module_name, configuration)
+        node_data = await request_wallet_data(session, node_data, module_name, configuration)
         node_data = set_connectivity_specific_node_data_values(node_data, module_name)
         node_data = set_association_time(node_data)
 
@@ -229,9 +232,10 @@ def check_rewards(node_data: schemas.Node, cluster_data: schemas.Cluster):
 
 
 async def request_wallet_data(
-    node_data: schemas.Node, module_name, configuration
+    session, node_data: schemas.Node, module_name, configuration
 ) -> schemas.Node:
     wallet_data, status_code = await api.safe_request(
+        session,
         f"{configuration['modules'][module_name.lower()][0]['be']['url'][0]}/addresses/{node_data.wallet_address}/balance",
         configuration,
     )

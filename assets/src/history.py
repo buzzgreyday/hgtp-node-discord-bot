@@ -7,7 +7,7 @@ from assets.src import schemas, api, database
 from assets.src.database import database
 
 
-async def node_data(requester, node_data: schemas.Node, _configuration):
+async def node_data(session, requester, node_data: schemas.Node, _configuration):
     """Get historic node data"""
 
     #
@@ -16,6 +16,7 @@ async def node_data(requester, node_data: schemas.Node, _configuration):
     while True:
         try:
             data, resp_status = await api.Request(
+                session,
                 f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}"
             ).db_json(_configuration)
         except asyncio.TimeoutError:
@@ -61,6 +62,7 @@ async def node_data(requester, node_data: schemas.Node, _configuration):
 
 async def write(data: List[schemas.Node]):
     """Write user/subscriber node data from automatic check to database"""
+
     if data:
         for d in data:
             await database.post_data(data=d)
