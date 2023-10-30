@@ -106,11 +106,9 @@ async def locate_rewarded_addresses(session, layer, name, configuration):
             for task in tasks:
                 addresses.extend(await task)
                 addresses = list(set(addresses))
-            return latest_ordinal, latest_timestamp, addresses
-        else:
-            await asyncio.sleep(3)
+        return latest_ordinal, latest_timestamp, addresses
     except KeyError:
-        await asyncio.sleep(3)
+        return None, None, []
         # latest_ordinal = None; latest_timestamp = None; addresses = []
     # return latest_ordinal, latest_timestamp, addresses
 
