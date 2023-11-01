@@ -56,6 +56,7 @@ async def main_loop(version_manager, _configuration):
                     while not data_queue.empty():
                         data = await data_queue.get()
                         await history.write(data)
+
             except Exception:
                 logging.getLogger(__name__).error(
                     f"main.py - error: {traceback.format_exc()}\n\tCurrent check exited..."
@@ -63,6 +64,7 @@ async def main_loop(version_manager, _configuration):
                 await discord.messages.send_traceback(bot, traceback.format_exc())
             finally:
                 await asyncio.sleep(1)
+                await session.close()
 
 
 def run_uvicorn_process():

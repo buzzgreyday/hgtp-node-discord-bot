@@ -3,6 +3,8 @@ import datetime
 import logging
 from typing import List
 
+from aiohttp import client_exceptions
+
 from assets.src import schemas, api, database
 from assets.src.database import database
 
@@ -19,9 +21,9 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
                 session,
                 f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}"
             ).db_json(_configuration)
-        except asyncio.TimeoutError:
+        except (asyncio.exceptions.TimeoutError, client_exceptions.ClientOSError, client_exceptions.ServerDisconnectedError):
             logging.getLogger(__name__).warning(
-                f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} timeout"
+                f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} timeout/disconnect"
             )
 
             await asyncio.sleep(1)
