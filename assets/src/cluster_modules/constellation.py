@@ -383,7 +383,7 @@ def build_title(node_data: schemas.Node):
     else:
         title_ending = f"report"
     if cluster_name is not None:
-        return f"{node_data.cluster_name.title()} layer {node_data.layer} node ({node_data.ip}) {title_ending}"
+        return f"{cluster_name.title()} layer {node_data.layer} node ({node_data.ip}) {title_ending}"
     else:
         return f"layer {node_data.layer} node ({node_data.ip}) {title_ending}"
 
