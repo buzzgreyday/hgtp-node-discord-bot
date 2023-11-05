@@ -111,9 +111,9 @@ async def get_user_ids(session, layer, requester, _configuration):
                     session,
                     f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}"
                 ).db_json(_configuration)
-        except asyncio.TimeoutError:
+        except (asyncio.TimeoutError, client_exceptions.ServerDisconnectedError):
             logging.getLogger(__name__).error(
-                f"api.py - get_user_ids timeout timeout error!\n\t{traceback.format_exc()}"
+                f"api.py - localhost error:\n\t{traceback.format_exc()}"
             )
             await asyncio.sleep(6)
         else:
@@ -136,9 +136,9 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
                 session,
                 f"http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port}"
             ).db_json(_configuration)
-        except asyncio.TimeoutError:
+        except (asyncio.TimeoutError, client_exceptions.ServerDisconnectedError):
             logging.getLogger(__name__).warning(
-                f"api.py - localhost error: http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port} locate node timeout"
+                f"api.py - localhost error:\n\t{traceback.format_exc()}"
             )
             await asyncio.sleep(6)
         else:
