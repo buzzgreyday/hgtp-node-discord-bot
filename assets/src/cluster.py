@@ -24,6 +24,9 @@ def merge_data(node_data: schemas.Node, found: bool, cluster_data: schemas.Clust
     # This was not present before refactoring
     else:
         node_data.last_known_cluster_name = node_data.last_known_cluster_name
+        # Here you need to check if the last_known_ module exists and then look for the LB ID from last session
+        # Present and already updated in config, you probably need a request until you have time to edit database
+        # structure
     return node_data
 
 

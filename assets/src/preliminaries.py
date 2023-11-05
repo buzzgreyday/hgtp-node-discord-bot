@@ -71,7 +71,9 @@ async def supported_clusters(
         f"{configuration['file settings']['locations']['cluster modules']}/{name}.py"
     ):
         module = determine_module.set_module(name, configuration)
-        cluster = await module.request_cluster_data(session, url, layer, name, configuration)
+        cluster = await module.request_cluster_data(
+            session, url, layer, name, configuration
+        )
         return cluster
 
 

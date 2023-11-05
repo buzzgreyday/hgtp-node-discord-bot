@@ -31,13 +31,18 @@ from assets.src import schemas, config, cluster, api
 # ---------------------------------------------------------------------------------------------------------------------
 
 
-async def request_cluster_data(session, url, layer, name, configuration) -> schemas.Cluster:
+async def request_cluster_data(
+    session, url, layer, name, configuration
+) -> schemas.Cluster:
     cluster_resp, status_code = await api.safe_request(
-        session, f"{url}/{configuration['modules'][name][layer]['info']['cluster']}",
+        session,
+        f"{url}/{configuration['modules'][name][layer]['info']['cluster']}",
         configuration,
     )
     node_resp, status_code = await api.safe_request(
-        session, f"{url}/{configuration['modules'][name][layer]['info']['node']}", configuration
+        session,
+        f"{url}/{configuration['modules'][name][layer]['info']['node']}",
+        configuration,
     )
     latest_ordinal, latest_timestamp, addresses = await locate_rewarded_addresses(
         session, layer, name, configuration
@@ -203,7 +208,9 @@ async def node_cluster_data(
                 )
                 node_data.disk_space_free = metrics_data.disk_space_free
                 node_data.disk_space_total = metrics_data.disk_space_total
-        node_data = await request_wallet_data(session, node_data, module_name, configuration)
+        node_data = await request_wallet_data(
+            session, node_data, module_name, configuration
+        )
         node_data = set_connectivity_specific_node_data_values(node_data, module_name)
         node_data = set_association_time(node_data)
 
@@ -365,7 +372,7 @@ def build_title(node_data: schemas.Node):
     names = [
         node_data.cluster_name,
         node_data.former_cluster_name,
-        node_data.last_known_cluster_name
+        node_data.last_known_cluster_name,
     ]
     if names:
         cluster_name = names[0]
@@ -417,9 +424,7 @@ def build_general_node_state(node_data: schemas.Node):
         return node_state_field(), False, yellow_color_trigger
     elif node_data.state == "offline":
         field_symbol = f":red_square:"
-        field_info = (
-            f"`ⓘ  The node is not connected to to any of the previously associated cluster`"
-        )
+        field_info = f"`ⓘ  The node is not connected to to any of the previously associated cluster`"
         node_state = "Offline"
         red_color_trigger = True
         return node_state_field(), red_color_trigger, yellow_color_trigger
@@ -477,7 +482,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
         return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
     elif node_data.cluster_connectivity == "dissociation":
         field_symbol = ":red_square:"
-        field_info = f"`ⓘ  The node is consecutively dissociated from the cluster`"
+        field_info = f"`ⓘ  The node is consecutively dissociated from the cluster. If your node is Ready and green, the problem might be the load balancer and not your node`"
         red_color_trigger = True
         return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
     elif node_data.cluster_connectivity is None:
@@ -762,22 +767,27 @@ def build_embed(node_data: schemas.Node, module_name):
     embed_created = False
 
     def determine_color_and_create_embed(yellow_color_trigger, red_color_trigger):
-
         title = build_title(node_data).upper()
         if yellow_color_trigger and red_color_trigger is False:
             embed = nextcord.Embed(title=title, colour=nextcord.Color.orange())
-            embed.set_thumbnail(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png")
+            embed.set_thumbnail(
+                url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png"
+            )
             # embed.set_image(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/banner-color.png")
             return embed
         elif red_color_trigger:
             embed = nextcord.Embed(title=title, colour=nextcord.Color.brand_red())
-            embed.set_thumbnail(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-red.png")
+            embed.set_thumbnail(
+                url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-red.png"
+            )
             # embed.set_image(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/banner-color.png")
 
             return embed
         else:
             embed = nextcord.Embed(title=title, colour=nextcord.Color.dark_teal())
-            embed.set_thumbnail(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png")
+            embed.set_thumbnail(
+                url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png"
+            )
             # embed.set_image(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/banner-color.png")
 
             return embed

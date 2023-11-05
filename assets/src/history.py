@@ -19,9 +19,13 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
         try:
             data, resp_status = await api.Request(
                 session,
-                f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}"
+                f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}",
             ).db_json(_configuration)
-        except (asyncio.exceptions.TimeoutError, client_exceptions.ClientOSError, client_exceptions.ServerDisconnectedError):
+        except (
+            asyncio.exceptions.TimeoutError,
+            client_exceptions.ClientOSError,
+            client_exceptions.ServerDisconnectedError,
+        ):
             logging.getLogger(__name__).warning(
                 f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} timeout/disconnect"
             )

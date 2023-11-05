@@ -59,9 +59,13 @@ async def safe_request(session, request_url: str, configuration: dict):
     while True:
         try:
             if "metrics" in request_url.split("/"):
-                data, status_code = await Request(session, request_url).text(configuration)
+                data, status_code = await Request(session, request_url).text(
+                    configuration
+                )
             else:
-                data, status_code = await Request(session, request_url).json(configuration)
+                data, status_code = await Request(session, request_url).json(
+                    configuration
+                )
             if retry_count >= configuration["general"]["request retry (count)"]:
                 return None, status_code
             elif data is not None:
@@ -88,9 +92,7 @@ async def safe_request(session, request_url: str, configuration: dict):
                 configuration["general"]["request retry interval (sec)"]
             )
 
-        except (
-            aiohttp.client_exceptions.InvalidURL,
-        ) as e:
+        except (aiohttp.client_exceptions.InvalidURL,) as e:
             logging.getLogger(__name__).warning(
                 f"api.py - {request_url} returned \"{status_code}\" ({retry_count}/{configuration['general']['request retry (count)']}) ): {traceback.format_exc()}"
             )
@@ -103,13 +105,12 @@ async def get_user_ids(session, layer, requester, _configuration):
         try:
             if requester is None:
                 data, resp_status = await Request(
-                    session,
-                    f"http://127.0.0.1:8000/user/ids/layer/{layer}"
+                    session, f"http://127.0.0.1:8000/user/ids/layer/{layer}"
                 ).db_json(_configuration)
             else:
                 data, resp_status = await Request(
                     session,
-                    f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}"
+                    f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}",
                 ).db_json(_configuration)
         except (asyncio.TimeoutError, client_exceptions.ServerDisconnectedError):
             logging.getLogger(__name__).error(
@@ -133,8 +134,7 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
     while True:
         try:
             data, resp_status = await Request(
-                session,
-                f"http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port}"
+                session, f"http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port}"
             ).db_json(_configuration)
         except (asyncio.TimeoutError, client_exceptions.ServerDisconnectedError):
             logging.getLogger(__name__).warning(

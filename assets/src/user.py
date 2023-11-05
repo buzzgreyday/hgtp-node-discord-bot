@@ -10,7 +10,11 @@ IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4]
 
 
 async def node_status_check(
-    session, subscriber, cluster_data: schemas.Cluster, version_manager, configuration: dict
+    session,
+    subscriber,
+    cluster_data: schemas.Cluster,
+    version_manager,
+    configuration: dict,
 ) -> schemas.Node:
     node_data = schemas.Node(
         name=subscriber.name.values[0],
@@ -68,14 +72,20 @@ async def process_node_data_per_user(
         for lst in ids:
             id_, ip, port = lst
             while True:
-                subscriber = await api.locate_node(session, _configuration, None, id_, ip, port)
+                subscriber = await api.locate_node(
+                    session, _configuration, None, id_, ip, port
+                )
                 if subscriber:
                     break
             subscriber = pd.DataFrame(subscriber)
             futures.append(
                 asyncio.create_task(
                     node_status_check(
-                        session, subscriber, cluster_data, version_manager, _configuration
+                        session,
+                        subscriber,
+                        cluster_data,
+                        version_manager,
+                        _configuration,
                     )
                 )
             )

@@ -18,7 +18,9 @@ from assets.src.discord import discord
 from assets.src.discord.services import bot
 
 
-async def automatic_check(session, cluster_name, layer, version_manager, _configuration) -> List:
+async def automatic_check(
+    session, cluster_name, layer, version_manager, _configuration
+) -> List:
     logging.getLogger(__name__).info(
         f"main.py - Automatic {cluster_name, layer} check initiated"
     )
@@ -51,7 +53,7 @@ async def request_check(session, process_msg, layer, requester, _configuration):
     if ids:
         version_manager = preliminaries.VersionManager(_configuration)
         for lst in ids:
-            id_  = lst[0]
+            id_ = lst[0]
             ip = lst[1]
             port = lst[2]
             while True:
@@ -75,11 +77,15 @@ async def request_check(session, process_msg, layer, requester, _configuration):
                 timestamp_index=dt.datetime.utcnow(),
             )
             process_msg = await discord.update_request_process_msg(process_msg, 2, None)
-            node_data = await history.node_data(session, requester, node_data, _configuration)
+            node_data = await history.node_data(
+                session, requester, node_data, _configuration
+            )
             process_msg = await discord.update_request_process_msg(
                 process_msg, 3, f"{node_data.cluster_name} layer {node_data.layer}"
             )
-            node_data = await cluster.get_module_data(session, node_data, _configuration)
+            node_data = await cluster.get_module_data(
+                session, node_data, _configuration
+            )
             process_msg = await discord.update_request_process_msg(process_msg, 5, None)
             await discord.send(bot, node_data, _configuration)
             await discord.update_request_process_msg(process_msg, 6, None)

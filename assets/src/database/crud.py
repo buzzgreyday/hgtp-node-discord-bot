@@ -75,7 +75,9 @@ class CRUD:
     async def get_user(self, name, async_session: async_sessionmaker[AsyncSession]):
         """Returns a list of all user data"""
         async with async_session() as session:
-            results = await session.execute(select(UserModel).where(UserModel.name == name))
+            results = await session.execute(
+                select(UserModel).where(UserModel.name == name)
+            )
 
         return results.scalars().all()
 
@@ -157,7 +159,9 @@ class CRUD:
             results = await session.execute(statement)
         return results.scalar_one_or_none()
 
-    async def delete_user_entry(self, data: UserModel, async_session: async_sessionmaker[AsyncSession]):
+    async def delete_user_entry(
+        self, data: UserModel, async_session: async_sessionmaker[AsyncSession]
+    ):
         """Delete the user subscription based on name, ip, port"""
 
         async with async_session() as session:

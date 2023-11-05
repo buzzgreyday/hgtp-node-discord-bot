@@ -23,6 +23,7 @@ database_api = FastAPI(
     title="Hypergraph Node Status Bot", description="This is a Node Bot", docs_url="/"
 )
 
+
 def run_uvicorn():
     host = "127.0.0.1"
     port = 8000
