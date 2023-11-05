@@ -376,7 +376,7 @@ def build_title(node_data: schemas.Node):
     ]
     if names:
         cluster_name = names[0]
-    if node_data.cluster_connectivity in ("new association", "associateion"):
+    if node_data.cluster_connectivity in ("new association", "association"):
         title_ending = f"is up"
     elif node_data.cluster_connectivity in ("new dissociation", "dissociation"):
         title_ending = f"is down"
