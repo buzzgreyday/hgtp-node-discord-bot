@@ -369,11 +369,11 @@ def set_association_time(node_data: schemas.Node):
 
 def build_title(node_data: schemas.Node):
     cluster_name = None
-    names = [
+    names = [ cluster for cluster in (
         node_data.cluster_name,
         node_data.former_cluster_name,
         node_data.last_known_cluster_name,
-    ]
+        ) if cluster ]
     if names:
         cluster_name = names[0]
     if node_data.cluster_connectivity in ("new association", "association"):
