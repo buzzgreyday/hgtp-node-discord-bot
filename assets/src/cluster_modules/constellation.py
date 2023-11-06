@@ -480,12 +480,18 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
         return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
     elif node_data.cluster_connectivity == "new dissociation":
         field_symbol = ":red_square:"
-        field_info = f"`ⓘ  The node was recently dissociated from the cluster`"
+        if node_data.state != "ready":
+            field_info = f"`ⓘ  The node was recently dissociated from the cluster`"
+        else:
+            field_info = f"`ⓘ  The cluster might be in under maintenance, you might not need to take any action`"
         red_color_trigger = True
         return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
     elif node_data.cluster_connectivity == "dissociation":
         field_symbol = ":red_square:"
-        field_info = f"`ⓘ  The node is consecutively dissociated from the cluster. If your node is Ready and green, the problem might be the load balancer and not your node`"
+        if node_data.state != "ready":
+            field_info = f"`ⓘ  The node is consecutively dissociated from the cluster`"
+        else:
+            field_info = f"`ⓘ  The cluster might be in under maintenance, you might not need to take any action`"
         red_color_trigger = True
         return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
     elif node_data.cluster_connectivity is None:
