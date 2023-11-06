@@ -14,7 +14,7 @@ general:
   public release: false
   request retry (count): 3
   request retry interval (sec): 1
-  request timeout (sec): 10
+  request timeout (sec): 5
   version: 5.0.alpha-22
 modules:
   integrationnet:
