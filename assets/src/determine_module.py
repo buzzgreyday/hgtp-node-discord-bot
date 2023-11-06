@@ -13,7 +13,7 @@ async def get_module_name_and_layer(d, configuration) -> tuple:
         f"{configuration['file settings']['locations']['cluster modules']}/{d.former_cluster_name}.py",
         f"{configuration['file settings']['locations']['cluster modules']}/{d.last_known_cluster_name}.py",
     ]
-    names = [d.cluster_name, d.former_cluster_name, d.last_known_cluster_name]
+    names = [a for a in (d.cluster_name, d.former_cluster_name, d.last_known_cluster_name) if a]
     name = [name for path, name in zip(paths, names) if await os.path.exists(path)]
     if name:
         return name[0], d.layer
