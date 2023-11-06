@@ -902,10 +902,8 @@ def mark_notify(d: schemas.Node, configuration):
     # The hardcoded values should be adjustable in config_new.yml
     if d.cluster_connectivity in ("new association", "new dissociation"):
         d.notify = True
-        # d.last_notified_timestamp = d.timestamp_index
     elif d.state != d.former_state and d.state in ["ready", "downloadinprogress", "waitingfordownload", "offline"]:
         d.notify = True
-        # d.last_notified_timestamp = d.timestamp_index
     elif d.last_notified_timestamp:
         if d.reward_state is False:
             if (
@@ -914,16 +912,19 @@ def mark_notify(d: schemas.Node, configuration):
                 hours=configuration["general"]["notifications"][
                     "free disk space sleep (hours)"
                 ]
-            ).seconds:
+            ).seconds or d.last_notified_reason in ("disk", "version"):
                 # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
                 d.notify = True
                 d.last_notified_timestamp = d.timestamp_index
-        elif (d.version != d.cluster_version) and (
+                d.last_notified_reason = "rewards"
+        elif (d.version != d.cluster_version):
+            if (
                 (d.timestamp_index.second - d.last_notified_timestamp.second)
                 >= timedelta(hours=6).seconds
-        ):
-            d.notify = True
-            d.last_notified_timestamp = d.timestamp_index
+            ) or d.last_notified_reason in ("rewards", "disk"):
+                d.notify = True
+                d.last_notified_timestamp = d.timestamp_index
+                d.last_notified_reason = "version"
         elif d.disk_space_free and d.disk_space_total:
             if (
                     0
@@ -931,7 +932,7 @@ def mark_notify(d: schemas.Node, configuration):
                     <= configuration["general"]["notifications"][
                 "free disk space threshold (percentage)"
             ]
-            ):
+            ) or d.last_notified_reason in ("rewards", "version"):
                 if (
                         d.timestamp_index - d.last_notified_timestamp
                 ).total_seconds() >= timedelta(
@@ -941,6 +942,7 @@ def mark_notify(d: schemas.Node, configuration):
                 ).seconds:
                     d.notify = True
                     d.last_notified_timestamp = d.timestamp_index
+                    d.last_notified_reason = "disk"
     # IF NO FORMER DATA
     else:
         if d.reward_state is False:

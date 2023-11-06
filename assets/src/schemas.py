@@ -91,6 +91,7 @@ class Node(NodeBase, NodeMetrics):
     latest_version: Optional[str] = None
     notify: Optional[bool] = None
     last_notified_timestamp: Optional[dt.datetime] = None
+    last_notified_reason: Optional[str] = None
     timestamp_index: Optional[dt.datetime] = None
     former_timestamp_index: Optional[dt.datetime] = None
     cluster_check_ordinal: Optional[str] = None

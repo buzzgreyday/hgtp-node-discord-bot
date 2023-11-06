@@ -65,6 +65,7 @@ class NodeModel(SQLBase):
     last_notified_timestamp: Mapped[Optional[datetime.datetime]] = mapped_column(
         nullable=True
     )
+    last_notified_reason: Mapped[Optional[str]] = mapped_column(nullable=True)
     latest_cluster_session: Mapped[Optional[str]] = mapped_column(nullable=True)
     latest_version: Mapped[Optional[str]] = mapped_column(nullable=True)
     layer: Mapped[Optional[int]] = mapped_column(nullable=True)
