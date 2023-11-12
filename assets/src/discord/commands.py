@@ -84,38 +84,42 @@ async def unsubscibe_menu(interaction):
             view.stop()
             return
 
-    lst, resp_status = await assets.src.api.Request(
-        f"http://127.0.0.1:8000/user/{str(interaction.user)}"
-    ).db_json()
-    if lst:
-        ips = ["All"]
-        ports = ["All"]
-        for data in lst:
-            ips.append(data["ip"])
-            ports.append(data["public_port"])
+    async with aiohttp.ClientSession() as session:
+        lst, resp_status = await assets.src.api.Request(
+            session,
+            f"http://127.0.0.1:8000/user/{str(interaction.user)}"
+        ).db_json()
+        if lst:
+            ips = ["All"]
+            ports = ["All"]
+            for data in lst:
+                ips.append(data["ip"])
+                ports.append(data["public_port"])
 
-        # This is the slash command that sends the message with the SelectMenu
-        # Create a view that contains the SelectMenu
-        view = nextcord.ui.View(timeout=90)
-        ip_menu = SelectMenu("Select the IP you want to unsubscribe", set(ips))
-        port_menu = SelectMenu("Select port", set(ports))
-        button = nextcord.ui.Button(style=nextcord.ButtonStyle.primary, label="Confirm")
-        button.callback = on_button_click  # Set the callback for the button
-        view.add_item(ip_menu)
-        view.add_item(port_menu)
-        view.add_item(button)
-        # Send the message with the view
-        await interaction.response.send_message(
-            content="**Unsubscribe by IP(s) and Public Port**",
-            ephemeral=True,
-            view=view,
-        )
-    else:
-        await interaction.response.send_message(
-            content=f"No subscription found", ephemeral=True
-        )
-        # Nothing more to do
-        return
+            # This is the slash command that sends the message with the SelectMenu
+            # Create a view that contains the SelectMenu
+            view = nextcord.ui.View(timeout=90)
+            ip_menu = SelectMenu("Select the IP you want to unsubscribe", set(ips))
+            port_menu = SelectMenu("Select port", set(ports))
+            button = nextcord.ui.Button(style=nextcord.ButtonStyle.primary, label="Confirm")
+            button.callback = on_button_click  # Set the callback for the button
+            view.add_item(ip_menu)
+            view.add_item(port_menu)
+            view.add_item(button)
+            # Send the message with the view
+            await interaction.response.send_message(
+                content="**Unsubscribe by IP(s) and Public Port**",
+                ephemeral=True,
+                view=view,
+            )
+            await session.close()
+        else:
+            await interaction.response.send_message(
+                content=f"No subscription found", ephemeral=True
+            )
+            # Nothing more to do
+            await session.close()
+            return
 
 
 @bot.slash_command(

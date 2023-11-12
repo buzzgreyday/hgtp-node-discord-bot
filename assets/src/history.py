@@ -1,5 +1,4 @@
 import asyncio
-import datetime
 import logging
 from typing import List
 
@@ -60,9 +59,13 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
             node_data.id = data.id
             node_data.wallet_address = data.wallet_address
             node_data.version = data.version
-            node_data.cpu_count = data.cpu_count
-            node_data.disk_space_total = data.disk_space_total
-            node_data.disk_space_free = data.disk_space_free
+            if not node_data.cpu_count:
+                node_data.cpu_count = data.cpu_count
+                node_data.disk_space_total = data.disk_space_total
+                node_data.disk_space_free = data.disk_space_free
+            if not node_data.wallet_balance:
+                node_data.wallet_balance = data.wallet_balance
+
     return node_data
 
 
