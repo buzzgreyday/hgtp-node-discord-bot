@@ -112,13 +112,11 @@ async def unsubscibe_menu(interaction):
                 ephemeral=True,
                 view=view,
             )
-            await session.close()
         else:
             await interaction.response.send_message(
                 content=f"No subscription found", ephemeral=True
             )
             # Nothing more to do
-            await session.close()
             return
 
 
