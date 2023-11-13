@@ -16,11 +16,11 @@ class NodeBase(BaseModel):
     """This class is the base from which any node related object inherits, it's also the base for user data"""
 
     name: str
+    alias: Optional[str] = None
     id: str = None
     ip: str
     public_port: int
     layer: int
-    contact: str | int | None
 
 
 class NodeMetrics(BaseModel):
@@ -122,7 +122,9 @@ class User(NodeBase):
     date: dt.datetime = dt.datetime.utcnow()
     # UserRead should be UserEnum
     index: Optional[int]
-    type: str
+    discord: Optional[str | int | None] = None
+    mail: Optional[str | None] = None
+    phone: Optional[str | None] = None
     wallet: str
     alias: Optional[str | None] = None
 
@@ -139,6 +141,7 @@ class User(NodeBase):
         else:
             return None
 
+
     @classmethod
     async def discord(
         cls,
@@ -147,7 +150,7 @@ class User(NodeBase):
         process_msg,
         mode: str,
         name: str,
-        contact: int,
+        discord: int,
         *args,
     ):
         """Treats a Discord message as a line of arguments and returns a list of subscribable user objects"""
@@ -185,13 +188,12 @@ class User(NodeBase):
                                             index=None,
                                             name=name,
                                             date=dt.datetime.utcnow(),
-                                            contact=str(contact),
+                                            discord=str(discord),
                                             id=id_,
                                             wallet=wallet,
                                             ip=arg[0],
                                             public_port=port,
                                             layer=0,
-                                            type="discord",
                                         )
                                     )
                                 except ValidationError:
@@ -219,13 +221,12 @@ class User(NodeBase):
                                             index=None,
                                             name=name,
                                             date=dt.datetime.utcnow(),
-                                            contact=str(contact),
+                                            discord=str(discord),
                                             id=id_,
                                             wallet=wallet,
                                             ip=arg[0],
                                             public_port=port,
                                             layer=1,
-                                            type="discord",
                                         )
                                     )
                                 except ValidationError:

@@ -16,14 +16,15 @@ class UserModel(SQLBase):
     index: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str]
     wallet: Mapped[str]
-    id: Mapped[str]
+    id: Mapped[str] = mapped_column(index=True)
     ip: Mapped[str]
     public_port: Mapped[int]
     layer: Mapped[int]
-    contact: Mapped[str]
+    discord: Mapped[Optional[str]] = mapped_column(nullable=True)
+    mail: Mapped[Optional[str]] = mapped_column(nullable=True)
+    phone: Mapped[Optional[str]] = mapped_column(nullable=True)
     date: Mapped[datetime.datetime]
-    type: Mapped[str]
-    alias: Mapped[Optional[str | None]] = mapped_column(nullable=True)
+    alias: Mapped[Optional[str]] = mapped_column(nullable=True)
 
 
 class NodeModel(SQLBase):

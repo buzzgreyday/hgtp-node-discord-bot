@@ -66,9 +66,6 @@ async def main_loop(version_manager, _configuration):
                     f"main.py - error: {traceback.format_exc()}\n\tCurrent check exited..."
                 )
                 await discord.messages.send_traceback(bot, traceback.format_exc())
-            finally:
-                await asyncio.sleep(1)
-                await session.close()
 
 
 def run_uvicorn_process():
