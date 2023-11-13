@@ -120,7 +120,6 @@ class User(NodeBase):
     """This class can create a user object which can be subscribed using different methods and transformations"""
 
     date: dt.datetime = dt.datetime.utcnow()
-    # UserRead should be UserEnum
     index: Optional[int]
     discord: Optional[str | int | None] = None
     mail: Optional[str | None] = None
@@ -140,7 +139,6 @@ class User(NodeBase):
             return str(node_data["id"]) if node_data is not None else None
         else:
             return None
-
 
     @classmethod
     async def discord(
