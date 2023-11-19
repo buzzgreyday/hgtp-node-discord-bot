@@ -6,7 +6,7 @@ from aiohttp import ClientSession, TCPConnector
 
 from assets.src.schemas import OrdinalSchema, PriceSchema
 from assets.src.database.database import post_ordinal, post_prices, delete_db_ordinal
-from assets.src.api import safe_request
+from assets.src.api import safe_request, Request
 
 def normalize_timestamp(timestamp):
     return int(round(timestamp))
@@ -39,7 +39,7 @@ async def request_prices(session, first_timestamp):
                 await asyncio.sleep(3)
 
 
-async def process_ordinal_data(session, url, ordinal, ordinal_data):
+async def process_ordinal_data(session, url, ordinal, ordinal_data, configuration):
     if isinstance(ordinal_data["timestamp"], str):
         try:
             timestamp = datetime.strptime(ordinal_data["timestamp"], '%Y-%m-%dT%H:%M:%S.%fZ')
@@ -47,7 +47,8 @@ async def process_ordinal_data(session, url, ordinal, ordinal_data):
             timestamp = datetime.strptime(ordinal_data["timestamp"], '%Y-%m-%dT%H:%M:%SZ')
         ordinal_data["timestamp"] = normalize_timestamp(datetime.timestamp(timestamp))
     while True:
-        db_price_data, status_code = await safe_request(f"http://127.0.0.1:8000/price/{ordinal_data['timestamp']}")
+        db_price_data, status_code = await Request(session, f"http://127.0.0.1:8000/price/{ordinal_data['timestamp']}").db_json(configuration)
+        print(db_price_data)
         if db_price_data:
             ordinal_rewards_data = await request_snapshot(session, f"{url}/global-snapshots/{ordinal}/rewards")
             if ordinal_rewards_data:
@@ -58,21 +59,22 @@ async def process_ordinal_data(session, url, ordinal, ordinal_data):
                     await post_ordinal(data)
             break
         else:
+            # THIS IS A PROBLEM, I BELIEVE
             # If no price data is found request it and restart
             await request_prices(session, ordinal_data['timestamp'])
 
-async def fetch_and_process_ordinal_data(session, url, ordinal):
+async def fetch_and_process_ordinal_data(session, url, ordinal, configuration):
     logging.getLogger(__name__).info(f"rewards.py - Processing ordinal {ordinal}")
     while True:
         ordinal_data = await request_snapshot(session, f"{url}/global-snapshots/{ordinal}")
         if ordinal_data:
-            await process_ordinal_data(session, url, ordinal, ordinal_data)
+            await process_ordinal_data(session, url, ordinal, ordinal_data, configuration)
             break
         else:
             await asyncio.sleep(3)
 
 
-async def run():
+async def run(configuration):
     await asyncio.sleep(10)
     urls = ["https://be-mainnet.constellationnetwork.io"]
     async with ClientSession(connector=TCPConnector(
@@ -87,8 +89,8 @@ async def run():
                 latest_snapshot = await request_snapshot(session, f"{url}/global-snapshots/latest")
                 if latest_snapshot:
                     latest_ordinal = latest_snapshot.get("ordinal")
-                    db_data, status_code = await safe_request("http://127.0.0.1:8000/ordinal/latest")
-                    db_price_data, status_code = await safe_request("http://127.0.0.1:8000/price/latest")
+                    db_data, status_code = await safe_request(session, "http://127.0.0.1:8000/ordinal/latest", configuration)
+                    db_price_data, status_code = await safe_request(session, "http://127.0.0.1:8000/price/latest", configuration)
                     if db_data:
                         first_timestamp = db_price_data[0]
                         first_ordinal = db_data[1]
@@ -103,7 +105,7 @@ async def run():
                             session, first_timestamp
                         )
                     for ordinal in range(first_ordinal, latest_ordinal):
-                        await fetch_and_process_ordinal_data(session, url, ordinal)
+                        await fetch_and_process_ordinal_data(session, url, ordinal, configuration)
                     break
                 else:
                     await asyncio.sleep(3)

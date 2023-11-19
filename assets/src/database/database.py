@@ -79,3 +79,9 @@ async def post_ordinal(data: OrdinalSchema):
 async def post_prices(data: PriceSchema):
     """Inserts node data from automatic check into database file"""
     return await db.post_prices(data, session)
+
+
+@app.get("/rewards/{address}/{timestamp}")
+async def get_timestamp_db_price(address: str, timestamp: int):
+    """Returns price data that best matches the timestamp"""
+    return await db.get_dag_amount(address, timestamp, session)

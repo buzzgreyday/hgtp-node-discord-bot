@@ -5,6 +5,7 @@ from datetime import datetime
 import os
 from dotenv import load_dotenv
 from sqlalchemy.pool import NullPool
+from sqlalchemy import select, delete, desc, distinct
 
 from assets.src import schemas
 from assets.src.database.models import UserModel, NodeModel, OrdinalModel, PriceModel
@@ -221,3 +222,23 @@ class CRUD:
                     f"crud.py - localhost error: {traceback.format_exc()}"
                 )
         return jsonable_encoder(data)
+
+    async def get_timestamp_db_price(
+            ordinal_timestamp: int, async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Get the latest ordinal data existing in the database"""
+        async with async_session() as session:
+            statement = select(PriceModel).filter(PriceModel.timestamp <= ordinal_timestamp).order_by(
+                desc(PriceModel.timestamp)).limit(1)
+            results = await session.execute(statement)
+            timestamp_price_data = results.scalar()
+        if timestamp_price_data:
+            logging.getLogger(__name__).info(
+                f"crud.py - success requesting database timestamp price: {timestamp_price_data.timestamp, timestamp_price_data.usd}"
+            )
+            return timestamp_price_data.timestamp, timestamp_price_data.usd
+        else:
+            logging.getLogger(__name__).warning(
+                f"crud.py - failed requesting database timestamp price"
+            )
+            return

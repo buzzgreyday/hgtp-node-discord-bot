@@ -38,7 +38,9 @@ def load_configuration():
 async def main_loop(version_manager, _configuration):
     times = preliminaries.generate_runtimes(_configuration)
     logging.getLogger(__name__).info(f"main.py - runtime schedule:\n\t{times}")
-    await rewards.run()
+    # THIS NEEDS TO RUN AS A SEPARATE THREAD
+    # FOR NOW PRICE JUST LOOPS
+    await rewards.run(_configuration)
     while True:
         async with aiohttp.ClientSession() as session:
             try:
