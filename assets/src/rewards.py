@@ -4,7 +4,7 @@ from datetime import datetime
 
 from aiohttp import ClientSession, TCPConnector
 
-from schemas import OrdinalSchema, PriceSchema
+from assets.src.schemas import OrdinalSchema, PriceSchema
 from assets.src.database.database import post_ordinal, post_prices, delete_db_ordinal
 from assets.src.api import safe_request
 
