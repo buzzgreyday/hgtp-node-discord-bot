@@ -20,7 +20,7 @@ class UserModel(SQLBase):
     ip: Mapped[str]
     public_port: Mapped[int]
     layer: Mapped[int]
-    discord: Mapped[Optional[str]] = mapped_column(nullable=True)
+    discord: Mapped[Optional[int]] = mapped_column(nullable=True)
     mail: Mapped[Optional[str]] = mapped_column(nullable=True)
     phone: Mapped[Optional[str]] = mapped_column(nullable=True)
     date: Mapped[datetime.datetime]

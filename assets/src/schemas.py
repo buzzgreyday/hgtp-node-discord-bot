@@ -141,7 +141,7 @@ class User(NodeBase):
             return None
 
     @classmethod
-    async def discord(
+    async def sub_discord(
         cls,
         session,
         configuration,
@@ -186,7 +186,7 @@ class User(NodeBase):
                                             index=None,
                                             name=name,
                                             date=dt.datetime.utcnow(),
-                                            discord=str(discord),
+                                            discord=int(discord),
                                             id=id_,
                                             wallet=wallet,
                                             ip=arg[0],
@@ -219,7 +219,7 @@ class User(NodeBase):
                                             index=None,
                                             name=name,
                                             date=dt.datetime.utcnow(),
-                                            discord=str(discord),
+                                            discord=int(discord),
                                             id=id_,
                                             wallet=wallet,
                                             ip=arg[0],

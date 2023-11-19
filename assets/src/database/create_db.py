@@ -15,7 +15,7 @@ engine = create_async_engine(
     url=os.getenv("DB_URL"),
     future=True,
     # echo=True,
-    poolclass=NullPool,
+    # poolclass=NullPool,
     connect_args={"server_settings": {"statement_timeout": "9000"}},
 )
 
