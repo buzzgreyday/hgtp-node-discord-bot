@@ -75,6 +75,18 @@ async def post_ordinal(data: OrdinalSchema):
     return await db.post_ordinal(data, session)
 
 
+@app.get("/ordinal/latest")
+async def get_latest_db_ordinal():
+    """Returns latest ordinal entry from the database"""
+    return await db.get_latest_db_ordinal(session)
+
+
+@app.get("/price/latest")
+async def get_latest_db_price():
+    """Returns latest ordinal entry from the database"""
+    return await db.get_latest_db_price(session)
+
+
 @app.post("/price/create")
 async def post_prices(data: PriceSchema):
     """Inserts node data from automatic check into database file"""

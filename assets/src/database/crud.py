@@ -223,7 +223,7 @@ class CRUD:
                 )
         return jsonable_encoder(data)
 
-    async def get_timestamp_db_price(
+    async def get_timestamp_db_price(self,
             ordinal_timestamp: int, async_session: async_sessionmaker[AsyncSession]
     ):
         """Get the latest ordinal data existing in the database"""
@@ -240,5 +240,44 @@ class CRUD:
         else:
             logging.getLogger(__name__).warning(
                 f"crud.py - failed requesting database timestamp price"
+            )
+            return
+
+    async def get_latest_db_price(self,
+            async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Get the latest ordinal data existing in the database"""
+        async with async_session() as session:
+            statement = select(PriceModel).order_by(PriceModel.timestamp.desc()).limit(1)
+            results = await session.execute(statement)
+            latest_price_data = results.scalar()
+        if latest_price_data:
+            logging.getLogger(__name__).info(
+                f"crud.py - success requesting database latest price: {latest_price_data.timestamp, latest_price_data.usd}"
+            )
+            return latest_price_data.timestamp, latest_price_data.usd
+        else:
+            logging.getLogger(__name__).warning(
+                f"crud.py - failed requesting database latest price"
+            )
+            return
+
+    async def get_latest_db_ordinal(self,
+            async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Get the latest ordinal data existing in the database"""
+        async with async_session() as session:
+            statement = select(OrdinalModel).order_by(OrdinalModel.ordinal.desc()).limit(1)
+            results = await session.execute(statement)
+            latest_ordinal_data = results.scalar()
+
+        if latest_ordinal_data:
+            logging.getLogger(__name__).info(
+                f"crud.py - success requesting database latest ordinal: {latest_ordinal_data.ordinal}"
+            )
+            return latest_ordinal_data.timestamp, latest_ordinal_data.ordinal
+        else:
+            logging.getLogger(__name__).warning(
+                f"crud.py - failed requesting database latest ordinal"
             )
             return
