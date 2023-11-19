@@ -62,6 +62,10 @@ class Node(NodeBase, NodeMetrics):
     """The base model for every user node check"""
 
     index: Optional[int] = None
+    alias: Optional[str] = None
+    discord: Optional[str] = None
+    mail: Optional[str] = None
+    phone: Optional[str] = None
     p2p_port: Optional[int] = None
     wallet_address: Optional[str] = None
     wallet_balance: Optional[float] = None
