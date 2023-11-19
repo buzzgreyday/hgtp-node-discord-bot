@@ -48,7 +48,6 @@ async def process_ordinal_data(session, url, ordinal, ordinal_data, configuratio
         ordinal_data["timestamp"] = normalize_timestamp(datetime.timestamp(timestamp))
     while True:
         db_price_data, status_code = await Request(session, f"http://127.0.0.1:8000/price/{ordinal_data['timestamp']}").db_json(configuration)
-        print(db_price_data)
         if db_price_data:
             ordinal_rewards_data = await request_snapshot(session, f"{url}/global-snapshots/{ordinal}/rewards")
             if ordinal_rewards_data:

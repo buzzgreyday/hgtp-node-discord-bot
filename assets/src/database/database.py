@@ -93,7 +93,7 @@ async def post_prices(data: PriceSchema):
     return await db.post_prices(data, session)
 
 
-@app.get("/rewards/{address}/{timestamp}")
-async def get_timestamp_db_price(address: str, timestamp: int):
+@app.get("/price/{ordinal_timestamp}")
+async def get_timestamp_db_price(ordinal_timestamp: int):
     """Returns price data that best matches the timestamp"""
-    return await db.get_dag_amount(address, timestamp, session)
+    return await db.get_timestamp_db_price(ordinal_timestamp, session)
