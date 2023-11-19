@@ -4,7 +4,7 @@ import traceback
 from typing import List, Optional
 import datetime as dt
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, validator
 
 from assets.src import api
 from assets.src.encode_decode import id_to_dag_address
@@ -240,3 +240,32 @@ class User(NodeBase):
                         else:
                             break
         return user_data, invalid_user_data
+
+
+class RewardSchema(BaseModel):
+    amount: int
+    destination: str | None
+
+class OrdinalSchema(BaseModel):
+    """This class is the schema to validate the rewards table data"""
+
+    timestamp: int
+    destination: str
+    amount: float
+    usd: Optional[float] = 0.0
+    ordinal: int
+    lastSnapshotHash: str | None
+    height: int
+    subHeight: int
+    hash: str
+    blocks: List[str | None]
+
+    @validator("amount", pre=True)
+    def amount_validate(cls, amount):
+        return amount/100000000
+
+
+class PriceSchema(BaseModel):
+    timestamp: int
+    coin: Optional[str] = "DAG"
+    usd: float

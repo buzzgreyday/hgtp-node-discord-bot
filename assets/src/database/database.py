@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from fastapi import FastAPI
 
 from assets.src.database.crud import CRUD, engine
-
+from assets.src.schemas import OrdinalSchema, PriceSchema
 
 app = FastAPI(
     title="Hypergraph Node Status Bot", description="This is a Node Bot", docs_url="/"
@@ -63,3 +63,19 @@ async def get_node_data(ip, public_port):
 async def delete_user_entry(data):
     """Delete the user subscription based on name, ip, port"""
     return await db.delete_user_entry(data, session)
+
+@app.delete("/ordinal/{ordinal}/delete")
+async def delete_db_ordinal(ordinal: int):
+    """Delete the ordinal from the database"""
+    return await db.delete_db_ordinal(ordinal, session)
+
+@app.post("/ordinal/create")
+async def post_ordinal(data: OrdinalSchema):
+    """Inserts node data from automatic check into database file"""
+    return await db.post_ordinal(data, session)
+
+
+@app.post("/price/create")
+async def post_prices(data: PriceSchema):
+    """Inserts node data from automatic check into database file"""
+    return await db.post_prices(data, session)

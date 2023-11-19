@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 import datetime
@@ -89,3 +89,33 @@ class NodeModel(SQLBase):
     timestamp_index: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
     version: Mapped[Optional[str]] = mapped_column(nullable=True)
     cluster_check_ordinal: Mapped[Optional[str]] = mapped_column(nullable=True)
+
+
+class OrdinalModel(SQLBase):
+    """SQL Base for reward and ordinal data"""
+
+    __tablename__ = "ordinal"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    destination: Mapped[str] = mapped_column(index=True)
+    amount: Mapped[float]
+    usd: Mapped[float]
+    hash: Mapped[str]
+    ordinal: Mapped[int]
+    height: Mapped[int]
+    subHeight: Mapped[int]
+    lastSnapshotHash: Mapped[str]
+    blocks: Mapped[List[str | None]] = []
+    timestamp: Mapped[int] = mapped_column(index=True)
+
+
+class PriceModel(SQLBase):
+    """The base for the Coingecko prices"""
+
+    __tablename__ = "price"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    timestamp: Mapped[int] = mapped_column(index=True)
+    coin: Mapped[str]
+    usd: Mapped[float]
+

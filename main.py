@@ -11,7 +11,7 @@ import aiohttp
 import yaml
 from aiohttp import ClientConnectorError
 
-from assets.src import preliminaries, run_process, history
+from assets.src import preliminaries, run_process, history, rewards
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
 
@@ -38,6 +38,7 @@ def load_configuration():
 async def main_loop(version_manager, _configuration):
     times = preliminaries.generate_runtimes(_configuration)
     logging.getLogger(__name__).info(f"main.py - runtime schedule:\n\t{times}")
+    await rewards.run()
     while True:
         async with aiohttp.ClientSession() as session:
             try:
@@ -77,7 +78,6 @@ def run_uvicorn_process():
             "127.0.0.1",
             "--port",
             "8000",
-            "--reload",
             "--env-file",
             "assets/data/logs/bot/uvicorn.ini",
             "--log-level",

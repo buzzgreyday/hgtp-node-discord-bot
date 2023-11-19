@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 from sqlalchemy.pool import NullPool
 
 from assets.src import schemas
-from assets.src.database.models import UserModel, NodeModel
-from assets.src.schemas import User as UserSchema
+from assets.src.database.models import UserModel, NodeModel, OrdinalModel, PriceModel
+from assets.src.schemas import User as UserSchema, PriceSchema, OrdinalSchema
 from assets.src.schemas import Node as NodeSchema
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
 from sqlalchemy import select, delete
@@ -176,3 +176,48 @@ class CRUD:
 
         async with async_session() as session:
             pass
+
+    async def delete_db_ordinal(self, ordinal, async_session: async_sessionmaker[AsyncSession]):
+        """Delete the user subscription based on name, ip, port"""
+
+        async with async_session() as session:
+            statement = delete(OrdinalModel).where(
+                (OrdinalModel.ordinal == ordinal)
+            )
+            await session.execute(statement)
+            await session.commit()
+            logging.getLogger(__name__).warning(
+                f"crud.py - deleted ordinal {ordinal} to avoid duplicates"
+            )
+            return
+
+    async def post_ordinal(
+            self, data: OrdinalSchema, async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Inserts node data from automatic check into database file"""
+        async with async_session() as session:
+            data = OrdinalModel(**data.__dict__)
+            session.add(data)
+            try:
+                await session.commit()
+            except Exception:
+                logging.getLogger(__name__).error(
+                    f"crud.py - localhost error: {traceback.format_exc()}"
+                )
+                await asyncio.sleep(60)
+        return jsonable_encoder(data)
+
+    async def post_prices(
+            self, data: PriceSchema, async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Inserts node data from automatic check into database file"""
+        async with async_session() as session:
+            data = PriceModel(**data.__dict__)
+            session.add(data)
+            try:
+                await session.commit()
+            except Exception:
+                logging.getLogger(__name__).error(
+                    f"crud.py - localhost error: {traceback.format_exc()}"
+                )
+        return jsonable_encoder(data)
