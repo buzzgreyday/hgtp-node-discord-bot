@@ -112,11 +112,17 @@ async def get_user_ids(session, layer, requester, _configuration):
                     session,
                     f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}",
                 ).db_json(_configuration)
-        except (asyncio.TimeoutError, client_exceptions.ServerDisconnectedError):
+        except (
+            asyncio.exceptions.TimeoutError,
+            aiohttp.client_exceptions.ClientConnectorError,
+            aiohttp.client_exceptions.ClientOSError,
+            aiohttp.client_exceptions.ServerDisconnectedError,
+            aiohttp.client_exceptions.ClientPayloadError,
+        ):
             logging.getLogger(__name__).error(
                 f"api.py - localhost error:\n\t{traceback.format_exc()}"
             )
-            await asyncio.sleep(6)
+            await asyncio.sleep(1)
         else:
             if resp_status == 200:
                 return data
@@ -136,11 +142,17 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
             data, resp_status = await Request(
                 session, f"http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port}"
             ).db_json(_configuration)
-        except (asyncio.TimeoutError, client_exceptions.ServerDisconnectedError):
+        except (
+            asyncio.exceptions.TimeoutError,
+            aiohttp.client_exceptions.ClientConnectorError,
+            aiohttp.client_exceptions.ClientOSError,
+            aiohttp.client_exceptions.ServerDisconnectedError,
+            aiohttp.client_exceptions.ClientPayloadError,
+        ):
             logging.getLogger(__name__).warning(
                 f"api.py - localhost error:\n\t{traceback.format_exc()}"
             )
-            await asyncio.sleep(6)
+            await asyncio.sleep(1)
         else:
             if resp_status == 200:
                 return data
