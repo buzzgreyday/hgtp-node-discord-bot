@@ -62,7 +62,7 @@ class NodeModel(SQLBase):
         nullable=True
     )
     ip: Mapped[Optional[str]] = mapped_column(nullable=True)
-    id: Mapped[Optional[str]] = mapped_column(nullable=True)
+    id: Mapped[Optional[str]] = mapped_column(nullable=True, index=True)
     last_notified_timestamp: Mapped[Optional[datetime.datetime]] = mapped_column(
         nullable=True
     )
@@ -86,7 +86,7 @@ class NodeModel(SQLBase):
     reward_state: Mapped[Optional[bool]] = mapped_column(nullable=True)
     reward_true_count: Mapped[Optional[int]] = mapped_column(nullable=True)
     state: Mapped[Optional[str]] = mapped_column(nullable=True)
-    timestamp_index: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
+    timestamp_index: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True, index=True)
     version: Mapped[Optional[str]] = mapped_column(nullable=True)
     cluster_check_ordinal: Mapped[Optional[str]] = mapped_column(nullable=True)
 
