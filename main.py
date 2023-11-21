@@ -74,13 +74,12 @@ async def main_loop(version_manager, _configuration):
 def run_uvicorn_process():
     subprocess.run(
         [
-            "uvicorn",
+            "venv/bin/uvicorn",
             "assets.src.database.database:app",
             "--host",
             "127.0.0.1",
             "--port",
             "8000",
-            "--reload",
             "--env-file",
             "assets/data/logs/bot/uvicorn.ini",
             "--log-level",
