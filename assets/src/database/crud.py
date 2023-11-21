@@ -132,7 +132,7 @@ class CRUD:
         async with async_session() as session:
             results = await session.execute(
                 select(UserModel).where(
-                    (UserModel.contact == str(contact))
+                    (UserModel.discord == str(contact))
                     & (UserModel.layer == int(layer))
                 )
             )
