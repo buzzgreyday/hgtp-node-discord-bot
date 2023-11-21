@@ -17,7 +17,7 @@ async def create_db():
 
 print("starting process...")
 def run_server():
-    subprocess.run(["uvicorn", "assets.src.database.database:app", "--host", "127.0.0.1", "--port", "8000"])
+    subprocess.run(["venv/bin/uvicorn", "assets.src.database.database:app", "--host", "127.0.0.1", "--port", "8000"])
 
 uvi = threading.Thread(target=run_server, daemon=True)
 uvi.start()
