@@ -202,7 +202,7 @@ async def s(ctx, *args):
                 f"main.py - Subscription request received from {ctx.message.author}: {args}"
             )
             process_msg = await discord.send_subscription_process_msg(ctx)
-            valid_user_data, invalid_user_data = await User.discord(
+            valid_user_data, invalid_user_data = await User.sub_discord(
                 session,
                 _configuration,
                 process_msg,

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 import datetime
@@ -16,14 +16,15 @@ class UserModel(SQLBase):
     index: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str]
     wallet: Mapped[str]
-    id: Mapped[str]
+    id: Mapped[str] = mapped_column(index=True)
     ip: Mapped[str]
     public_port: Mapped[int]
     layer: Mapped[int]
-    contact: Mapped[str]
+    discord: Mapped[Optional[str]] = mapped_column(nullable=True)
+    mail: Mapped[Optional[str]] = mapped_column(nullable=True)
+    phone: Mapped[Optional[str]] = mapped_column(nullable=True)
     date: Mapped[datetime.datetime]
-    type: Mapped[str]
-    alias: Mapped[Optional[str | None]] = mapped_column(nullable=True)
+    alias: Mapped[Optional[str]] = mapped_column(nullable=True)
 
 
 class NodeModel(SQLBase):
@@ -61,7 +62,7 @@ class NodeModel(SQLBase):
         nullable=True
     )
     ip: Mapped[Optional[str]] = mapped_column(nullable=True)
-    id: Mapped[Optional[str]] = mapped_column(nullable=True)
+    id: Mapped[Optional[str]] = mapped_column(nullable=True, index=True)
     last_notified_timestamp: Mapped[Optional[datetime.datetime]] = mapped_column(
         nullable=True
     )
@@ -70,6 +71,10 @@ class NodeModel(SQLBase):
     latest_version: Mapped[Optional[str]] = mapped_column(nullable=True)
     layer: Mapped[Optional[int]] = mapped_column(nullable=True)
     name: Mapped[Optional[str]] = mapped_column(nullable=True)
+    alias: Mapped[Optional[str]] = mapped_column(nullable=True)
+    discord: Mapped[Optional[str]] = mapped_column(nullable=True)
+    mail: Mapped[Optional[str]] = mapped_column(nullable=True)
+    phone: Mapped[Optional[str]] = mapped_column(nullable=True)
     node_cluster_session: Mapped[Optional[str]] = mapped_column(nullable=True)
     node_peer_count: Mapped[Optional[int]] = mapped_column(nullable=True)
     wallet_address: Mapped[Optional[str]] = mapped_column(nullable=True)
@@ -81,6 +86,36 @@ class NodeModel(SQLBase):
     reward_state: Mapped[Optional[bool]] = mapped_column(nullable=True)
     reward_true_count: Mapped[Optional[int]] = mapped_column(nullable=True)
     state: Mapped[Optional[str]] = mapped_column(nullable=True)
-    timestamp_index: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
+    timestamp_index: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True, index=True)
     version: Mapped[Optional[str]] = mapped_column(nullable=True)
     cluster_check_ordinal: Mapped[Optional[str]] = mapped_column(nullable=True)
+
+
+class OrdinalModel(SQLBase):
+    """SQL Base for reward and ordinal data"""
+
+    __tablename__ = "ordinal"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    destination: Mapped[str] = mapped_column(index=True)
+    amount: Mapped[float]
+    usd: Mapped[float]
+    hash: Mapped[str]
+    ordinal: Mapped[int]
+    height: Mapped[int]
+    subHeight: Mapped[int]
+    lastSnapshotHash: Mapped[str]
+    blocks: Mapped[List[str | None]] = []
+    timestamp: Mapped[int] = mapped_column(index=True)
+
+
+class PriceModel(SQLBase):
+    """The base for the Coingecko prices"""
+
+    __tablename__ = "price"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    timestamp: Mapped[int] = mapped_column(index=True)
+    coin: Mapped[str]
+    usd: Mapped[float]
+

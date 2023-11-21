@@ -683,7 +683,7 @@ def build_system_node_version(node_data: schemas.Node):
             if node_data.cluster_version == node_data.latest_version:
                 field_info = "`ⓘ  No new version available`"
             elif node_data.cluster_version < node_data.latest_version:
-                field_info = f"`ⓘ  You are running the latest version but a new release ({node_data.latest_version}) should be available soon"
+                field_info = f"`ⓘ  You are running the latest version but a new release ({node_data.latest_version}) should be available soon`"
             elif node_data.cluster_version > node_data.latest_version:
                 field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is {node_data.latest_version}`"
             else:

@@ -183,7 +183,7 @@ async def send(bot, node_data: schemas.Node, configuration):
         embed = defaults.build_embed(node_data)
     try:
         await bot.wait_until_ready()
-        member = await guild.fetch_member(int(node_data.contact))
+        member = await guild.fetch_member(int(node_data.discord))
         embed.set_footer(
             text=f"Data: {node_data.timestamp_index.utcnow().strftime('%d-%m-%Y %H:%M')} UTC\n"
             f"Build: {configuration['general']['version']}",
@@ -202,5 +202,5 @@ async def send(bot, node_data: schemas.Node, configuration):
 async def send_notification(bot, data: List[schemas.Node], configuration):
     if data:
         for node_data in data:
-            if node_data.notify is True:
+            if node_data.discord and node_data.notify:
                 await send(bot, node_data, configuration)

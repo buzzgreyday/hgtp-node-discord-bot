@@ -5,10 +5,11 @@ from datetime import datetime
 import os
 from dotenv import load_dotenv
 from sqlalchemy.pool import NullPool
+from sqlalchemy import select, delete, desc, distinct
 
 from assets.src import schemas
-from assets.src.database.models import UserModel, NodeModel
-from assets.src.schemas import User as UserSchema
+from assets.src.database.models import UserModel, NodeModel, OrdinalModel, PriceModel
+from assets.src.schemas import User as UserSchema, PriceSchema, OrdinalSchema
 from assets.src.schemas import Node as NodeSchema
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
 from sqlalchemy import select, delete
@@ -176,3 +177,107 @@ class CRUD:
 
         async with async_session() as session:
             pass
+
+    async def delete_db_ordinal(self, ordinal, async_session: async_sessionmaker[AsyncSession]):
+        """Delete the user subscription based on name, ip, port"""
+
+        async with async_session() as session:
+            statement = delete(OrdinalModel).where(
+                (OrdinalModel.ordinal == ordinal)
+            )
+            await session.execute(statement)
+            await session.commit()
+            logging.getLogger(__name__).warning(
+                f"crud.py - deleted ordinal {ordinal} to avoid duplicates"
+            )
+            return
+
+    async def post_ordinal(
+            self, data: OrdinalSchema, async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Inserts node data from automatic check into database file"""
+        async with async_session() as session:
+            data = OrdinalModel(**data.__dict__)
+            session.add(data)
+            try:
+                await session.commit()
+            except Exception:
+                logging.getLogger(__name__).error(
+                    f"crud.py - localhost error: {traceback.format_exc()}"
+                )
+                await asyncio.sleep(60)
+        return jsonable_encoder(data)
+
+    async def post_prices(
+            self, data: PriceSchema, async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Inserts node data from automatic check into database file"""
+        async with async_session() as session:
+            data = PriceModel(**data.__dict__)
+            session.add(data)
+            try:
+                await session.commit()
+            except Exception:
+                logging.getLogger(__name__).error(
+                    f"crud.py - localhost error: {traceback.format_exc()}"
+                )
+        return jsonable_encoder(data)
+
+    async def get_timestamp_db_price(self,
+            ordinal_timestamp: int, async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Get the latest ordinal data existing in the database"""
+        async with async_session() as session:
+            statement = select(PriceModel).filter(PriceModel.timestamp <= ordinal_timestamp).order_by(
+                desc(PriceModel.timestamp)).limit(1)
+            results = await session.execute(statement)
+            timestamp_price_data = results.scalar()
+        if timestamp_price_data:
+            logging.getLogger(__name__).info(
+                f"crud.py - success requesting database timestamp price: {timestamp_price_data.timestamp, timestamp_price_data.usd}"
+            )
+            return timestamp_price_data.timestamp, timestamp_price_data.usd
+        else:
+            logging.getLogger(__name__).warning(
+                f"crud.py - failed requesting database timestamp price"
+            )
+            return
+
+    async def get_latest_db_price(self,
+            async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Get the latest ordinal data existing in the database"""
+        async with async_session() as session:
+            statement = select(PriceModel).order_by(PriceModel.timestamp.desc()).limit(1)
+            results = await session.execute(statement)
+            latest_price_data = results.scalar()
+        if latest_price_data:
+            logging.getLogger(__name__).info(
+                f"crud.py - success requesting database latest price: {latest_price_data.timestamp, latest_price_data.usd}"
+            )
+            return latest_price_data.timestamp, latest_price_data.usd
+        else:
+            logging.getLogger(__name__).warning(
+                f"crud.py - failed requesting database latest price"
+            )
+            return
+
+    async def get_latest_db_ordinal(self,
+            async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Get the latest ordinal data existing in the database"""
+        async with async_session() as session:
+            statement = select(OrdinalModel).order_by(OrdinalModel.ordinal.desc()).limit(1)
+            results = await session.execute(statement)
+            latest_ordinal_data = results.scalar()
+
+        if latest_ordinal_data:
+            logging.getLogger(__name__).info(
+                f"crud.py - success requesting database latest ordinal: {latest_ordinal_data.ordinal}"
+            )
+            return latest_ordinal_data.timestamp, latest_ordinal_data.ordinal
+        else:
+            logging.getLogger(__name__).warning(
+                f"crud.py - failed requesting database latest ordinal"
+            )
+            return

@@ -40,7 +40,7 @@ async def automatic_check(
     )
     await discord.send_notification(bot, data, _configuration)
     dt_stop, timer_stop = dt.timing()
-    logging.getLogger(__name__).info(
+    logging.getLogger(__name__).warning(
         f"main.py - Automatic L{layer} check {cluster_name} completed in completed in {round(timer_stop - timer_start, 2)} seconds"
     )
     return data
