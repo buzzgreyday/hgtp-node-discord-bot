@@ -35,12 +35,16 @@ def load_configuration():
 """MAIN LOOP"""
 
 
+def start_rewards_coroutine(_configuration):
+    asyncio.run_coroutine_threadsafe(rewards.run(_configuration), bot.loop)
+
 async def main_loop(version_manager, _configuration):
     times = preliminaries.generate_runtimes(_configuration)
     logging.getLogger(__name__).info(f"main.py - runtime schedule:\n\t{times}")
     # THIS NEEDS TO RUN AS A SEPARATE THREAD
     # FOR NOW PRICE JUST LOOPS
-    await rewards.run(_configuration)
+    rewards_thread = threading.Thread(target=start_rewards_coroutine, args=(_configuration,))
+    rewards_thread.start()
     while True:
         async with aiohttp.ClientSession() as session:
             try:
@@ -74,7 +78,7 @@ async def main_loop(version_manager, _configuration):
 def run_uvicorn_process():
     subprocess.run(
         [
-            "uvicorn",
+            "venv/bin/uvicorn",
             "assets.src.database.database:app",
             "--host",
             "127.0.0.1",
@@ -112,6 +116,7 @@ def main():
     )
     get_tessellation_version_thread.start()
     uvicorn_thread.start()
+
     while True:
         try:
             bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))
