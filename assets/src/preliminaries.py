@@ -102,3 +102,27 @@ def generate_runtimes(configuration) -> list:
             )
         )
     ]
+
+
+def generate_rewards_runtimes() -> list:
+    from datetime import datetime, timedelta
+
+    start = datetime.strptime("12:00:00", "%H:%M:%S")
+    end = datetime.strptime(
+        "12:00:00", "%H:%M:%S"
+    ) + timedelta(hours=24)
+    return [
+        (
+            start
+            + timedelta(
+                hours=5 * i / 60
+            )
+        ).strftime("%H:%M:%S")
+        for i in range(
+            int(
+                (end - start).total_seconds()
+                / 60.0
+                / 5
+            )
+        )
+    ]

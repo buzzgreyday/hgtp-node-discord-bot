@@ -18,7 +18,9 @@ async def node_status_check(
 ) -> schemas.Node:
     node_data = schemas.Node(
         name=subscriber.name.values[0],
-        contact=subscriber.contact.values[0],
+        discord=subscriber.discord.values[0],
+        mail=subscriber.mail.values[0],
+        phone=subscriber.phone.values[0],
         ip=subscriber.ip.values[0],
         layer=subscriber.layer.values[0],
         public_port=subscriber.public_port.values[0],
@@ -68,6 +70,7 @@ async def process_node_data_per_user(
 ) -> List[schemas.Node]:
     futures = []
     data = []
+
     if ids is not None:
         for lst in ids:
             id_, ip, port = lst
@@ -89,11 +92,14 @@ async def process_node_data_per_user(
                     )
                 )
             )
+
         for async_process in futures:
+            # If user is offline move back in queue
             d = await async_process
 
             if d.last_known_cluster_name == name:
                 data.append(d)
+
         return data
 
 

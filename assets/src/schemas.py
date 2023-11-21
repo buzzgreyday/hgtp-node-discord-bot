@@ -4,7 +4,7 @@ import traceback
 from typing import List, Optional
 import datetime as dt
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, validator
 
 from assets.src import api
 from assets.src.encode_decode import id_to_dag_address
@@ -16,11 +16,11 @@ class NodeBase(BaseModel):
     """This class is the base from which any node related object inherits, it's also the base for user data"""
 
     name: str
+    alias: Optional[str] = None
     id: str = None
     ip: str
     public_port: int
     layer: int
-    contact: str | int | None
 
 
 class NodeMetrics(BaseModel):
@@ -62,6 +62,10 @@ class Node(NodeBase, NodeMetrics):
     """The base model for every user node check"""
 
     index: Optional[int] = None
+    alias: Optional[str] = None
+    discord: Optional[str] = None
+    mail: Optional[str] = None
+    phone: Optional[str] = None
     p2p_port: Optional[int] = None
     wallet_address: Optional[str] = None
     wallet_balance: Optional[float] = None
@@ -120,9 +124,10 @@ class User(NodeBase):
     """This class can create a user object which can be subscribed using different methods and transformations"""
 
     date: dt.datetime = dt.datetime.utcnow()
-    # UserRead should be UserEnum
     index: Optional[int]
-    type: str
+    discord: Optional[str | int | None] = None
+    mail: Optional[str | None] = None
+    phone: Optional[str | None] = None
     wallet: str
     alias: Optional[str | None] = None
 
@@ -140,14 +145,14 @@ class User(NodeBase):
             return None
 
     @classmethod
-    async def discord(
+    async def sub_discord(
         cls,
         session,
         configuration,
         process_msg,
         mode: str,
         name: str,
-        contact: int,
+        discord: int,
         *args,
     ):
         """Treats a Discord message as a line of arguments and returns a list of subscribable user objects"""
@@ -185,13 +190,12 @@ class User(NodeBase):
                                             index=None,
                                             name=name,
                                             date=dt.datetime.utcnow(),
-                                            contact=str(contact),
+                                            discord=str(discord),
                                             id=id_,
                                             wallet=wallet,
                                             ip=arg[0],
                                             public_port=port,
                                             layer=0,
-                                            type="discord",
                                         )
                                     )
                                 except ValidationError:
@@ -219,13 +223,12 @@ class User(NodeBase):
                                             index=None,
                                             name=name,
                                             date=dt.datetime.utcnow(),
-                                            contact=str(contact),
+                                            discord=str(discord),
                                             id=id_,
                                             wallet=wallet,
                                             ip=arg[0],
                                             public_port=port,
                                             layer=1,
-                                            type="discord",
                                         )
                                     )
                                 except ValidationError:
@@ -237,3 +240,32 @@ class User(NodeBase):
                         else:
                             break
         return user_data, invalid_user_data
+
+
+class RewardSchema(BaseModel):
+    amount: int
+    destination: str | None
+
+class OrdinalSchema(BaseModel):
+    """This class is the schema to validate the rewards table data"""
+
+    timestamp: int
+    destination: str
+    amount: float
+    usd: Optional[float] = 0.0
+    ordinal: int
+    lastSnapshotHash: str | None
+    height: int
+    subHeight: int
+    hash: str
+    blocks: List[str | None]
+
+    @validator("amount", pre=True)
+    def amount_validate(cls, amount):
+        return amount/100000000
+
+
+class PriceSchema(BaseModel):
+    timestamp: int
+    coin: Optional[str] = "DAG"
+    usd: float

@@ -11,7 +11,7 @@ import aiohttp
 import yaml
 from aiohttp import ClientConnectorError
 
-from assets.src import preliminaries, run_process, history
+from assets.src import preliminaries, run_process, history, rewards
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
 
@@ -35,40 +35,43 @@ def load_configuration():
 """MAIN LOOP"""
 
 
+def start_rewards_coroutine(_configuration):
+    asyncio.run_coroutine_threadsafe(rewards.run(_configuration), bot.loop)
+
 async def main_loop(version_manager, _configuration):
     times = preliminaries.generate_runtimes(_configuration)
     logging.getLogger(__name__).info(f"main.py - runtime schedule:\n\t{times}")
+    # THIS NEEDS TO RUN AS A SEPARATE THREAD
+    # FOR NOW PRICE JUST LOOPS
     while True:
-        async with aiohttp.ClientSession() as session:
-            try:
-                data_queue = asyncio.Queue()
-                tasks = []
-                if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
-                    for cluster_name in _configuration["modules"].keys():
-                        for layer in _configuration["modules"][cluster_name].keys():
-                            task = run_process.automatic_check(
-                                session,
-                                cluster_name,
-                                layer,
-                                version_manager,
-                                _configuration,
-                            )
-                            tasks.append(task)
-                    for completed_task in asyncio.as_completed(tasks):
-                        data = await completed_task
-                        await data_queue.put(data)
-                    while not data_queue.empty():
-                        data = await data_queue.get()
-                        await history.write(data)
+        async with asyncio.Semaphore(8):
+            async with aiohttp.ClientSession() as session:
+                try:
+                    data_queue = asyncio.Queue()
+                    tasks = []
+                    if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
+                        for cluster_name in _configuration["modules"].keys():
+                            for layer in _configuration["modules"][cluster_name].keys():
+                                task = run_process.automatic_check(
+                                    session,
+                                    cluster_name,
+                                    layer,
+                                    version_manager,
+                                    _configuration,
+                                )
+                                tasks.append(task)
+                        for completed_task in asyncio.as_completed(tasks):
+                            data = await completed_task
+                            await data_queue.put(data)
+                        while not data_queue.empty():
+                            data = await data_queue.get()
+                            await history.write(data)
 
-            except Exception:
-                logging.getLogger(__name__).error(
-                    f"main.py - error: {traceback.format_exc()}\n\tCurrent check exited..."
-                )
-                await discord.messages.send_traceback(bot, traceback.format_exc())
-            finally:
-                await asyncio.sleep(1)
-                await session.close()
+                except Exception:
+                    logging.getLogger(__name__).error(
+                        f"main.py - error: {traceback.format_exc()}\n\tCurrent check exited..."
+                    )
+                    await discord.messages.send_traceback(bot, traceback.format_exc())
 
 
 def run_uvicorn_process():
@@ -95,7 +98,7 @@ def main():
         filename=_configuration["file settings"]["locations"]["log"],
         filemode="w",
         format="[%(asctime)s] %(name)s - %(levelname)s - %(message)s",
-        level=logging.INFO,
+        level=logging.WARN,
     )
 
     version_manager = preliminaries.VersionManager(_configuration)
@@ -112,6 +115,9 @@ def main():
     )
     get_tessellation_version_thread.start()
     uvicorn_thread.start()
+    rewards_thread = threading.Thread(target=start_rewards_coroutine, args=(_configuration,))
+    rewards_thread.start()
+
     while True:
         try:
             bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))
