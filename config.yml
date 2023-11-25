@@ -2,7 +2,7 @@ file settings:
   locations:
     cluster modules: assets/src/cluster_modules
     db: assets/data/db/database.db
-    log: assets/data/logs/bot/exec.log
+    log: assets/data/logs/bot/app.log
 general:
   loop_init_time: '12:00:00'
   loop_interval_minutes: 1

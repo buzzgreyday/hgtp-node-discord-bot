@@ -20,6 +20,7 @@ async def request_snapshot(session, request_url):
                 data = await response.json()
                 return data.get("data")
             else:
+                logging.getLogger(__name__).warning(f"rewards.py - Failed getting snapshot data from {request_url}, retrying in 3 seconds")
                 await asyncio.sleep(3)
 
 
@@ -33,10 +34,11 @@ async def request_prices(session, first_timestamp):
                 for t, p in data.get("prices"):
                     t = int(round(t)/1000)
                     data = PriceSchema(timestamp=t, usd=p)
-                    logging.getLogger(__name__).info(f"rewards.py - Writing price to DB: {data}")
+                    logging.getLogger(__name__).debug(f"rewards.py - Writing price to DB: {data}")
                     await post_prices(data)
                 break
             else:
+                logging.getLogger(__name__).warning(f"rewards.py - Failed getting price data from Coingecko, retrying in 3 seconds")
                 await asyncio.sleep(3)
 
 
@@ -59,12 +61,10 @@ async def process_ordinal_data(session, url, ordinal, ordinal_data, configuratio
                     await post_ordinal(data)
             break
         else:
-            # THIS IS A PROBLEM, I BELIEVE
-            # If no price data is found request it and restart
             await request_prices(session, ordinal_data['timestamp'])
 
 async def fetch_and_process_ordinal_data(session, url, ordinal, configuration):
-    logging.getLogger(__name__).info(f"rewards.py - Processing ordinal {ordinal}")
+    logging.getLogger(__name__).debug(f"rewards.py - Processing ordinal {ordinal}")
     while True:
         ordinal_data = await request_snapshot(session, f"{url}/global-snapshots/{ordinal}")
         if ordinal_data:
@@ -100,7 +100,7 @@ async def run(configuration):
                                     await delete_db_ordinal(first_ordinal)
                                 else:
                                     first_ordinal = 0
-                                    # 2021-01-01T00:00:00
+                                    # 2021-01-01T00:00:00 = 1609459200
                                     first_timestamp = 1609459200
 
                                 if first_timestamp < now:

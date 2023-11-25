@@ -21,12 +21,12 @@ def load_configuration():
         with open("config.yml", "r") as file:
             return yaml.safe_load(file)
     except FileNotFoundError:
-        logging.getLogger(__name__).info(
+        logging.getLogger(__name__).error(
             f"main.py - Configuration file 'config.yml' not found"
         )
         sys.exit(1)
     except yaml.YAMLError:
-        logging.getLogger(__name__).info(
+        logging.getLogger(__name__).error(
             f"main.py - Invalid configuration file 'config.yml'"
         )
         sys.exit(1)
@@ -83,10 +83,10 @@ def run_uvicorn_process():
             "127.0.0.1",
             "--port",
             "8000",
-            "--env-file",
+            "--log-config",
             "assets/data/logs/bot/uvicorn.ini",
-            "--log-level",
-            "critical",
+            # "--log-level",
+            # "info",
         ]
     )
 
@@ -94,11 +94,12 @@ def run_uvicorn_process():
 def main():
     _configuration = load_configuration()
 
+
     logging.basicConfig(
-        filename=_configuration["file settings"]["locations"]["log"],
+        filename="assets/data/logs/bot/app.log",
         filemode="w",
         format="[%(asctime)s] %(name)s - %(levelname)s - %(message)s",
-        level=logging.WARN,
+        level=logging.INFO,
     )
 
     version_manager = preliminaries.VersionManager(_configuration)
