@@ -19,11 +19,11 @@ load_dotenv()
 
 
 engine = create_async_engine(
-    url=os.getenv("DB_URL"),
+    url=os.getenv("DB_URL") + "?connect_timeout=300",
     future=True,
     # echo=True,
     # poolclass=NullPool,
-    connect_args={"server_settings": {"statement_timeout": "9000"}, "connect_timeout": "300"},
+    connect_args={"server_settings": {"statement_timeout": "9000"}},
 )
 
 session = async_sessionmaker(bind=engine, expire_on_commit=False)
