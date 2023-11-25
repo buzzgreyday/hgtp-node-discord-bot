@@ -77,6 +77,7 @@ async def fetch_and_process_ordinal_data(session, url, ordinal, configuration):
 async def run(configuration):
     await asyncio.sleep(10)
     times = preliminaries.generate_rewards_runtimes()
+    logging.getLogger(__name__).info(f"rewards.py - Runtimes: {times}")
     while True:
         async with asyncio.Semaphore(8):
             if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
