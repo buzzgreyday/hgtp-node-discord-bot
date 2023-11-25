@@ -3,6 +3,7 @@ import traceback
 
 import aiohttp
 import asyncpg.exceptions
+import sqlalchemy.exc
 from aiohttp import client_exceptions
 import logging
 
@@ -44,7 +45,7 @@ class Request:
 
                     else:
                         await asyncio.sleep(6)
-            except asyncpg.exceptions.QueryCanceledError:
+            except sqlalchemy.exc.DBAPIError:
                 logging.getLogger(__name__).warning(
                     f"api.py - [{self.url}] timeout error: setting timeout to {t + 20}"
                 )

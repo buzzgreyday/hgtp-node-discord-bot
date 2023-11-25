@@ -23,7 +23,7 @@ engine = create_async_engine(
     future=True,
     # echo=True,
     # poolclass=NullPool,
-    connect_args={"server_settings": {"statement_timeout": "9000"}},
+    connect_args={"server_settings": {"statement_timeout": "9000"}, "connect_timeout": "300"},
 )
 
 session = async_sessionmaker(bind=engine, expire_on_commit=False)
