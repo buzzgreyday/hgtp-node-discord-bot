@@ -31,26 +31,12 @@ class Request:
                 return None, resp.status
 
     async def db_json(self, configuration=None):
-        t = 300
-        while True:
-            timeout = aiohttp.ClientTimeout(
-                total=t
-            )
-            try:
-                async with self.session.get(self.url, timeout=timeout) as resp:
-                    await asyncio.sleep(0)
-                    if resp.status == 200:
-                        data = await resp.json()
-                        return data, resp.status
 
-                    else:
-                        await asyncio.sleep(6)
-            except sqlalchemy.exc.DBAPIError:
-                logging.getLogger(__name__).warning(
-                    f"api.py - [{self.url}] timeout error: setting timeout to {t + 20}"
-                )
-                t = t + 20
-                await asyncio.sleep(6)
+        async with self.session.get(self.url) as resp:
+            await asyncio.sleep(0)
+            if resp.status == 200:
+                data = await resp.json()
+                return data, resp.status
 
 
 

@@ -49,10 +49,12 @@ async def automatic_check(
 async def request_check(session, process_msg, layer, requester, _configuration):
     process_msg = await discord.update_request_process_msg(process_msg, 1, None)
     ids = await api.get_user_ids(session, layer, requester, _configuration)
+    print(ids)
     await bot.wait_until_ready()
     if ids:
         version_manager = preliminaries.VersionManager(_configuration)
         for lst in ids:
+            print(lst)
             id_ = lst[0]
             ip = lst[1]
             port = lst[2]
@@ -62,11 +64,11 @@ async def request_check(session, process_msg, layer, requester, _configuration):
                 )
                 if subscriber:
                     break
-                await asyncio.sleep(1)
+                print(subscriber)
             subscriber = pd.DataFrame(subscriber)
             node_data = schemas.Node(
                 name=subscriber.name.values[0],
-                contact=subscriber.contact.values[0],
+                contact=subscriber.discord.values[0],
                 ip=subscriber.ip.values[0],
                 layer=subscriber.layer.values[0],
                 public_port=subscriber.public_port.values[0],
@@ -76,6 +78,7 @@ async def request_check(session, process_msg, layer, requester, _configuration):
                 notify=True,
                 timestamp_index=dt.datetime.utcnow(),
             )
+            print(node_data)
             process_msg = await discord.update_request_process_msg(process_msg, 2, None)
             node_data = await history.node_data(
                 session, requester, node_data, _configuration

@@ -95,12 +95,25 @@ def main():
     _configuration = load_configuration()
 
 
-    logging.basicConfig(
+    """logging.basicConfig(
         filename="assets/data/logs/bot/app.log",
         filemode="w",
         format="[%(asctime)s] %(name)s - %(levelname)s - %(message)s",
-        level=logging.INFO,
-    )
+        level=logging.DEBUG,
+    )"""
+
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    handler = logging.FileHandler(filename="assets/data/logs/bot/app.log", encoding='utf-8', mode='w')
+    handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))
+    logger.addHandler(handler)
+
+    logger = logging.getLogger('nextcord')
+    logger.setLevel(logging.INFO)
+    handler = logging.FileHandler(filename='assets/data/logs/bot/nextcord.log', encoding='utf-8', mode='w')
+    handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))
+    logger.addHandler(handler)
+
 
     version_manager = preliminaries.VersionManager(_configuration)
 
