@@ -36,6 +36,11 @@ def load_configuration():
 
 
 def start_rewards_coroutine(_configuration):
+    logger = logging.getLogger('rewards')
+    logger.setLevel(logging.INFO)
+    handler = logging.FileHandler(filename='assets/data/logs/bot/rewards.log', encoding='utf-8', mode='w')
+    handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))
+    logger.addHandler(handler)
     asyncio.run_coroutine_threadsafe(rewards.run(_configuration), bot.loop)
 
 async def main_loop(version_manager, _configuration):
