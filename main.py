@@ -21,12 +21,12 @@ def load_configuration():
         with open("config.yml", "r") as file:
             return yaml.safe_load(file)
     except FileNotFoundError:
-        logging.getLogger(__name__).error(
+        logging.getLogger("app").error(
             f"main.py - Configuration file 'config.yml' not found"
         )
         sys.exit(1)
     except yaml.YAMLError:
-        logging.getLogger(__name__).error(
+        logging.getLogger("app").error(
             f"main.py - Invalid configuration file 'config.yml'"
         )
         sys.exit(1)
@@ -40,7 +40,7 @@ def start_rewards_coroutine(_configuration):
 
 async def main_loop(version_manager, _configuration):
     times = preliminaries.generate_runtimes(_configuration)
-    logging.getLogger(__name__).info(f"main.py - runtime schedule:\n\t{times}")
+    logging.getLogger("app").info(f"main.py - runtime schedule:\n\t{times}")
     # THIS NEEDS TO RUN AS A SEPARATE THREAD
     # FOR NOW PRICE JUST LOOPS
     while True:
@@ -68,7 +68,7 @@ async def main_loop(version_manager, _configuration):
                             await history.write(data)
 
                 except Exception:
-                    logging.getLogger(__name__).error(
+                    logging.getLogger("app").error(
                         f"main.py - error: {traceback.format_exc()}\n\tCurrent check exited..."
                     )
                     await discord.messages.send_traceback(bot, traceback.format_exc())
@@ -102,7 +102,7 @@ def main():
         level=logging.DEBUG,
     )"""
 
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger("app")
     logger.setLevel(logging.INFO)
     handler = logging.FileHandler(filename="assets/data/logs/bot/app.log", encoding='utf-8', mode='w')
     handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))

@@ -169,7 +169,7 @@ async def send(bot, node_data: schemas.Node, configuration):
     if await os.path.exists(
         f"{configuration['file settings']['locations']['cluster modules']}/{module_name}.py"
     ):
-        logging.getLogger(__name__).info(
+        logging.getLogger("app").info(
             f"discord.py - Choosing {module_name} module embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})"
         )
         module = determine_module.set_module(module_name, configuration)
@@ -177,7 +177,7 @@ async def send(bot, node_data: schemas.Node, configuration):
     else:
         # This will not work because there won't be any data if no last_know_cluster exists.
         # Therefore, we need to request database for the last known data upon request.
-        logging.getLogger(__name__).info(
+        logging.getLogger("app").info(
             f"discord.py - Choosing default embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})"
         )
         embed = defaults.build_embed(node_data)
@@ -190,11 +190,11 @@ async def send(bot, node_data: schemas.Node, configuration):
             icon_url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-color.png",
         )
         await member.send(embed=embed)
-        logging.getLogger(__name__).info(
+        logging.getLogger("app").info(
             f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}"
         )
     except nextcord.Forbidden:
-        logging.getLogger(__name__).warning(
+        logging.getLogger("app").warning(
             f"discord.py - Discord message could not be sent to {node_data.name, node_data.ip, node_data.public_port}. The member doesn't allow DMs."
         )
 

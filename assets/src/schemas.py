@@ -199,7 +199,7 @@ class User(NodeBase):
                                         )
                                     )
                                 except ValidationError:
-                                    logging.getLogger(__name__).warning(
+                                    logging.getLogger("app").warning(
                                         f"schemas.py - Pydantic ValidationError - subscription failed with the following traceback: {traceback.format_exc()}"
                                     )
                             else:
@@ -232,7 +232,7 @@ class User(NodeBase):
                                         )
                                     )
                                 except ValidationError:
-                                    logging.getLogger(__name__).warning(
+                                    logging.getLogger("app").warning(
                                         f"schemas.py - Pydantic ValidationError - subscription failed with the following traceback: {traceback.format_exc()}"
                                     )
                             else:

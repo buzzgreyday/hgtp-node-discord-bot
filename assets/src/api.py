@@ -84,7 +84,7 @@ async def safe_request(session, request_url: str, configuration: dict):
             aiohttp.client_exceptions.ServerDisconnectedError,
             aiohttp.client_exceptions.ClientPayloadError,
         ):
-            logging.getLogger(__name__).warning(
+            logging.getLogger("app").warning(
                 f"api.py - {request_url} returned \"{status_code}\" ({retry_count}/{configuration['general']['request retry (count)']})"
             )
             if retry_count >= configuration["general"]["request retry (count)"]:
@@ -95,7 +95,7 @@ async def safe_request(session, request_url: str, configuration: dict):
             )
 
         except (aiohttp.client_exceptions.InvalidURL,) as e:
-            logging.getLogger(__name__).warning(
+            logging.getLogger("app").warning(
                 f"api.py - {request_url} returned \"{status_code}\" ({retry_count}/{configuration['general']['request retry (count)']})"
             )
             return None, status_code
@@ -121,7 +121,7 @@ async def get_user_ids(session, layer, requester, _configuration):
             aiohttp.client_exceptions.ServerDisconnectedError,
             aiohttp.client_exceptions.ClientPayloadError,
         ):
-            logging.getLogger(__name__).error(
+            logging.getLogger("app").error(
                 f"api.py - localhost error:\n\t{traceback.format_exc()}"
             )
             await asyncio.sleep(1)
@@ -129,7 +129,7 @@ async def get_user_ids(session, layer, requester, _configuration):
             if resp_status == 200:
                 return data
             else:
-                logging.getLogger(__name__).warning(
+                logging.getLogger("app").warning(
                     f"api.py - localhost error: http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer} return status {resp_status}"
                 )
                 await asyncio.sleep(3)
@@ -151,7 +151,7 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
             aiohttp.client_exceptions.ServerDisconnectedError,
             aiohttp.client_exceptions.ClientPayloadError,
         ):
-            logging.getLogger(__name__).warning(
+            logging.getLogger("app").warning(
                 f"api.py - localhost error:\n\t{traceback.format_exc()}"
             )
             await asyncio.sleep(1)
@@ -159,7 +159,7 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
             if resp_status == 200:
                 return data
             else:
-                logging.getLogger(__name__).warning(
+                logging.getLogger("app").warning(
                     f"api.py - localhost error: http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port} returned status {resp_status}"
                 )
                 await asyncio.sleep(6)

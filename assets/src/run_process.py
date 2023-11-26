@@ -21,7 +21,7 @@ from assets.src.discord.services import bot
 async def automatic_check(
     session, cluster_name, layer, version_manager, _configuration
 ) -> List:
-    logging.getLogger(__name__).debug(
+    logging.getLogger("app").debug(
         f"run_process.py - Automatic {cluster_name, layer} check initiated"
     )
     dt_start, timer_start = dt.timing()
@@ -35,12 +35,12 @@ async def automatic_check(
         session, cluster_name, ids, cluster_data, version_manager, _configuration
     )
     data = await determine_module.notify(data, _configuration)
-    logging.getLogger(__name__).debug(
+    logging.getLogger("app").debug(
         f"run_process.py - Handling {len(data), cluster_name} L{layer} nodes"
     )
     await discord.send_notification(bot, data, _configuration)
     dt_stop, timer_stop = dt.timing()
-    logging.getLogger(__name__).info(
+    logging.getLogger("app").info(
         f"main.py - Automatic L{layer} check {cluster_name} completed in completed in {round(timer_stop - timer_start, 2)} seconds"
     )
     return data

@@ -46,7 +46,7 @@ async def unsubscibe_menu(interaction):
 
     def append_entries(entries, data):
         entries.append(models.UserModel(**data))
-        logging.getLogger(__name__).info(
+        logging.getLogger("app").info(
             f"main.py - Unubscription request accepted for {str(interaction.user)}: {ip_menu.selected_value}:{port_menu.selected_value}"
         )
 
@@ -72,7 +72,7 @@ async def unsubscibe_menu(interaction):
                 and (port_menu.selected_value in ("All", None))
             ):
                 append_entries(entries, data)
-            logging.getLogger(__name__).info(
+            logging.getLogger("app").info(
                 f"main.py - Unubscription request denied for {str(interaction.user)}: {ip_menu.selected_value}:{port_menu.selected_value}"
             )
         if entries:
@@ -134,7 +134,7 @@ async def verify(interaction=nextcord.Interaction):
             content=f"{interaction.user.mention}, to gain access you need to navigate to `Privacy Settings` an enable `Direct Messages` from server members. If you experience issues, please contact an admin.",
             ephemeral=True,
         )
-        logging.getLogger(__name__).info(
+        logging.getLogger("app").info(
             f"discord.py - Verification of {interaction.user} denied"
         )
     else:
@@ -180,14 +180,14 @@ async def r(ctx):
                     for task in fut:
                         await task
                 else:
-                    logging.getLogger(__name__).info(
+                    logging.getLogger("app").info(
                         f"discord.py - User {ctx.message.author} does not have the appropriate role"
                     )
                     await discord.messages.subscriber_role_deny_request(process_msg)
             else:
                 if not isinstance(ctx.channel, nextcord.DMChannel):
                     await ctx.message.delete(delay=3)
-                logging.getLogger(__name__).info(
+                logging.getLogger("app").info(
                     f"discord.py - User {ctx.message.author} does not allow DMs"
                 )
 
@@ -198,7 +198,7 @@ async def s(ctx, *args):
     async with aiohttp.ClientSession() as session:
         with open("config.yml", "r") as file:
             _configuration = yaml.safe_load(file)
-            logging.getLogger(__name__).info(
+            logging.getLogger("app").info(
                 f"main.py - Subscription request received from {ctx.message.author}: {args}"
             )
             process_msg = await discord.send_subscription_process_msg(ctx)
@@ -221,12 +221,12 @@ async def s(ctx, *args):
                 await discord.update_subscription_process_msg(
                     process_msg, 4, invalid_user_data
                 )
-                logging.getLogger(__name__).info(
+                logging.getLogger("app").info(
                     f"main.py - Subscription successful for {ctx.message.author}: {valid_user_data}\n\tDenied for: {invalid_user_data}"
                 )
             else:
                 await discord.deny_subscription(process_msg)
-                logging.getLogger(__name__).info(
+                logging.getLogger("app").info(
                     f"main.py - Subscription denied for {ctx.message.author}: {args}"
                 )
 

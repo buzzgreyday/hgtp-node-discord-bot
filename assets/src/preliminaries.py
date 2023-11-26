@@ -42,14 +42,14 @@ class VersionManager:
                 try:
                     version = data["tag_name"][1:]
                 except KeyError:
-                    logging.getLogger(__name__).warning(
+                    logging.getLogger("app").warning(
                         f"preliminaries.py - {self.configuration['tessellation']['github']['url']}/{self.configuration['tessellation']['github']['releases']['latest']} KeyError: forcing retry in {3660} seconds\n\t{traceback.print_exc()}"
                     )
                     time.sleep(3660)
                 else:
                     return version
             else:
-                logging.getLogger(__name__).warning(
+                logging.getLogger("app").warning(
                     f"preliminaries.py - {self.configuration['tessellation']['github']['url']}/{self.configuration['tessellation']['github']['releases']['latest']} not reachable; forcing retry in {sleep} seconds"
                 )
                 time.sleep(sleep)

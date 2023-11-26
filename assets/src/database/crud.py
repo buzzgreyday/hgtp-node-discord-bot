@@ -45,11 +45,11 @@ class CRUD:
             # You only need one result that matches
             result = result.fetchone()
             if result:
-                logging.getLogger(__name__).warning(
+                logging.getLogger("app").warning(
                     f"crud.py - The user {data.name} already exists for {data.ip}:{data.public_port}"
                 )
             else:
-                logging.getLogger(__name__).info(
+                logging.getLogger("app").info(
                     f"crud.py - The user {data.name} ({data.ip}:{data.public_port}) was added to the list of subscribers"
                 )
                 session.add(user)
@@ -67,7 +67,7 @@ class CRUD:
             try:
                 await session.commit()
             except Exception:
-                logging.getLogger(__name__).error(
+                logging.getLogger("app").error(
                     f"history.py - localhost error: {traceback.format_exc()}"
                 )
                 await asyncio.sleep(60)

@@ -25,7 +25,7 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
             client_exceptions.ClientOSError,
             client_exceptions.ServerDisconnectedError,
         ):
-            logging.getLogger(__name__).warning(
+            logging.getLogger("app").warning(
                 f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} timeout/disconnect"
             )
 
@@ -35,7 +35,7 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
             if resp_status == 200:
                 break
             else:
-                logging.getLogger(__name__).warning(
+                logging.getLogger("app").warning(
                     f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} returned status {resp_status}"
                 )
                 await asyncio.sleep(1)

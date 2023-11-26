@@ -17,7 +17,7 @@ async def on_message(message):
         return
     ctx = await bot.get_context(message)
     if ctx.valid:
-        logging.getLogger(__name__).info(
+        logging.getLogger("app").info(
             f"events.py - Command received from {ctx.message.author} in {ctx.message.channel}"
         )
         await bot.process_commands(message)
@@ -29,16 +29,16 @@ async def on_message(message):
             1134396471639277648,
         ):
             # IGNORE INTERPRETING MESSAGES IN THESE CHANNELS AS COMMANDS
-            logging.getLogger(__name__).info(
+            logging.getLogger("app").info(
                 f"events.py - Received a command in a non-command channel"
             )
         elif ctx.message.channel.id == 1136386732628115636:
-            logging.getLogger(__name__).info(
+            logging.getLogger("app").info(
                 f"events.py - Received a message in the verify channel"
             )
             await discord.delete_message(ctx)
         else:
-            logging.getLogger(__name__).info(
+            logging.getLogger("app").info(
                 f"events.py - Received an unknown command from {ctx.message.author} in {ctx.message.channel}"
             )
             await message.add_reaction("\U0000274C")
@@ -51,4 +51,4 @@ async def on_message(message):
 @bot.event
 async def on_ready():
     """Prints a message to the logs when a connection to Discord is established (bot is running)"""
-    logging.getLogger(__name__).info(f"events.py - Discord connection established")
+    logging.getLogger("app").info(f"events.py - Discord connection established")

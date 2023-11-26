@@ -92,7 +92,7 @@ async def get_module_data(session, node_data: schemas.Node, configuration):
         return node_data
 
     else:
-        """logging.getLogger(__name__).warning(
+        logging.getLogger("app").warning(
             f"cluster.py - No module found while processing: {node_data.name}, {node_data.ip}, {node_data.public_port}, {node_data.layer}"
-        )"""
+        )
         return node_data
