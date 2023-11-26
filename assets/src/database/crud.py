@@ -187,7 +187,7 @@ class CRUD:
             )
             await session.execute(statement)
             await session.commit()
-            logging.getLogger(__name__).warning(
+            logging.getLogger("rewards").warning(
                 f"crud.py - deleted ordinal {ordinal} to avoid duplicates"
             )
             return
@@ -202,7 +202,7 @@ class CRUD:
             try:
                 await session.commit()
             except Exception:
-                logging.getLogger(__name__).error(
+                logging.getLogger("rewards").error(
                     f"crud.py - localhost error: {traceback.format_exc()}"
                 )
                 await asyncio.sleep(60)
@@ -218,7 +218,7 @@ class CRUD:
             try:
                 await session.commit()
             except Exception:
-                logging.getLogger(__name__).error(
+                logging.getLogger("rewards").error(
                     f"crud.py - localhost error: {traceback.format_exc()}"
                 )
         return jsonable_encoder(data)
@@ -233,12 +233,12 @@ class CRUD:
             results = await session.execute(statement)
             timestamp_price_data = results.scalar()
         if timestamp_price_data:
-            logging.getLogger(__name__).info(
+            logging.getLogger("rewards").info(
                 f"crud.py - success requesting database timestamp price: {timestamp_price_data.timestamp, timestamp_price_data.usd}"
             )
             return timestamp_price_data.timestamp, timestamp_price_data.usd
         else:
-            logging.getLogger(__name__).warning(
+            logging.getLogger("rewards").warning(
                 f"crud.py - failed requesting database timestamp price"
             )
             return
@@ -252,12 +252,12 @@ class CRUD:
             results = await session.execute(statement)
             latest_price_data = results.scalar()
         if latest_price_data:
-            logging.getLogger(__name__).info(
+            logging.getLogger("rewards").info(
                 f"crud.py - success requesting database latest price: {latest_price_data.timestamp, latest_price_data.usd}"
             )
             return latest_price_data.timestamp, latest_price_data.usd
         else:
-            logging.getLogger(__name__).warning(
+            logging.getLogger("rewards").warning(
                 f"crud.py - failed requesting database latest price"
             )
             return
@@ -272,12 +272,12 @@ class CRUD:
             latest_ordinal_data = results.scalar()
 
         if latest_ordinal_data:
-            logging.getLogger(__name__).info(
+            logging.getLogger("rewards").info(
                 f"crud.py - success requesting database latest ordinal: {latest_ordinal_data.ordinal}"
             )
             return latest_ordinal_data.timestamp, latest_ordinal_data.ordinal
         else:
-            logging.getLogger(__name__).warning(
+            logging.getLogger("rewards").warning(
                 f"crud.py - failed requesting database latest ordinal"
             )
             return

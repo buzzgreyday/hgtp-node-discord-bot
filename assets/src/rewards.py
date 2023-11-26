@@ -20,7 +20,7 @@ async def request_snapshot(session, request_url):
                 data = await response.json()
                 return data.get("data")
             else:
-                logging.getLogger(__name__).warning(f"rewards.py - Failed getting snapshot data from {request_url}, retrying in 3 seconds")
+                logging.getLogger("rewards").warning(f"rewards.py - Failed getting snapshot data from {request_url}, retrying in 3 seconds")
                 await asyncio.sleep(3)
 
 
@@ -34,11 +34,11 @@ async def request_prices(session, first_timestamp):
                 for t, p in data.get("prices"):
                     t = int(round(t)/1000)
                     data = PriceSchema(timestamp=t, usd=p)
-                    logging.getLogger(__name__).debug(f"rewards.py - Writing price to DB: {data}")
+                    logging.getLogger("rewards").debug(f"rewards.py - Writing price to DB: {data}")
                     await post_prices(data)
                 break
             else:
-                logging.getLogger(__name__).warning(f"rewards.py - Failed getting price data from Coingecko, retrying in 3 seconds")
+                logging.getLogger("rewards").warning(f"rewards.py - Failed getting price data from Coingecko, retrying in 3 seconds")
                 await asyncio.sleep(3)
 
 
@@ -64,7 +64,7 @@ async def process_ordinal_data(session, url, ordinal, ordinal_data, configuratio
             await request_prices(session, ordinal_data['timestamp'])
 
 async def fetch_and_process_ordinal_data(session, url, ordinal, configuration):
-    logging.getLogger(__name__).debug(f"rewards.py - Processing ordinal {ordinal}")
+    logging.getLogger("rewards").debug(f"rewards.py - Processing ordinal {ordinal}")
     while True:
         ordinal_data = await request_snapshot(session, f"{url}/global-snapshots/{ordinal}")
         if ordinal_data:
@@ -77,7 +77,7 @@ async def fetch_and_process_ordinal_data(session, url, ordinal, configuration):
 async def run(configuration):
     await asyncio.sleep(10)
     times = preliminaries.generate_rewards_runtimes()
-    logging.getLogger(__name__).info(f"rewards.py - Runtimes: {times}")
+    logging.getLogger("rewards").info(f"rewards.py - Runtimes: {times}")
     while True:
         async with asyncio.Semaphore(8):
             if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
