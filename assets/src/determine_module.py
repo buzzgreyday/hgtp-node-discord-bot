@@ -1,22 +1,15 @@
 import importlib.util
 from typing import List
 
-from aiofiles import os
 import sys
 
 from assets.src import schemas
 
 
 async def get_module_name_and_layer(d, configuration) -> tuple:
-    paths = [
-        f"{configuration['file settings']['locations']['cluster modules']}/{d.cluster_name}.py",
-        f"{configuration['file settings']['locations']['cluster modules']}/{d.former_cluster_name}.py",
-        f"{configuration['file settings']['locations']['cluster modules']}/{d.last_known_cluster_name}.py",
-    ]
     names = [a for a in (d.cluster_name, d.former_cluster_name, d.last_known_cluster_name) if a]
-    name = [name for path, name in zip(paths, names) if await os.path.exists(path)]
-    if name:
-        return name[0], d.layer
+    if names:
+        return names[0], d.layer
     else:
         return None, d.layer
 
@@ -34,7 +27,7 @@ async def notify(data: List[schemas.Node], configuration) -> List[schemas.Node]:
 
 
 def set_module(cluster_name, configuration):
-    if cluster_name is not None:
+    if cluster_name:
         spec = importlib.util.spec_from_file_location(
             f"{cluster_name}.build_embed",
             f"{configuration['file settings']['locations']['cluster modules']}/{cluster_name}.py",

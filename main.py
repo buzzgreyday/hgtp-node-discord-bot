@@ -36,7 +36,13 @@ def load_configuration():
 
 
 def start_rewards_coroutine(_configuration):
-    asyncio.run_coroutine_threadsafe(rewards.run(_configuration), bot.loop)
+    try:
+        asyncio.run_coroutine_threadsafe(rewards.run(_configuration), bot.loop)
+    except Exception:
+        logging.getLogger("rewards").critical(
+            f"rewards.py - Run process failed: {traceback.format_exc()}")
+        await discord.messages.send_traceback(bot, traceback.format_exc())
+
 
 async def main_loop(version_manager, _configuration):
     times = preliminaries.generate_runtimes(_configuration)
