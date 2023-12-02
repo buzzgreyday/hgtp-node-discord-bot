@@ -41,7 +41,6 @@ def start_rewards_coroutine(_configuration):
     except Exception:
         logging.getLogger("rewards").critical(
             f"rewards.py - Run process failed: {traceback.format_exc()}")
-        await discord.messages.send_traceback(bot, traceback.format_exc())
 
 
 async def main_loop(version_manager, _configuration):
@@ -121,7 +120,7 @@ def main():
     logger.addHandler(handler)
 
     logger = logging.getLogger('nextcord')
-    logger.setLevel(logging.WARNING)
+    logger.setLevel(logging.CRITICAL)
     handler = logging.FileHandler(filename='assets/data/logs/bot/nextcord.log', encoding='utf-8', mode='w')
     handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
