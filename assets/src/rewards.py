@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import traceback
 from datetime import datetime
 
 from aiohttp import ClientSession, TCPConnector
@@ -75,42 +76,51 @@ async def fetch_and_process_ordinal_data(session, url, ordinal, configuration):
 
 
 async def run(configuration):
+    async def process():
+        urls = ["https://be-mainnet.constellationnetwork.io"]
+        async with ClientSession(connector=TCPConnector(
+                # You need to obtain a real (non-self-signed certificate) to run in production
+                # ssl=db.ssl_context.load_cert_chain(certfile=ssl_cert_file, keyfile=ssl_key_file)
+                # Not intended for production:
+                ssl=False)) as session:
+            for url in urls:
+                while True:
+                    now = normalize_timestamp(datetime.utcnow().timestamp())
+                    latest_snapshot = await request_snapshot(session, f"{url}/global-snapshots/latest")
+                    if latest_snapshot:
+                        latest_ordinal = latest_snapshot.get("ordinal")
+                        db_data, status_code = await safe_request(session, "http://127.0.0.1:8000/ordinal/latest",
+                                                                  configuration)
+                        db_price_data, status_code = await safe_request(session, "http://127.0.0.1:8000/price/latest",
+                                                                        configuration)
+                        if db_data:
+                            first_timestamp = db_price_data[0]
+                            first_ordinal = db_data[1]
+                            await delete_db_ordinal(first_ordinal)
+                        else:
+                            first_ordinal = 0
+                            # 2021-01-01T00:00:00 = 1609459200
+                            first_timestamp = 1609459200
+
+                        if first_timestamp < now:
+                            await request_prices(
+                                session, first_timestamp
+                            )
+                        for ordinal in range(first_ordinal, latest_ordinal):
+                            await fetch_and_process_ordinal_data(session, url, ordinal, configuration)
+                        break
+                    else:
+                        await asyncio.sleep(3)
+
     await asyncio.sleep(10)
     times = preliminaries.generate_rewards_runtimes()
     logging.getLogger("rewards").info(f"rewards.py - Runtimes: {times}")
     while True:
         async with asyncio.Semaphore(8):
             if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
-                urls = ["https://be-mainnet.constellationnetwork.io"]
-                async with ClientSession(connector=TCPConnector(
-                        # You need to obtain a real (non-self-signed certificate) to run in production
-                        # ssl=db.ssl_context.load_cert_chain(certfile=ssl_cert_file, keyfile=ssl_key_file)
-                        # Not intended for production:
-                        ssl=False)) as session:
-                    for url in urls:
-                        while True:
-                            now = normalize_timestamp(datetime.utcnow().timestamp())
-                            latest_snapshot = await request_snapshot(session, f"{url}/global-snapshots/latest")
-                            if latest_snapshot:
-                                latest_ordinal = latest_snapshot.get("ordinal")
-                                db_data, status_code = await safe_request(session, "http://127.0.0.1:8000/ordinal/latest", configuration)
-                                db_price_data, status_code = await safe_request(session, "http://127.0.0.1:8000/price/latest", configuration)
-                                if db_data:
-                                    first_timestamp = db_price_data[0]
-                                    first_ordinal = db_data[1]
-                                    await delete_db_ordinal(first_ordinal)
-                                else:
-                                    first_ordinal = 0
-                                    # 2021-01-01T00:00:00 = 1609459200
-                                    first_timestamp = 1609459200
-
-                                if first_timestamp < now:
-                                    await request_prices(
-                                        session, first_timestamp
-                                    )
-                                for ordinal in range(first_ordinal, latest_ordinal):
-                                    await fetch_and_process_ordinal_data(session, url, ordinal, configuration)
-                                break
-                            else:
-                                await asyncio.sleep(3)
+                try:
+                    await process()
+                except Exception:
+                    logging.getLogger("rewards").critical(
+                        f"rewards.py - Run process failed: {traceback.format_exc()}")
             await asyncio.sleep(1)
