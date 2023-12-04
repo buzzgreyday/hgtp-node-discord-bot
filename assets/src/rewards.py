@@ -3,6 +3,7 @@ import logging
 import traceback
 from datetime import datetime
 
+import aiohttp.client_exceptions
 from aiohttp import ClientSession, TCPConnector
 
 from assets.src import preliminaries
@@ -51,21 +52,40 @@ async def process_ordinal_data(session, url, ordinal, ordinal_data, configuratio
             timestamp = datetime.strptime(ordinal_data["timestamp"], '%Y-%m-%dT%H:%M:%SZ')
         ordinal_data["timestamp"] = normalize_timestamp(datetime.timestamp(timestamp))
     while True:
-        db_price_data, status_code = await Request(session, f"http://127.0.0.1:8000/price/{ordinal_data['timestamp']}").db_json(configuration)
-        if db_price_data:
-            ordinal_rewards_data = await request_snapshot(session, f"{url}/global-snapshots/{ordinal}/rewards")
-            if ordinal_rewards_data:
-                for r_data in ordinal_rewards_data:
-                    ordinal_data.update(r_data)
-                    data = OrdinalSchema(**ordinal_data)
-                    data.usd = db_price_data[1]
-                    await post_ordinal(data)
-            break
+        try:
+            db_price_data, status_code = await Request(session, f"http://127.0.0.1:8000/price/{ordinal_data['timestamp']}").db_json(configuration)
+        except (asyncio.exceptions.TimeoutError,
+                aiohttp.client_exceptions.ClientConnectorError,
+                aiohttp.client_exceptions.ClientOSError,
+                aiohttp.client_exceptions.ServerDisconnectedError,
+                aiohttp.client_exceptions.ClientPayloadError,
+        ):
+            logging.getLogger("rewards").warning(
+                f"rewards.py - Failed getting price data ({ordinal_data['timestamp']}), retrying in 3 seconds")
+
+            await asyncio.sleep(3)
         else:
-            await request_prices(session, ordinal_data['timestamp'])
+            if db_price_data and status_code == 200:
+                logging.getLogger("rewards").info(
+                    f"rewards.py - latest price data is {db_price_data}")
+                ordinal_rewards_data = await request_snapshot(session, f"{url}/global-snapshots/{ordinal}/rewards")
+                if ordinal_rewards_data:
+                    for r_data in ordinal_rewards_data:
+                        ordinal_data.update(r_data)
+                        data = OrdinalSchema(**ordinal_data)
+                        data.usd = db_price_data[1]
+                        await post_ordinal(data)
+                break
+            elif db_price_data is None and status_code == 200:
+                logging.getLogger("rewards").warning(
+                    f"rewards.py - price data is None db response status code is {status_code}")
+                await request_prices(session, ordinal_data['timestamp'])
+            else:
+                logging.getLogger("rewards").warning(
+                f"rewards.py - price data db response status code is {status_code}")
 
 async def fetch_and_process_ordinal_data(session, url, ordinal, configuration):
-    logging.getLogger("rewards").debug(f"rewards.py - Processing ordinal {ordinal}")
+    logging.getLogger("rewards").info(f"rewards.py - Processing ordinal {ordinal}")
     while True:
         ordinal_data = await request_snapshot(session, f"{url}/global-snapshots/{ordinal}")
         if ordinal_data:
@@ -122,5 +142,6 @@ async def run(configuration):
                     await process()
                 except Exception:
                     logging.getLogger("rewards").critical(
-                        f"rewards.py - Run process failed: {traceback.format_exc()}")
+                        f"rewards.py - Run process failed:\n"
+                        f"\t{traceback.format_exc()}")
             await asyncio.sleep(1)

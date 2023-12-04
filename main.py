@@ -96,14 +96,6 @@ def run_uvicorn_process():
 def main():
     _configuration = load_configuration()
 
-
-    """logging.basicConfig(
-        filename="assets/data/logs/bot/app.log",
-        filemode="w",
-        format="[%(asctime)s] %(name)s - %(levelname)s - %(message)s",
-        level=logging.DEBUG,
-    )"""
-
     logger = logging.getLogger("app")
     logger.setLevel(logging.INFO)
     handler = logging.FileHandler(filename="assets/data/logs/bot/app.log", encoding='utf-8', mode='w')
@@ -111,7 +103,7 @@ def main():
     logger.addHandler(handler)
 
     logger = logging.getLogger('rewards')
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
     handler = logging.FileHandler(filename='assets/data/logs/bot/rewards.log', encoding='utf-8', mode='w')
     handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)

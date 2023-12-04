@@ -37,6 +37,8 @@ class Request:
             if resp.status == 200:
                 data = await resp.json()
                 return data, resp.status
+            else:
+                return None, resp.status
 
 
 
