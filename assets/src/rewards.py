@@ -109,10 +109,8 @@ async def run(configuration):
                     latest_snapshot = await request_snapshot(session, f"{url}/global-snapshots/latest")
                     if latest_snapshot:
                         latest_ordinal = latest_snapshot.get("ordinal")
-                        db_data, status_code = await safe_request(session, "http://127.0.0.1:8000/ordinal/latest",
-                                                                  configuration)
-                        db_price_data, status_code = await safe_request(session, "http://127.0.0.1:8000/price/latest",
-                                                                        configuration)
+                        db_data = await request_snapshot(session, "http://127.0.0.1:8000/ordinal/latest")
+                        db_price_data, status_code = await Request(session, "http://127.0.0.1:8000/price/latest").db_json(configuration)
                         if db_data:
                             first_timestamp = db_price_data[0]
                             first_ordinal = db_data[1]
