@@ -20,7 +20,10 @@ async def request_snapshot(session, request_url):
         async with session.get(request_url) as response:
             if response.status == 200:
                 data = await response.json()
-                return data.get("data")
+                if data:
+                    return data.get("data")
+                else:
+                    return
             else:
                 logging.getLogger("rewards").warning(f"rewards.py - Failed getting snapshot data from {request_url}, retrying in 3 seconds")
                 await asyncio.sleep(3)
