@@ -41,7 +41,7 @@ class VersionManager:
                 data = data.json()
                 try:
                     version = data["tag_name"][1:]
-                except KeyError:
+                except (KeyError, requests.exceptions.ConnectionError):
                     logging.getLogger("app").warning(
                         f"preliminaries.py - {self.configuration['tessellation']['github']['url']}/{self.configuration['tessellation']['github']['releases']['latest']} KeyError: forcing retry in {3660} seconds\n\t{traceback.print_exc()}"
                     )
