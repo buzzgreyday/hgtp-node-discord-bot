@@ -9,24 +9,43 @@ from aiohttp import ClientSession, TCPConnector
 from assets.src import preliminaries
 from assets.src.schemas import OrdinalSchema, PriceSchema
 from assets.src.database.database import post_ordinal, post_prices, delete_db_ordinal
-from assets.src.api import safe_request, Request
+from assets.src.api import Request
+
+
+class RequestSnapshot:
+    def __init__(self, session):
+        self.session = session
+
+    async def explorer(self, request_url):
+        while True:
+            async with self.session.get(request_url) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if data:
+                        return data.get("data")
+                    else:
+                        return
+                else:
+                    logging.getLogger("rewards").warning(f"rewards.py - Failed getting snapshot data from {request_url}, retrying in 3 seconds")
+                    await asyncio.sleep(3)
+
+    async def database(self, request_url):
+        while True:
+            async with self.session.get(request_url) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if data:
+                        return data
+                    else:
+                        return
+                else:
+                    logging.getLogger("rewards").warning(
+                        f"rewards.py - Failed getting snapshot data from {request_url}, retrying in 3 seconds")
+                    await asyncio.sleep(3)
+
 
 def normalize_timestamp(timestamp):
     return int(round(timestamp))
-
-
-async def request_snapshot(session, request_url):
-    while True:
-        async with session.get(request_url) as response:
-            if response.status == 200:
-                data = await response.json()
-                if data:
-                    return data.get("data")
-                else:
-                    return
-            else:
-                logging.getLogger("rewards").warning(f"rewards.py - Failed getting snapshot data from {request_url}, retrying in 3 seconds")
-                await asyncio.sleep(3)
 
 
 async def request_prices(session, first_timestamp):
@@ -71,7 +90,7 @@ async def process_ordinal_data(session, url, ordinal, ordinal_data, configuratio
             if db_price_data and status_code == 200:
                 logging.getLogger("rewards").info(
                     f"rewards.py - latest price data is {db_price_data}")
-                ordinal_rewards_data = await request_snapshot(session, f"{url}/global-snapshots/{ordinal}/rewards")
+                ordinal_rewards_data = await RequestSnapshot(session).explorer(f"{url}/global-snapshots/{ordinal}/rewards")
                 if ordinal_rewards_data:
                     for r_data in ordinal_rewards_data:
                         ordinal_data.update(r_data)
@@ -90,7 +109,7 @@ async def process_ordinal_data(session, url, ordinal, ordinal_data, configuratio
 async def fetch_and_process_ordinal_data(session, url, ordinal, configuration):
     logging.getLogger("rewards").info(f"rewards.py - Processing ordinal {ordinal}")
     while True:
-        ordinal_data = await request_snapshot(session, f"{url}/global-snapshots/{ordinal}")
+        ordinal_data = await RequestSnapshot(session).explorer(f"{url}/global-snapshots/{ordinal}")
         if ordinal_data:
             await process_ordinal_data(session, url, ordinal, ordinal_data, configuration)
             break
@@ -109,12 +128,11 @@ async def run(configuration):
             for url in urls:
                 while True:
                     now = normalize_timestamp(datetime.utcnow().timestamp())
-                    latest_snapshot = await request_snapshot(session, f"{url}/global-snapshots/latest")
+                    latest_snapshot = await RequestSnapshot(session).explorer(f"{url}/global-snapshots/latest")
                     if latest_snapshot:
                         latest_ordinal = latest_snapshot.get("ordinal")
-                        db_data = await request_snapshot(session, "http://127.0.0.1:8000/ordinal/latest")
-                        db_price_data, status_code = await safe_request(session, "http://127.0.0.1:8000/price/latest",
-                                                                        configuration)
+                        db_data = await RequestSnapshot(session).database("http://127.0.0.1:8000/ordinal/latest")
+                        db_price_data = await RequestSnapshot(session).database("http://127.0.0.1:8000/price/latest")
                         if db_data:
                             first_timestamp = db_price_data[0]
                             first_ordinal = db_data[1]
