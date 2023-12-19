@@ -156,7 +156,7 @@ async def run(configuration):
     times = preliminaries.generate_rewards_runtimes()
     logging.getLogger("rewards").info(f"rewards.py - Runtimes: {times}")
     while True:
-        async with asyncio.Semaphore(8):
+        async with asyncio.Semaphore(50):
             if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
                 try:
                     await process()
