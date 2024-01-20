@@ -16,13 +16,14 @@ from fastapi.encoders import jsonable_encoder
 load_dotenv()
 
 
+database_url = os.getenv("DB_URL") + "?statement_timeout=60000"
+
+# Create the database engine
 engine = create_async_engine(
-    url=os.getenv("DB_URL"),
+    database_url,
     future=True,
     # echo=True,
     # poolclass=NullPool,
-    # set statement_time in milliseconds
-    connect_args={"server_settings": {"statement_timeout": "60000"}},
 )
 
 session = async_sessionmaker(bind=engine, expire_on_commit=False)
