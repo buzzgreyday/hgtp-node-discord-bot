@@ -148,14 +148,12 @@ async def run(configuration):
                         )
                     for ordinal in range(first_ordinal, latest_ordinal):
                         await fetch_and_process_ordinal_data(session, url, ordinal, configuration)
-                    await session.close()
                     break
                 else:
-                    await session.close()
                     logging.getLogger("rewards").error(
                         f"rewards.py - Failed getting snapshot from ({url}/global-snapshots/latest), retrying in 3 seconds")
                     await asyncio.sleep(3)
-
+                await session.close()
 
     await asyncio.sleep(10)
     times = preliminaries.generate_rewards_runtimes()
