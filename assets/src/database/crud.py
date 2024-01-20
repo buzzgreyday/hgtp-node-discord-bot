@@ -16,7 +16,7 @@ from fastapi.encoders import jsonable_encoder
 load_dotenv()
 
 
-database_url = os.getenv("DB_URL") + "?statement_timeout=60000"
+database_url = os.getenv("DB_URL")
 
 # Create the database engine
 engine = create_async_engine(
