@@ -4,10 +4,8 @@ import traceback
 from datetime import datetime
 import os
 from dotenv import load_dotenv
-from sqlalchemy.pool import NullPool
 from sqlalchemy import select, delete, desc, distinct
 
-from assets.src import schemas
 from assets.src.database.models import UserModel, NodeModel, OrdinalModel, PriceModel
 from assets.src.schemas import User as UserSchema, PriceSchema, OrdinalSchema
 from assets.src.schemas import Node as NodeSchema
@@ -23,7 +21,8 @@ engine = create_async_engine(
     future=True,
     # echo=True,
     # poolclass=NullPool,
-    connect_args={"server_settings": {"statement_timeout": "9000"}},
+    # set statement_time in milliseconds
+    connect_args={"server_settings": {"statement_timeout": "60000"}},
 )
 
 session = async_sessionmaker(bind=engine, expire_on_commit=False)
