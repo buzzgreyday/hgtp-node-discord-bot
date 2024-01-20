@@ -40,7 +40,8 @@ class RequestSnapshot:
                         return
                 else:
                     logging.getLogger("rewards").warning(
-                        f"rewards.py - Failed getting snapshot data from {request_url}, retrying in 3 seconds")
+                        f"rewards.py - Failed getting snapshot data from {request_url}, retrying in 3 seconds:\n"
+                        f"\tResponse: {response}")
                     await asyncio.sleep(3)
 
 
@@ -119,13 +120,13 @@ async def fetch_and_process_ordinal_data(session, url, ordinal, configuration):
 
 async def run(configuration):
     async def process():
-        url = "https://be-mainnet.constellationnetwork.io"
-        async with ClientSession(connector=TCPConnector(
-                # You need to obtain a real (non-self-signed certificate) to run in production
-                # ssl=db.ssl_context.load_cert_chain(certfile=ssl_cert_file, keyfile=ssl_key_file)
-                # Not intended for production:
-                ssl=False)) as session:
-            while True:
+        while True:
+            url = "https://be-mainnet.constellationnetwork.io"
+            async with ClientSession(connector=TCPConnector(
+                    # You need to obtain a real (non-self-signed certificate) to run in production
+                    # ssl=db.ssl_context.load_cert_chain(certfile=ssl_cert_file, keyfile=ssl_key_file)
+                    # Not intended for production:
+                    ssl=False)) as session:
                 now = normalize_timestamp(datetime.utcnow().timestamp())
                 latest_snapshot = await RequestSnapshot(session).explorer(f"{url}/global-snapshots/latest")
                 if latest_snapshot:
@@ -147,11 +148,14 @@ async def run(configuration):
                         )
                     for ordinal in range(first_ordinal, latest_ordinal):
                         await fetch_and_process_ordinal_data(session, url, ordinal, configuration)
+                    await session.close()
                     break
                 else:
+                    await session.close()
+                    logging.getLogger("rewards").error(
+                        f"rewards.py - Failed getting snapshot from ({url}/global-snapshots/latest), retrying in 3 seconds")
                     await asyncio.sleep(3)
 
-            await session.close()
 
     await asyncio.sleep(10)
     times = preliminaries.generate_rewards_runtimes()
