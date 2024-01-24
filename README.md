@@ -33,7 +33,8 @@ Create `.env` file in the project folder
 Input your env constants:
 ```
 # Database URL
-DB_URL=""
+DB_URL=postgres+asyncpg://username:password@localhost/<db_name>
+DISCORD_TOKEN=
 ```
 ```bash
 # Run the control.sh script to install
