@@ -21,7 +21,7 @@ Instructions on how to install and run your project.
 
 # Prerequisites
 
-Ubuntu
+Ubuntu 22.04
 
 # Install
 
