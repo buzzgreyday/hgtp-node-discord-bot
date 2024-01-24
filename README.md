@@ -33,7 +33,7 @@ Create `.env` file in the project folder
 Input your env constants:
 ```
 # Database URL
-DB_URL=postgres+asyncpg://username:password@localhost/<db_name>
+DB_URL=postgres+asyncpg://<username>:<password>@localhost/<db_name>
 DISCORD_TOKEN=<token_string>
 ```
 ```bash
