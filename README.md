@@ -34,7 +34,7 @@ Input your env constants:
 ```
 # Database URL
 DB_URL=postgres+asyncpg://username:password@localhost/<db_name>
-DISCORD_TOKEN=
+DISCORD_TOKEN=<token_string>
 ```
 ```bash
 # Run the control.sh script to install
