@@ -8,9 +8,9 @@ This project aims to make Constellation node operators more productive by making
 
 ## Features
 
-- Free
+- Free to use
 - Reports node status over Discord DM's
-- Provides usefull info and statistics on demand
+- Provides useful info and statistics on demand
 - Automatic or on-demand status reporting for subscribers
 
 ## Subscribe
@@ -27,7 +27,7 @@ Ubuntu 22.04
 
 ```bash
 # Example command to install
-git clone <this_project>
+cd $HOME && git clone <this_project> && mv <this_project> bot
 ```
 Create `.env` file in the project folder
 Input your env constants:
@@ -41,4 +41,5 @@ DISCORD_TOKEN=<token_string>
 cd bot
 bash control.sh
 # Enter the number to install bot on the server
+# After installation create ".psql" containing "SET statement_timeout=60000;" in the "postgres" user home directory
 ```
