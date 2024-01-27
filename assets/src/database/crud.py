@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import traceback
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
 from sqlalchemy import select, delete, desc, distinct
@@ -281,3 +281,25 @@ class CRUD:
                 f"crud.py - failed requesting database latest ordinal"
             )
             return
+
+    async def get_ordinals_data_from_timestamp(self, timestamp: int, async_session: async_sessionmaker[AsyncSession]):
+        async with async_session() as session:
+            statement = select(OrdinalModel).filter(OrdinalModel.timestamp >= int(timestamp)).order_by(OrdinalModel.destination)
+            results = await session.execute(statement)
+            results = results.scalars().all()
+            # Extract columns into separate lists
+            data = {
+                'timestamp': [],
+                'ordinals': [],
+                'destinations': [],
+                'dag': [],
+                'usd_value_then': []
+            }
+            for row in results:
+                data['timestamp'].append(row.timestamp)
+                data['ordinals'].append(row.ordinal)
+                data['destinations'].append(row.destination)
+                data['dag'].append(row.amount)
+                data['usd_value_then'].append(row.usd)
+
+            return data

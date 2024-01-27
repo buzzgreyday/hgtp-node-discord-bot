@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from fastapi import FastAPI
 
@@ -79,6 +81,12 @@ async def post_ordinal(data: OrdinalSchema):
 async def get_latest_db_ordinal():
     """Returns latest ordinal entry from the database"""
     return await db.get_latest_db_ordinal(session)
+
+
+@app.get("/ordinal/from/{timestamp}")
+async def get_ordinals_data_from_timestamp(timestamp: int):
+    """Returns ordinal data from timestamp minus X hours"""
+    return await db.get_ordinals_data_from_timestamp(int(timestamp), session)
 
 
 @app.get("/price/latest")

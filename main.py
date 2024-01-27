@@ -11,7 +11,7 @@ import aiohttp
 import yaml
 from aiohttp import ClientConnectorError
 
-from assets.src import preliminaries, run_process, history, rewards
+from assets.src import preliminaries, run_process, history, rewards, stats
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
 
@@ -38,6 +38,9 @@ def load_configuration():
 def start_rewards_coroutine(_configuration):
     asyncio.run_coroutine_threadsafe(rewards.run(_configuration), bot.loop)
 
+
+def start_stats_coroutine(_configuration):
+    asyncio.run_coroutine_threadsafe(stats.run(_configuration), bot.loop)
 
 
 async def main_loop(version_manager, _configuration):
@@ -115,22 +118,24 @@ def main():
     logger.addHandler(handler)
 
 
-    version_manager = preliminaries.VersionManager(_configuration)
+    # version_manager = preliminaries.VersionManager(_configuration)
 
-    bot.load_extension("assets.src.discord.commands")
-    bot.load_extension("assets.src.discord.events")
+    # bot.load_extension("assets.src.discord.commands")
+    # bot.load_extension("assets.src.discord.events")
 
-    bot.loop.create_task(main_loop(version_manager, _configuration))
+    # bot.loop.create_task(main_loop(version_manager, _configuration))
 
     # Create a thread for running uvicorn
     uvicorn_thread = threading.Thread(target=run_uvicorn_process)
-    get_tessellation_version_thread = threading.Thread(
-        target=version_manager.update_version, daemon=True
-    )
-    get_tessellation_version_thread.start()
+    #get_tessellation_version_thread = threading.Thread(
+    #    target=version_manager.update_version, daemon=True
+    #)
+    #get_tessellation_version_thread.start()
     uvicorn_thread.start()
-    rewards_thread = threading.Thread(target=start_rewards_coroutine, args=(_configuration,))
-    rewards_thread.start()
+    # rewards_thread = threading.Thread(target=start_rewards_coroutine, args=(_configuration,))
+    # rewards_thread.start()
+    stats_thread = threading.Thread(target=start_stats_coroutine, args=(_configuration,))
+    stats_thread.start()
 
     while True:
         try:
