@@ -44,10 +44,12 @@ async def run(configuration):
             daily_df.loc[:, 'dag_address_sum'] = daily_df.groupby('destinations')['dag'].transform('sum')
             print("transform was okay")
             daily_df.loc[:, 'dag_address_mean'] = daily_df.groupby('destinations')['dag_address_sum'].transform('mean')
+
             daily_df = daily_df[['timestamp', 'destinations', 'dag_address_sum', 'dag_address_mean']].drop_duplicates('destinations', ignore_index=True)
             list_of_df.append(daily_df)
             t = t - secs
         daily_df = pd.concat(list_of_df, ignore_index=True)
+        overall_daily_median = daily_df['dag_address_mean'].median()
 
         # TEST PLOT CREATION:
         unique_destinations = daily_df['destinations'].unique()
@@ -56,10 +58,12 @@ async def run(configuration):
             destination_df = daily_df[daily_df['destinations'] == destination]
 
             plt.figure(figsize=(12, 6))
-            plt.plot(destination_df['timestamp'], destination_df['dag_address_mean'], marker='o')
-            plt.xlabel('Timestamp')
-            plt.ylabel('Daily dag_address_mean')
-            plt.title(f'Daily dag_address_mean for Destination: {destination}')
+            plt.plot(destination_df.index + 1, destination_df['dag_address_mean'], marker='o')
+            plt.axhline(overall_daily_median, color='red', linestyle='--', label='Overall Daily Median')
+
+            plt.xlabel('')
+            plt.ylabel('Daily $DAG Earnings')
+            plt.title('')
             plt.xticks(rotation=45)  # Rotate x-axis labels for better readability if needed
             plt.grid(True)
             plt.tight_layout()
