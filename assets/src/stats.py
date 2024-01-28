@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from aiohttp import ClientSession, TCPConnector
 import matplotlib.pyplot as plt
+from matplotlib import style
 
 from assets.src.rewards import normalize_timestamp, RequestSnapshot
 
@@ -60,11 +61,12 @@ async def run(configuration):
 
         for destination in unique_destinations:
             destination_df = daily_df[daily_df['destinations'] == destination]
-
+            plt.style.use('Solarize_Light2')
+            print("style ok")
             plt.figure(figsize=(12, 6))
             plt.plot(destination_df.index + 1, destination_df['dag_address_mean'], marker='o', label='Node earnings per snapshot')
-            plt.plot(destination_df.index + 1, destination_df['daily_overall_median'], marker='o', label='Median earnings per snapshot')
-
+            plt.plot(destination_df.index + 1, destination_df['daily_overall_median'], marker='o', label='Median earnings per snapshot' , linestyle=':')
+            print("plot ok")
             plt.axhline(overall_daily_median, color='red', linestyle='--', label='Earnings median')
 
             plt.xlabel('Number of Snapshots')
