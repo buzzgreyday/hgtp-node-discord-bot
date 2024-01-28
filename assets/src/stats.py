@@ -21,7 +21,9 @@ async def run(configuration):
         # 30 days in seconds
         # seconds = 2592000
         data = await RequestSnapshot(session).database(f"http://127.0.0.1:8000/ordinal/from/{timestamp}")
+        print("Got data")
         data = pd.DataFrame(data)
+        print("Data loaded into DataFrame")
         # WE SHOULD NOW CREATE A DATABASE TABLE CONTAINING OVERALL HISTORIC PERFORMANCE OF ALL NODES UNTIL LATEST ORDINAL
         # TO GET EFFECTIVE EARNINGS, TAKE THE DAILY EARNINGS AND CALC THE STANDARD DEVIATION PER ADDRESS
         # PLUS DAILY MEAN
@@ -34,12 +36,15 @@ async def run(configuration):
         pd.options.display.float_format = '{:.2f}'.format
         t = data['timestamp'].values.max()
         list_of_df = []
+        # One hour in seconds
+        secs = 86400
         while t >= data['timestamp'].values.min():
-            daily_df = data[(data['timestamp'] >= t - 86400) & (data['timestamp'] <= t)].copy()
+            daily_df = data[(data['timestamp'] >= t - secs) & (data['timestamp'] <= t)].copy()
             daily_df.loc[:, 'dag_address_sum'] = daily_df.groupby('destinations')['dag'].transform('sum')
+            print("transform was okay")
             daily_df = daily_df[['destinations', 'dag_address_sum']].drop_duplicates('destinations', ignore_index=True)
             list_of_df.append(daily_df)
-            t = t - 86400
+            t = t - secs
         daily_df = pd.concat(list_of_df, ignore_index=True)
         daily_df['dag_daily_std_dev'] = daily_df.groupby('destinations')['dag_address_sum'].transform('std')
         daily_df['dag_address_daily_mean'] = daily_df.groupby('destinations')['dag_address_sum'].transform('mean')
@@ -49,7 +54,11 @@ async def run(configuration):
         daily_df['dag_address_daily_sum_dev'] = daily_df['dag_address_sum'] - daily_overall_median
         daily_df = daily_df[['destinations', 'dag_address_daily_mean', 'dag_address_daily_sum_dev', 'dag_daily_std_dev']].drop_duplicates('destinations')
         daily_df['dag_daily_std_dev'].fillna(0, inplace=True)
-        print(daily_df.sort_values(by=['dag_address_daily_sum_dev', 'dag_daily_std_dev'], ascending=False).reset_index(drop=True))
+        print("Fill na done")
+        daily_df = daily_df.sort_values(by=['dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev'], ascending=[False, False, True]).reset_index(drop=True)
+        print("Sorting done")
+        daily_df['daily_effective_score'] = daily_df.index + 1
+        print(daily_df)
 
         input(f'Looks okay? ')
         # data['dag_effective_daily_earnings'] =
@@ -68,6 +77,13 @@ async def run(configuration):
         """data['first_received_rewards'] = data.groupby('destinations')['timestamps'].transform('min')
         data['latest_received_rewards'] = data.groupby('destinations')['timestamps'].transform('max')"""
 
-        data = data[['destinations', 'dag_address_sum', 'dag_address_sum_dev', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev']].drop_duplicates('destinations')
+        data = data[['daily_effective_score', 'destinations', 'dag_address_sum', 'dag_address_sum_dev', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev']].drop_duplicates('destinations')
         # MOST EFFECTIVE EARNER MUST BE THE LOWEST DAILY STD DEV AND THE HIGHEST TIMESPAN DEV EARNINGS
-        print(data.sort_values(by=['dag_address_sum_dev', 'dag_daily_std_dev'], ascending=False).reset_index(drop=True))
+        data = data.sort_values(
+            by=['dag_address_sum_dev', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev'],
+            ascending=[False, False, False, True]).reset_index(
+            drop=True)
+        # THE SCORE BELOW SHOULD PROBABLY RELY ON AN AGGREGATE SCORE OF DAG ADDRESS DAILY SUM DEV + DAG ADDRESS SUM DEV + DAG ADDRESS DAILY MEAN BEING HIGH
+        # AND DAG DAILY STD DEV BEING LOW
+        data['overall_effective_score'] = data.index + 1
+        print(data)
