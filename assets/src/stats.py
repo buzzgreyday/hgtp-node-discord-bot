@@ -67,7 +67,7 @@ async def run(configuration):
 
             plt.axhline(overall_daily_median, color='red', linestyle='--', label='Earnings median')
 
-            plt.xlabel('')
+            plt.xlabel('Number of Snapshots')
             plt.ylabel('Daily $DAG Earnings')
             plt.title('')
             plt.legend()
