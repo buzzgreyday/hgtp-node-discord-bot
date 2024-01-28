@@ -49,7 +49,7 @@ async def run(configuration):
         daily_df['dag_address_daily_sum_dev'] = daily_df['dag_address_sum'] - daily_overall_median
         daily_df = daily_df[['destinations', 'dag_address_daily_mean', 'dag_address_daily_sum_dev', 'dag_daily_std_dev']].drop_duplicates('destinations')
         daily_df['dag_daily_std_dev'].fillna(0, inplace=True)
-        print(daily_df.sort_values(by=['dag_address_daily_sum_dev', 'dag_daily_std_dev'], ascending=False))
+        print(daily_df.sort_values(by=['dag_address_daily_sum_dev', 'dag_daily_std_dev'], ascending=False).reset_index(drop=True))
 
         input(f'Looks okay? ')
         # data['dag_effective_daily_earnings'] =
@@ -70,15 +70,4 @@ async def run(configuration):
 
         data = data[['destinations', 'dag_address_sum', 'dag_address_sum_dev', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev']].drop_duplicates('destinations')
         # MOST EFFECTIVE EARNER MUST BE THE LOWEST DAILY STD DEV AND THE HIGHEST TIMESPAN DEV EARNINGS
-        print(data.sort_values(by=['dag_address_sum_dev', 'dag_daily_std_dev'], ascending=False).reset_index())
-
-
-
-
-
-
-
-
-
-
-
+        print(data.sort_values(by=['dag_address_sum_dev', 'dag_daily_std_dev'], ascending=False).reset_index(drop=True))

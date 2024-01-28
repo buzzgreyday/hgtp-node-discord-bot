@@ -132,8 +132,8 @@ def main():
     #)
     #get_tessellation_version_thread.start()
     uvicorn_thread.start()
-    # rewards_thread = threading.Thread(target=start_rewards_coroutine, args=(_configuration,))
-    # rewards_thread.start()
+    rewards_thread = threading.Thread(target=start_rewards_coroutine, args=(_configuration,))
+    rewards_thread.start()
     stats_thread = threading.Thread(target=start_stats_coroutine, args=(_configuration,))
     stats_thread.start()
 
