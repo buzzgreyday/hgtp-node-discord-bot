@@ -75,7 +75,7 @@ async def run(configuration):
             plt.grid(True)
             plt.tight_layout()
             plt.show()
-
+            # ADD IMAGE PATH TO DATA
         ###
 
         daily_df['dag_daily_std_dev'] = daily_df.groupby('destinations')['dag_address_sum'].transform('std')
