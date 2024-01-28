@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 from aiohttp import ClientSession, TCPConnector
+import matplotlib.pyplot as plt
 
 from assets.src.rewards import normalize_timestamp, RequestSnapshot
 
@@ -42,10 +43,30 @@ async def run(configuration):
             daily_df = data[(data['timestamp'] >= t - secs) & (data['timestamp'] <= t)].copy()
             daily_df.loc[:, 'dag_address_sum'] = daily_df.groupby('destinations')['dag'].transform('sum')
             print("transform was okay")
-            daily_df = daily_df[['destinations', 'dag_address_sum']].drop_duplicates('destinations', ignore_index=True)
+            daily_df.loc[:, 'dag_address_mean'] = daily_df.groupby('destinations')['dag_address_sum'].transform('mean')
+            daily_df = daily_df[['timestamp', 'destinations', 'dag_address_sum', 'dag_address_mean']].drop_duplicates('destinations', ignore_index=True)
             list_of_df.append(daily_df)
             t = t - secs
         daily_df = pd.concat(list_of_df, ignore_index=True)
+
+        # TEST PLOT CREATION:
+        unique_destinations = daily_df['destinations'].unique()
+
+        for destination in unique_destinations:
+            destination_df = daily_df[daily_df['destinations'] == destination]
+
+            plt.figure(figsize=(12, 6))
+            plt.plot(destination_df['timestamp'], destination_df['dag_address_mean'], marker='o')
+            plt.xlabel('Timestamp')
+            plt.ylabel('Daily dag_address_mean')
+            plt.title(f'Daily dag_address_mean for Destination: {destination}')
+            plt.xticks(rotation=45)  # Rotate x-axis labels for better readability if needed
+            plt.grid(True)
+            plt.tight_layout()
+            plt.show()
+
+        ###
+
         daily_df['dag_daily_std_dev'] = daily_df.groupby('destinations')['dag_address_sum'].transform('std')
         daily_df['dag_address_daily_mean'] = daily_df.groupby('destinations')['dag_address_sum'].transform('mean')
         daily_overall_median = daily_df['dag_address_sum'].median()
