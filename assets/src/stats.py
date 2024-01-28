@@ -44,11 +44,15 @@ async def run(configuration):
             daily_df.loc[:, 'dag_address_sum'] = daily_df.groupby('destinations')['dag'].transform('sum')
             print("transform was okay")
             daily_df.loc[:, 'dag_address_mean'] = daily_df.groupby('destinations')['dag_address_sum'].transform('mean')
+            daily_df.loc[:, 'daily_overall_median'] = daily_df['dag_address_sum'].median()
 
-            daily_df = daily_df[['timestamp', 'destinations', 'dag_address_sum', 'dag_address_mean']].drop_duplicates('destinations', ignore_index=True)
+            daily_df = daily_df[['timestamp', 'destinations', 'dag_address_sum', 'dag_address_mean', 'daily_overall_median']].drop_duplicates('destinations', ignore_index=True)
             list_of_df.append(daily_df)
             t = t - secs
+
         daily_df = pd.concat(list_of_df, ignore_index=True)
+
+        # Calculate the median $DAG earnings for all addresses all days
         overall_daily_median = daily_df['dag_address_mean'].median()
 
         # TEST PLOT CREATION:
@@ -58,12 +62,15 @@ async def run(configuration):
             destination_df = daily_df[daily_df['destinations'] == destination]
 
             plt.figure(figsize=(12, 6))
-            plt.plot(destination_df.index + 1, destination_df['dag_address_mean'], marker='o')
-            plt.axhline(overall_daily_median, color='red', linestyle='--', label='Overall Daily Median')
+            plt.plot(destination_df.index + 1, destination_df['dag_address_mean'], marker='o', label='Node earnings per snapshot')
+            plt.plot(destination_df.index + 1, destination_df['daily_overall_median'], marker='o', label='Median earnings per snapshot')
+
+            plt.axhline(overall_daily_median, color='red', linestyle='--', label='Earnings median')
 
             plt.xlabel('')
             plt.ylabel('Daily $DAG Earnings')
             plt.title('')
+            plt.legend()
             plt.xticks(rotation=45)  # Rotate x-axis labels for better readability if needed
             plt.grid(True)
             plt.tight_layout()
