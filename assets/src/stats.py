@@ -51,23 +51,20 @@ async def run(configuration):
             t = t - secs
 
         daily_df = pd.concat(list_of_df, ignore_index=True)
+        del list_of_df
 
         # Calculate the median $DAG earnings for all addresses all days
         overall_daily_median = daily_df['dag_address_mean'].median()
 
         # TEST PLOT CREATION:
         unique_destinations = daily_df['destinations'].unique()
-
+        path = "assets/data/visualizations"
         for destination in unique_destinations:
             destination_df = daily_df[daily_df['destinations'] == destination]
             plt.style.use('Solarize_Light2')
             fig = plt.figure(figsize=(12, 6))
             fig.patch.set_alpha(0)
 
-            """
-            plt.plot(destination_df["ordinals"], destination_df['dag_address_mean'], marker='o', label='Daily node earnings')
-            plt.plot(destination_df["ordinals"], destination_df['daily_overall_median'], marker='o', label='Daily average network earnings' , linestyle=':', alpha=0.5)
-            """
             print("style ok")
             plt.plot(pd.to_datetime(destination_df['timestamp'] * 1000, unit='ms'), destination_df['dag_address_mean'], marker='o',
                      label='Daily node earnings')
@@ -83,10 +80,13 @@ async def run(configuration):
             plt.xticks(rotation=45)  # Rotate x-axis labels for better readability if needed
             plt.grid(True)
             plt.tight_layout()
-            plt.savefig(f"assets/data/visualizations/{destination}.png")
+            plt.savefig(f"{path}/{destination}.png")
             # plt.show()
             plt.close()
+            daily_df['plot'] = f"{path}/{destination}.png"
             # ADD IMAGE PATH TO DATA
+
+        del destination_df
         ###
 
         daily_df['dag_daily_std_dev'] = daily_df.groupby('destinations')['dag_address_sum'].transform('std')
@@ -95,16 +95,13 @@ async def run(configuration):
 
         # PERFORMING BETTER THAN THE REST ON THE DAILY, IF HIGHER
         daily_df['dag_address_daily_sum_dev'] = daily_df['dag_address_sum'] - daily_overall_median
-        daily_df = daily_df[['destinations', 'dag_address_daily_mean', 'dag_address_daily_sum_dev', 'dag_daily_std_dev']].drop_duplicates('destinations')
+        daily_df = daily_df[['destinations', 'dag_address_daily_mean', 'dag_address_daily_sum_dev', 'dag_daily_std_dev', 'plot']].drop_duplicates('destinations')
         daily_df['dag_daily_std_dev'].fillna(0, inplace=True)
-        print("Fill na done")
         daily_df = daily_df.sort_values(by=['dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev'], ascending=[False, False, True]).reset_index(drop=True)
-        print("Sorting done")
         daily_df['daily_effectivity_score'] = daily_df.index
         print(daily_df)
+        input(f'Daily looks okay? ')
 
-        input(f'Looks okay? ')
-        # data['dag_effective_daily_earnings'] =
         data['dag_address_sum'] = data.groupby('destinations')['dag'].transform('sum')
 
         # THE USD VALUE NEEDS TO BE MULTIPLIED SINCE IT'S THE VALUE PER DAG
@@ -114,20 +111,18 @@ async def run(configuration):
         # PERFORMING BETTER THAN THE REST IN THE TIMESPAN, IF HIGHER
         data['dag_address_sum_dev'] = data['dag_address_sum'] - data['dag_address_sum'].median()
         data = data.merge(daily_df, on='destinations', how='left')
-        """data['latest_ordinal'] = data['ordinals'].max()
-        data['latest_timestamp'] = data['timestamps'].max()"""
+        data = data[['daily_effectivity_score', 'destinations', 'dag_address_sum', 'dag_address_sum_dev', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev', 'plot']].drop_duplicates('destinations')
+        del daily_df
 
-        """data['first_received_rewards'] = data.groupby('destinations')['timestamps'].transform('min')
-        data['latest_received_rewards'] = data.groupby('destinations')['timestamps'].transform('max')"""
-
-        data = data[['daily_effectivity_score', 'destinations', 'dag_address_sum', 'dag_address_sum_dev', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev']].drop_duplicates('destinations')
-        # MOST EFFECTIVE EARNER MUST BE THE LOWEST DAILY STD DEV AND THE HIGHEST TIMESPAN DEV EARNINGS
+        # MOST EFFECTIVE EARNER MUST BE THE LOWEST DAILY STD DEV, THE HIGHEST DAILY MEAN EARNINGS, HIGHEST DAILY SUM DEV
+        # (AVERAGE NODE SUM EARNINGS - NETWORK EARNINGS MEDIAN) AND HIGHEST OVERALL SUM DEV (AVERAGE NODE SUM EARNINGS - NETWORK EARNINGS
+        # MEDIAN)
         data = data.sort_values(
             by=['dag_address_sum_dev', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev'],
             ascending=[False, False, False, True]).reset_index(
             drop=True)
-        # THE SCORE BELOW SHOULD PROBABLY RELY ON AN AGGREGATE SCORE OF DAG ADDRESS DAILY SUM DEV + DAG ADDRESS SUM DEV + DAG ADDRESS DAILY MEAN BEING HIGH
-        # AND DAG DAILY STD DEV BEING LOW
+        # The effectivity score: close to zero is good. F.ex. 6 out of 460 = 6/460*100 = TOP 0.869%;
+        # Least spread between daily and overall effectivity
         data['effectivity_score'] = data.index + data['daily_effectivity_score']
         data = data.sort_values(by='dag_address_sum_dev', ascending=False).reset_index(drop=True)
         data['earner_score'] = data.index
