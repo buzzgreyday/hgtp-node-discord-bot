@@ -1,13 +1,12 @@
 import asyncio
-from datetime import datetime, timedelta
+import traceback
+from datetime import datetime
 
-import numpy as np
 import pandas as pd
 from aiohttp import ClientSession, TCPConnector
 import matplotlib.pyplot as plt
-from matplotlib import style
 
-from assets.src.rewards import normalize_timestamp, RequestSnapshot
+from assets.src.rewards import RequestSnapshot, normalize_timestamp
 
 
 async def run(configuration):
@@ -47,7 +46,7 @@ async def run(configuration):
             daily_df.loc[:, 'dag_address_mean'] = daily_df.groupby('destinations')['dag_address_sum'].transform('mean')
             daily_df.loc[:, 'daily_overall_median'] = daily_df['dag_address_sum'].median()
 
-            daily_df = daily_df[['timestamp', 'destinations', 'dag_address_sum', 'dag_address_mean', 'daily_overall_median']].drop_duplicates('destinations', ignore_index=True)
+            daily_df = daily_df[['timestamp', "ordinals", 'destinations', 'dag_address_sum', 'dag_address_mean', 'daily_overall_median']].drop_duplicates('destinations', ignore_index=True)
             list_of_df.append(daily_df)
             t = t - secs
 
@@ -62,21 +61,31 @@ async def run(configuration):
         for destination in unique_destinations:
             destination_df = daily_df[daily_df['destinations'] == destination]
             plt.style.use('Solarize_Light2')
-            print("style ok")
-            plt.figure(figsize=(12, 6))
-            plt.plot(destination_df.index + 1, destination_df['dag_address_mean'], marker='o', label='Node earnings per snapshot')
-            plt.plot(destination_df.index + 1, destination_df['daily_overall_median'], marker='o', label='Median earnings per snapshot' , linestyle=':')
-            print("plot ok")
-            plt.axhline(overall_daily_median, color='red', linestyle='--', label='Earnings median')
+            fig = plt.figure(figsize=(12, 6))
+            fig.patch.set_alpha(0)
 
-            plt.xlabel('Number of Snapshots')
-            plt.ylabel('Daily $DAG Earnings')
+            """
+            plt.plot(destination_df["ordinals"], destination_df['dag_address_mean'], marker='o', label='Daily node earnings')
+            plt.plot(destination_df["ordinals"], destination_df['daily_overall_median'], marker='o', label='Daily average network earnings' , linestyle=':', alpha=0.5)
+            """
+            print("style ok")
+            plt.plot(pd.to_datetime(destination_df['timestamp'] * 1000, unit='ms'), destination_df['dag_address_mean'], marker='o',
+                     label='Daily node earnings')
+            plt.plot(pd.to_datetime(destination_df['timestamp'] * 1000, unit='ms'), destination_df['daily_overall_median'], marker='o',
+                     label='Daily average network earnings', linestyle=':', alpha=0.5)
+            print("plot ok")
+            plt.axhline(overall_daily_median, color='red', linestyle='--', label=f'Average network earnings (since {datetime.fromtimestamp(timestamp=timestamp).strftime("%d. %B %Y")})', alpha=0.5)
+            plt.xlabel('Time')
+            plt.ylabel('$DAG Earnings')
             plt.title('')
+
             plt.legend()
             plt.xticks(rotation=45)  # Rotate x-axis labels for better readability if needed
             plt.grid(True)
             plt.tight_layout()
-            plt.show()
+            plt.savefig(f"assets/data/visualizations/{destination}.png")
+            # plt.show()
+            plt.close()
             # ADD IMAGE PATH TO DATA
         ###
 
@@ -91,7 +100,7 @@ async def run(configuration):
         print("Fill na done")
         daily_df = daily_df.sort_values(by=['dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev'], ascending=[False, False, True]).reset_index(drop=True)
         print("Sorting done")
-        daily_df['daily_effective_score'] = daily_df.index + 1
+        daily_df['daily_effectivity_score'] = daily_df.index
         print(daily_df)
 
         input(f'Looks okay? ')
@@ -111,7 +120,7 @@ async def run(configuration):
         """data['first_received_rewards'] = data.groupby('destinations')['timestamps'].transform('min')
         data['latest_received_rewards'] = data.groupby('destinations')['timestamps'].transform('max')"""
 
-        data = data[['daily_effective_score', 'destinations', 'dag_address_sum', 'dag_address_sum_dev', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev']].drop_duplicates('destinations')
+        data = data[['daily_effectivity_score', 'destinations', 'dag_address_sum', 'dag_address_sum_dev', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev']].drop_duplicates('destinations')
         # MOST EFFECTIVE EARNER MUST BE THE LOWEST DAILY STD DEV AND THE HIGHEST TIMESPAN DEV EARNINGS
         data = data.sort_values(
             by=['dag_address_sum_dev', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev'],
@@ -119,5 +128,7 @@ async def run(configuration):
             drop=True)
         # THE SCORE BELOW SHOULD PROBABLY RELY ON AN AGGREGATE SCORE OF DAG ADDRESS DAILY SUM DEV + DAG ADDRESS SUM DEV + DAG ADDRESS DAILY MEAN BEING HIGH
         # AND DAG DAILY STD DEV BEING LOW
-        data['overall_effective_score'] = data.index + 1
+        data['effectivity_score'] = data.index + data['daily_effectivity_score']
+        data = data.sort_values(by='dag_address_sum_dev', ascending=False).reset_index(drop=True)
+        data['earner_score'] = data.index
         print(data)
