@@ -143,9 +143,12 @@ async def run(configuration):
             by=['dag_address_sum_dev', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev'],
             ascending=[False, False, False, True]).reset_index(
             drop=True)
-        # The effectivity score: close to zero is good. F.ex. 6 out of 460 = 6/460*100 = TOP 0.869%;
-        # Least spread between daily and overall effectivity
+        """
+        # The effectivity score: close to zero is good.
+        """
         data['effectivity_score'] = data.index + data['daily_effectivity_score']
+
+
         data = data.sort_values(by='dag_address_sum_dev', ascending=False).reset_index(drop=True)
         data['earner_score'] = data.index
 
