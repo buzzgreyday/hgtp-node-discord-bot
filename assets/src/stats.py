@@ -34,7 +34,7 @@ async def create_daily_data(data: pd.DataFrame, start_time, from_timestamp):
     # One day in seconds
     traverse_seconds = 86400
     sliced_df = await create_timeslice_data(data, start_time, traverse_seconds)
-    await create_visualizations(sliced_df, from_timestamp)
+    create_visualizations(sliced_df, from_timestamp)
     sliced_df['dag_daily_std_dev'] = sliced_df.groupby('destinations')['dag_address_sum'].transform('std')
     sliced_df['dag_address_daily_mean'] = sliced_df.groupby('destinations')['dag_address_sum'].transform('mean')
     daily_overall_median = sliced_df['dag_address_sum'].median()
@@ -51,8 +51,8 @@ async def create_daily_data(data: pd.DataFrame, start_time, from_timestamp):
     return sliced_df
 
 
-async def create_visualizations(df: pd.DataFrame, from_timestamp: int):
-    # TEST PLOT CREATION:
+def create_visualizations(df: pd.DataFrame, from_timestamp: int):
+    # Something here is causing an Tkinter related async issue: probably related to .close()
     overall_daily_median = df['dag_address_mean'].median()
     unique_destinations = df['destinations'].unique()
     path = "assets/data/visualizations"
@@ -83,9 +83,8 @@ async def create_visualizations(df: pd.DataFrame, from_timestamp: int):
         plt.tight_layout()
         plt.savefig(f"{path}/{destination}.png")
         # plt.show()
-        plt.close()
+        # plt.close()
         df['plot'] = f"{path}/{destination}.png"
-        # ADD IMAGE PATH TO DATA
 
 
 async def run(configuration):
