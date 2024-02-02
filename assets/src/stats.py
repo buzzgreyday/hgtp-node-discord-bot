@@ -52,7 +52,8 @@ async def create_daily_data(data: pd.DataFrame, start_time, from_timestamp):
 
 
 def create_visualizations(df: pd.DataFrame, from_timestamp: int):
-    # Something here is causing an Tkinter related async issue: probably related to .close()
+    # Something here is causing a Tkinter related async issue: probably related to .close() or the fact that this was a
+    # async function. Look into this.
     overall_daily_median = df['dag_address_mean'].median()
     unique_destinations = df['destinations'].unique()
     path = "assets/data/visualizations"
@@ -83,7 +84,7 @@ def create_visualizations(df: pd.DataFrame, from_timestamp: int):
         plt.tight_layout()
         plt.savefig(f"{path}/{destination}.png")
         # plt.show()
-        # plt.close()
+        plt.close()
         df['plot'] = f"{path}/{destination}.png"
 
 
@@ -101,8 +102,8 @@ async def run(configuration):
         # Convert to Epoch
         # timestamp = normalize_timestamp(datetime.utcnow().timestamp())
         timestamp = 1640995200
-        # 30 days in seconds
-        # seconds = 2592000
+        # 30 days in seconds = 2592000
+        # 7 days in seconds = 604800
         data = await RequestSnapshot(session).database(f"http://127.0.0.1:8000/ordinal/from/{timestamp}")
         print("Got data")
         data = pd.DataFrame(data)
