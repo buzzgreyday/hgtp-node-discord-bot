@@ -108,15 +108,8 @@ async def run(configuration):
         data = await RequestSnapshot(session).database(f"http://127.0.0.1:8000/ordinal/from/{timestamp}")
         print("Got data")
         data = pd.DataFrame(data)
-        print("Data loaded into DataFrame")
-        # WE SHOULD NOW CREATE A DATABASE TABLE CONTAINING OVERALL HISTORIC PERFORMANCE OF ALL NODES UNTIL LATEST ORDINAL
-        # TO GET EFFECTIVE EARNINGS, TAKE THE DAILY EARNINGS AND CALC THE STANDARD DEVIATION PER ADDRESS
-        # PLUS DAILY MEAN
-        # MOST EFFECTIVE EARNER MUST BE THE LOWEST DAILY STD DEV AND THE HIGHEST TIMESPAN DEV EARNINGS
 
-        # ALSO NEED HIGHEST AND LOWEST EXPECTED DAILY EARNINGS AND
-
-        # REMEMBER YOU TURNED OF THINGS IN MAIN.PY
+        # ! REMEMBER YOU TURNED OF THINGS IN MAIN.PY !
         pd.set_option('display.max_rows', None)
         pd.options.display.float_format = '{:.2f}'.format
         start_time = data['timestamp'].values.max()
@@ -135,16 +128,17 @@ async def run(configuration):
         # THE USD VALUE NEEDS TO BE MULTIPLIED SINCE IT'S THE VALUE PER DAG
         # data['usd_sum'] = data.groupby('destinations')['usd_value_then'].transform('sum')
         # data['dag_overall_sum_median'] = data['dag_address_sum'].median()
-        # PERFORMING BETTER THAN THE REST IN THE TIMESPAN, IF HIGHER
+
+        # The node is earning more than the average if sum deviation is positive
         data['dag_address_sum_dev'] = data['dag_address_sum'] - data['dag_address_sum'].median()
         data = data.merge(sliced_df, on='destinations', how='left')
         data = data[['daily_effectivity_score', 'destinations', 'dag_address_sum', 'dag_address_sum_dev', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev', 'plot']].drop_duplicates('destinations')
         del sliced_df
-
-        # MOST EFFECTIVE EARNER MUST BE THE LOWEST DAILY STD DEV, THE HIGHEST DAILY MEAN EARNINGS, HIGHEST DAILY SUM DEV
-        # (AVERAGE NODE SUM EARNINGS - NETWORK EARNINGS MEDIAN) AND HIGHEST OVERALL SUM DEV (AVERAGE NODE SUM EARNINGS - NETWORK EARNINGS
-        # MEDIAN)
-
+        """
+        # The most effective node is the node with the lowest daily standard deviation, the highest daily mean earnings,
+        # the highest daily sum deviation (average node sum earnings, minus network earnings median) and the highest
+        # overall timeslice sum deviation (average node sum earnings, minus network earnings median).
+        """
         data = data.sort_values(
             by=['dag_address_sum_dev', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev'],
             ascending=[False, False, False, True]).reset_index(
