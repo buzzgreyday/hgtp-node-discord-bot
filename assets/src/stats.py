@@ -28,7 +28,6 @@ async def create_timeslice_data(data: pd.DataFrame, start_time: int, travers_sec
         start_time = start_time - travers_seconds
 
     sliced_df = pd.concat(list_of_df, ignore_index=True)
-    del list_of_df
     return sliced_df
 
 async def create_daily_data(data: pd.DataFrame, start_time, from_timestamp):
@@ -133,7 +132,6 @@ async def run(configuration):
         data['dag_address_sum_dev'] = data['dag_address_sum'] - data['dag_address_sum'].median()
         data = data.merge(sliced_df, on='destinations', how='left')
         data = data[['daily_effectivity_score', 'destinations', 'dag_address_sum', 'dag_address_sum_dev', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev', 'plot']].drop_duplicates('destinations')
-        del sliced_df
         """
         # The most effective node is the node with the lowest daily standard deviation, the highest daily mean earnings,
         # the highest daily sum deviation (average node sum earnings, minus network earnings median) and the highest
