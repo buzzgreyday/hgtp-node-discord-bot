@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Statistics for {{ dag_address }}</title>
+</head>
+<body>
+    <h1>Statistics</h1>
+    <p>Here are some statistics:</p>
+    <ul>
+        <li>Earner Score (30 days): {{ earner_score }} ({{ percent_earning_more * 100 }}% are earning more)</li>
+        <li>Earnings (30 days): {{ dag_address_sum }} $DAG ({{ usd_address_sum }} $USD)</li>
+        <li>Earnings Deviation (30 days): {{ dag_address_sum_dev }} $DAG (minus = worse)</li>
+        <li>Effectivity Score (30 days): {{ effectivity_score }} (0 = best)</li>
+    </ul>
+    <h2>Plot</h2>
+    <img src="{{ plot_path }}" alt="Plot">
+</body>
+</html>

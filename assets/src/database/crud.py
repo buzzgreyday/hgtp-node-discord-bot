@@ -151,25 +151,33 @@ class CRUD:
             )
             return
 
-    async def get_timestamp_db_price(self,
-            ordinal_timestamp: int, async_session: async_sessionmaker[AsyncSession]
+    async def get_html_page_stats(self, request, templates, dag_address, async_session: async_sessionmaker[AsyncSession]
     ):
-        """Get the latest ordinal data existing in the database"""
         async with async_session() as session:
-            statement = select(PriceModel).filter(PriceModel.timestamp <= ordinal_timestamp).order_by(
-                desc(PriceModel.timestamp)).limit(1)
-            results = await session.execute(statement)
-            timestamp_price_data = results.scalar()
-        if timestamp_price_data:
-            logging.getLogger("rewards").info(
-                f"crud.py - success requesting database timestamp price: {timestamp_price_data.timestamp, timestamp_price_data.usd}"
+            results = await session.execute(
+                select(StatModel).where(StatModel.destinations == dag_address)
             )
-            return timestamp_price_data.timestamp, timestamp_price_data.usd
+
+        results = results.scalar_one_or_none()
+        if results:
+            return templates.TemplateResponse("index.html",
+                                              {"request": request,
+                                               "dag_address": results.destinations,
+                                               "daily_effectivity_score": results.daily_effectivity_score,
+                                               "effectivity_score": results.effectivity_score,
+                                               "earner_score": results.earner_score,
+                                               "percent_earning_more": results.percent_earning_more,
+                                               "dag_address_sum": results.dag_address_sum,
+                                               "dag_address_sum_dev": results.dag_address_sum_dev,
+                                               "dag_address_daily_sum_dev": results.dag_address_sum_dev,
+                                               "dag_address_daily_mean": results.dag_address_daily_mean,
+                                               "dag_address_daily_std_dev": results.dag_daily_std_dev,
+                                               "usd_address_sum": results.usd_address_sum,
+                                               "usd_address_daily_sum": results.usd_address_daily_sum,
+                                               "plot_path": results.plot})
         else:
-            logging.getLogger("rewards").warning(
-                f"crud.py - failed requesting database timestamp price"
-            )
-            return
+            print("Error")
+
 
     async def get_latest_db_price(self,
             async_session: async_sessionmaker[AsyncSession]

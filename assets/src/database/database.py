@@ -2,7 +2,9 @@ import datetime
 
 import pandas as pd
 from sqlalchemy.ext.asyncio import async_sessionmaker
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 from assets.src.database.crud import CRUD, engine
 from assets.src.schemas import OrdinalSchema, PriceSchema, StatSchema
@@ -12,6 +14,7 @@ app = FastAPI(
 )
 session = async_sessionmaker(bind=engine, expire_on_commit=False)
 db = CRUD()
+templates = Jinja2Templates(directory="templates")
 
 
 @app.post("/user/create")
@@ -25,6 +28,11 @@ async def post_data(data):
     """Inserts node data from automatic check into database file"""
     return await db.post_data(data, session)
 
+
+@app.get("/html/stat/{dag_address}", response_class=HTMLResponse)
+async def get_html_page_stats(dag_address, request: Request):
+    """Return a html pages showing node stats"""
+    return await db.get_html_page_stats(request, templates, dag_address, session)
 
 @app.get("/user/{name}")
 async def get_user(name: str):
