@@ -1,10 +1,11 @@
 import datetime
 
+import pandas as pd
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from fastapi import FastAPI
 
 from assets.src.database.crud import CRUD, engine
-from assets.src.schemas import OrdinalSchema, PriceSchema
+from assets.src.schemas import OrdinalSchema, PriceSchema, StatSchema
 
 app = FastAPI(
     title="Hypergraph Node Status Bot", description="This is a Node Bot", docs_url="/"
@@ -73,8 +74,13 @@ async def delete_db_ordinal(ordinal: int):
 
 @app.post("/ordinal/create")
 async def post_ordinal(data: OrdinalSchema):
-    """Inserts node data from automatic check into database file"""
+    """Inserts node data from automatic check into database"""
     return await db.post_ordinal(data, session)
+
+@app.put("/stat/create")
+async def post_stats(data: StatSchema):
+    """insert statistical data into database"""
+    return await db.post_stats(data, session)
 
 
 @app.get("/ordinal/latest")

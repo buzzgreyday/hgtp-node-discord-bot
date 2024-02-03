@@ -1,13 +1,15 @@
 import asyncio
 import logging
 import traceback
-from datetime import datetime, timedelta
+from datetime import datetime
 import os
-from dotenv import load_dotenv
-from sqlalchemy import select, delete, desc, distinct
 
-from assets.src.database.models import UserModel, NodeModel, OrdinalModel, PriceModel
-from assets.src.schemas import User as UserSchema, PriceSchema, OrdinalSchema
+import pandas as pd
+from dotenv import load_dotenv
+from sqlalchemy import desc
+
+from assets.src.database.models import UserModel, NodeModel, OrdinalModel, PriceModel, StatModel
+from assets.src.schemas import User as UserSchema, PriceSchema, OrdinalSchema, StatSchema
 from assets.src.schemas import Node as NodeSchema
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
 from sqlalchemy import select, delete
@@ -68,11 +70,171 @@ class CRUD:
                 await session.commit()
             except Exception:
                 logging.getLogger("app").error(
-                    f"history.py - localhost error: {traceback.format_exc()}"
+                    f"crud.py - localhost error: {traceback.format_exc()}"
                 )
                 await asyncio.sleep(60)
         return jsonable_encoder(data_dict)
 
+    async def post_ordinal(
+            self, data: OrdinalSchema, async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Inserts node data from automatic check into database file"""
+        async with async_session() as session:
+            data = OrdinalModel(**data.__dict__)
+            session.add(data)
+            try:
+                await session.commit()
+            except Exception:
+                logging.getLogger("rewards").error(
+                    f"crud.py - localhost error: {traceback.format_exc()}"
+                )
+                await asyncio.sleep(60)
+        return jsonable_encoder(data)
+
+    async def post_prices(
+            self, data: PriceSchema, async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Inserts node data from automatic check into database file"""
+        async with async_session() as session:
+            data = PriceModel(**data.__dict__)
+            session.add(data)
+            try:
+                await session.commit()
+            except Exception:
+                logging.getLogger("rewards").error(
+                    f"crud.py - localhost error: {traceback.format_exc()}"
+                )
+        return jsonable_encoder(data)
+
+    async def post_stats(
+            self, data: StatSchema, async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Post statistical data row by row"""
+        async with async_session() as session:
+            stat_data = StatModel(**data.__dict__)
+            # Create a StatModel instance for each row of data
+            session.add(stat_data)
+            await session.commit()
+        return jsonable_encoder(stat_data)
+
+    async def delete_user_entry(
+        self, data: UserModel, async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Delete the user subscription based on name, ip, port"""
+
+        async with async_session() as session:
+            statement = delete(UserModel).where(
+                (UserModel.ip == data.ip) & (UserModel.public_port == data.public_port)
+            )
+            await session.execute(statement)
+            await session.commit()
+
+    async def delete_old_entries(self, async_session: async_sessionmaker[AsyncSession]):
+        """
+        Placeholder for automatic deletion of database entries older than x.
+        Beware: just passes entries without functionality
+        """
+        async with async_session() as session:
+            pass
+
+    async def delete_db_ordinal(self, ordinal, async_session: async_sessionmaker[AsyncSession]):
+        """Delete the user subscription based on name, ip, port"""
+
+        async with async_session() as session:
+            statement = delete(OrdinalModel).where(
+                (OrdinalModel.ordinal == ordinal)
+            )
+            await session.execute(statement)
+            await session.commit()
+            logging.getLogger("rewards").warning(
+                f"crud.py - deleted ordinal {ordinal} to avoid duplicates"
+            )
+            return
+
+    async def get_timestamp_db_price(self,
+            ordinal_timestamp: int, async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Get the latest ordinal data existing in the database"""
+        async with async_session() as session:
+            statement = select(PriceModel).filter(PriceModel.timestamp <= ordinal_timestamp).order_by(
+                desc(PriceModel.timestamp)).limit(1)
+            results = await session.execute(statement)
+            timestamp_price_data = results.scalar()
+        if timestamp_price_data:
+            logging.getLogger("rewards").info(
+                f"crud.py - success requesting database timestamp price: {timestamp_price_data.timestamp, timestamp_price_data.usd}"
+            )
+            return timestamp_price_data.timestamp, timestamp_price_data.usd
+        else:
+            logging.getLogger("rewards").warning(
+                f"crud.py - failed requesting database timestamp price"
+            )
+            return
+
+    async def get_latest_db_price(self,
+            async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Get the latest ordinal data existing in the database"""
+        async with async_session() as session:
+            statement = select(PriceModel).order_by(PriceModel.timestamp.desc()).limit(1)
+            results = await session.execute(statement)
+            latest_price_data = results.scalar()
+        if latest_price_data:
+            logging.getLogger("rewards").info(
+                f"crud.py - success requesting database latest price: {latest_price_data.timestamp, latest_price_data.usd}"
+            )
+            return latest_price_data.timestamp, latest_price_data.usd
+        else:
+            logging.getLogger("rewards").warning(
+                f"crud.py - failed requesting database latest price"
+            )
+            return
+
+    async def get_latest_db_ordinal(self,
+            async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Get the latest ordinal data existing in the database"""
+        async with async_session() as session:
+            statement = select(OrdinalModel).order_by(OrdinalModel.ordinal.desc()).limit(1)
+            results = await session.execute(statement)
+            latest_ordinal_data = results.scalar()
+
+        if latest_ordinal_data:
+            logging.getLogger("rewards").info(
+                f"crud.py - success requesting database latest ordinal: {latest_ordinal_data.ordinal}"
+            )
+            return latest_ordinal_data.timestamp, latest_ordinal_data.ordinal
+        else:
+            logging.getLogger("rewards").warning(
+                f"crud.py - failed requesting database latest ordinal"
+            )
+            return
+
+    async def get_ordinals_data_from_timestamp(self, timestamp: int, async_session: async_sessionmaker[AsyncSession]):
+        """
+        Get timeslice data from the ordinal database.
+        Beware: the database usd column is per token, not the sum of the token value.
+        """
+        async with async_session() as session:
+            statement = select(OrdinalModel).filter(OrdinalModel.timestamp >= int(timestamp)).order_by(OrdinalModel.destination)
+            results = await session.execute(statement)
+            results = results.scalars().all()
+            # Extract columns into separate lists
+            data = {
+                'timestamp': [],
+                'ordinals': [],
+                'destinations': [],
+                'dag': [],
+                'usd_per_token': []
+            }
+            for row in results:
+                data['timestamp'].append(row.timestamp)
+                data['ordinals'].append(row.ordinal)
+                data['destinations'].append(row.destination)
+                data['dag'].append(row.amount)
+                data['usd_per_token'].append(row.usd)
+
+            return data
     async def get_user(self, name, async_session: async_sessionmaker[AsyncSession]):
         """Returns a list of all user data"""
         async with async_session() as session:
@@ -159,147 +321,3 @@ class CRUD:
             )
             results = await session.execute(statement)
         return results.scalar_one_or_none()
-
-    async def delete_user_entry(
-        self, data: UserModel, async_session: async_sessionmaker[AsyncSession]
-    ):
-        """Delete the user subscription based on name, ip, port"""
-
-        async with async_session() as session:
-            statement = delete(UserModel).where(
-                (UserModel.ip == data.ip) & (UserModel.public_port == data.public_port)
-            )
-            await session.execute(statement)
-            await session.commit()
-
-    async def delete_old_entries(self, async_session: async_sessionmaker[AsyncSession]):
-        from datetime import timedelta
-
-        async with async_session() as session:
-            pass
-
-    async def delete_db_ordinal(self, ordinal, async_session: async_sessionmaker[AsyncSession]):
-        """Delete the user subscription based on name, ip, port"""
-
-        async with async_session() as session:
-            statement = delete(OrdinalModel).where(
-                (OrdinalModel.ordinal == ordinal)
-            )
-            await session.execute(statement)
-            await session.commit()
-            logging.getLogger("rewards").warning(
-                f"crud.py - deleted ordinal {ordinal} to avoid duplicates"
-            )
-            return
-
-    async def post_ordinal(
-            self, data: OrdinalSchema, async_session: async_sessionmaker[AsyncSession]
-    ):
-        """Inserts node data from automatic check into database file"""
-        async with async_session() as session:
-            data = OrdinalModel(**data.__dict__)
-            session.add(data)
-            try:
-                await session.commit()
-            except Exception:
-                logging.getLogger("rewards").error(
-                    f"crud.py - localhost error: {traceback.format_exc()}"
-                )
-                await asyncio.sleep(60)
-        return jsonable_encoder(data)
-
-    async def post_prices(
-            self, data: PriceSchema, async_session: async_sessionmaker[AsyncSession]
-    ):
-        """Inserts node data from automatic check into database file"""
-        async with async_session() as session:
-            data = PriceModel(**data.__dict__)
-            session.add(data)
-            try:
-                await session.commit()
-            except Exception:
-                logging.getLogger("rewards").error(
-                    f"crud.py - localhost error: {traceback.format_exc()}"
-                )
-        return jsonable_encoder(data)
-
-    async def get_timestamp_db_price(self,
-            ordinal_timestamp: int, async_session: async_sessionmaker[AsyncSession]
-    ):
-        """Get the latest ordinal data existing in the database"""
-        async with async_session() as session:
-            statement = select(PriceModel).filter(PriceModel.timestamp <= ordinal_timestamp).order_by(
-                desc(PriceModel.timestamp)).limit(1)
-            results = await session.execute(statement)
-            timestamp_price_data = results.scalar()
-        if timestamp_price_data:
-            logging.getLogger("rewards").info(
-                f"crud.py - success requesting database timestamp price: {timestamp_price_data.timestamp, timestamp_price_data.usd}"
-            )
-            return timestamp_price_data.timestamp, timestamp_price_data.usd
-        else:
-            logging.getLogger("rewards").warning(
-                f"crud.py - failed requesting database timestamp price"
-            )
-            return
-
-    async def get_latest_db_price(self,
-            async_session: async_sessionmaker[AsyncSession]
-    ):
-        """Get the latest ordinal data existing in the database"""
-        async with async_session() as session:
-            statement = select(PriceModel).order_by(PriceModel.timestamp.desc()).limit(1)
-            results = await session.execute(statement)
-            latest_price_data = results.scalar()
-        if latest_price_data:
-            logging.getLogger("rewards").info(
-                f"crud.py - success requesting database latest price: {latest_price_data.timestamp, latest_price_data.usd}"
-            )
-            return latest_price_data.timestamp, latest_price_data.usd
-        else:
-            logging.getLogger("rewards").warning(
-                f"crud.py - failed requesting database latest price"
-            )
-            return
-
-    async def get_latest_db_ordinal(self,
-            async_session: async_sessionmaker[AsyncSession]
-    ):
-        """Get the latest ordinal data existing in the database"""
-        async with async_session() as session:
-            statement = select(OrdinalModel).order_by(OrdinalModel.ordinal.desc()).limit(1)
-            results = await session.execute(statement)
-            latest_ordinal_data = results.scalar()
-
-        if latest_ordinal_data:
-            logging.getLogger("rewards").info(
-                f"crud.py - success requesting database latest ordinal: {latest_ordinal_data.ordinal}"
-            )
-            return latest_ordinal_data.timestamp, latest_ordinal_data.ordinal
-        else:
-            logging.getLogger("rewards").warning(
-                f"crud.py - failed requesting database latest ordinal"
-            )
-            return
-
-    async def get_ordinals_data_from_timestamp(self, timestamp: int, async_session: async_sessionmaker[AsyncSession]):
-        async with async_session() as session:
-            statement = select(OrdinalModel).filter(OrdinalModel.timestamp >= int(timestamp)).order_by(OrdinalModel.destination)
-            results = await session.execute(statement)
-            results = results.scalars().all()
-            # Extract columns into separate lists
-            data = {
-                'timestamp': [],
-                'ordinals': [],
-                'destinations': [],
-                'dag': [],
-                'usd_value_then': []
-            }
-            for row in results:
-                data['timestamp'].append(row.timestamp)
-                data['ordinals'].append(row.ordinal)
-                data['destinations'].append(row.destination)
-                data['dag'].append(row.amount)
-                data['usd_value_then'].append(row.usd)
-
-            return data

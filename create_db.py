@@ -2,6 +2,8 @@ import asyncio
 import subprocess
 import threading
 
+from sqlalchemy import inspect
+
 from assets.src.database.models import SQLBase
 from assets.src.database.crud import engine
 
@@ -9,7 +11,7 @@ from assets.src.database.crud import engine
 async def create_db():
     async with engine.begin() as conn:
         # This will delete all data
-        await conn.run_sync(SQLBase.metadata.drop_all)
+        # await conn.run_sync(SQLBase.metadata.drop_all)
         await conn.run_sync(SQLBase.metadata.create_all)
         print("Database tables and columns created or updated!")
         await engine.dispose()

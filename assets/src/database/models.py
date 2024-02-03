@@ -119,3 +119,22 @@ class PriceModel(SQLBase):
     coin: Mapped[str]
     usd: Mapped[float]
 
+
+class StatModel(SQLBase):
+    """SQL Base for statistical data"""
+
+    __tablename__ = "stat"
+
+    destinations: Mapped[str] = mapped_column(index=True, primary_key=True)
+    daily_effectivity_score: Mapped[int]
+    effectivity_score: Mapped[int]
+    earner_score: Mapped[int]
+    percent_earning_more: Mapped[float]
+    dag_address_sum: Mapped[float]
+    dag_address_sum_dev: Mapped[float]
+    dag_address_daily_sum_dev: Mapped[float]
+    dag_address_daily_mean: Mapped[float]
+    dag_daily_std_dev: Mapped[float]
+    plot: Mapped[str] = mapped_column(index=True)
+    usd_address_sum: Mapped[float]
+    usd_address_daily_sum: Mapped[float]

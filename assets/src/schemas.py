@@ -269,3 +269,19 @@ class PriceSchema(BaseModel):
     timestamp: int
     coin: Optional[str] = "DAG"
     usd: float
+
+
+class StatSchema(BaseModel):
+    destinations: str
+    daily_effectivity_score: int
+    effectivity_score: int
+    earner_score: int
+    percent_earning_more: float
+    dag_address_sum: float
+    dag_address_sum_dev: float
+    dag_address_daily_sum_dev: float
+    dag_address_daily_mean: float
+    dag_daily_std_dev: float
+    plot: str
+    usd_address_sum: float
+    usd_address_daily_sum: float
