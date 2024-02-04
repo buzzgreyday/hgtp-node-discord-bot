@@ -71,12 +71,11 @@ def create_visualizations(df: pd.DataFrame, from_timestamp: int):
     # async function. Look into this.
     overall_daily_median = df['dag_address_mean'].median()
     unique_destinations = df['destinations'].unique()
-    path = "templates/img/visualizations"
+    path = "static"
     for destination in unique_destinations:
         destination_df = df[df['destinations'] == destination]
         plt.style.use('Solarize_Light2')
         fig = plt.figure(figsize=(12, 6))
-        fig.patch.set_alpha(0)
 
         print("style ok")
         plt.plot(pd.to_datetime(destination_df['timestamp'] * 1000, unit='ms'),
@@ -97,7 +96,7 @@ def create_visualizations(df: pd.DataFrame, from_timestamp: int):
         plt.xticks(rotation=45)  # Rotate x-axis labels for better readability if needed
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig(f"{path}/{destination}.png")
+        plt.savefig(f"{path}/{destination}.jpg")
         # plt.show()
         plt.close()
     del destination_df, unique_destinations

@@ -2,17 +2,56 @@
 <html>
 <head>
     <title>Statistics for {{ dag_address }}</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+
 </head>
 <body>
-    <h1>Statistics for {{ dag_address }}</h1>
-    <p>Here are some statistics:</p>
-    <ul>
-        <li>Earner Score (30 days): {{ earner_score }}/{{ count }} ({{ percent_earning_more }}% are earning more)</li>
-        <li>Earnings (30 days): {{ dag_address_sum }} $DAG ({{ usd_address_sum }} $USD)</li>
-        <li>Earnings Deviation (30 days): {{ dag_address_sum_dev }} $DAG (minus = worse)</li>
-        <li>Effectivity Score (30 days): {{ effectivity_score }} (0 = best)</li>
-        <li>{{ plot_path }}</li>
-    </ul>
-    <img src="{{ plot_path }}" alt="plot">
+    <div class="shadow-sm container mt-5 bg-secondary bg-body rounded text-body">
+        <h1 class="text-center mb-5"><b>Statistics for {{ dag_address }}</b></h1>
+        <div class="d-grid gap-3 fs-2 text-right row">
+            <img src="{{ plot_path }}" alt="plot">
+                <p><b>30 DAY STATS</b></p>
+            <span class="border border-light">
+                <div class="fs-3 text-right row">
+                    <p><b>Effectivity Score</b></p>
+                    <div class="fs-5 text-right row">
+                        <p>Description</p>
+                    </div>
+                    <p>{{ effectivity_score }} (0 = best)</p>
+                </div>
+            </span>
+            <span class="border border-light">
+                <div class="fs-3 text-right row">
+                    <p><b>Earner Score</b></p>
+                    <div class="fs-5 text-right row">
+                        <p>Description</p>
+                    </div>
+                    <p>{{ earner_score }}/{{ count }} ({{ percent_earning_more }}% are earning more)</p>
+                </div>
+            </span>
+            <span class="border border-light">
+                <div class="fs-3 text-right row">
+                    <p><b>Earnings</b></p>
+                    <div class="fs-5 text-right row">
+                        <p>Description</p>
+                    </div>
+                    <p>{{ dag_address_sum }} $DAG</p>
+                </div>
+            </span>
+            <span class="border border-light">
+                <div class="fs-3 text-right row">
+                    <p><b>Earnings Deviation</b></p>
+                    <div class="fs-5 text-right row">
+                        <p>Description</p>
+                    </div>
+                    <p>{{ dag_address_sum_dev }} $DAG (minus = worse)</p>
+                </div>
+            </span>
+        </div>
+    </div>
 </body>
 </html>

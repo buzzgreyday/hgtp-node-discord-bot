@@ -165,7 +165,7 @@ class CRUD:
             )
 
         results = results.scalar_one_or_none()
-        print(f"templates/img/visualizations/{results.destinations}.png")
+        print(f"http://localhost:8000/static/{results.destinations}.jpg")
         if results:
             return templates.TemplateResponse("index.html",
                                               {"request": request,
@@ -180,9 +180,9 @@ class CRUD:
                                                "dag_address_daily_sum_dev": results.dag_address_sum_dev,
                                                "dag_address_daily_mean": results.dag_address_daily_mean,
                                                "dag_address_daily_std_dev": results.dag_daily_std_dev,
-                                               "usd_address_sum": results.usd_address_sum,
+                                               # "usd_address_sum": results.usd_address_sum,
                                                "usd_address_daily_sum": results.usd_address_daily_sum,
-                                               "plot_path": f"templates/img/visualisations/{results.destinations}.png"})
+                                               "plot_path": f"http://localhost:8000/static/{results.destinations}.jpg"})
         else:
             print("Error")
 

@@ -10,9 +10,12 @@ from assets.src.schemas import OrdinalSchema, PriceSchema, StatSchema
 app = FastAPI(
     title="Hypergraph Node Status Bot", description="This is a Node Bot", docs_url="/"
 )
+
+templates = Jinja2Templates(directory="templates")
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 session = async_sessionmaker(bind=engine, expire_on_commit=False)
 db = CRUD()
-templates = Jinja2Templates(directory="templates")
 
 
 @app.post("/user/create")
