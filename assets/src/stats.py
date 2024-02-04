@@ -54,7 +54,7 @@ async def create_daily_data(data: pd.DataFrame, start_time, from_timestamp):
     sliced_df['dag_daily_std_dev'] = sliced_df.groupby('destinations')['dag_address_sum'].transform('std')
     sliced_df['dag_address_daily_mean'] = sliced_df.groupby('destinations')['dag_address_sum'].transform('mean')
     daily_overall_median = sliced_df['dag_address_sum'].median()
-    # PERFORMING BETTER THAN THE REST ON THE DAILY, IF HIGHER
+    # The thing below aren't calculating the daily sum deviation :)
     sliced_df['dag_address_daily_sum_dev'] = sliced_df['dag_address_sum'] - daily_overall_median
     sliced_df = sliced_df[['destinations', 'dag_address_daily_mean', 'dag_address_daily_sum_dev', 'dag_daily_std_dev',
                            'usd_address_daily_sum']].drop_duplicates('destinations')
