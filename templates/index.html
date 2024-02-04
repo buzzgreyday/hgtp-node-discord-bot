@@ -10,45 +10,51 @@
 
 </head>
 <body>
-    <div class="shadow-sm container mt-5 bg-secondary bg-body rounded text-body">
-        <h1 class="text-center mb-5"><b>Statistics for {{ dag_address }}</b></h1>
-        <div class="d-grid gap-3 fs-2 text-right row">
-            <img src="{{ plot_path }}" alt="plot">
-                <p><b>30 DAY STATS</b></p>
-            <span class="border border-light">
-                <div class="fs-3 text-right row">
-                    <p><b>Effectivity Score</b></p>
-                    <div class="fs-5 text-right row">
-                        <p>Description</p>
-                    </div>
-                    <p>{{ effectivity_score }} (0 = best)</p>
+    <div class="shadow container mt-5 bg-light rounded text-success font-monospace">
+        <h1 class="text-center mb-5">Statistics for {{ dag_address }}</h1>
+        <img src="{{ plot_path }}" class="mx-auto d-block" alt="plot">
+        <p></p>
+        <p class="fs-2 fw-bolder">30 DAY STATS</p>
+        <span class="border rounded border-white">
+            <div class="fs-3 text-right row">
+                <p><b>Effectivity Score</b></p>
+                <div class="fs-5 text-right row">
+                    <p class="fw-lighter">Description</p>
                 </div>
-            </span>
-            <span class="border border-light">
+                <p>{{ effectivity_score }} (0 = best)</p>
+            </div>
+        </span>
+        <div class="row">
+            <span class="border rounded border-white">
                 <div class="fs-3 text-right row">
                     <p><b>Earner Score</b></p>
                     <div class="fs-5 text-right row">
-                        <p>Description</p>
+                        <p class="fw-lighter">Description</p>
                     </div>
                     <p>{{ earner_score }}/{{ count }} ({{ percent_earning_more }}% are earning more)</p>
                 </div>
             </span>
-            <span class="border border-light">
+        </div>
+
+        <div class="row">
+            <span class="border rounded border-white">
                 <div class="fs-3 text-right row">
                     <p><b>Earnings</b></p>
                     <div class="fs-5 text-right row">
-                        <p>Description</p>
+                        <p class="fw-lighter">Description</p>
                     </div>
-                    <p>{{ dag_address_sum }} $DAG</p>
+                    <p>$DAG {{ dag_address_sum }} (Average daily earnings: {{ dag_address_daily_mean }} plus/minus {{ dag_address_daily_std_dev }})</p>
                 </div>
             </span>
-            <span class="border border-light">
+        </div>
+        <div class="row">
+            <span class="border rounded border-white">
                 <div class="fs-3 text-right row">
                     <p><b>Earnings Deviation</b></p>
                     <div class="fs-5 text-right row">
-                        <p>Description</p>
+                        <p class="fw-lighter">If the result is positive you're earning the positive amount more than the average network earnings per node. If the result is negative you're earning the negative amount less than the average network earnings per node. </p>
                     </div>
-                    <p>{{ dag_address_sum_dev }} $DAG (minus = worse)</p>
+                    <p>$DAG {{ dag_address_sum_dev }}</p>
                 </div>
             </span>
         </div>

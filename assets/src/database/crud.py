@@ -167,6 +167,7 @@ class CRUD:
         results = results.scalar_one_or_none()
         print(f"http://localhost:8000/static/{results.destinations}.jpg")
         if results:
+            print(results.dag_address_daily_mean)
             return templates.TemplateResponse("index.html",
                                               {"request": request,
                                                "dag_address": results.destinations,
@@ -174,12 +175,12 @@ class CRUD:
                                                "effectivity_score": results.effectivity_score,
                                                "earner_score": results.earner_score,
                                                "count": results.count,
-                                               "percent_earning_more": results.percent_earning_more,
-                                               "dag_address_sum": results.dag_address_sum,
-                                               "dag_address_sum_dev": results.dag_address_sum_dev,
-                                               "dag_address_daily_sum_dev": results.dag_address_sum_dev,
-                                               "dag_address_daily_mean": results.dag_address_daily_mean,
-                                               "dag_address_daily_std_dev": results.dag_daily_std_dev,
+                                               "percent_earning_more": round(results.percent_earning_more, 2),
+                                               "dag_address_sum": round(results.dag_address_sum, 2),
+                                               "dag_address_sum_dev": round(results.dag_address_sum_dev, 2),
+                                               "dag_address_daily_sum_dev": round(results.dag_address_daily_sum_dev, 2),
+                                               "dag_address_daily_mean": round(results.dag_address_daily_mean, 2),
+                                               "dag_address_daily_std_dev": round(results.dag_daily_std_dev, 2),
                                                # "usd_address_sum": results.usd_address_sum,
                                                "usd_address_daily_sum": results.usd_address_daily_sum,
                                                "plot_path": f"http://localhost:8000/static/{results.destinations}.jpg"})
