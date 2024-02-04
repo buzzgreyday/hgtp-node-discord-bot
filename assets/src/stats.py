@@ -57,13 +57,12 @@ async def create_daily_data(data: pd.DataFrame, start_time, from_timestamp):
     # PERFORMING BETTER THAN THE REST ON THE DAILY, IF HIGHER
     sliced_df['dag_address_daily_sum_dev'] = sliced_df['dag_address_sum'] - daily_overall_median
     sliced_df = sliced_df[['destinations', 'dag_address_daily_mean', 'dag_address_daily_sum_dev', 'dag_daily_std_dev',
-                           'plot', 'usd_address_daily_sum']].drop_duplicates('destinations')
+                           'usd_address_daily_sum']].drop_duplicates('destinations')
     sliced_df['dag_daily_std_dev'].fillna(0, inplace=True)
     sliced_df = sliced_df.sort_values(by=['dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev'],
                                       ascending=[False, False, True]).reset_index(drop=True)
     sliced_df['daily_effectivity_score'] = sliced_df.index
     print(sliced_df)
-    input(f'Daily looks okay? ')
     return sliced_df
 
 
@@ -72,7 +71,7 @@ def create_visualizations(df: pd.DataFrame, from_timestamp: int):
     # async function. Look into this.
     overall_daily_median = df['dag_address_mean'].median()
     unique_destinations = df['destinations'].unique()
-    path = "assets/data/visualizations"
+    path = "templates/img/visualizations"
     for destination in unique_destinations:
         destination_df = df[df['destinations'] == destination]
         plt.style.use('Solarize_Light2')
@@ -101,7 +100,6 @@ def create_visualizations(df: pd.DataFrame, from_timestamp: int):
         plt.savefig(f"{path}/{destination}.png")
         # plt.show()
         plt.close()
-        df['plot'] = f"{path}/{destination}.png"
     del destination_df, unique_destinations
 
 
@@ -151,7 +149,7 @@ async def run(configuration):
         data['dag_address_sum_dev'] = data['dag_address_sum'] - data['dag_address_sum'].median()
         data = data.merge(sliced_df, on='destinations', how='left')
         del sliced_df
-        data = data[['daily_effectivity_score', 'destinations', 'dag_address_sum', 'dag_address_sum_dev', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev', 'plot', 'usd_address_sum', 'usd_address_daily_sum']].drop_duplicates('destinations')
+        data = data[['daily_effectivity_score', 'destinations', 'dag_address_sum', 'dag_address_sum_dev', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev', 'usd_address_sum', 'usd_address_daily_sum']].drop_duplicates('destinations')
         """
         # The most effective node is the node with the lowest daily standard deviation, the highest daily mean earnings,
         # the highest daily sum deviation (average node sum earnings, minus network earnings median) and the highest
@@ -164,26 +162,28 @@ async def run(configuration):
         """
         # The effectivity score: close to zero is good.
         """
-        data['effectivity_score'] = data.index + data['daily_effectivity_score']
+        try:
+            data['effectivity_score'] = (data.index + data['daily_effectivity_score']) / 2
+        except ZeroDivisionError:
+            data['effectivity_score'] = 0.0
 
         data = data.sort_values(by='dag_address_sum_dev', ascending=False).reset_index(drop=True)
         data['earner_score'] = data.index
+        total_len = len(data.index)
+        data['count'] = total_len
 
         # Initiate the row
-        total_len = len(data.index)
         data['percent_earning_more'] = 0.0
         for i, row in data.iterrows():
-            percentage = (i + 1) / total_len
+            percentage = ((i + 1) / total_len) * 100
             data.at[i, 'percent_earning_more'] = percentage
+            row['percent_earning_more'] = percentage
             try:
                 schema = StatSchema(**row.to_dict())
             except Exception as e:
                 print(traceback.format_exception(e))
             print(schema)
-            try:
-                await post_stats(schema)
-            except Exception as e:
-                print(traceback.format_exception(e))
+            await post_stats(schema)
 
         print(data)
         del data

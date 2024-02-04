@@ -1,10 +1,8 @@
-import datetime
-
-import pandas as pd
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 
 from assets.src.database.crud import CRUD, engine
 from assets.src.schemas import OrdinalSchema, PriceSchema, StatSchema

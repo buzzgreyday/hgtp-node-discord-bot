@@ -15,7 +15,6 @@ from assets.src import preliminaries, run_process, history, rewards, stats
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
 
-
 def load_configuration():
     try:
         with open("config.yml", "r") as file:

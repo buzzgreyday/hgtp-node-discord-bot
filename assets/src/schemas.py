@@ -274,7 +274,7 @@ class PriceSchema(BaseModel):
 class StatSchema(BaseModel):
     destinations: str
     daily_effectivity_score: int
-    effectivity_score: int
+    effectivity_score: float
     earner_score: int
     percent_earning_more: float
     dag_address_sum: float
@@ -282,6 +282,6 @@ class StatSchema(BaseModel):
     dag_address_daily_sum_dev: float
     dag_address_daily_mean: float
     dag_daily_std_dev: float
-    plot: str
+    count: int
     usd_address_sum: float
     usd_address_daily_sum: float

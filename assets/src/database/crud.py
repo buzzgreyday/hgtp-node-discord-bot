@@ -4,15 +4,12 @@ import traceback
 from datetime import datetime
 import os
 
-import pandas as pd
 from dotenv import load_dotenv
-from sqlalchemy import desc
-
 from assets.src.database.models import UserModel, NodeModel, OrdinalModel, PriceModel, StatModel
 from assets.src.schemas import User as UserSchema, PriceSchema, OrdinalSchema, StatSchema
 from assets.src.schemas import Node as NodeSchema
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, update
 from fastapi.encoders import jsonable_encoder
 
 load_dotenv()
@@ -113,8 +110,17 @@ class CRUD:
         async with async_session() as session:
             stat_data = StatModel(**data.__dict__)
             # Create a StatModel instance for each row of data
-            session.add(stat_data)
-            await session.commit()
+            try:
+                session.add(stat_data)
+                await session.commit()
+            except Exception as e:
+                print(traceback.format_exc(e))
+                await session.execute(
+                    update(StatModel)
+                    .where(StatModel.destinations == data.destinations)
+                    .values(**data.dict())
+                )
+                await session.commit()
         return jsonable_encoder(stat_data)
 
     async def delete_user_entry(
@@ -159,6 +165,7 @@ class CRUD:
             )
 
         results = results.scalar_one_or_none()
+        print(f"templates/img/visualizations/{results.destinations}.png")
         if results:
             return templates.TemplateResponse("index.html",
                                               {"request": request,
@@ -166,6 +173,7 @@ class CRUD:
                                                "daily_effectivity_score": results.daily_effectivity_score,
                                                "effectivity_score": results.effectivity_score,
                                                "earner_score": results.earner_score,
+                                               "count": results.count,
                                                "percent_earning_more": results.percent_earning_more,
                                                "dag_address_sum": results.dag_address_sum,
                                                "dag_address_sum_dev": results.dag_address_sum_dev,
@@ -174,7 +182,7 @@ class CRUD:
                                                "dag_address_daily_std_dev": results.dag_daily_std_dev,
                                                "usd_address_sum": results.usd_address_sum,
                                                "usd_address_daily_sum": results.usd_address_daily_sum,
-                                               "plot_path": results.plot})
+                                               "plot_path": f"templates/img/visualisations/{results.destinations}.png"})
         else:
             print("Error")
 

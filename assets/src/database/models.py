@@ -125,9 +125,10 @@ class StatModel(SQLBase):
 
     __tablename__ = "stat"
 
+    # id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
     destinations: Mapped[str] = mapped_column(index=True, primary_key=True)
     daily_effectivity_score: Mapped[int]
-    effectivity_score: Mapped[int]
+    effectivity_score: Mapped[float]
     earner_score: Mapped[int]
     percent_earning_more: Mapped[float]
     dag_address_sum: Mapped[float]
@@ -135,6 +136,6 @@ class StatModel(SQLBase):
     dag_address_daily_sum_dev: Mapped[float]
     dag_address_daily_mean: Mapped[float]
     dag_daily_std_dev: Mapped[float]
-    plot: Mapped[str] = mapped_column(index=True)
+    count: Mapped[int]
     usd_address_sum: Mapped[float]
     usd_address_daily_sum: Mapped[float]
