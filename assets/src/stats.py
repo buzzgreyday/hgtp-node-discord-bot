@@ -74,7 +74,7 @@ def create_visualizations(df: pd.DataFrame, from_timestamp: int):
     path = "static"
     for destination in unique_destinations:
         destination_df = df[df['destinations'] == destination]
-        plt.style.use('Solarize_Light2')
+        plt.style.use('Soclarize_Light2')
         fig = plt.figure(figsize=(12, 6))
 
         print("style ok")
@@ -99,7 +99,6 @@ def create_visualizations(df: pd.DataFrame, from_timestamp: int):
         plt.savefig(f"{path}/{destination}.jpg")
         # plt.show()
         plt.close()
-    del destination_df, unique_destinations
 
 
 async def run(configuration):
@@ -146,9 +145,10 @@ async def run(configuration):
         data = await sum_usd(data, 'usd_address_sum')
         # The node is earning more than the average if sum deviation is positive
         data['dag_address_sum_dev'] = data['dag_address_sum'] - data['dag_address_sum'].median()
+        data['dag_median_sum'] = data['dag_address_sum'].median()
         data = data.merge(sliced_df, on='destinations', how='left')
         del sliced_df
-        data = data[['daily_effectivity_score', 'destinations', 'dag_address_sum', 'dag_address_sum_dev', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev', 'usd_address_sum', 'usd_address_daily_sum']].drop_duplicates('destinations')
+        data = data[['daily_effectivity_score', 'destinations', 'dag_address_sum', 'dag_address_sum_dev', 'dag_median_sum', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev', 'usd_address_sum', 'usd_address_daily_sum']].drop_duplicates('destinations')
         """
         # The most effective node is the node with the lowest daily standard deviation, the highest daily mean earnings,
         # the highest daily sum deviation (average node sum earnings, minus network earnings median) and the highest
@@ -177,11 +177,7 @@ async def run(configuration):
             percentage = ((i + 1) / total_len) * 100
             data.at[i, 'percent_earning_more'] = percentage
             row['percent_earning_more'] = percentage
-            try:
-                schema = StatSchema(**row.to_dict())
-            except Exception as e:
-                print(traceback.format_exception(e))
-            print(schema)
+            schema = StatSchema(**row.to_dict())
             await post_stats(schema)
 
         print(data)

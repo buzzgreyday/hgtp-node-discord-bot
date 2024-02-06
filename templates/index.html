@@ -10,53 +10,45 @@
 
 </head>
 <body>
-    <div class="shadow container mt-5 bg-light rounded text-success font-monospace">
-        <h1 class="text-center mb-5">Statistics for {{ dag_address }}</h1>
-        <img src="{{ plot_path }}" class="mx-auto d-block" alt="plot">
-        <p></p>
-        <p class="fs-2 fw-bolder">30 DAY STATS</p>
-        <span class="border rounded border-white">
-            <div class="fs-3 text-right row">
-                <p><b>Effectivity Score</b></p>
-                <div class="fs-5 text-right row">
-                    <p class="fw-lighter">Description</p>
-                </div>
-                <p>{{ effectivity_score }} (0 = best)</p>
+    <div class="shadow container-sm mt-5 p-3 bg-white rounded text-dark">
+        <h1 class="text-center mb-5 fw-bolder">{{ dag_address }}</h1>
+        <img src="{{ plot_path }}" class="mx-auto d-block rounded" alt="plot">
+    </div>
+    <div class="shadow container-sm mt-5 bg-white rounded text-dark">
+        <div class="row p-2">
+            <div class="col-md-6 rounded bg-light">
+                <p class="fs-6 fw-bold">30 Days Node Earnings</p>
+                <p class="fs-6 fw-light">{{ dag_address_sum }} $DAG</p>
             </div>
-        </span>
-        <div class="row">
-            <span class="border rounded border-white">
-                <div class="fs-3 text-right row">
-                    <p><b>Earner Score</b></p>
-                    <div class="fs-5 text-right row">
-                        <p class="fw-lighter">Description</p>
-                    </div>
-                    <p>{{ earner_score }}/{{ count }} ({{ percent_earning_more }}% are earning more)</p>
-                </div>
-            </span>
+            <div class="col-md-6 rounded bg-light">
+                <p class="fs-6 fw-bold">Average Daily Node Earnings</p>
+                <p class="fs-6 fw-light">{{ dag_address_daily_mean }} +/- {{ dag_address_daily_std_dev }} $DAG</p>
+            </div>
         </div>
-
-        <div class="row">
-            <span class="border rounded border-white">
-                <div class="fs-3 text-right row">
-                    <p><b>Earnings</b></p>
-                    <div class="fs-5 text-right row">
-                        <p class="fw-lighter">Description</p>
-                    </div>
-                    <p>$DAG {{ dag_address_sum }} (Average daily earnings: {{ dag_address_daily_mean }} plus/minus {{ dag_address_daily_std_dev }})</p>
-                </div>
-            </span>
+        <div class="row p-2">
+            <div class="col-md-6 rounded bg-light">
+                <p class="fs-6 fw-bold">30 Days Deviation from Network Average</p>
+                <p class="fs-6 fw-light">{{ dag_address_sum_dev }} $DAG</p>
+            </div>
+            <div class="col-md-6 rounded bg-light">
+                <p class="fs-6 fw-bold">30 Days Network Node Average Earnings</p>
+                <p class="fs-6 fw-light">{{ dag_median_sum }} $DAG</p>
+            </div>
+            <div class="col-md-6 rounded bg-light">
+                <p class="fs-6 fw-bold">Percent Earning More </p>
+                <p class="fs-6 fw-light">{{ percent_earning_more }}% of the network earned more than this node the past 30 days</p>
+            </div>
         </div>
-        <div class="row">
-            <span class="border rounded border-white">
-                <div class="fs-3 text-right row">
-                    <p><b>Earnings Deviation</b></p>
-                    <div class="fs-5 text-right row">
-                        <p class="fw-lighter">If the result is positive you're earning the positive amount more than the average network earnings per node. If the result is negative you're earning the negative amount less than the average network earnings per node. </p>
-                    </div>
-                    <p>$DAG {{ dag_address_sum_dev }}</p>
-                </div>
-            </span>
+        <div class="row p-2">
+            <div class="col-md-6 rounded bg-light">
+                <p class="fs-6 fw-bold">30 Days Effectivity Score</p>
+                <p class="fs-6 fw-light">{{ effectivity_score }}/{{ count }}</p>
+            </div>
+            <div class="col-md-6 rounded bg-light">
+                <p class="fs-6 fw-bold">30 Days earnings</p>
+                <p class="fs-6 fw-light">{{ earner_score }}/{{ count }}</p>
+                <p class="fw-lighter">0 is the ideal score.</p>
+            </div>
         </div>
     </div>
 </body>

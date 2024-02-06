@@ -118,7 +118,7 @@ class CRUD:
                 await session.execute(
                     update(StatModel)
                     .where(StatModel.destinations == data.destinations)
-                    .values(**data.dict())
+                    .values(**stat_data)
                 )
                 await session.commit()
         return jsonable_encoder(stat_data)
@@ -178,10 +178,11 @@ class CRUD:
                                                "percent_earning_more": round(results.percent_earning_more, 2),
                                                "dag_address_sum": round(results.dag_address_sum, 2),
                                                "dag_address_sum_dev": round(results.dag_address_sum_dev, 2),
+                                               "dag_median_sum": round(results.dag_median_sum, 2),
                                                "dag_address_daily_sum_dev": round(results.dag_address_daily_sum_dev, 2),
                                                "dag_address_daily_mean": round(results.dag_address_daily_mean, 2),
                                                "dag_address_daily_std_dev": round(results.dag_daily_std_dev, 2),
-                                               # "usd_address_sum": results.usd_address_sum,
+                                               "usd_address_sum": results.usd_address_sum,
                                                "usd_address_daily_sum": results.usd_address_daily_sum,
                                                "plot_path": f"http://localhost:8000/static/{results.destinations}.jpg"})
         else:
