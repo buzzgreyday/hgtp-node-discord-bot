@@ -281,6 +281,7 @@ class StatSchema(BaseModel):
     dag_median_sum: float
     dag_address_sum_dev: float
     dag_address_daily_sum_dev: float
+    dag_address_daily_sum: float
     dag_address_daily_mean: float
     dag_daily_std_dev: float
     count: int

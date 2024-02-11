@@ -1,3 +1,5 @@
+import traceback
+
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
@@ -8,7 +10,7 @@ from assets.src.database.crud import CRUD, engine
 from assets.src.schemas import OrdinalSchema, PriceSchema, StatSchema
 
 app = FastAPI(
-    title="Hypergraph Node Status Bot", description="This is a Node Bot", docs_url="/"
+    title="Hypergraph Node Status Bot", description="This is a Node Bot", docs_url="/swagger"
 )
 
 templates = Jinja2Templates(directory="templates")
@@ -30,7 +32,7 @@ async def post_data(data):
     return await db.post_data(data, session)
 
 
-@app.get("/html/stat/{dag_address}", response_class=HTMLResponse)
+@app.get("/nodebot/stats/{dag_address}", response_class=HTMLResponse)
 async def get_html_page_stats(dag_address, request: Request):
     """Return a html pages showing node stats"""
     return await db.get_html_page_stats(request, templates, dag_address, session)
@@ -90,6 +92,12 @@ async def post_ordinal(data: OrdinalSchema):
 async def post_stats(data: StatSchema):
     """insert statistical data into database"""
     return await db.post_stats(data, session)
+
+
+@app.put("/stat/update")
+async def update_stats(data: StatSchema):
+    """insert statistical data into database"""
+    return await db.update_stats(data, session)
 
 
 @app.get("/ordinal/latest")

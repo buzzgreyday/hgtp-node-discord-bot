@@ -113,16 +113,33 @@ class CRUD:
             try:
                 session.add(stat_data)
                 await session.commit()
-            except Exception as e:
-                print(traceback.format_exc(e))
+            except Exception:
+                    logging.getLogger("rewards").error(
+                        f"crud.py - {traceback.format_exc()}"
+                    )
+            else:
+                logging.getLogger("rewards").error(
+                    f"crud.py - Stats post: SUCCESS!"
+                )
+        return jsonable_encoder(stat_data)
+
+
+    async def update_stats(self, data: StatSchema, async_session: async_sessionmaker[AsyncSession]):
+
+        logging.getLogger("rewards").error(
+            f"crud.py - Updating Stats!"
+            """Post statistical data row by row""")
+        async with async_session() as session:
+            try:
                 await session.execute(
                     update(StatModel)
                     .where(StatModel.destinations == data.destinations)
-                    .values(**stat_data)
+                    .values(**data.__dict__)
                 )
                 await session.commit()
-        return jsonable_encoder(stat_data)
-
+                logging.getLogger("rewards").error(f"crud.py - Stats update: SUCCESS!")
+            except:
+                print("Stats update: FAILED!\n", traceback.format_exc())
     async def delete_user_entry(
         self, data: UserModel, async_session: async_sessionmaker[AsyncSession]
     ):

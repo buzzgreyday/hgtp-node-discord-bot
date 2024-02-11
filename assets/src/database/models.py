@@ -135,6 +135,7 @@ class StatModel(SQLBase):
     dag_median_sum: Mapped[float]
     dag_address_sum_dev: Mapped[float]
     dag_address_daily_sum_dev: Mapped[float]
+    dag_address_daily_sum: Mapped[float]
     dag_address_daily_mean: Mapped[float]
     dag_daily_std_dev: Mapped[float]
     count: Mapped[int]

@@ -39,7 +39,10 @@ def start_rewards_coroutine(_configuration):
 
 
 def start_stats_coroutine(_configuration):
-    asyncio.run_coroutine_threadsafe(stats.run(_configuration), bot.loop)
+    try:
+        asyncio.run_coroutine_threadsafe(stats.run(_configuration), bot.loop)
+    except Exception:
+        print(traceback.format_exc())
 
 
 async def main_loop(version_manager, _configuration):
