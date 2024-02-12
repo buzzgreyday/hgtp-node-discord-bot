@@ -176,8 +176,20 @@ class CRUD:
 
         results = results.scalar_one_or_none()
         daily_network_earnings_average = np.array(results.daily_overall_median).mean()
-        dag_address_daily_std_dev = f"{round(results.dag_address_daily_mean - results.dag_daily_std_dev)} - {round(results.dag_address_daily_mean + results.dag_daily_std_dev)}"
-
+        daily_dag_estimation_low = (results.dag_address_daily_mean - results.dag_daily_std_dev)
+        daily_dag_estimation_high = (results.dag_address_daily_mean + results.dag_daily_std_dev)
+        dag_address_daily_std_dev = f"{round(daily_dag_estimation_low)} - {round(daily_dag_estimation_high)}"
+        monthly_dag_estimation_low = (results.dag_address_daily_mean - results.dag_daily_std_dev) * 30
+        monthly_dag_estimation_high = (results.dag_address_daily_mean + results.dag_daily_std_dev) * 30
+        dag_address_monthly_std_dev = f"{round(monthly_dag_estimation_low)} - {round(monthly_dag_estimation_high)}"
+        if results.dag_address_sum_dev > 0:
+            dag_address_sum_dev = f"+{round(results.dag_address_sum_dev)}"
+        else:
+            dag_address_sum_dev = round(results.dag_address_sum_dev)
+        if results.dag_address_daily_sum_dev > 0:
+            dag_address_daily_sum_dev = f"+{round(results.dag_address_daily_sum_dev)}"
+        else:
+            dag_address_daily_sum_dev = round(results.dag_address_daily_sum_dev)
         print(f"http://localhost:8000/static/{results.destinations}.jpg")
         print(results.__dict__)
         if results:
@@ -190,12 +202,13 @@ class CRUD:
                                                "count": results.count,
                                                "percent_earning_more": round(results.percent_earning_more, 2),
                                                "dag_address_sum": round(results.dag_address_sum, 2),
-                                               "dag_address_sum_dev": round(results.dag_address_sum_dev, 2),
+                                               "dag_address_sum_dev": dag_address_sum_dev,
                                                "dag_median_sum": round(results.dag_median_sum, 2),
                                                "daily_network_earnings_average": round(daily_network_earnings_average, 2),
-                                               "dag_address_daily_sum_dev": round(results.dag_address_daily_sum_dev, 2),
+                                               "dag_address_daily_sum_dev": dag_address_daily_sum_dev,
                                                "dag_address_daily_mean": round(results.dag_address_daily_mean, 2),
                                                "dag_address_daily_std_dev": dag_address_daily_std_dev,
+                                               "dag_address_monthly_std_dev": dag_address_monthly_std_dev,
                                                "usd_address_sum": round(results.usd_address_sum, 2),
                                                "usd_address_daily_sum": round(results.usd_address_daily_sum, 2),
                                                "plot_path": f"http://localhost:8000/static/{results.destinations}.jpg"})

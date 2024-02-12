@@ -31,7 +31,7 @@
     <div class="row">
         <div class="box">
             <div class="shadow container-sm m-1 p-3 text-black rounded" style="background-color: #ffffff;">
-                <h2 class="text-center mb-4 fw-bolder" style="color: #3d3d3d;">{{ dag_address }}</h1>
+                <h3 class="text-center mb-4 fw-bolder" style="color: #3d3d3d;">{{ dag_address }}</h1>
                 <img src="{{ plot_path }}" class="mx-auto d-block rounded" alt="plot">
             </div>
         </div>
@@ -42,14 +42,14 @@
                         <p class="fs-6 fw-bold">30 Days Node Earnings</p>
                         <p class="fs-6 fw-light">{{ dag_address_sum }} $DAG</p>
                         <p class="fs-6 fw-lighter">Cost: ${{ usd_address_sum }}</p>
+                        <p class="fs-6 fw-lighter">Estimated monthly earnings is {{ dag_address_monthly_std_dev }} $DAG</p>
+
                     </div>
                     <div class="col-md-6 rounded p-3 bg-light">
-                        <p class="fs-6 fw-bold">30 Days Deviation From Network Average</p>
-                        <p class="fs-6 fw-light">{{ dag_address_sum_dev }} $DAG</p>
-                    </div>
-                    <div class="col-md-6 rounded p-3 bg-light">
-                        <p class="fs-6 fw-bold">30 Days Network Node Average Earnings</p>
+                        <p class="fs-6 fw-bold">30 Days Network Average Earnings</p>
                         <p class="fs-6 fw-light">{{ dag_median_sum }} $DAG</p>
+                        <p class="fs-6 fw-lighter">Deviation: {{ dag_address_sum_dev }} $DAG</p>
+
                     </div>
                     <div class="col-md-6 rounded p-3 bg-light">
                         <p class="fs-6 fw-bold">Percent Earning More </p>
@@ -70,6 +70,8 @@
                     <div class="col-md-6 rounded p-3 bg-light">
                         <p class="fs-6 fw-bold">Average Daily Network Earnings</p>
                         <p class="fs-6 fw-light">{{ daily_network_earnings_average }} $DAG</p>
+                        <p class="fs-6 fw-lighter">Deviation: {{ dag_address_daily_sum_dev }} $DAG</p>
+
                     </div>
                 </div>
             </div>
