@@ -61,7 +61,6 @@ async def create_daily_data(data: pd.DataFrame, start_time, from_timestamp):
     sliced_df = await create_timeslice_data(data, start_time, traverse_seconds)
     print('Timeslice done')
     sliced_df['dag_daily_std_dev'].fillna(0, inplace=True)
-
     create_visualizations(sliced_df, from_timestamp)
     print('Visualizations done')
     sliced_df = await sum_usd(sliced_df, 'usd_address_daily_sum')
