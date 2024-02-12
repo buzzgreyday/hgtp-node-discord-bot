@@ -7,7 +7,6 @@ import pandas as pd
 import sqlalchemy
 from aiohttp import ClientSession, TCPConnector
 import matplotlib.pyplot as plt
-from asyncpg.exceptions import UniqueViolationError
 
 from assets.src.database.database import post_stats, update_stats
 from assets.src.rewards import RequestSnapshot, normalize_timestamp
@@ -22,15 +21,39 @@ final_columns = ['daily_effectivity_score', 'destinations', 'dag_address_sum', '
                  'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_address_daily_sum', 'dag_daily_std_dev',
                  'usd_address_sum', 'usd_address_daily_sum']
 
-async def sum_usd(data: pd.DataFrame, column_name: str):
-    # THE USD VALUE NEEDS TO BE MULTIPLIED SINCE IT'S THE VALUE PER DAG
-    usd_sum = data.groupby('destinations')['usd_per_token'].transform('mean')
-    print(usd_sum)
-    data[column_name] = usd_sum * data['dag_address_daily_sum']
-    print('usd ok')
-    return data
 
-async def create_timeslice_data(data: pd.DataFrame, start_time: int, travers_seconds: int):
+def sum_usd(df: pd.DataFrame, new_column_name: str, address_specific_sum_column) -> pd.DataFrame:
+    # THE USD VALUE NEEDS TO BE MULTIPLIED SINCE IT'S THE VALUE PER DAG
+    df[new_column_name] = df['usd_per_token'] * df[address_specific_sum_column]
+    return df
+
+
+def calculate_address_specific_sum(df: pd.DataFrame, new_column_name: str, address_specific_sum_column: str) -> pd.DataFrame:
+    df.loc[:, new_column_name] = df.groupby('destinations')[address_specific_sum_column].transform('sum')
+    return df
+
+
+def calculate_address_specific_mean(df: pd.DataFrame, new_column_name: str, address_specific_mean_column: str)  -> pd.DataFrame:
+    df.loc[:, new_column_name] = df.groupby('destinations')[address_specific_mean_column].transform(
+        'mean')
+    return df
+
+
+def calculate_address_specific_deviation(sliced_df: pd.DataFrame, new_column_name: str, address_specific_sum_column, general_sum_column) -> pd.DataFrame:
+    sliced_df[new_column_name] = sliced_df[address_specific_sum_column] - sliced_df[general_sum_column]
+    return sliced_df
+
+
+def calculate_address_specific_standard_deviation(df: pd.DataFrame, new_column_name: str, address_specific_sum_column: str) -> pd.DataFrame:
+    df[new_column_name] = df.groupby('destinations')[address_specific_sum_column].transform('std')
+    return df
+
+def calculate_general_data_median(df: pd.DataFrame, new_column_name: str, median_column: str) -> pd.DataFrame:
+    df.loc[:, new_column_name] = df[median_column].median()
+    return df
+
+
+def create_timeslice_data(data: pd.DataFrame, start_time: int, travers_seconds: int) -> pd.DataFrame:
     """
     TO: Start time is usually the latest available timestamp
     FROM: Traverse seconds is for example seven days, one day or 24 hours in seconds (the time you wish to traverse)
@@ -39,36 +62,28 @@ async def create_timeslice_data(data: pd.DataFrame, start_time: int, travers_sec
     while start_time >= data['timestamp'].values.min():
         # Also add 7 days and 24 hours
         sliced_df = data[(data['timestamp'] >= start_time - travers_seconds) & (data['timestamp'] <= start_time)].copy()
-        sliced_df.loc[:, 'dag_address_daily_sum'] = sliced_df.groupby('destinations')['dag'].transform('sum')
-        print("transform was okay")
-        sliced_df.loc[:, 'dag_address_daily_mean'] = sliced_df.groupby('destinations')['dag_address_daily_sum'].transform('mean')
-        sliced_df.loc[:, 'daily_overall_median'] = sliced_df['dag_address_daily_sum'].median()
-        sliced_df['dag_address_daily_sum_dev'] = sliced_df['dag_address_daily_sum'] - sliced_df['daily_overall_median']
-        print("deviation okay")
-        sliced_df['dag_daily_std_dev'] = sliced_df.groupby('destinations')['dag_address_daily_sum'].transform('std')
-
+        sliced_df = calculate_address_specific_sum(sliced_df, 'dag_address_daily_sum', 'dag')
+        sliced_df = calculate_address_specific_mean(sliced_df, 'dag_address_daily_mean', 'dag_address_daily_sum')
+        sliced_df = calculate_general_data_median(sliced_df, 'daily_overall_median', 'dag_address_daily_sum')
+        sliced_df = calculate_address_specific_deviation(sliced_df, 'dag_address_daily_sum_dev', 'dag_address_daily_sum', 'daily_overall_median')
+        sliced_df = calculate_address_specific_standard_deviation(sliced_df, 'dag_daily_std_dev', 'dag_address_daily_sum')
+        # Clean the data
         sliced_df = sliced_df[sliced_columns].drop_duplicates('destinations', ignore_index=True)
         list_of_df.append(sliced_df)
+        print(f"Timeslice data transformation done, t >= {start_time}!")
         start_time = start_time - travers_seconds
 
     sliced_df = pd.concat(list_of_df, ignore_index=True)
     del list_of_df
     return sliced_df
 
-async def create_daily_data(data: pd.DataFrame, start_time, from_timestamp):
-    # One day in seconds
-    traverse_seconds = 86400
-    sliced_df = await create_timeslice_data(data, start_time, traverse_seconds)
-    print('Timeslice done')
-    sliced_df['dag_daily_std_dev'].fillna(0, inplace=True)
-    create_visualizations(sliced_df, from_timestamp)
-    print('Visualizations done')
-    sliced_df = await sum_usd(sliced_df, 'usd_address_daily_sum')
-    sliced_df = sliced_df[final_sliced_columns].drop_duplicates('destinations')
+def create_timeslice_effectivity_score(sliced_df: pd.DataFrame) -> pd.DataFrame:
+
+    print("Scoring address specific daily effectivity...")
     sliced_df = sliced_df.sort_values(by=['dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev'],
                                       ascending=[False, False, True]).reset_index(drop=True)
     sliced_df['daily_effectivity_score'] = sliced_df.index
-    print(sliced_df)
+    print("Scoring done!")
     return sliced_df
 
 
@@ -114,6 +129,20 @@ def create_visualizations(df: pd.DataFrame, from_timestamp: int):
         plt.close()
 
 
+async def get_data(session, timestamp):
+
+    while True:
+        try:
+            snapshot_data = await RequestSnapshot(session).database(f"http://127.0.0.1:8000/ordinal/from/{timestamp}")
+        except aiohttp.client_exceptions.ClientConnectorError:
+            await asyncio.sleep(3)
+        else:
+            break
+    print("Got snapshot_data")
+    data = pd.DataFrame(snapshot_data)
+    return data
+
+
 async def run(configuration):
     await asyncio.sleep(10)
 
@@ -130,89 +159,128 @@ async def run(configuration):
         timestamp = 1640995200
         # 30 days in seconds = 2592000
         # 7 days in seconds = 604800
-        while True:
-            try:
-                data = await RequestSnapshot(session).database(f"http://127.0.0.1:8000/ordinal/from/{timestamp}")
-            except aiohttp.client_exceptions.ClientConnectorError:
-                await asyncio.sleep(3)
-            else:
-                break
-        print("Got data")
-        data = pd.DataFrame(data)
+
+        # Raw data calculations: I need the aggregated dag_address_sum from the snapshot data column "dag"
+        snapshot_data = await get_data(session, timestamp)
         # ! REMEMBER YOU TURNED OF THINGS IN MAIN.PY !
         pd.set_option('display.max_rows', None)
         pd.options.display.float_format = '{:.2f}'.format
-        start_time = data['timestamp'].values.max()
-
         """
         CREATE DAILY DATA
         TO: Start time is the latest available timestamp
-        FROM: The timestamp is the timestamp from where you wish to retrieve data from
+        FROM: The "timestamp" var is the timestamp from where you wish to retrieve data from
         """
-        sliced_df = await create_daily_data(data, start_time, timestamp)
+        start_time = snapshot_data['timestamp'].values.max()
+        # One day in seconds
+        traverse_seconds = 86400
+        try:
+            sliced_df = create_timeslice_data(snapshot_data, start_time, traverse_seconds)
+        except Exception:
+            print(traceback.format_exc())
+        sliced_df['dag_daily_std_dev'].fillna(0, inplace=True)
+        create_visualizations(sliced_df, timestamp)
+        print('Visualizations done')
+        try:
+            sliced_df = sum_usd(sliced_df, 'usd_address_daily_sum', 'dag_address_daily_sum')
+        except Exception:
+            print(traceback.format_exc())
+        # Clean the data
+        print("Cleaning daily sliced data...")
+        sliced_df = sliced_df[final_sliced_columns].drop_duplicates('destinations')
+        print("Cleaning done!")
+        print(sliced_df)
+        input("Sliced_df looks clean? ")
+        try:
+            sliced_df = create_timeslice_effectivity_score(sliced_df)
+        except Exception:
+            print(traceback.format_exc())
+
+
         """
         CREATE OVERALL DATA
         """
-        data = data.merge(sliced_df, on='destinations', how='left')
+        snapshot_data['dag_address_sum'] = snapshot_data.groupby('destinations')['dag'].transform('sum')
+        print(snapshot_data.head(20))
+        input("DAG general sum looks okay? ")
+
+        print("Merging daily daily sliced data...")
+
         try:
-            data['dag_address_sum'] = data.groupby('destinations')['dag_address_daily_sum'].transform('sum')
-            # data = await sum_usd(data, 'usd_address_sum')
-            usd_sum = data.groupby('destinations')['usd_per_token'].transform('mean')
+            snapshot_data = sliced_df.merge(snapshot_data.drop_duplicates('destinations'), on='destinations',
+                                            how='left')
+            print(snapshot_data)
+            input("Merged data looks okay? ")
         except Exception:
             print(traceback.format_exc())
-        data['usd_address_sum'] = usd_sum * data['dag_address_sum']
-        print('usd ok')
+        print("Merging done!")
+
+
+        # snapshot_data = snapshot_data.drop_duplicates('destinations')
+
+        try:
+            snapshot_data = sum_usd(snapshot_data, 'usd_address_sum', 'dag_address_sum')
+        except Exception:
+            print(traceback.format_exc())
+        print(snapshot_data)
+        input("USD general sum looks okay? ")
+
         # The node is earning more than the average if sum deviation is positive
-        data['dag_address_sum_dev'] = data['dag_address_sum'] - data['dag_address_sum'].median()
-        print(1)
-        data['dag_median_sum'] = data['dag_address_sum'].median()
-        print(2)
-        print(4)
-        data = data[final_columns].drop_duplicates('destinations')
+        try:
+            snapshot_data['dag_address_sum_dev'] = snapshot_data['dag_address_sum'] - snapshot_data['dag_address_sum'].median()
+        except Exception:
+            print(traceback.format_exc())
+        print(snapshot_data)
+        input("Deviation looks okay? ")
+        snapshot_data['dag_median_sum'] = snapshot_data['dag_address_sum'].median()
+        print(snapshot_data)
+        input("Median looks okay? ")
+
         """
         # The most effective node is the node with the lowest daily standard deviation, the highest daily mean earnings,
         # the highest daily sum deviation (average node sum earnings, minus network earnings median) and the highest
         # overall timeslice sum deviation (average node sum earnings, minus network earnings median).
         """
-        print(5)
-        data = data.sort_values(
-            by=['dag_address_sum_dev', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev'],
-            ascending=[False, False, False, True]).reset_index(
-            drop=True)
+        print("Preparing effectivity_score...")
+        try:
+            snapshot_data = snapshot_data.sort_values(
+                by=['dag_address_sum_dev', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev'],
+                ascending=[False, False, False, True]).reset_index(
+                drop=True)
+        except Exception:
+            print(traceback.format_exc())
         """
         # The effectivity score: close to zero is good.
         """
+        print("Creating effectivity score...")
         try:
-            data['effectivity_score'] = (data.index + data['daily_effectivity_score']) / 2
+            snapshot_data['effectivity_score'] = (snapshot_data.index + snapshot_data['daily_effectivity_score']) / 2
         except ZeroDivisionError:
-            data['effectivity_score'] = 0.0
-        print(6)
-        data = data.sort_values(by='dag_address_sum_dev', ascending=False).reset_index(drop=True)
-        print(7)
-        data['earner_score'] = data.index
-        print(8)
-        total_len = len(data.index)
-        print(9)
-        data['count'] = total_len
-        print(10)
-        # Initiate the row
-        data['percent_earning_more'] = 0.0
-        print(11)
-        for i, row in data.iterrows():
-            print(1)
-            percentage = ((i + 1) / total_len) * 100
-            print(2)
-            data.at[i, 'percent_earning_more'] = percentage
-            print(3)
-            row['percent_earning_more'] = percentage
-            print(4)
-            schema = StatSchema(**row.to_dict())
-            print(5)
-            try:
-                # Post
-                await post_stats(schema)
-            except sqlalchemy.exc.IntegrityError:
-                await update_stats(schema)
+            snapshot_data['effectivity_score'] = 0.0
+        print("Score created!")
+        try:
+            snapshot_data = snapshot_data.sort_values(by='dag_address_sum_dev', ascending=False).reset_index(drop=True)
+            snapshot_data['earner_score'] = snapshot_data.index
+            total_len = len(snapshot_data.index)
+            snapshot_data['count'] = total_len
+            # Initiate the row
+            snapshot_data['percent_earning_more'] = 0.0
+        except Exception:
+            print(traceback.format_exc())
+        print("Post/update database statistics")
+        try:
+            for i, row in snapshot_data.iterrows():
+                percentage = ((i + 1) / total_len) * 100
+                snapshot_data.at[i, 'percent_earning_more'] = percentage
+                row['percent_earning_more'] = percentage
+                print(row)
+                schema = StatSchema(**row.to_dict())
+                try:
+                    # Post
+                    await post_stats(schema)
+                except sqlalchemy.exc.IntegrityError:
+                    await update_stats(schema)
+        except Exception:
+            print(traceback.format_exc())
 
-        print(data)
-        del data
+        print(snapshot_data)
+        del snapshot_data
