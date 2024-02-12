@@ -63,17 +63,19 @@ def create_timeslice_data(data: pd.DataFrame, start_time: int, travers_seconds: 
         # Also add 7 days and 24 hours
         sliced_df = data[(data['timestamp'] >= start_time - travers_seconds) & (data['timestamp'] <= start_time)].copy()
         sliced_df = calculate_address_specific_sum(sliced_df, 'dag_address_daily_sum', 'dag')
-        sliced_df = calculate_address_specific_mean(sliced_df, 'dag_address_daily_mean', 'dag_address_daily_sum')
-        sliced_df = calculate_general_data_median(sliced_df, 'daily_overall_median', 'dag_address_daily_sum')
-        sliced_df = calculate_address_specific_deviation(sliced_df, 'dag_address_daily_sum_dev', 'dag_address_daily_sum', 'daily_overall_median')
-        sliced_df = calculate_address_specific_standard_deviation(sliced_df, 'dag_daily_std_dev', 'dag_address_daily_sum')
         # Clean the data
-        sliced_df = sliced_df[sliced_columns].drop_duplicates('destinations', ignore_index=True)
         list_of_df.append(sliced_df)
         print(f"Timeslice data transformation done, t >= {start_time}!")
         start_time = start_time - travers_seconds
 
     sliced_df = pd.concat(list_of_df, ignore_index=True)
+    sliced_df = calculate_general_data_median(sliced_df, 'daily_overall_median', 'dag_address_daily_sum')
+    sliced_df = calculate_address_specific_deviation(sliced_df, 'dag_address_daily_sum_dev', 'dag_address_daily_sum',
+                                                     'daily_overall_median')
+    sliced_df = calculate_address_specific_standard_deviation(sliced_df, 'dag_daily_std_dev', 'dag_address_daily_sum')
+    sliced_df = calculate_address_specific_mean(sliced_df, 'dag_address_daily_mean', 'dag_address_daily_sum')
+    sliced_df = sliced_df[sliced_columns].drop_duplicates('destinations', ignore_index=True)
+
     del list_of_df
     return sliced_df
 
