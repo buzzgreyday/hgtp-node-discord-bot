@@ -179,7 +179,7 @@ class CRUD:
         dag_address_daily_std_dev = f"{round(results.dag_address_daily_mean - results.dag_daily_std_dev, 2)} - {round(results.dag_address_daily_mean + results.dag_daily_std_dev, 2)}"
 
         print(f"http://localhost:8000/static/{results.destinations}.jpg")
-        print(results)
+        print(results.__dict__)
         if results:
             return templates.TemplateResponse("index.html",
                                               {"request": request,

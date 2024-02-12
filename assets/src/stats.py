@@ -101,7 +101,7 @@ def create_visualizations(df: pd.DataFrame, from_timestamp: int):
     for destination in unique_destinations:
         destination_df = df[df['destinations'] == destination]
         plt.style.use('Solarize_Light2')
-        fig = plt.figure(figsize=(10, 5))
+        fig = plt.figure(figsize=(12, 6), dpi=80)
         try:
             print("style ok")
             plt.plot(pd.to_datetime(destination_df['timestamp'] * 1000, unit='ms'),
