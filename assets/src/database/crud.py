@@ -110,25 +110,17 @@ class CRUD:
         async with async_session() as session:
             stat_data = StatModel(**data.__dict__)
             # Create a StatModel instance for each row of data
-            try:
-                session.add(stat_data)
-                await session.commit()
-            except Exception:
-                    logging.getLogger("rewards").error(
-                        f"crud.py - {traceback.format_exc()}"
-                    )
-            else:
-                logging.getLogger("rewards").error(
-                    f"crud.py - Stats post: SUCCESS!"
-                )
+            session.add(stat_data)
+            await session.commit()
+            logging.getLogger("rewards").error(
+                f"crud.py - Stats post: SUCCESS!"
+            )
         return jsonable_encoder(stat_data)
 
 
     async def update_stats(self, data: StatSchema, async_session: async_sessionmaker[AsyncSession]):
+        """Update statistical data"""
 
-        logging.getLogger("rewards").error(
-            f"crud.py - Updating Stats!"
-            """Post statistical data row by row""")
         async with async_session() as session:
             try:
                 await session.execute(

@@ -14,6 +14,14 @@ from assets.src.rewards import RequestSnapshot, normalize_timestamp
 from assets.src.schemas import StatSchema
 
 
+sliced_columns = ['timestamp', "ordinals", 'destinations', 'dag_address_daily_sum', 'dag_address_daily_sum_dev',
+                  'dag_daily_std_dev', 'daily_overall_median', 'dag_address_daily_mean', 'usd_per_token']
+final_sliced_columns = ['destinations', 'dag_address_daily_mean', 'dag_address_daily_sum', 'dag_address_daily_sum_dev',
+                        'dag_daily_std_dev', 'usd_address_daily_sum']
+final_columns = ['daily_effectivity_score', 'destinations', 'dag_address_sum', 'dag_address_sum_dev', 'dag_median_sum',
+                 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_address_daily_sum', 'dag_daily_std_dev',
+                 'usd_address_sum', 'usd_address_daily_sum']
+
 async def sum_usd(data: pd.DataFrame, column_name: str):
     # THE USD VALUE NEEDS TO BE MULTIPLIED SINCE IT'S THE VALUE PER DAG
     usd_sum = data.groupby('destinations')['usd_per_token'].transform('mean')
@@ -39,8 +47,7 @@ async def create_timeslice_data(data: pd.DataFrame, start_time: int, travers_sec
         print("deviation okay")
         sliced_df['dag_daily_std_dev'] = sliced_df.groupby('destinations')['dag_address_daily_sum'].transform('std')
 
-        sliced_df = sliced_df[['timestamp', "ordinals", 'destinations', 'dag_address_daily_sum', 'dag_address_daily_sum_dev', 'dag_daily_std_dev',
-                             'daily_overall_median', 'dag_address_daily_mean', 'usd_per_token']].drop_duplicates('destinations', ignore_index=True)
+        sliced_df = sliced_df[sliced_columns].drop_duplicates('destinations', ignore_index=True)
         list_of_df.append(sliced_df)
         start_time = start_time - travers_seconds
 
@@ -58,8 +65,7 @@ async def create_daily_data(data: pd.DataFrame, start_time, from_timestamp):
     create_visualizations(sliced_df, from_timestamp)
     print('Visualizations done')
     sliced_df = await sum_usd(sliced_df, 'usd_address_daily_sum')
-    sliced_df = sliced_df[['destinations', 'dag_address_daily_mean', 'dag_address_daily_sum', 'dag_address_daily_sum_dev', 'dag_daily_std_dev',
-                           'usd_address_daily_sum']].drop_duplicates('destinations')
+    sliced_df = sliced_df[final_sliced_columns].drop_duplicates('destinations')
     sliced_df = sliced_df.sort_values(by=['dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev'],
                                       ascending=[False, False, True]).reset_index(drop=True)
     sliced_df['daily_effectivity_score'] = sliced_df.index
@@ -163,7 +169,7 @@ async def run(configuration):
         data['dag_median_sum'] = data['dag_address_sum'].median()
         print(2)
         print(4)
-        data = data[['daily_effectivity_score', 'destinations', 'dag_address_sum', 'dag_address_sum_dev', 'dag_median_sum', 'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_address_daily_sum', 'dag_daily_std_dev', 'usd_address_sum', 'usd_address_daily_sum']].drop_duplicates('destinations')
+        data = data[final_columns].drop_duplicates('destinations')
         """
         # The most effective node is the node with the lowest daily standard deviation, the highest daily mean earnings,
         # the highest daily sum deviation (average node sum earnings, minus network earnings median) and the highest
@@ -207,7 +213,6 @@ async def run(configuration):
                 # Post
                 await post_stats(schema)
             except sqlalchemy.exc.IntegrityError:
-                print(traceback.format_exc())
                 await update_stats(schema)
 
         print(data)
