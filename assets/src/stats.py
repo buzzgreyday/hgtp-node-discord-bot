@@ -113,11 +113,12 @@ def create_visualizations(df: pd.DataFrame, from_timestamp: int):
                      label='Daily average network earnings', linestyle=':', alpha=0.5)
             print("Daily average network earnings plot: OK!")
             # Don't limit average to any particular address
-            plt.axhline(df['daily_overall_median'].median(), color='green', linestyle='--',
-                        label=f'Average network earnings (since {datetime.fromtimestamp(timestamp=from_timestamp).strftime("%d. %B %Y")})',
-                        alpha=0.5)
+
             plt.axhline(destination_df['dag_address_daily_mean'].median(), color='blue', linestyle='--',
                         label=f'Average node earnings (since {datetime.fromtimestamp(timestamp=from_timestamp).strftime("%d. %B %Y")})',
+                        alpha=0.5)
+            plt.axhline(df['daily_overall_median'].median(), color='green', linestyle='--',
+                        label=f'Average network earnings (since {datetime.fromtimestamp(timestamp=from_timestamp).strftime("%d. %B %Y")})',
                         alpha=0.5)
             plt.xlabel('Time')
             plt.ylabel('$DAG Earnings')
