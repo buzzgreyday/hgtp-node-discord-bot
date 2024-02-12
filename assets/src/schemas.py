@@ -279,6 +279,7 @@ class StatSchema(BaseModel):
     percent_earning_more: float
     dag_address_sum: float
     dag_median_sum: float
+    daily_overall_median: float
     dag_address_sum_dev: float
     dag_address_daily_sum_dev: float
     dag_address_daily_sum: float

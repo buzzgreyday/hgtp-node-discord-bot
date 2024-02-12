@@ -44,10 +44,6 @@
                         <p class="fs-6 fw-lighter">Cost: ${{ usd_address_sum }}</p>
                     </div>
                     <div class="col-md-6 rounded p-3 bg-light">
-                        <p class="fs-6 fw-bold">Average Daily Node Earnings</p>
-                        <p class="fs-6 fw-light">{{ dag_address_daily_mean }} +/- {{ dag_address_daily_std_dev }} $DAG</p>
-                    </div>
-                    <div class="col-md-6 rounded p-3 bg-light">
                         <p class="fs-6 fw-bold">30 Days Deviation compared to Network Average</p>
                         <p class="fs-6 fw-light">{{ dag_address_sum_dev }} $DAG</p>
                     </div>
@@ -59,12 +55,20 @@
                         <p class="fs-6 fw-bold">Percent Earning More </p>
                         <p class="fs-6 fw-light">{{ percent_earning_more }}% of the network earned more than this node the past 30 days</p>
                     </div>
+                    <div class="col-md-6 rounded p-3 bg-light">
+                        <p class="fs-6 fw-bold">30 Days Earner Score</p>
+                        <p class="fs-6 fw-light">{{ earner_score }} of {{ count }} nodes</p>
+                    </div>
                 </div>
                 <div class="row m-1">
                     <div class="col-md-6 rounded p-3 bg-light">
-                        <p class="fs-6 fw-bold">30 Days Earner Score</p>
-                        <p class="fs-6 fw-light">{{ earner_score }}/{{ count }}</p>
-                        <p class="fw-lighter">0 is the ideal score.</p>
+                        <p class="fs-6 fw-bold">Average Daily Node Earnings</p>
+                        <p class="fs-6 fw-light">{{ dag_address_daily_mean }} $DAG</p>
+                        <p class="fs-6 fw-lighter">Your estimated daily earnings is {{ dag_address_daily_std_dev }} $DAG</p>
+                    </div>
+                    <div class="col-md-6 rounded p-3 bg-light">
+                        <p class="fs-6 fw-bold">Average Daily Network Earnings</p>
+                        <p class="fs-6 fw-light">{{ daily_network_earnings_average }} $DAG</p>
                     </div>
                 </div>
             </div>

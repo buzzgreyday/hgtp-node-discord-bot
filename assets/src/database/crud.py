@@ -4,6 +4,7 @@ import traceback
 from datetime import datetime
 import os
 
+import numpy as np
 from dotenv import load_dotenv
 from assets.src.database.models import UserModel, NodeModel, OrdinalModel, PriceModel, StatModel
 from assets.src.schemas import User as UserSchema, PriceSchema, OrdinalSchema, StatSchema
@@ -174,9 +175,11 @@ class CRUD:
             )
 
         results = results.scalar_one_or_none()
+        daily_network_earnings_average = np.array(results.daily_overall_median).mean()
+        dag_address_daily_std_dev = f"{round(results.dag_address_daily_mean - results.dag_daily_std_dev, 2)} - {round(results.dag_address_daily_mean + results.dag_daily_std_dev, 2)}"
+
         print(f"http://localhost:8000/static/{results.destinations}.jpg")
         if results:
-            print(results.dag_address_daily_mean)
             return templates.TemplateResponse("index.html",
                                               {"request": request,
                                                "dag_address": results.destinations,
@@ -188,9 +191,10 @@ class CRUD:
                                                "dag_address_sum": round(results.dag_address_sum, 2),
                                                "dag_address_sum_dev": round(results.dag_address_sum_dev, 2),
                                                "dag_median_sum": round(results.dag_median_sum, 2),
+                                               "daily_network_earnings_average": round(daily_network_earnings_average, 2),
                                                "dag_address_daily_sum_dev": round(results.dag_address_daily_sum_dev, 2),
                                                "dag_address_daily_mean": round(results.dag_address_daily_mean, 2),
-                                               "dag_address_daily_std_dev": round(results.dag_daily_std_dev, 2),
+                                               "dag_address_daily_std_dev": dag_address_daily_std_dev,
                                                "usd_address_sum": round(results.usd_address_sum, 2),
                                                "usd_address_daily_sum": round(results.usd_address_daily_sum, 2),
                                                "plot_path": f"http://localhost:8000/static/{results.destinations}.jpg"})

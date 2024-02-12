@@ -14,9 +14,9 @@ from assets.src.schemas import StatSchema
 
 
 sliced_columns = ['timestamp', "ordinals", 'destinations', 'dag_address_daily_sum', 'daily_overall_median', 'usd_per_token']
-final_sliced_columns = ['destinations', 'dag_address_daily_mean', 'dag_address_daily_sum', 'dag_address_daily_sum_dev',
+final_sliced_columns = ['destinations', 'dag_address_daily_mean', 'dag_address_daily_sum', 'daily_overall_median', 'dag_address_daily_sum_dev',
                         'dag_daily_std_dev', 'usd_address_daily_sum']
-final_columns = ['daily_effectivity_score', 'destinations', 'dag_address_sum', 'dag_address_sum_dev', 'dag_median_sum',
+final_columns = ['daily_effectivity_score', 'destinations', 'dag_address_sum', 'daily_overall_median', 'dag_address_sum_dev', 'dag_median_sum',
                  'dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_address_daily_sum', 'dag_daily_std_dev',
                  'usd_address_sum', 'usd_address_daily_sum']
 
@@ -87,7 +87,7 @@ def create_timeslice_effectivity_score(sliced_df: pd.DataFrame) -> pd.DataFrame:
     # Time is a factor here too: longer node uptime can cause higher deviation
     sliced_df = sliced_df.sort_values(by=['dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev'],
                                       ascending=[False, False, True]).reset_index(drop=True)
-    sliced_df['daily_effectivity_score'] = sliced_df.index
+    sliced_df['daily_effectivity_score'] = sliced_df.index + 1
     print("Scoring done!")
     return sliced_df
 
@@ -261,7 +261,7 @@ async def run(configuration):
         print("Score created!")
         try:
             snapshot_data = snapshot_data.sort_values(by='dag_address_sum_dev', ascending=False).reset_index(drop=True)
-            snapshot_data['earner_score'] = snapshot_data.index
+            snapshot_data['earner_score'] = snapshot_data.index + 1
             total_len = len(snapshot_data.index)
             snapshot_data['count'] = total_len
             # Initiate the row
@@ -283,5 +283,5 @@ async def run(configuration):
         except Exception:
             print(traceback.format_exc())
 
-        print(snapshot_data)
+        print(snapshot_data['daily_overall_median'])
         del snapshot_data
