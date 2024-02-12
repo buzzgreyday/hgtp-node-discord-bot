@@ -84,6 +84,7 @@ def create_timeslice_data(data: pd.DataFrame, start_time: int, travers_seconds: 
 def create_timeslice_effectivity_score(sliced_df: pd.DataFrame) -> pd.DataFrame:
 
     print("Scoring address specific daily effectivity...")
+    # Time is a factor here too: longer node uptime can cause higher deviation
     sliced_df = sliced_df.sort_values(by=['dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev'],
                                       ascending=[False, False, True]).reset_index(drop=True)
     sliced_df['daily_effectivity_score'] = sliced_df.index
@@ -217,9 +218,6 @@ async def run(configuration):
         except Exception:
             print(traceback.format_exc())
         print("Merging done!")
-
-
-        # snapshot_data = snapshot_data.drop_duplicates('destinations')
 
         try:
             snapshot_data = sum_usd(snapshot_data, 'usd_address_sum', 'dag_address_sum')
