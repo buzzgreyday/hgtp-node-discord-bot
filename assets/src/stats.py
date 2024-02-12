@@ -13,8 +13,7 @@ from assets.src.rewards import RequestSnapshot, normalize_timestamp
 from assets.src.schemas import StatSchema
 
 
-sliced_columns = ['timestamp', "ordinals", 'destinations', 'dag_address_daily_sum', 'dag_address_daily_sum_dev',
-                  'dag_daily_std_dev', 'daily_overall_median', 'dag_address_daily_mean', 'usd_per_token']
+sliced_columns = ['timestamp', "ordinals", 'destinations', 'dag_address_daily_sum', 'daily_overall_median', 'usd_per_token']
 final_sliced_columns = ['destinations', 'dag_address_daily_mean', 'dag_address_daily_sum', 'dag_address_daily_sum_dev',
                         'dag_daily_std_dev', 'usd_address_daily_sum']
 final_columns = ['daily_effectivity_score', 'destinations', 'dag_address_sum', 'dag_address_sum_dev', 'dag_median_sum',
@@ -63,18 +62,21 @@ def create_timeslice_data(data: pd.DataFrame, start_time: int, travers_seconds: 
         # Also add 7 days and 24 hours
         sliced_df = data[(data['timestamp'] >= start_time - travers_seconds) & (data['timestamp'] <= start_time)].copy()
         sliced_df = calculate_address_specific_sum(sliced_df, 'dag_address_daily_sum', 'dag')
+        sliced_df = calculate_general_data_median(sliced_df, 'daily_overall_median', 'dag_address_daily_sum')
+
         # Clean the data
+        sliced_df = sliced_df[sliced_columns].drop_duplicates('destinations', ignore_index=True)
+
         list_of_df.append(sliced_df)
         print(f"Timeslice data transformation done, t >= {start_time}!")
         start_time = start_time - travers_seconds
 
     sliced_df = pd.concat(list_of_df, ignore_index=True)
-    sliced_df = calculate_general_data_median(sliced_df, 'daily_overall_median', 'dag_address_daily_sum')
-    sliced_df = calculate_address_specific_deviation(sliced_df, 'dag_address_daily_sum_dev', 'dag_address_daily_sum',
-                                                     'daily_overall_median')
     sliced_df = calculate_address_specific_standard_deviation(sliced_df, 'dag_daily_std_dev', 'dag_address_daily_sum')
     sliced_df = calculate_address_specific_mean(sliced_df, 'dag_address_daily_mean', 'dag_address_daily_sum')
-    sliced_df = sliced_df[sliced_columns].drop_duplicates('destinations', ignore_index=True)
+    sliced_df = calculate_address_specific_deviation(sliced_df, 'dag_address_daily_sum_dev',
+                                                     'dag_address_daily_sum',
+                                                     'daily_overall_median')
 
     del list_of_df
     return sliced_df
@@ -102,15 +104,15 @@ def create_visualizations(df: pd.DataFrame, from_timestamp: int):
         try:
             print("style ok")
             plt.plot(pd.to_datetime(destination_df['timestamp'] * 1000, unit='ms'),
-                     destination_df['dag_address_daily_mean'], marker='o',
+                     destination_df['dag_address_daily_sum'], marker='o', color='blue',
                      label='Daily node earnings')
             print("Daily node earnings plot: OK!")
             plt.plot(pd.to_datetime(destination_df['timestamp'] * 1000, unit='ms'),
-                     destination_df['daily_overall_median'], marker='o',
+                     destination_df['daily_overall_median'], marker='o', color='green',
                      label='Daily average network earnings', linestyle=':', alpha=0.5)
             print("Daily average network earnings plot: OK!")
             # Don't limit average to any particular address
-            plt.axhline(df['dag_address_daily_mean'].median(), color='green', linestyle='--',
+            plt.axhline(df['daily_overall_median'].median(), color='green', linestyle='--',
                         label=f'Average network earnings (since {datetime.fromtimestamp(timestamp=from_timestamp).strftime("%d. %B %Y")})',
                         alpha=0.5)
             plt.axhline(destination_df['dag_address_daily_mean'].median(), color='blue', linestyle='--',
@@ -274,7 +276,6 @@ async def run(configuration):
                 percentage = ((i + 1) / total_len) * 100
                 snapshot_data.at[i, 'percent_earning_more'] = percentage
                 row['percent_earning_more'] = percentage
-                print(row)
                 schema = StatSchema(**row.to_dict())
                 try:
                     # Post

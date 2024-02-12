@@ -191,8 +191,8 @@ class CRUD:
                                                "dag_address_daily_sum_dev": round(results.dag_address_daily_sum_dev, 2),
                                                "dag_address_daily_mean": round(results.dag_address_daily_mean, 2),
                                                "dag_address_daily_std_dev": round(results.dag_daily_std_dev, 2),
-                                               "usd_address_sum": results.usd_address_sum,
-                                               "usd_address_daily_sum": results.usd_address_daily_sum,
+                                               "usd_address_sum": round(results.usd_address_sum, 2),
+                                               "usd_address_daily_sum": round(results.usd_address_daily_sum, 2),
                                                "plot_path": f"http://localhost:8000/static/{results.destinations}.jpg"})
         else:
             print("Error")
