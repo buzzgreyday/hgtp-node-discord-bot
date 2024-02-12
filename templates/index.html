@@ -44,7 +44,7 @@
                         <p class="fs-6 fw-lighter">Cost: ${{ usd_address_sum }}</p>
                     </div>
                     <div class="col-md-6 rounded p-3 bg-light">
-                        <p class="fs-6 fw-bold">30 Days Deviation compared to Network Average</p>
+                        <p class="fs-6 fw-bold">30 Days Deviation From Network Average</p>
                         <p class="fs-6 fw-light">{{ dag_address_sum_dev }} $DAG</p>
                     </div>
                     <div class="col-md-6 rounded p-3 bg-light">
@@ -64,6 +64,7 @@
                     <div class="col-md-6 rounded p-3 bg-light">
                         <p class="fs-6 fw-bold">Average Daily Node Earnings</p>
                         <p class="fs-6 fw-light">{{ dag_address_daily_mean }} $DAG</p>
+                        <p class="fs-6 fw-lighter">Cost: ${{ usd_address_daily_sum }}</p>
                         <p class="fs-6 fw-lighter">Your estimated daily earnings is {{ dag_address_daily_std_dev }} $DAG</p>
                     </div>
                     <div class="col-md-6 rounded p-3 bg-light">

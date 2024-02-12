@@ -283,5 +283,5 @@ async def run(configuration):
         except Exception:
             print(traceback.format_exc())
 
-        print(snapshot_data['daily_overall_median'])
+        print(snapshot_data['earner_score'])
         del snapshot_data
