@@ -176,7 +176,7 @@ class CRUD:
 
         results = results.scalar_one_or_none()
         daily_network_earnings_average = np.array(results.daily_overall_median).mean()
-        dag_address_daily_std_dev = f"{round(results.dag_address_daily_mean - results.dag_daily_std_dev, 2)} - {round(results.dag_address_daily_mean + results.dag_daily_std_dev, 2)}"
+        dag_address_daily_std_dev = f"{round(results.dag_address_daily_mean - results.dag_daily_std_dev)} - {round(results.dag_address_daily_mean + results.dag_daily_std_dev)}"
 
         print(f"http://localhost:8000/static/{results.destinations}.jpg")
         print(results.__dict__)
