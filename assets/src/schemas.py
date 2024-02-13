@@ -4,6 +4,7 @@ import traceback
 from typing import List, Optional
 import datetime as dt
 
+import numpy as np
 from pydantic import BaseModel, ValidationError, validator
 
 from assets.src import api
@@ -273,8 +274,8 @@ class PriceSchema(BaseModel):
 
 class StatSchema(BaseModel):
     destinations: str
-    ip: Optional[str]
-    id: Optional[str]
+    ip: Optional[str | None] = None
+    id: Optional[str | None] = None
     daily_effectivity_score: int
     effectivity_score: float
     earner_score: int
