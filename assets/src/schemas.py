@@ -273,8 +273,8 @@ class PriceSchema(BaseModel):
 
 class StatSchema(BaseModel):
     destinations: str
-    ip: str | None
-    id: str | None
+    ip: Optional[str]
+    id: Optional[str]
     daily_effectivity_score: int
     effectivity_score: float
     earner_score: int
