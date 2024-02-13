@@ -2,6 +2,7 @@ import asyncio
 import logging
 import traceback
 from datetime import datetime
+from typing import List
 
 import aiohttp
 import pandas as pd
@@ -34,7 +35,7 @@ class Request:
                         f"\tResponse: {response}")
                     await asyncio.sleep(3)
 
-    async def explorer(self, request_url):
+    async def explorer(self, request_url) -> List[dict]:
         async with self.session.get(request_url) as response:
             if response.status == 200:
                 data = await response.json()
@@ -217,12 +218,19 @@ async def get_data(session, timestamp):
             break
     while True:
         validator_endpoint_url = await Request(session).validator_endpoint_url("https://raw.githubusercontent.com/StardustCollective/dag-explorer-v2/main/.env.base")
-        validator_node_info = await Request(session).explorer(f"{validator_endpoint_url}/mainnet/validator-nodes")
-        if validator_node_info:
+        explorer_validator_data = await Request(session).explorer(f"{validator_endpoint_url}/mainnet/validator-nodes")
+        if explorer_validator_data:
             break
-    print(f"Got snapshot_data\nValidator Info URL: {validator_node_info}")
-    exit(0)
-    data = pd.DataFrame(snapshot_data)
+    for d in explorer_validator_data:
+        d['destinations'] = d.pop('address')
+        d.pop('upTime')
+        d.pop('status')
+        d.pop('latency')
+
+    print(f"Got snapshot_data\nValidator Info URL: {explorer_validator_data}")
+    snapshot_data = pd.DataFrame(snapshot_data)
+    explorer_data = pd.DataFrame(explorer_validator_data)
+    data = snapshot_data.merge(explorer_data, how='left', on='destinations')
     return data
 
 

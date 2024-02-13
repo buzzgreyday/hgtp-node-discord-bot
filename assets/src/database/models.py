@@ -125,8 +125,9 @@ class StatModel(SQLBase):
 
     __tablename__ = "stat"
 
-    # id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
     destinations: Mapped[str] = mapped_column(index=True, primary_key=True)
+    ip: Mapped[str] = mapped_column(nullable=True)
+    id: Mapped[str] = mapped_column(nullable=True)
     daily_effectivity_score: Mapped[int]
     effectivity_score: Mapped[float]
     earner_score: Mapped[int]
