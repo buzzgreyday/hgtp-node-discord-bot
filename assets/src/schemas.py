@@ -5,6 +5,7 @@ from typing import List, Optional
 import datetime as dt
 
 import numpy as np
+import pandas as pd
 from pydantic import BaseModel, ValidationError, validator
 
 from assets.src import api
@@ -274,6 +275,7 @@ class PriceSchema(BaseModel):
 
 class StatSchema(BaseModel):
     destinations: str
+    # These are floats: nan
     ip: Optional[str | None] = None
     id: Optional[str | None] = None
     daily_effectivity_score: int

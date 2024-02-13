@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import List
 
 import aiohttp
+import numpy as np
 import pandas as pd
 import sqlalchemy
 from aiohttp import ClientSession, TCPConnector
@@ -223,6 +224,7 @@ async def get_data(session, timestamp):
             break
     for d in explorer_validator_data:
         d['destinations'] = d.pop('address')
+        # Thes can probably be listed inside pop
         d.pop('upTime')
         d.pop('status')
         d.pop('latency')
@@ -231,6 +233,7 @@ async def get_data(session, timestamp):
     snapshot_data = pd.DataFrame(snapshot_data)
     explorer_data = pd.DataFrame(explorer_validator_data)
     data = snapshot_data.merge(explorer_data, how='left', on='destinations')
+
     return data
 
 
@@ -360,6 +363,11 @@ async def run(configuration):
                 percentage = ((i + 1) / total_len) * 100
                 snapshot_data.at[i, 'percent_earning_more'] = percentage
                 row['percent_earning_more'] = percentage
+                # Make a function to force None
+                if pd.isna(row.id):
+                    row.id = None
+                if pd.isna(row.ip):
+                    row.ip = None
                 schema = StatSchema(**row.to_dict())
                 try:
                     # Post

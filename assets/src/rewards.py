@@ -133,7 +133,7 @@ async def run(configuration):
                     latest_ordinal = latest_snapshot.get("ordinal")
                     db_data = await RequestSnapshot(session).database("http://127.0.0.1:8000/ordinal/latest")
                     db_price_data = await RequestSnapshot(session).database("http://127.0.0.1:8000/price/latest")
-                    if db_data and db_price_data:
+                    if db_data:
                         first_timestamp = db_price_data[0]
                         first_ordinal = db_data[1]
                         await delete_db_ordinal(first_ordinal)
