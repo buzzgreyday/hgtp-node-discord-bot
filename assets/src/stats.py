@@ -237,11 +237,9 @@ async def get_data(session, timestamp):
     return data
 
 
-def nan_force_none(val: pd.isna) -> None:
+def nan_force_none(val):
     if val is pd.isna(val):
         return None
-    else:
-        raise ValueError(f'The parameter should be a Pandas nan type. Got {type(val)}.')
 
 
 async def run(configuration):
@@ -365,18 +363,24 @@ async def run(configuration):
         except Exception:
             print(traceback.format_exc())
         print("Post/update database statistics")
-        for i, row in snapshot_data.iterrows():
-            percentage = ((i + 1) / total_len) * 100
-            snapshot_data.at[i, 'percent_earning_more'] = percentage
-            row['percent_earning_more'] = percentage
-            row.id = nan_force_none(row.id)
-            row.ip = nan_force_none(row.ip)
-            schema = StatSchema(**row.to_dict())
-            try:
-                # Post
-                await post_stats(schema)
-            except sqlalchemy.exc.IntegrityError:
-                await update_stats(schema)
+        try:
+            for i, row in snapshot_data.iterrows():
+                percentage = ((i + 1) / total_len) * 100
+                snapshot_data.at[i, 'percent_earning_more'] = percentage
+                row['percent_earning_more'] = percentage
+                # Make a function to force None
+                if pd.isna(row.id):
+                    row.id = None
+                if pd.isna(row.ip):
+                    row.ip = None
+                schema = StatSchema(**row.to_dict())
+                try:
+                    # Post
+                    await post_stats(schema)
+                except sqlalchemy.exc.IntegrityError:
+                    await update_stats(schema)
+        except Exception:
+            print(traceback.format_exc())
 
-        print(snapshot_data.head(20))
+        print(snapshot_data['earner_score'])
         del snapshot_data
