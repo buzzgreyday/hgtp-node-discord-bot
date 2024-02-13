@@ -132,7 +132,7 @@ def create_visualizations(df: pd.DataFrame, from_timestamp: int):
         plt.tight_layout()
         plt.savefig(f"{path}/{destination}.jpg")
         # plt.show()
-        plt.close()
+        plt.close(fig)
 
 
 async def get_data(session, timestamp):
