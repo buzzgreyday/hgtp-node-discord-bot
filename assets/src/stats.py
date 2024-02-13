@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import traceback
 from datetime import datetime
 
@@ -9,8 +10,68 @@ from aiohttp import ClientSession, TCPConnector
 import matplotlib.pyplot as plt
 
 from assets.src.database.database import post_stats, update_stats
-from assets.src.rewards import RequestSnapshot, normalize_timestamp
+from assets.src.rewards import normalize_timestamp
 from assets.src.schemas import StatSchema
+
+
+class Request:
+
+    def __init__(self, session):
+        self.session = session
+
+    async def database(self, request_url):
+        while True:
+            async with self.session.get(request_url) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if data:
+                        return data
+                    else:
+                        return
+                else:
+                    logging.getLogger("stats").warning(
+                        f"stats.py - Failed getting snapshot data from {request_url}, retrying in 3 seconds:\n"
+                        f"\tResponse: {response}")
+                    await asyncio.sleep(3)
+
+    async def explorer(self, request_url):
+        async with self.session.get(request_url) as response:
+            if response.status == 200:
+                data = await response.json()
+                if data:
+                    return data.get("data")
+                else:
+                    logging.getLogger("stats").warning(
+                        f"stats.py - Connection issues: {request_url}, checking to see if URL has changed in 60 seconds")
+                    await asyncio.sleep(60)
+                    return
+            else:
+                logging.getLogger("stats").warning(f"stats.py - Failed getting explorer data from {request_url}, checking to see if URL has changed in 60 seconds")
+                await asyncio.sleep(60)
+                return
+
+    async def validator_endpoint_url(self, request_url):
+        while True:
+            async with self.session.get(request_url) as response:
+                if response.status == 200:
+                    data = await response.text()
+                    if data:
+                        lines = data.split('\n')
+                        desired_key = 'REACT_APP_DAG_EXPLORER_API_URL'
+                        value = None
+
+                        for line in lines:
+                            if line.startswith(desired_key):
+                                parts = line.split('=')
+                                value = parts[1].strip()
+                                break
+
+                        return value
+                    else:
+                        return
+                else:
+                    logging.getLogger("stats").warning(f"stats.py - Failed getting explorer endpoint info from {request_url}, retrying in 60 seconds")
+                    await asyncio.sleep(60)
 
 
 sliced_columns = ['timestamp', "ordinals", 'destinations', 'dag_address_daily_sum', 'daily_overall_median', 'usd_per_token']
@@ -143,18 +204,24 @@ async def get_data(session, timestamp):
     https://dyzt5u1o3ld0z.cloudfront.net/mainnet/validator-nodes
     These should be automatically "updated" via this text:
     https://raw.githubusercontent.com/StardustCollective/dag-explorer-v2/main/.env.base
-    :param session: aiohttp session
-    :param timestamp: epoch timestamp (I believe)
-    :return:
+    :param session: aiohttp client session
+    :param timestamp: epoch timestamp
+    :return: pd.DataFrame
     """
     while True:
         try:
-            snapshot_data = await RequestSnapshot(session).database(f"http://127.0.0.1:8000/ordinal/from/{timestamp}")
+            snapshot_data = await Request(session).database(f"http://127.0.0.1:8000/ordinal/from/{timestamp}")
         except aiohttp.client_exceptions.ClientConnectorError:
             await asyncio.sleep(3)
         else:
             break
-    print("Got snapshot_data")
+    while True:
+        validator_endpoint_url = await Request(session).validator_endpoint_url("https://raw.githubusercontent.com/StardustCollective/dag-explorer-v2/main/.env.base")
+        validator_node_info = await Request(session).explorer(str(validator_endpoint_url))
+        if validator_node_info:
+            break
+    print(f"Got snapshot_data\nValidator Info URL: {validator_node_info}")
+    exit(0)
     data = pd.DataFrame(snapshot_data)
     return data
 

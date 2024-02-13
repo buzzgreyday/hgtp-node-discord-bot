@@ -119,6 +119,12 @@ def main():
     handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
 
+    logger = logging.getLogger('stats')
+    logger.setLevel(logging.INFO)
+    handler = logging.FileHandler(filename='assets/data/logs/bot/stats.log', encoding='utf-8', mode='w')
+    handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))
+    logger.addHandler(handler)
+
 
     # version_manager = preliminaries.VersionManager(_configuration)
 
