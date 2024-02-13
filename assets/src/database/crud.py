@@ -280,6 +280,8 @@ class CRUD:
                 data['usd_per_token'].append(row.usd)
 
             return data
+
+
     async def get_user(self, name, async_session: async_sessionmaker[AsyncSession]):
         """Returns a list of all user data"""
         async with async_session() as session:

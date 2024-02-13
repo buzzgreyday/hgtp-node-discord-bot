@@ -136,7 +136,17 @@ def create_visualizations(df: pd.DataFrame, from_timestamp: int):
 
 
 async def get_data(session, timestamp):
-
+    """
+    This function requests the necessary data.
+    We'll need to request node info from these URLs:
+    https://d13uswnxs0x35s.cloudfront.net/mainnet/validator-nodes
+    https://dyzt5u1o3ld0z.cloudfront.net/mainnet/validator-nodes
+    These should be automatically "updated" via this text:
+    https://raw.githubusercontent.com/StardustCollective/dag-explorer-v2/main/.env.base
+    :param session:
+    :param timestamp:
+    :return:
+    """
     while True:
         try:
             snapshot_data = await RequestSnapshot(session).database(f"http://127.0.0.1:8000/ordinal/from/{timestamp}")
