@@ -237,6 +237,13 @@ async def get_data(session, timestamp):
     return data
 
 
+def nan_force_none(val: pd.isna) -> None:
+    if val is pd.isna(val):
+        return None
+    else:
+        raise ValueError(f'The parameter should be a Pandas nan type. Got {type(val)}.')
+
+
 async def run(configuration):
     await asyncio.sleep(10)
 
@@ -363,11 +370,8 @@ async def run(configuration):
                 percentage = ((i + 1) / total_len) * 100
                 snapshot_data.at[i, 'percent_earning_more'] = percentage
                 row['percent_earning_more'] = percentage
-                # Make a function to force None
-                if pd.isna(row.id):
-                    row.id = None
-                if pd.isna(row.ip):
-                    row.ip = None
+                row.id = nan_force_none(row.id)
+                row.ip = nan_force_none(row.ip)
                 schema = StatSchema(**row.to_dict())
                 try:
                     # Post
