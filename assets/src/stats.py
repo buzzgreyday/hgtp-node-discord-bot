@@ -217,7 +217,7 @@ async def get_data(session, timestamp):
             break
     while True:
         validator_endpoint_url = await Request(session).validator_endpoint_url("https://raw.githubusercontent.com/StardustCollective/dag-explorer-v2/main/.env.base")
-        validator_node_info = await Request(session).explorer(str(validator_endpoint_url))
+        validator_node_info = await Request(session).explorer(f"{validator_endpoint_url}/mainnet/validator-nodes")
         if validator_node_info:
             break
     print(f"Got snapshot_data\nValidator Info URL: {validator_node_info}")
