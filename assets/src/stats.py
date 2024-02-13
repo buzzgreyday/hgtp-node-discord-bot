@@ -143,8 +143,8 @@ async def get_data(session, timestamp):
     https://dyzt5u1o3ld0z.cloudfront.net/mainnet/validator-nodes
     These should be automatically "updated" via this text:
     https://raw.githubusercontent.com/StardustCollective/dag-explorer-v2/main/.env.base
-    :param session:
-    :param timestamp:
+    :param session: aiohttp session
+    :param timestamp: epoch timestamp (I believe)
     :return:
     """
     while True:
