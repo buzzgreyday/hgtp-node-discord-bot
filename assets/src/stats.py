@@ -365,21 +365,18 @@ async def run(configuration):
         except Exception:
             print(traceback.format_exc())
         print("Post/update database statistics")
-        try:
-            for i, row in snapshot_data.iterrows():
-                percentage = ((i + 1) / total_len) * 100
-                snapshot_data.at[i, 'percent_earning_more'] = percentage
-                row['percent_earning_more'] = percentage
-                row.id = nan_force_none(row.id)
-                row.ip = nan_force_none(row.ip)
-                schema = StatSchema(**row.to_dict())
-                try:
-                    # Post
-                    await post_stats(schema)
-                except sqlalchemy.exc.IntegrityError:
-                    await update_stats(schema)
-        except Exception:
-            print(traceback.format_exc())
+        for i, row in snapshot_data.iterrows():
+            percentage = ((i + 1) / total_len) * 100
+            snapshot_data.at[i, 'percent_earning_more'] = percentage
+            row['percent_earning_more'] = percentage
+            row.id = nan_force_none(row.id)
+            row.ip = nan_force_none(row.ip)
+            schema = StatSchema(**row.to_dict())
+            try:
+                # Post
+                await post_stats(schema)
+            except sqlalchemy.exc.IntegrityError:
+                await update_stats(schema)
 
-        print(snapshot_data['earner_score'])
+        print(snapshot_data.head(20))
         del snapshot_data
