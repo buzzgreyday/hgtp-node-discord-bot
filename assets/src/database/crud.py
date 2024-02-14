@@ -316,6 +316,9 @@ class CRUD:
                     data['disk_free'].append(row.disk_space_free)
                     data['disk_total'].append(row.disk_space_total)
 
+            return data
+
+
     async def get_user(self, name, async_session: async_sessionmaker[AsyncSession]):
         """Returns a list of all user data"""
         async with async_session() as session:
