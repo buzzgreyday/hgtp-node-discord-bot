@@ -282,6 +282,40 @@ class CRUD:
             return data
 
 
+    async def get_historic_node_data_from_timestamp(self, timestamp: int, async_session: async_sessionmaker[AsyncSession]):
+        """
+        Get timeslice data from the node database.
+        """
+        async with async_session() as session:
+            statement = select(NodeModel).filter(NodeModel.timestamp_index >= int(timestamp)).order_by(
+                NodeModel.wallet_address)
+            results = await session.execute(statement)
+            results = results.scalars().all()
+
+            # Keep only mainnet. Also, we need to support Kubernetes
+            data = {
+                'timestamp': [],
+                'destinations': [],
+                'layer': [],
+                'ip': [],
+                'public_port': [],
+                'cpu_load_1m': [],
+                'cpu_count': [],
+                'disk_free': [],
+                'disk_total': []
+            }
+            for row in results:
+                if row.last_known_cluster_name == "mainnet":
+                    data['timestamp'].append(row.timestamp_index)
+                    data['destinations'].append(row.wallet_address)
+                    data['layer'].append(row.layer)
+                    data['ip'].append(row.ip)
+                    data['public_port'].append(row.public_port)
+                    data['cpu_load_1m'].append(row.one_m_system_load_average)
+                    data['cpu_count'].append(row.cpu_count)
+                    data['disk_free'].append(row.disk_space_free)
+                    data['disk_total'].append(row.disk_space_total)
+
     async def get_user(self, name, async_session: async_sessionmaker[AsyncSession]):
         """Returns a list of all user data"""
         async with async_session() as session:
