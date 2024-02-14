@@ -275,9 +275,6 @@ class PriceSchema(BaseModel):
 
 class StatSchema(BaseModel):
     destinations: str
-    # These are floats: nan
-    ip: Optional[str | None] = None
-    id: Optional[str | None] = None
     daily_effectivity_score: int
     effectivity_score: float
     earner_score: int
