@@ -5,7 +5,6 @@ from datetime import datetime
 from typing import List
 
 import aiohttp
-import numpy as np
 import pandas as pd
 import sqlalchemy
 from aiohttp import ClientSession, TCPConnector
@@ -201,7 +200,7 @@ def create_visualizations(df: pd.DataFrame, from_timestamp: int):
 async def get_data(session, timestamp):
     """
     This function requests the necessary data.
-    We'll need to request node info from these URLs:
+    We can get IP and ID from:
     https://d13uswnxs0x35s.cloudfront.net/mainnet/validator-nodes
     https://dyzt5u1o3ld0z.cloudfront.net/mainnet/validator-nodes
     These should be automatically "updated" via this text:
@@ -217,29 +216,10 @@ async def get_data(session, timestamp):
             await asyncio.sleep(3)
         else:
             break
-    while True:
-        validator_endpoint_url = await Request(session).validator_endpoint_url("https://raw.githubusercontent.com/StardustCollective/dag-explorer-v2/main/.env.base")
-        explorer_validator_data = await Request(session).explorer(f"{validator_endpoint_url}/mainnet/validator-nodes")
-        if explorer_validator_data:
-            break
-    for d in explorer_validator_data:
-        d['destinations'] = d.pop('address')
-        # Thes can probably be listed inside pop
-        d.pop('upTime')
-        d.pop('status')
-        d.pop('latency')
 
-    print(f"Got snapshot_data\nValidator Info URL: {explorer_validator_data}")
-    snapshot_data = pd.DataFrame(snapshot_data)
-    explorer_data = pd.DataFrame(explorer_validator_data)
-    data = snapshot_data.merge(explorer_data, how='left', on='destinations')
+    print(f"Got snapshot_data")
 
-    return data
-
-
-def nan_force_none(val):
-    if val is pd.isna(val):
-        return None
+    return snapshot_data
 
 
 async def run(configuration):
@@ -368,11 +348,6 @@ async def run(configuration):
                 percentage = ((i + 1) / total_len) * 100
                 snapshot_data.at[i, 'percent_earning_more'] = percentage
                 row['percent_earning_more'] = percentage
-                # Make a function to force None
-                if pd.isna(row.id):
-                    row.id = None
-                if pd.isna(row.ip):
-                    row.ip = None
                 schema = StatSchema(**row.to_dict())
                 try:
                     # Post
