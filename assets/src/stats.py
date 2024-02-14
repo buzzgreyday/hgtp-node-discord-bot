@@ -216,8 +216,18 @@ async def get_data(session, timestamp):
             await asyncio.sleep(3)
         else:
             break
-
     print(f"Got snapshot_data")
+
+    while True:
+        try:
+            node_data = await Request(session).database(f"http://127.0.0.1:8000/data/node/from/{timestamp}")
+        except aiohttp.client_exceptions.ClientConnectorError:
+            await asyncio.sleep(3)
+        else:
+            break
+    print(f"Got node_data:\n", node_data)
+
+    snapshot_data = pd.DataFrame(snapshot_data)
 
     return snapshot_data
 
