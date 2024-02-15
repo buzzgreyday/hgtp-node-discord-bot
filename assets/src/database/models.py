@@ -126,8 +126,12 @@ class StatModel(SQLBase):
     __tablename__ = "stat"
 
     destinations: Mapped[str] = mapped_column(index=True, primary_key=True)
-    daily_effectivity_score: Mapped[int]
-    effectivity_score: Mapped[float]
+    id: Mapped[str]
+    layer: Mapped[int]
+    ip: Mapped[str]
+    public_ports: Mapped[int]
+    daily_cpu_load: Mapped[float]
+    cpu_count: Mapped[int]
     earner_score: Mapped[int]
     percent_earning_more: Mapped[float]
     dag_address_sum: Mapped[float]

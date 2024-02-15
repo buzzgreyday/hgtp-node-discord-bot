@@ -298,6 +298,7 @@ class CRUD:
                 'destinations': [],
                 'layer': [],
                 'ip': [],
+                'id': [],
                 'public_port': [],
                 'cpu_load_1m': [],
                 'cpu_count': [],
@@ -310,6 +311,7 @@ class CRUD:
                     data['destinations'].append(row.wallet_address)
                     data['layer'].append(row.layer)
                     data['ip'].append(row.ip)
+                    data['id'].append(row.id)
                     data['public_port'].append(row.public_port)
                     data['cpu_load_1m'].append(row.one_m_system_load_average)
                     data['cpu_count'].append(row.cpu_count)

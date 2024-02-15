@@ -100,9 +100,9 @@ def calculate_address_specific_mean(df: pd.DataFrame, new_column_name: str, addr
     return df
 
 
-def calculate_address_specific_deviation(sliced_df: pd.DataFrame, new_column_name: str, address_specific_sum_column, general_sum_column) -> pd.DataFrame:
-    sliced_df[new_column_name] = sliced_df[address_specific_sum_column] - sliced_df[general_sum_column]
-    return sliced_df
+def calculate_address_specific_deviation(sliced_snapshot_df: pd.DataFrame, new_column_name: str, address_specific_sum_column, general_sum_column) -> pd.DataFrame:
+    sliced_snapshot_df[new_column_name] = sliced_snapshot_df[address_specific_sum_column] - sliced_snapshot_df[general_sum_column]
+    return sliced_snapshot_df
 
 
 def calculate_address_specific_standard_deviation(df: pd.DataFrame, new_column_name: str, address_specific_sum_column: str) -> pd.DataFrame:
@@ -114,44 +114,55 @@ def calculate_general_data_median(df: pd.DataFrame, new_column_name: str, median
     return df
 
 
-def create_timeslice_data(data: pd.DataFrame, start_time: int, travers_seconds: int) -> pd.DataFrame:
+def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_time: int, travers_seconds: int) -> List[pd.DataFrame, pd.DataFrame]:
     """
     TO: Start time is usually the latest available timestamp
     FROM: Traverse seconds is for example seven days, one day or 24 hours in seconds (the time you wish to traverse)
     """
-    list_of_df = []
+    list_of_daily_snapshot_df = []
+    list_of_daily_node_df = []
     while start_time >= data['timestamp'].values.min():
         # Also add 7 days and 24 hours
-        sliced_df = data[(data['timestamp'] >= start_time - travers_seconds) & (data['timestamp'] <= start_time)].copy()
-        sliced_df = calculate_address_specific_sum(sliced_df, 'dag_address_daily_sum', 'dag')
-        sliced_df = calculate_general_data_median(sliced_df, 'daily_overall_median', 'dag_address_daily_sum')
-
+        sliced_snapshot_df = data[(data['timestamp'] >= start_time - travers_seconds) & (data['timestamp'] <= start_time)].copy()
+        sliced_node_data_df = node_data[(node_data['timestamp'] >= start_time - travers_seconds) & (node_data['timestamp'] <= start_time)].copy()
+        sliced_snapshot_df = calculate_address_specific_sum(sliced_snapshot_df, 'dag_address_daily_sum', 'dag')
+        sliced_snapshot_df = calculate_general_data_median(sliced_snapshot_df, 'daily_overall_median', 'dag_address_daily_sum')
+        try:
+            sliced_node_data_df['daily_cpu_load'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['cpu_load'].transform('mean')
+            sliced_node_data_df['disk_free'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['free_disk'].transform(lambda x: max(x))
+            print(sliced_node_data_df['disk_free'])
+        except Exception:
+            print(traceback.format_exc())
+            logging.getLogger('stats').error(traceback.format_exc())
         # Clean the data
-        sliced_df = sliced_df[sliced_columns].drop_duplicates('destinations', ignore_index=True)
+        sliced_snapshot_df = sliced_snapshot_df[sliced_columns].drop_duplicates('destinations', ignore_index=True)
+        sliced_node_data_df = sliced_node_data_df.drop_duplicates(['destinations', 'layer', 'ip', 'public_port'], ignore_index=True)
 
-        list_of_df.append(sliced_df)
+        list_of_daily_snapshot_df.append(sliced_snapshot_df)
+        list_of_daily_node_df.append(sliced_node_data_df)
         print(f"Timeslice data transformation done, t >= {start_time}!")
         start_time = start_time - travers_seconds
 
-    sliced_df = pd.concat(list_of_df, ignore_index=True)
-    sliced_df = calculate_address_specific_standard_deviation(sliced_df, 'dag_daily_std_dev', 'dag_address_daily_sum')
-    sliced_df = calculate_address_specific_mean(sliced_df, 'dag_address_daily_mean', 'dag_address_daily_sum')
-    sliced_df = calculate_address_specific_deviation(sliced_df, 'dag_address_daily_sum_dev',
+    sliced_snapshot_df = pd.concat(list_of_daily_snapshot_df, ignore_index=True)
+    sliced_node_data_df = pd.concat(list_of_daily_node_df, ignore_index=True)
+    sliced_snapshot_df = calculate_address_specific_standard_deviation(sliced_snapshot_df, 'dag_daily_std_dev', 'dag_address_daily_sum')
+    sliced_snapshot_df = calculate_address_specific_mean(sliced_snapshot_df, 'dag_address_daily_mean', 'dag_address_daily_sum')
+    sliced_snapshot_df = calculate_address_specific_deviation(sliced_snapshot_df, 'dag_address_daily_sum_dev',
                                                      'dag_address_daily_sum',
                                                      'daily_overall_median')
 
-    del list_of_df
-    return sliced_df
+    del list_of_daily_snapshot_df, list_of_daily_node_df
+    return sliced_snapshot_df, sliced_node_data_df
 
-def create_timeslice_effectivity_score(sliced_df: pd.DataFrame) -> pd.DataFrame:
+def create_timeslice_effectivity_score(sliced_snapshot_df: pd.DataFrame) -> pd.DataFrame:
 
     print("Scoring address specific daily effectivity...")
     # Time is a factor here too: longer node uptime can cause higher deviation
-    sliced_df = sliced_df.sort_values(by=['dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev'],
+    sliced_snapshot_df = sliced_snapshot_df.sort_values(by=['dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev'],
                                       ascending=[False, False, True]).reset_index(drop=True)
-    sliced_df['daily_effectivity_score'] = sliced_df.index + 1
+    sliced_snapshot_df['daily_effectivity_score'] = sliced_snapshot_df.index + 1
     print("Scoring done!")
-    return sliced_df
+    return sliced_snapshot_df
 
 
 def create_visualizations(df: pd.DataFrame, from_timestamp: int):
@@ -197,7 +208,7 @@ def create_visualizations(df: pd.DataFrame, from_timestamp: int):
         plt.close(fig)
 
 
-async def get_data(session, timestamp):
+async def get_data(session, timestamp) -> List[pd.DataFrame, pd.DataFrame]:
     """
     This function requests the necessary data.
     We can get IP and ID from:
@@ -207,7 +218,7 @@ async def get_data(session, timestamp):
     https://raw.githubusercontent.com/StardustCollective/dag-explorer-v2/main/.env.base
     :param session: aiohttp client session
     :param timestamp: epoch timestamp
-    :return: pd.DataFrame
+    :return: [pd.DataFrame, pd.DataFrame]
     """
     while True:
         try:
@@ -228,8 +239,9 @@ async def get_data(session, timestamp):
     print(f"Got node_data:\n", node_data)
 
     snapshot_data = pd.DataFrame(snapshot_data)
+    node_data = pd.DataFrame(node_data)
 
-    return snapshot_data
+    return snapshot_data, node_data
 
 
 async def run(configuration):
@@ -250,7 +262,7 @@ async def run(configuration):
         # 7 days in seconds = 604800
 
         # Raw data calculations: I need the aggregated dag_address_sum from the snapshot data column "dag"
-        snapshot_data = await get_data(session, timestamp)
+        snapshot_data, node_data = await get_data(session, timestamp)
         # ! REMEMBER YOU TURNED OF THINGS IN MAIN.PY !
         pd.set_option('display.max_rows', None)
         pd.options.display.float_format = '{:.2f}'.format
@@ -263,24 +275,24 @@ async def run(configuration):
         # One day in seconds
         traverse_seconds = 86400
         try:
-            sliced_df = create_timeslice_data(snapshot_data, start_time, traverse_seconds)
+            sliced_snapshot_df, sliced_node_df = create_timeslice_data(snapshot_data, node_data, start_time, traverse_seconds)
         except Exception:
             print(traceback.format_exc())
-        sliced_df['dag_daily_std_dev'].fillna(0, inplace=True)
-        create_visualizations(sliced_df, timestamp)
+        sliced_snapshot_df['dag_daily_std_dev'].fillna(0, inplace=True)
+        create_visualizations(sliced_snapshot_df, timestamp)
         print('Visualizations done')
         try:
-            sliced_df = sum_usd(sliced_df, 'usd_address_daily_sum', 'dag_address_daily_sum')
+            sliced_snapshot_df = sum_usd(sliced_snapshot_df, 'usd_address_daily_sum', 'dag_address_daily_sum')
         except Exception:
             print(traceback.format_exc())
         # Clean the data
         print("Cleaning daily sliced data...")
-        sliced_df = sliced_df[final_sliced_columns].drop_duplicates('destinations')
+        sliced_snapshot_df = sliced_snapshot_df[final_sliced_columns].drop_duplicates('destinations')
         print("Cleaning done!")
-        print(sliced_df)
-        input("Sliced_df looks clean? ")
+        print(sliced_snapshot_df)
+        input("sliced_snapshot_df looks clean? ")
         try:
-            sliced_df = create_timeslice_effectivity_score(sliced_df)
+            sliced_snapshot_df = create_timeslice_effectivity_score(sliced_snapshot_df)
         except Exception:
             print(traceback.format_exc())
 
@@ -295,7 +307,7 @@ async def run(configuration):
         print("Merging daily daily sliced data...")
 
         try:
-            snapshot_data = sliced_df.merge(snapshot_data.drop_duplicates('destinations'), on='destinations',
+            snapshot_data = sliced_snapshot_df.merge(snapshot_data.drop_duplicates('destinations'), on='destinations',
                                             how='left')
             print(snapshot_data)
             input("Merged data looks okay? ")

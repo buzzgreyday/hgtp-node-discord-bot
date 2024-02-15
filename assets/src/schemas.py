@@ -275,8 +275,12 @@ class PriceSchema(BaseModel):
 
 class StatSchema(BaseModel):
     destinations: str
-    daily_effectivity_score: int
-    effectivity_score: float
+    id: str
+    layer: int
+    ip: str
+    public_ports: int
+    daily_cpu_load: float
+    cpu_count: int
     earner_score: int
     percent_earning_more: float
     dag_address_sum: float
