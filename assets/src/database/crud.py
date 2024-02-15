@@ -10,7 +10,7 @@ from assets.src.database.models import UserModel, NodeModel, OrdinalModel, Price
 from assets.src.schemas import User as UserSchema, PriceSchema, OrdinalSchema, StatSchema
 from assets.src.schemas import Node as NodeSchema
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
-from sqlalchemy import select, delete, update
+from sqlalchemy import select, delete, update, desc
 from fastapi.encoders import jsonable_encoder
 
 load_dotenv()
@@ -234,6 +234,28 @@ class CRUD:
                 f"crud.py - failed requesting database latest price"
             )
             return
+
+
+    async def get_timestamp_db_price(self,
+            ordinal_timestamp: int, async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Get the latest ordinal data existing in the database"""
+        async with async_session() as session:
+            statement = select(PriceModel).filter(PriceModel.timestamp <= ordinal_timestamp).order_by(
+                desc(PriceModel.timestamp)).limit(1)
+            results = await session.execute(statement)
+            timestamp_price_data = results.scalar()
+        if timestamp_price_data:
+            logging.getLogger("rewards").info(
+                f"crud.py - success requesting database timestamp price: {timestamp_price_data.timestamp, timestamp_price_data.usd}"
+            )
+            return timestamp_price_data.timestamp, timestamp_price_data.usd
+        else:
+            logging.getLogger("rewards").warning(
+                f"crud.py - failed requesting database timestamp price"
+            )
+            return
+        
 
     async def get_latest_db_ordinal(self,
             async_session: async_sessionmaker[AsyncSession]

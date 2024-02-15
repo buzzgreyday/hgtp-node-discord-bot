@@ -114,7 +114,7 @@ def calculate_general_data_median(df: pd.DataFrame, new_column_name: str, median
     return df
 
 
-def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_time: int, travers_seconds: int) -> List[pd.DataFrame, pd.DataFrame]:
+def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_time: int, travers_seconds: int) -> List[pd.DataFrame]:
     """
     TO: Start time is usually the latest available timestamp
     FROM: Traverse seconds is for example seven days, one day or 24 hours in seconds (the time you wish to traverse)
@@ -137,7 +137,6 @@ def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_tim
         # Clean the data
         sliced_snapshot_df = sliced_snapshot_df[sliced_columns].drop_duplicates('destinations', ignore_index=True)
         sliced_node_data_df = sliced_node_data_df.drop_duplicates(['destinations', 'layer', 'ip', 'public_port'], ignore_index=True)
-
         list_of_daily_snapshot_df.append(sliced_snapshot_df)
         list_of_daily_node_df.append(sliced_node_data_df)
         print(f"Timeslice data transformation done, t >= {start_time}!")
@@ -151,6 +150,8 @@ def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_tim
                                                      'dag_address_daily_sum',
                                                      'daily_overall_median')
 
+    print(sliced_node_data_df)
+    exit(0)
     del list_of_daily_snapshot_df, list_of_daily_node_df
     return sliced_snapshot_df, sliced_node_data_df
 
@@ -208,7 +209,7 @@ def create_visualizations(df: pd.DataFrame, from_timestamp: int):
         plt.close(fig)
 
 
-async def get_data(session, timestamp) -> List[pd.DataFrame, pd.DataFrame]:
+async def get_data(session, timestamp) -> List[pd.DataFrame]:
     """
     This function requests the necessary data.
     We can get IP and ID from:
