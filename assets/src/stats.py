@@ -129,7 +129,7 @@ def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_tim
     while start_time >= data['timestamp'].values.min():
         # Also add 7 days and 24 hours
         sliced_snapshot_df = data[(data['timestamp'] >= start_time - travers_seconds) & (data['timestamp'] <= start_time)].copy()
-        sliced_node_data_df = node_data[(node_data['timestamp'] >= start_time - travers_seconds) & (node_data['timestamp'] <= start_time)].copy()
+        sliced_node_data_df = node_data[(node_data['timestamp_index'] >= start_time - travers_seconds) & (node_data['timestamp'] <= start_time)].copy()
         sliced_snapshot_df = calculate_address_specific_sum(sliced_snapshot_df, 'dag_address_daily_sum', 'dag')
         sliced_snapshot_df = calculate_general_data_median(sliced_snapshot_df, 'daily_overall_median', 'dag_address_daily_sum')
         try:
