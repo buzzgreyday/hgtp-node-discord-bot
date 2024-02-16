@@ -36,8 +36,6 @@ class DatabaseBatchProcessor:
         if self.batch_data:
             async with async_session() as session:
                 for data in self.batch_data:
-                    logging.getLogger("rewards").info(
-                        f"crud.py - Adding batch {len(self.batch_data)} of snapshots")
                     session.add(data)
                 await session.commit()
             self.batch_data = []
@@ -293,8 +291,7 @@ class CRUD:
             return
 
     async def get_ordinals_data_from_timestamp(self, timestamp: int, async_session: async_sessionmaker[AsyncSession]):
-        logging.getLogger("stats").warning(
-            f"stats.py - Requesting ordinals from timestamp: {timestamp}")
+
         print(f"Requesting ordinals from timestamp: {timestamp}")
         async with async_session() as session:
             batch_size = 10000
@@ -328,46 +325,19 @@ class CRUD:
                     data['usd_per_token'].append(row.usd)
 
                 offset += batch_size
-                # await asyncio.sleep(6)
 
         return data
-
-    """async def get_ordinals_data_from_timestamp(self, timestamp: int, async_session: async_sessionmaker[AsyncSession]):
-                
-        async with async_session() as session:
-            statement = select(OrdinalModel).filter(OrdinalModel.timestamp >= int(timestamp)).order_by(
-                OrdinalModel.destination)
-            results = await session.execute(statement)
-            results = results.scalars().all()
-            # Extract columns into separate lists
-            data = {
-                'timestamp': [],
-                'ordinals': [],
-                'destinations': [],
-                'dag': [],
-                'usd_per_token': []
-            }
-            for row in results:
-                data['timestamp'].append(row.timestamp)
-                data['ordinals'].append(row.ordinal)
-                data['destinations'].append(row.destination)
-                data['dag'].append(row.amount)
-                data['usd_per_token'].append(row.usd)
-
-            return data"""
 
 
     async def get_historic_node_data_from_timestamp(self, timestamp: int, async_session: async_sessionmaker[AsyncSession]):
         """
         Get timeslice data from the node database.
         """
-        async with async_session() as session:
-            statement = select(NodeModel).filter(NodeModel.timestamp_index >= int(timestamp)).order_by(
-                NodeModel.wallet_address)
-            results = await session.execute(statement)
-            results = results.scalars().all()
+        print(f"Requesting node data from timestamp: {timestamp}")
 
-            # Keep only mainnet. Also, we need to support Kubernetes
+        async with async_session() as session:
+            batch_size = 10000
+            offset = 0
             data = {
                 'timestamp': [],
                 'destinations': [],
@@ -380,20 +350,33 @@ class CRUD:
                 'disk_free': [],
                 'disk_total': []
             }
-            for row in results:
-                if row.last_known_cluster_name == "mainnet":
-                    data['timestamp'].append(row.timestamp_index)
-                    data['destinations'].append(row.wallet_address)
-                    data['layer'].append(row.layer)
-                    data['ip'].append(row.ip)
-                    data['id'].append(row.id)
-                    data['public_port'].append(row.public_port)
-                    data['cpu_load_1m'].append(row.one_m_system_load_average)
-                    data['cpu_count'].append(row.cpu_count)
-                    data['disk_free'].append(row.disk_space_free)
-                    data['disk_total'].append(row.disk_space_total)
+            while True:
+                statement = select(NodeModel.timestamp_index, NodeModel.wallet_address, NodeModel.layer, NodeModel.ip,
+                                   NodeModel.id, NodeModel.public_port, NodeModel.one_m_system_load_average,
+                                   NodeModel.cpu_count, NodeModel.disk_space_free, NodeModel.disk_space_total
+                                   ).filter(NodeModel.timestamp_index >= int(timestamp))
+                results = await session.execute(statement)
+                batch_results = results.fetchall()
 
-            return data
+                if not batch_results:
+                    break  # No more data
+
+                for row in results:
+                    if row.last_known_cluster_name == "mainnet":
+                        data['timestamp'].append(row.timestamp_index)
+                        data['destinations'].append(row.wallet_address)
+                        data['layer'].append(row.layer)
+                        data['ip'].append(row.ip)
+                        data['id'].append(row.id)
+                        data['public_port'].append(row.public_port)
+                        data['cpu_load_1m'].append(row.one_m_system_load_average)
+                        data['cpu_count'].append(row.cpu_count)
+                        data['disk_free'].append(row.disk_space_free)
+                        data['disk_total'].append(row.disk_space_total)
+
+                offset += batch_size
+
+        return data
 
 
     async def get_user(self, name, async_session: async_sessionmaker[AsyncSession]):

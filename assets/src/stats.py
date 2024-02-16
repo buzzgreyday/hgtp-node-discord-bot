@@ -129,7 +129,7 @@ def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_tim
     while start_time >= data['timestamp'].values.min():
         # Also add 7 days and 24 hours
         sliced_snapshot_df = data[(data['timestamp'] >= start_time - travers_seconds) & (data['timestamp'] <= start_time)].copy()
-        sliced_node_data_df = node_data[(node_data['timestamp_index'] >= start_time - travers_seconds) & (node_data['timestamp'] <= start_time)].copy()
+        sliced_node_data_df = node_data[(node_data['timestamp'] >= start_time - travers_seconds) & (node_data['timestamp'] <= start_time)].copy()
         sliced_snapshot_df = calculate_address_specific_sum(sliced_snapshot_df, 'dag_address_daily_sum', 'dag')
         sliced_snapshot_df = calculate_general_data_median(sliced_snapshot_df, 'daily_overall_median', 'dag_address_daily_sum')
         try:
@@ -236,12 +236,14 @@ async def get_data(session, timestamp) -> List[pd.DataFrame]:
         else:
             break
     print(f"Got snapshot_data")
+    await asyncio.sleep(6)
 
     while True:
         try:
-            node_data = await Request(session).database(f"http://127.0.0.1:8000/data/node/from/{timestamp}")
+            node_data = await Request(session).database(f"http://127.0.0.1:8000/data/from/{timestamp}")
         except Exception:
             logging.getLogger('stats').error(traceback.format_exc())
+            print(traceback.format_exc())
             await asyncio.sleep(3)
         else:
             break
