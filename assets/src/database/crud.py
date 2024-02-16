@@ -26,8 +26,30 @@ engine = create_async_engine(
     # poolclass=NullPool,
 )
 
-session = async_sessionmaker(bind=engine, expire_on_commit=False)
 
+class DatabaseBatchProcessor:
+    def __init__(self, batch_size=100):
+        self.batch_size = batch_size
+        self.batch_data = []
+
+    async def process_batch(self, async_session: async_sessionmaker[AsyncSession]):
+        if self.batch_data:
+            async with async_session() as session:
+                for data in self.batch_data:
+                    logging.getLogger("rewards").info(
+                        f"crud.py - Adding batch {len(self.batch_data)} of snapshots")
+                    session.add(data)
+                await session.commit()
+            self.batch_data = []
+
+    async def add_to_batch(self, data, async_session: async_sessionmaker[AsyncSession]):
+
+        self.batch_data.append(data)
+        if len(self.batch_data) >= self.batch_size:
+            await self.process_batch(async_session)
+
+
+batch_processor = DatabaseBatchProcessor(batch_size=100)
 
 class CRUD:
     async def post_user(
@@ -56,6 +78,7 @@ class CRUD:
                 await session.commit()
         return jsonable_encoder(data_dict)
 
+
     async def post_data(
         self, data: NodeSchema, async_session: async_sessionmaker[AsyncSession]
     ):
@@ -73,20 +96,9 @@ class CRUD:
                 await asyncio.sleep(60)
         return jsonable_encoder(data_dict)
 
-    async def post_ordinal(
-            self, data: OrdinalSchema, async_session: async_sessionmaker[AsyncSession]
-    ):
+    async def post_ordinal(self, data: OrdinalSchema, async_session: async_sessionmaker[AsyncSession]):
         """Inserts node data from automatic check into database file"""
-        async with async_session() as session:
-            data = OrdinalModel(**data.__dict__)
-            session.add(data)
-            try:
-                await session.commit()
-            except Exception:
-                logging.getLogger("rewards").error(
-                    f"crud.py - localhost error: {traceback.format_exc()}"
-                )
-                await asyncio.sleep(60)
+        await batch_processor.add_to_batch(OrdinalModel(**data.__dict__), async_session)
         return jsonable_encoder(data)
 
     async def post_prices(
@@ -133,6 +145,8 @@ class CRUD:
                 logging.getLogger("rewards").error(f"crud.py - Stats update: SUCCESS!")
             except:
                 print("Stats update: FAILED!\n", traceback.format_exc())
+
+
     async def delete_user_entry(
         self, data: UserModel, async_session: async_sessionmaker[AsyncSession]
     ):
@@ -145,6 +159,7 @@ class CRUD:
             await session.execute(statement)
             await session.commit()
 
+
     async def delete_old_entries(self, async_session: async_sessionmaker[AsyncSession]):
         """
         Placeholder for automatic deletion of database entries older than x.
@@ -152,6 +167,7 @@ class CRUD:
         """
         async with async_session() as session:
             pass
+
 
     async def delete_db_ordinal(self, ordinal, async_session: async_sessionmaker[AsyncSession]):
         """Delete the user subscription based on name, ip, port"""
@@ -166,6 +182,7 @@ class CRUD:
                 f"crud.py - deleted ordinal {ordinal} to avoid duplicates"
             )
             return
+
 
     async def get_html_page_stats(self, request, templates, dag_address, async_session: async_sessionmaker[AsyncSession]
     ):
@@ -196,8 +213,6 @@ class CRUD:
             return templates.TemplateResponse("index.html",
                                               {"request": request,
                                                "dag_address": results.destinations,
-                                               "daily_effectivity_score": results.daily_effectivity_score,
-                                               "effectivity_score": results.effectivity_score,
                                                "earner_score": results.earner_score,
                                                "count": results.count,
                                                "percent_earning_more": round(results.percent_earning_more, 2),
@@ -255,7 +270,7 @@ class CRUD:
                 f"crud.py - failed requesting database timestamp price"
             )
             return
-        
+
 
     async def get_latest_db_ordinal(self,
             async_session: async_sessionmaker[AsyncSession]
@@ -278,12 +293,50 @@ class CRUD:
             return
 
     async def get_ordinals_data_from_timestamp(self, timestamp: int, async_session: async_sessionmaker[AsyncSession]):
-        """
-        Get timeslice data from the ordinal database.
-        Beware: the database usd column is per token, not the sum of the token value.
-        """
+        logging.getLogger("stats").warning(
+            f"stats.py - Requesting ordinals from timestamp: {timestamp}")
+        print(f"Requesting ordinals from timestamp: {timestamp}")
         async with async_session() as session:
-            statement = select(OrdinalModel).filter(OrdinalModel.timestamp >= int(timestamp)).order_by(OrdinalModel.destination)
+            batch_size = 10000
+            offset = 0
+            data = {
+                'timestamp': [],
+                'ordinals': [],
+                'destinations': [],
+                'dag': [],
+                'usd_per_token': []
+            }
+            while True:
+                try:
+                    statement = select(OrdinalModel.timestamp, OrdinalModel.ordinal, OrdinalModel.destination,
+                                       OrdinalModel.amount, OrdinalModel.usd).filter(
+                        OrdinalModel.timestamp >= timestamp).offset(offset).limit(batch_size)
+                    print(f"Get ordinals from timestamp: {timestamp}, offset: {offset}")
+                    results = await session.execute(statement)
+                    batch_results = results.fetchall()
+                except Exception:
+                    logging.getLogger("stats").warning(traceback.format_exc())
+
+                if not batch_results:
+                    break  # No more data
+
+                for row in batch_results:
+                    data['timestamp'].append(row.timestamp)
+                    data['ordinals'].append(row.ordinal)
+                    data['destinations'].append(row.destination)
+                    data['dag'].append(row.amount)
+                    data['usd_per_token'].append(row.usd)
+
+                offset += batch_size
+                # await asyncio.sleep(6)
+
+        return data
+
+    """async def get_ordinals_data_from_timestamp(self, timestamp: int, async_session: async_sessionmaker[AsyncSession]):
+                
+        async with async_session() as session:
+            statement = select(OrdinalModel).filter(OrdinalModel.timestamp >= int(timestamp)).order_by(
+                OrdinalModel.destination)
             results = await session.execute(statement)
             results = results.scalars().all()
             # Extract columns into separate lists
@@ -301,7 +354,7 @@ class CRUD:
                 data['dag'].append(row.amount)
                 data['usd_per_token'].append(row.usd)
 
-            return data
+            return data"""
 
 
     async def get_historic_node_data_from_timestamp(self, timestamp: int, async_session: async_sessionmaker[AsyncSession]):

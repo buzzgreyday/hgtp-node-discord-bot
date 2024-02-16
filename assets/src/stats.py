@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import traceback
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 
 import aiohttp
@@ -22,18 +22,23 @@ class Request:
 
     async def database(self, request_url):
         while True:
-            async with self.session.get(request_url) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    if data:
-                        return data
+            logging.getLogger("stats").warning(
+                f"stats.py - Requesting database {request_url}")
+            try:
+                async with self.session.get(request_url, timeout=18000) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        if data:
+                            return data
+                        else:
+                            return
                     else:
-                        return
-                else:
-                    logging.getLogger("stats").warning(
-                        f"stats.py - Failed getting snapshot data from {request_url}, retrying in 3 seconds:\n"
-                        f"\tResponse: {response}")
-                    await asyncio.sleep(3)
+                        logging.getLogger("stats").warning(
+                            f"stats.py - Failed getting snapshot data from {request_url}, retrying in 3 seconds:\n"
+                            f"\tResponse: {response}")
+                        await asyncio.sleep(3)
+            except Exception:
+                logging.getLogger('stats').error(traceback.format_exc())
 
     async def explorer(self, request_url) -> List[dict]:
         async with self.session.get(request_url) as response:
@@ -224,8 +229,10 @@ async def get_data(session, timestamp) -> List[pd.DataFrame]:
     while True:
         try:
             snapshot_data = await Request(session).database(f"http://127.0.0.1:8000/ordinal/from/{timestamp}")
-        except aiohttp.client_exceptions.ClientConnectorError:
+        except Exception:
+            logging.getLogger('stats').error(traceback.format_exc())
             await asyncio.sleep(3)
+
         else:
             break
     print(f"Got snapshot_data")
@@ -233,7 +240,8 @@ async def get_data(session, timestamp) -> List[pd.DataFrame]:
     while True:
         try:
             node_data = await Request(session).database(f"http://127.0.0.1:8000/data/node/from/{timestamp}")
-        except aiohttp.client_exceptions.ClientConnectorError:
+        except Exception:
+            logging.getLogger('stats').error(traceback.format_exc())
             await asyncio.sleep(3)
         else:
             break
@@ -251,14 +259,19 @@ async def run(configuration):
     """
     GET DATA
     """
+    logging.getLogger('stats').info("Starting process...")
     async with ClientSession(connector=TCPConnector(
             # You need to obtain a real (non-self-signed certificate) to run in production
             # ssl=db.ssl_context.load_cert_chain(certfile=ssl_cert_file, keyfile=ssl_key_file)
             # Not intended for production:
             ssl=False)) as session:
+
         # Convert to Epoch
-        # timestamp = normalize_timestamp(datetime.utcnow().timestamp())
-        timestamp = 1640995200
+        timestamp = normalize_timestamp(datetime.utcnow().timestamp() - timedelta(days=30).total_seconds())
+
+        # From the beginning of time:
+        # timestamp = 1640995200
+
         # 30 days in seconds = 2592000
         # 7 days in seconds = 604800
 
