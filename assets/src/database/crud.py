@@ -325,6 +325,7 @@ class CRUD:
                     data['usd_per_token'].append(row.usd)
 
                 offset += batch_size
+                await asyncio.sleep(3)
 
         return data
 
@@ -351,12 +352,17 @@ class CRUD:
                 'disk_total': []
             }
             while True:
-                statement = select(NodeModel.timestamp_index, NodeModel.wallet_address, NodeModel.layer, NodeModel.ip,
-                                   NodeModel.id, NodeModel.public_port, NodeModel.one_m_system_load_average,
-                                   NodeModel.cpu_count, NodeModel.disk_space_free, NodeModel.disk_space_total
-                                   ).filter(NodeModel.timestamp_index >= int(timestamp))
-                results = await session.execute(statement)
-                batch_results = results.fetchall()
+                try:
+                    statement = select(NodeModel.timestamp_index, NodeModel.wallet_address, NodeModel.layer, NodeModel.ip,
+                                       NodeModel.id, NodeModel.public_port, NodeModel.one_m_system_load_average,
+                                       NodeModel.cpu_count, NodeModel.disk_space_free, NodeModel.disk_space_total
+                                       ).filter(NodeModel.timestamp_index >= int(timestamp))
+                    print(f"Get node_data from timestamp: {timestamp}, offset: {offset}")
+                    results = await session.execute(statement)
+                    batch_results = results.fetchall()
+                except Exception:
+                    print(traceback.format_exc())
+                    logging.getLogger('stats').error(traceback.format_exc())
 
                 if not batch_results:
                     break  # No more data
@@ -375,6 +381,7 @@ class CRUD:
                         data['disk_total'].append(row.disk_space_total)
 
                 offset += batch_size
+                await asyncio.sleep(3)
 
         return data
 

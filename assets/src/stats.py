@@ -240,7 +240,7 @@ async def get_data(session, timestamp) -> List[pd.DataFrame]:
 
     while True:
         try:
-            node_data = await Request(session).database(f"http://127.0.0.1:8000/data/from/{timestamp}")
+            node_data = await Request(session).database(f"http://127.0.0.1:8000/data/node/from/{timestamp}")
         except Exception:
             logging.getLogger('stats').error(traceback.format_exc())
             print(traceback.format_exc())

@@ -112,7 +112,7 @@ async def get_ordinals_data_from_timestamp(timestamp: int):
     return await db.get_ordinals_data_from_timestamp(int(timestamp), session)
 
 
-@app.get("/data/from/{timestamp}")
+@app.get("/data/node/from/{timestamp}")
 async def get_historic_node_data_from_timestamp(timestamp: int):
     """Returns historic node data from timestamp"""
     return await db.get_historic_node_data_from_timestamp(int(timestamp), session)
