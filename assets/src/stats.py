@@ -40,21 +40,6 @@ class Request:
             except Exception:
                 logging.getLogger('stats').error(traceback.format_exc())
 
-    async def explorer(self, request_url) -> List[dict]:
-        async with self.session.get(request_url) as response:
-            if response.status == 200:
-                data = await response.json()
-                if data:
-                    return data.get("data")
-                else:
-                    logging.getLogger("stats").warning(
-                        f"stats.py - Connection issues: {request_url}, checking to see if URL has changed in 60 seconds")
-                    await asyncio.sleep(60)
-                    return
-            else:
-                logging.getLogger("stats").warning(f"stats.py - Failed getting explorer data from {request_url}, checking to see if URL has changed in 60 seconds")
-                await asyncio.sleep(60)
-                return
 
     async def validator_endpoint_url(self, request_url):
         while True:
@@ -214,7 +199,7 @@ def create_visualizations(df: pd.DataFrame, from_timestamp: int):
         plt.close(fig)
 
 
-async def get_data(session, timestamp) -> List[pd.DataFrame]:
+async def get_data(session, timestamp):
     """
     This function requests the necessary data.
     We can get IP and ID from:
@@ -226,21 +211,21 @@ async def get_data(session, timestamp) -> List[pd.DataFrame]:
     :param timestamp: epoch timestamp
     :return: [pd.DataFrame, pd.DataFrame]
     """
-    while True:
+    """while True:
         try:
             snapshot_data = await Request(session).database(f"http://127.0.0.1:8000/ordinal/from/{timestamp}")
         except Exception:
             logging.getLogger('stats').error(traceback.format_exc())
+            print(traceback.format_exc())
             await asyncio.sleep(3)
-
         else:
             break
     print(f"Got snapshot_data")
-    await asyncio.sleep(6)
+    await asyncio.sleep(6)"""
 
     while True:
         try:
-            node_data = await Request(session).database(f"http://127.0.0.1:8000/data/node/from/{timestamp}")
+            node_data = await Request(session).database(f"http://127.0.0.1:8000/data/from/{timestamp}")
         except Exception:
             logging.getLogger('stats').error(traceback.format_exc())
             print(traceback.format_exc())
@@ -248,7 +233,7 @@ async def get_data(session, timestamp) -> List[pd.DataFrame]:
         else:
             break
     print(f"Got node_data:\n", node_data)
-
+    exit(0)
     snapshot_data = pd.DataFrame(snapshot_data)
     node_data = pd.DataFrame(node_data)
 

@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import traceback
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 
 import numpy as np
@@ -294,7 +294,7 @@ class CRUD:
 
         print(f"Requesting ordinals from timestamp: {timestamp}")
         async with async_session() as session:
-            batch_size = 10000
+            batch_size = 500000
             offset = 0
             data = {
                 'timestamp': [],
@@ -325,10 +325,9 @@ class CRUD:
                     data['usd_per_token'].append(row.usd)
 
                 offset += batch_size
-                await asyncio.sleep(3)
+                # await asyncio.sleep(3)
 
         return data
-
 
     async def get_historic_node_data_from_timestamp(self, timestamp: int, async_session: async_sessionmaker[AsyncSession]):
         """
@@ -337,7 +336,7 @@ class CRUD:
         print(f"Requesting node data from timestamp: {timestamp}")
 
         async with async_session() as session:
-            batch_size = 10000
+            batch_size = 100000
             offset = 0
             data = {
                 'timestamp': [],
@@ -351,12 +350,14 @@ class CRUD:
                 'disk_free': [],
                 'disk_total': []
             }
+            timestamp_datetime = datetime.fromtimestamp(timestamp)
+
             while True:
                 try:
                     statement = select(NodeModel.timestamp_index, NodeModel.wallet_address, NodeModel.layer, NodeModel.ip,
                                        NodeModel.id, NodeModel.public_port, NodeModel.one_m_system_load_average,
                                        NodeModel.cpu_count, NodeModel.disk_space_free, NodeModel.disk_space_total
-                                       ).filter(NodeModel.timestamp_index >= int(timestamp))
+                                       ).filter(NodeModel.timestamp_index >= timestamp_datetime).offset(offset).limit(batch_size)
                     print(f"Get node_data from timestamp: {timestamp}, offset: {offset}")
                     results = await session.execute(statement)
                     batch_results = results.fetchall()
@@ -367,7 +368,7 @@ class CRUD:
                 if not batch_results:
                     break  # No more data
 
-                for row in results:
+                for row in batch_results:
                     if row.last_known_cluster_name == "mainnet":
                         data['timestamp'].append(row.timestamp_index)
                         data['destinations'].append(row.wallet_address)
@@ -381,7 +382,7 @@ class CRUD:
                         data['disk_total'].append(row.disk_space_total)
 
                 offset += batch_size
-                await asyncio.sleep(3)
+                # await asyncio.sleep(3)
 
         return data
 
