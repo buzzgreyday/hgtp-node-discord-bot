@@ -104,7 +104,7 @@ def calculate_general_data_median(df: pd.DataFrame, new_column_name: str, median
     return df
 
 
-def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_time: int, travers_seconds: int) -> List[pd.DataFrame]:
+def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_time: int, travers_seconds: int):
     """
     TO: Start time is usually the latest available timestamp
     FROM: Traverse seconds is for example seven days, one day or 24 hours in seconds (the time you wish to traverse)
@@ -114,6 +114,7 @@ def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_tim
     while start_time >= data['timestamp'].values.min():
         # Also add 7 days and 24 hours
         sliced_snapshot_df = data[(data['timestamp'] >= start_time - travers_seconds) & (data['timestamp'] <= start_time)].copy()
+        # The following time is a datetime
         sliced_node_data_df = node_data[(node_data['timestamp'] >= start_time - travers_seconds) & (node_data['timestamp'] <= start_time)].copy()
         sliced_snapshot_df = calculate_address_specific_sum(sliced_snapshot_df, 'dag_address_daily_sum', 'dag')
         sliced_snapshot_df = calculate_general_data_median(sliced_snapshot_df, 'daily_overall_median', 'dag_address_daily_sum')
@@ -140,8 +141,7 @@ def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_tim
                                                      'dag_address_daily_sum',
                                                      'daily_overall_median')
 
-    print(sliced_node_data_df)
-    exit(0)
+
     del list_of_daily_snapshot_df, list_of_daily_node_df
     return sliced_snapshot_df, sliced_node_data_df
 
@@ -232,7 +232,6 @@ async def get_data(session, timestamp):
             await asyncio.sleep(3)
         else:
             break
-    print(f"Got node_data:\n", node_data)
     snapshot_data = pd.DataFrame(snapshot_data)
     node_data = pd.DataFrame(node_data)
 
