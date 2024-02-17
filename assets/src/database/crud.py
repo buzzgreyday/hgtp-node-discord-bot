@@ -350,13 +350,15 @@ class CRUD:
                 'disk_free': [],
                 'disk_total': []
             }
-            timestamp_datetime = datetime.fromtimestamp(timestamp)
+            timestamp_datetime = datetime.utcfromtimestamp(timestamp)
+            print(timestamp_datetime)
 
             while True:
                 try:
                     statement = select(NodeModel.timestamp_index, NodeModel.wallet_address, NodeModel.layer, NodeModel.ip,
                                        NodeModel.id, NodeModel.public_port, NodeModel.one_m_system_load_average,
-                                       NodeModel.cpu_count, NodeModel.disk_space_free, NodeModel.disk_space_total
+                                       NodeModel.cpu_count, NodeModel.disk_space_free, NodeModel.disk_space_total,
+                                       NodeModel.last_known_cluster_name
                                        ).filter(NodeModel.timestamp_index >= timestamp_datetime).offset(offset).limit(batch_size)
                     print(f"Get node_data from timestamp: {timestamp}, offset: {offset}")
                     results = await session.execute(statement)

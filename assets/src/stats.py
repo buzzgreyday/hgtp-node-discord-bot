@@ -211,7 +211,7 @@ async def get_data(session, timestamp):
     :param timestamp: epoch timestamp
     :return: [pd.DataFrame, pd.DataFrame]
     """
-    """while True:
+    while True:
         try:
             snapshot_data = await Request(session).database(f"http://127.0.0.1:8000/ordinal/from/{timestamp}")
         except Exception:
@@ -221,7 +221,7 @@ async def get_data(session, timestamp):
         else:
             break
     print(f"Got snapshot_data")
-    await asyncio.sleep(6)"""
+    await asyncio.sleep(6)
 
     while True:
         try:
@@ -233,7 +233,6 @@ async def get_data(session, timestamp):
         else:
             break
     print(f"Got node_data:\n", node_data)
-    exit(0)
     snapshot_data = pd.DataFrame(snapshot_data)
     node_data = pd.DataFrame(node_data)
 
