@@ -120,9 +120,9 @@ def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_tim
         sliced_snapshot_df = calculate_general_data_median(sliced_snapshot_df, 'daily_overall_median', 'dag_address_daily_sum')
         try:
             idx = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['timestamp'].idxmax()
-            sliced_node_data_df['daily_disk_free'] = sliced_node_data_df.loc[idx, 'disk_free']
-            sliced_node_data_df['daily_disk_total'] = sliced_node_data_df.loc[idx, 'disk_total']
-            sliced_node_data_df['daily_cpu_count'] = sliced_node_data_df.loc[idx, 'cpu_count']
+            sliced_node_data_df.loc[:, 'daily_disk_free'] = sliced_node_data_df.loc[idx, 'disk_free']
+            sliced_node_data_df.loc[:, 'daily_disk_total'] = sliced_node_data_df.loc[idx, 'disk_total']
+            sliced_node_data_df.loc[:, 'daily_cpu_count'] = sliced_node_data_df.loc[idx, 'cpu_count']
             sliced_node_data_df['daily_cpu_load'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['cpu_load_1m'].transform('mean')
 
         except Exception:
