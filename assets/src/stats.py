@@ -121,13 +121,14 @@ def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_tim
         try:
             sliced_node_data_df['daily_cpu_load'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['cpu_load'].transform('mean')
             sliced_node_data_df['disk_free'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['free_disk'].transform(lambda x: max(x))
-            print(sliced_node_data_df['disk_free'])
         except Exception:
             print(traceback.format_exc())
             logging.getLogger('stats').error(traceback.format_exc())
         # Clean the data
         sliced_snapshot_df = sliced_snapshot_df[sliced_columns].drop_duplicates('destinations', ignore_index=True)
         sliced_node_data_df = sliced_node_data_df.drop_duplicates(['destinations', 'layer', 'ip', 'public_port'], ignore_index=True)
+        print(sliced_node_data_df[['destinations', 'layer', 'public_port', 'disk_free', 'cpu_load']])
+        input("Node_data looks okay? ")
         list_of_daily_snapshot_df.append(sliced_snapshot_df)
         list_of_daily_node_df.append(sliced_node_data_df)
         print(f"Timeslice data transformation done, t >= {start_time}!")

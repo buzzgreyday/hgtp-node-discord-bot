@@ -294,7 +294,7 @@ class CRUD:
 
         print(f"Requesting ordinals from timestamp: {timestamp}")
         async with async_session() as session:
-            batch_size = 500000
+            batch_size = 200000
             offset = 0
             data = {
                 'timestamp': [],
@@ -336,7 +336,7 @@ class CRUD:
         print(f"Requesting node data from timestamp: {timestamp}")
 
         async with async_session() as session:
-            batch_size = 100000
+            batch_size = 200000
             offset = 0
             data = {
                 'timestamp': [],
@@ -372,7 +372,7 @@ class CRUD:
 
                 for row in batch_results:
                     if row.last_known_cluster_name == "mainnet":
-                        data['timestamp'].append(row.timestamp_index)
+                        data['timestamp'].append(round(row.timestamp_index.timestamp()))
                         data['destinations'].append(row.wallet_address)
                         data['layer'].append(row.layer)
                         data['ip'].append(row.ip)
