@@ -334,7 +334,7 @@ class CRUD:
         Get timeslice data from the node database.
         """
         print(f"Requesting node data from timestamp: {timestamp}")
-
+        one_gigabyte = 1073741824
         async with async_session() as session:
             batch_size = 200000
             offset = 0
@@ -380,8 +380,8 @@ class CRUD:
                         data['public_port'].append(row.public_port)
                         data['cpu_load_1m'].append(row.one_m_system_load_average)
                         data['cpu_count'].append(row.cpu_count)
-                        data['disk_free'].append(row.disk_space_free)
-                        data['disk_total'].append(row.disk_space_total)
+                        data['disk_free'].append(row.disk_space_free / one_gigabyte)
+                        data['disk_total'].append(row.disk_space_total / one_gigabyte)
 
                 offset += batch_size
                 # await asyncio.sleep(3)
