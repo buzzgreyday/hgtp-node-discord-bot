@@ -118,15 +118,10 @@ def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_tim
         sliced_node_data_df = node_data[(node_data['timestamp'] >= start_time - travers_seconds) & (node_data['timestamp'] <= start_time)].copy()
         sliced_snapshot_df = calculate_address_specific_sum(sliced_snapshot_df, 'dag_address_daily_sum', 'dag')
         sliced_snapshot_df = calculate_general_data_median(sliced_snapshot_df, 'daily_overall_median', 'dag_address_daily_sum')
-        try:
-            sliced_node_data_df.loc[:, 'daily_disk_gb_free'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['disk_free'].transform('max')
-            sliced_node_data_df.loc[:, 'daily_disk_gb_total'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['disk_total'].transform('max')
-            sliced_node_data_df.loc[:, 'daily_cpu_cores_count'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['cpu_count'].transform('max')
-            sliced_node_data_df['daily_cpu_load'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['cpu_load_1m'].transform('mean')
-
-        except Exception:
-            print(traceback.format_exc())
-            logging.getLogger('stats').error(traceback.format_exc())
+        sliced_node_data_df.loc[:, 'daily_disk_gb_free'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['disk_free'].transform('max')
+        sliced_node_data_df.loc[:, 'daily_disk_gb_total'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['disk_total'].transform('max')
+        sliced_node_data_df.loc[:, 'daily_cpu_cores_count'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['cpu_count'].transform('max')
+        sliced_node_data_df['daily_cpu_load'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['cpu_load_1m'].transform('mean')
         # Clean the data
         sliced_snapshot_df = sliced_snapshot_df[sliced_columns].drop_duplicates('destinations', ignore_index=True)
         sliced_node_data_df = sliced_node_data_df.drop_duplicates(['destinations', 'layer', 'ip', 'public_port'], ignore_index=True)

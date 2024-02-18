@@ -380,8 +380,12 @@ class CRUD:
                         data['public_port'].append(row.public_port)
                         data['cpu_load_1m'].append(row.one_m_system_load_average)
                         data['cpu_count'].append(row.cpu_count)
-                        data['disk_free'].append(row.disk_space_free / one_gigabyte)
-                        data['disk_total'].append(row.disk_space_total / one_gigabyte)
+                        try:
+                            data['disk_free'].append(row.disk_space_free / one_gigabyte)
+                            data['disk_total'].append(row.disk_space_total / one_gigabyte)
+                        except ZeroDivisionError:
+                            data['disk_free'].append(0.0)
+                            data['disk_total'].append(0.0)
 
                 offset += batch_size
                 # await asyncio.sleep(3)
