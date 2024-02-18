@@ -119,19 +119,14 @@ def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_tim
         # The following time is a datetime
         sliced_snapshot_df = calculate_address_specific_sum(sliced_snapshot_df, 'dag_address_daily_sum', 'dag')
         sliced_snapshot_df = calculate_general_data_median(sliced_snapshot_df, 'daily_overall_median', 'dag_address_daily_sum')
-        highest_timestamp_per_criteria = sliced_node_data_df.loc[sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['timestamp'].idxmax()]
-        print()
         # Will take one day to update spec upgrades no matter what
-        sliced_node_data_df.loc[:, 'daily_disk_gb_free'] = highest_timestamp_per_criteria.groupby(['destinations', 'layer', 'public_port'])['disk_free']
-        sliced_node_data_df.loc[:, 'daily_disk_gb_total'] = highest_timestamp_per_criteria.groupby(['destinations', 'layer', 'public_port'])['disk_total']
-        sliced_node_data_df.loc[:, 'daily_cpu_core_count'] = highest_timestamp_per_criteria.groupby(['destinations', 'layer', 'public_port'])['cpu_count']
-        del highest_timestamp_per_criteria
+        sliced_node_data_df['daily_disk_gb_free'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['disk_free'].transform('min')
+        sliced_node_data_df['daily_disk_gb_total'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['disk_total'].transform('min')
+        sliced_node_data_df['daily_cpu_core_count'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['cpu_count'].transform('min')
         sliced_node_data_df['daily_cpu_load'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['cpu_load_1m'].transform('mean')
         # Clean the data
         sliced_snapshot_df = sliced_snapshot_df[sliced_columns].drop_duplicates('destinations', ignore_index=True)
         sliced_node_data_df = sliced_node_data_df.drop_duplicates(['destinations', 'layer', 'ip', 'public_port'], ignore_index=True)
-        print(sliced_node_data_df)
-        input("Looks okay? ")
         list_of_daily_snapshot_df.append(sliced_snapshot_df)
         list_of_daily_node_df.append(sliced_node_data_df)
         print(f"Timeslice data transformation done, t >= {start_time}!")
