@@ -119,6 +119,7 @@ def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_tim
         # The following time is a datetime
         sliced_snapshot_df = calculate_address_specific_sum(sliced_snapshot_df, 'dag_address_daily_sum', 'dag')
         sliced_snapshot_df = calculate_general_data_median(sliced_snapshot_df, 'daily_overall_median', 'dag_address_daily_sum')
+        # sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'], sort=False)['timestamp'].max()
         # Will take one day to update spec upgrades no matter what
         sliced_node_data_df['daily_disk_gb_free'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['disk_free'].transform('min')
         sliced_node_data_df['daily_disk_gb_total'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['disk_total'].transform('min')
