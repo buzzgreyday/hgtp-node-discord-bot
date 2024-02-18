@@ -273,14 +273,8 @@ class PriceSchema(BaseModel):
     usd: float
 
 
-class StatSchema(BaseModel):
+class RewardStatsSchema(BaseModel):
     destinations: str
-    id: str
-    layer: int
-    ip: str
-    public_ports: int
-    daily_cpu_load: float
-    cpu_count: int
     earner_score: int
     percent_earning_more: float
     dag_address_sum: float
@@ -294,3 +288,16 @@ class StatSchema(BaseModel):
     count: int
     usd_address_sum: float
     usd_address_daily_sum: float
+
+
+class MetricStatsSchema(BaseModel):
+    hash_index: str
+    destinations: str
+    ip: str
+    id: str
+    public_port: int
+    layer: int
+    daily_disk_gb_free: float
+    daily_disk_gb_total: float
+    daily_cpu_core_count: int
+    daily_cpu_load: float

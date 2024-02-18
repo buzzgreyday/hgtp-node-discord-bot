@@ -120,18 +120,12 @@ class PriceModel(SQLBase):
     usd: Mapped[float]
 
 
-class StatModel(SQLBase):
+class RewardStatsModel(SQLBase):
     """SQL Base for statistical data"""
 
-    __tablename__ = "stat"
+    __tablename__ = "reward_stats"
 
     destinations: Mapped[str] = mapped_column(index=True, primary_key=True)
-    id: Mapped[str]
-    layer: Mapped[int]
-    ip: Mapped[str]
-    public_ports: Mapped[int]
-    daily_cpu_load: Mapped[float]
-    cpu_count: Mapped[int]
     earner_score: Mapped[int]
     percent_earning_more: Mapped[float]
     dag_address_sum: Mapped[float]
@@ -145,3 +139,21 @@ class StatModel(SQLBase):
     count: Mapped[int]
     usd_address_sum: Mapped[float]
     usd_address_daily_sum: Mapped[float]
+
+
+class MetricStatsModel(SQLBase):
+
+    __tablename__ = "metric_stats"
+
+    hash_index: Mapped[str] = mapped_column(primary_key=True)
+    destinations: Mapped[str] = mapped_column(index=True)
+    ip: Mapped[str] = mapped_column(index=True)
+    id: Mapped[str]
+    public_port: Mapped[int] = mapped_column(index=True)
+    layer: Mapped[int]
+    daily_disk_gb_free: Mapped[float]
+    daily_disk_gb_total: Mapped[float]
+    daily_cpu_core_count: Mapped[int]
+    daily_cpu_load: Mapped[float]
+
+

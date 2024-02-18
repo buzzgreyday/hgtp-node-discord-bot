@@ -6,8 +6,8 @@ import os
 
 import numpy as np
 from dotenv import load_dotenv
-from assets.src.database.models import UserModel, NodeModel, OrdinalModel, PriceModel, StatModel
-from assets.src.schemas import User as UserSchema, PriceSchema, OrdinalSchema, StatSchema
+from assets.src.database.models import UserModel, NodeModel, OrdinalModel, PriceModel, RewardStatsModel
+from assets.src.schemas import User as UserSchema, PriceSchema, OrdinalSchema, RewardStatsSchema
 from assets.src.schemas import Node as NodeSchema
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
 from sqlalchemy import select, delete, update, desc
@@ -115,7 +115,7 @@ class CRUD:
         return jsonable_encoder(data)
 
     async def post_stats(
-            self, data: StatSchema, async_session: async_sessionmaker[AsyncSession]
+            self, data: RewardStatsSchema, async_session: async_sessionmaker[AsyncSession]
     ):
         """Post statistical data row by row"""
         async with async_session() as session:
@@ -129,14 +129,14 @@ class CRUD:
         return jsonable_encoder(stat_data)
 
 
-    async def update_stats(self, data: StatSchema, async_session: async_sessionmaker[AsyncSession]):
+    async def update_stats(self, data: RewardStatsSchema, async_session: async_sessionmaker[AsyncSession]):
         """Update statistical data"""
 
         async with async_session() as session:
             try:
                 await session.execute(
-                    update(StatModel)
-                    .where(StatModel.destinations == data.destinations)
+                    update(RewardStatsModel)
+                    .where(RewardStatsModel.destinations == data.destinations)
                     .values(**data.__dict__)
                 )
                 await session.commit()
@@ -186,10 +186,20 @@ class CRUD:
     ):
         async with async_session() as session:
             results = await session.execute(
-                select(StatModel).where(StatModel.destinations == dag_address)
+                select(RewardStatsModel).where(RewardStatsModel.destinations == dag_address)
             )
 
         results = results.scalar_one_or_none()
+
+        dag_address = results.destinations
+        earner_score = results.earner_score
+        count = results.count
+        percent_earning_more = results.percent_earning_more
+        dag_address_sum = results.dag_address_sum
+        dag_median_sum = results.dag_median_sum
+        dag_address_daily_mean = results.dag_address_daily_mean
+        usd_address_sum = results.usd_address_sum
+        usd_address_daily_sum = results.usd_address_daily_sum
         daily_network_earnings_average = np.array(results.daily_overall_median).mean()
         daily_dag_estimation_low = (results.dag_address_daily_mean - results.dag_daily_std_dev)
         daily_dag_estimation_high = (results.dag_address_daily_mean + results.dag_daily_std_dev)
@@ -210,21 +220,21 @@ class CRUD:
         if results:
             return templates.TemplateResponse("index.html",
                                               {"request": request,
-                                               "dag_address": results.destinations,
-                                               "earner_score": results.earner_score,
-                                               "count": results.count,
-                                               "percent_earning_more": round(results.percent_earning_more, 2),
-                                               "dag_address_sum": round(results.dag_address_sum, 2),
+                                               "dag_address": dag_address,
+                                               "earner_score": earner_score,
+                                               "count": count,
+                                               "percent_earning_more": round(percent_earning_more, 2),
+                                               "dag_address_sum": round(dag_address_sum, 2),
                                                "dag_address_sum_dev": dag_address_sum_dev,
-                                               "dag_median_sum": round(results.dag_median_sum, 2),
+                                               "dag_median_sum": round(dag_median_sum, 2),
                                                "daily_network_earnings_average": round(daily_network_earnings_average, 2),
                                                "dag_address_daily_sum_dev": dag_address_daily_sum_dev,
-                                               "dag_address_daily_mean": round(results.dag_address_daily_mean, 2),
+                                               "dag_address_daily_mean": round(dag_address_daily_mean, 2),
                                                "dag_address_daily_std_dev": dag_address_daily_std_dev,
                                                "dag_address_monthly_std_dev": dag_address_monthly_std_dev,
-                                               "usd_address_sum": round(results.usd_address_sum, 2),
-                                               "usd_address_daily_sum": round(results.usd_address_daily_sum, 2),
-                                               "plot_path": f"http://localhost:8000/static/{results.destinations}.jpg"})
+                                               "usd_address_sum": round(usd_address_sum, 2),
+                                               "usd_address_daily_sum": round(usd_address_daily_sum, 2),
+                                               "rewards_plot_path": f"http://localhost:8000/static/rewards_{dag_address}.jpg"})
         else:
             print("Error")
 

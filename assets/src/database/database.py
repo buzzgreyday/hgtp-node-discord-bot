@@ -1,5 +1,3 @@
-import traceback
-
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
@@ -7,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
 from assets.src.database.crud import CRUD, engine
-from assets.src.schemas import OrdinalSchema, PriceSchema, StatSchema
+from assets.src.schemas import OrdinalSchema, PriceSchema, RewardStatsSchema
 
 app = FastAPI(
     title="Hypergraph Node Status Bot", description="This is a Node Bot", docs_url="/swagger"
@@ -89,13 +87,13 @@ async def post_ordinal(data: OrdinalSchema):
     return await db.post_ordinal(data, session)
 
 @app.put("/stat/create")
-async def post_stats(data: StatSchema):
+async def post_stats(data: RewardStatsSchema):
     """insert statistical data into database"""
     return await db.post_stats(data, session)
 
 
 @app.put("/stat/update")
-async def update_stats(data: StatSchema):
+async def update_stats(data: RewardStatsSchema):
     """insert statistical data into database"""
     return await db.update_stats(data, session)
 

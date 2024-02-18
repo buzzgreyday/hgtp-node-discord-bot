@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 from assets.src.database.database import post_stats, update_stats
 from assets.src.rewards import normalize_timestamp
-from assets.src.schemas import StatSchema
+from assets.src.schemas import RewardStatsSchema
 
 
 class Request:
@@ -114,19 +114,24 @@ def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_tim
     while start_time >= data['timestamp'].values.min():
         # Also add 7 days and 24 hours
         sliced_snapshot_df = data[(data['timestamp'] >= start_time - travers_seconds) & (data['timestamp'] <= start_time)].copy()
-        # The following time is a datetime
         sliced_node_data_df = node_data[(node_data['timestamp'] >= start_time - travers_seconds) & (node_data['timestamp'] <= start_time)].copy()
+
+        # The following time is a datetime
         sliced_snapshot_df = calculate_address_specific_sum(sliced_snapshot_df, 'dag_address_daily_sum', 'dag')
         sliced_snapshot_df = calculate_general_data_median(sliced_snapshot_df, 'daily_overall_median', 'dag_address_daily_sum')
-        sliced_node_data_df.loc[:, 'daily_disk_gb_free'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['disk_free'].transform('max')
-        sliced_node_data_df.loc[:, 'daily_disk_gb_total'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['disk_total'].transform('max')
-        sliced_node_data_df.loc[:, 'daily_cpu_cores_count'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['cpu_count'].transform('max')
+        highest_timestamp_per_criteria = sliced_node_data_df.loc[sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['timestamp'].idxmax()]
+        print()
+        # Will take one day to update spec upgrades no matter what
+        sliced_node_data_df.loc[:, 'daily_disk_gb_free'] = highest_timestamp_per_criteria.groupby(['destinations', 'layer', 'public_port'])['disk_free']
+        sliced_node_data_df.loc[:, 'daily_disk_gb_total'] = highest_timestamp_per_criteria.groupby(['destinations', 'layer', 'public_port'])['disk_total']
+        sliced_node_data_df.loc[:, 'daily_cpu_core_count'] = highest_timestamp_per_criteria.groupby(['destinations', 'layer', 'public_port'])['cpu_count']
+        del highest_timestamp_per_criteria
         sliced_node_data_df['daily_cpu_load'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['cpu_load_1m'].transform('mean')
         # Clean the data
         sliced_snapshot_df = sliced_snapshot_df[sliced_columns].drop_duplicates('destinations', ignore_index=True)
         sliced_node_data_df = sliced_node_data_df.drop_duplicates(['destinations', 'layer', 'ip', 'public_port'], ignore_index=True)
         print(sliced_node_data_df)
-        input("Node_data looks okay? ")
+        input("Looks okay? ")
         list_of_daily_snapshot_df.append(sliced_snapshot_df)
         list_of_daily_node_df.append(sliced_node_data_df)
         print(f"Timeslice data transformation done, t >= {start_time}!")
@@ -139,6 +144,7 @@ def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_tim
     sliced_snapshot_df = calculate_address_specific_deviation(sliced_snapshot_df, 'dag_address_daily_sum_dev',
                                                      'dag_address_daily_sum',
                                                      'daily_overall_median')
+
 
 
     del list_of_daily_snapshot_df, list_of_daily_node_df
@@ -193,7 +199,7 @@ def create_visualizations(df: pd.DataFrame, from_timestamp: int):
         plt.xticks(rotation=45)  # Rotate x-axis labels for better readability if needed
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig(f"{path}/{destination}.jpg")
+        plt.savefig(f"{path}/rewards_{destination}.jpg")
         # plt.show()
         plt.close(fig)
 
@@ -368,7 +374,7 @@ async def run(configuration):
                 percentage = ((i + 1) / total_len) * 100
                 snapshot_data.at[i, 'percent_earning_more'] = percentage
                 row['percent_earning_more'] = percentage
-                schema = StatSchema(**row.to_dict())
+                schema = RewardStatsSchema(**row.to_dict())
                 try:
                     # Post
                     await post_stats(schema)
