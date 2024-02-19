@@ -278,7 +278,9 @@ async def run(configuration):
             print(traceback.format_exc())
         sliced_snapshot_df['dag_daily_std_dev'].fillna(0, inplace=True)
         create_visualizations(sliced_snapshot_df, timestamp)
-        # After visual only keep last (sort_values) timestamp and drop duplicates
+
+        # (!) After visual only keep last (sort_values) timestamp and drop duplicates
+
         print('Visualizations done')
         try:
             sliced_snapshot_df = sum_usd(sliced_snapshot_df, 'usd_address_daily_sum', 'dag_address_daily_sum')
