@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import re
 import traceback
@@ -301,3 +302,8 @@ class MetricStatsSchema(BaseModel):
     daily_disk_gb_total: float
     daily_cpu_core_count: int
     daily_cpu_load: float
+
+    @validator("hash_index", pre=True)
+    def generate_hash(cls):
+        key_str = f"{cls.id}_{cls.ip}_{cls.public_port}"
+        return hashlib.sha256(key_str.encode()).hexdigest()
