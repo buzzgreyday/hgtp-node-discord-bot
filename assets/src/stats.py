@@ -124,6 +124,8 @@ def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_tim
         sliced_snapshot_df = sliced_snapshot_df[sliced_columns].drop_duplicates('destinations', ignore_index=True)
         # Keeping the last grouped row; free disk space, disk space and cpu count
         sliced_node_data_df = sliced_node_data_df.sort_values(by='timestamp').drop_duplicates(['destinations', 'layer', 'ip', 'public_port', ], keep='last', ignore_index=True)
+        print(sliced_node_data_df)
+        input("Daily okay? ")
         list_of_daily_snapshot_df.append(sliced_snapshot_df)
         list_of_daily_node_df.append(sliced_node_data_df)
         print(f"Timeslice data transformation done, t >= {start_time}!")
@@ -273,6 +275,8 @@ async def run(configuration):
         # since it's updated daily
         sliced_node_df = sliced_node_df.sort_values(by='timestamp').drop_duplicates(
             ['destinations', 'layer', 'ip', 'public_port', ], keep='last', ignore_index=True)
+        print(sliced_node_df)
+        input("Okay? ")
         try:
             sliced_snapshot_df = sum_usd(sliced_snapshot_df, 'usd_address_daily_sum', 'dag_address_daily_sum')
         except Exception:
