@@ -2,9 +2,7 @@ import asyncio
 import logging
 import traceback
 from datetime import datetime, timedelta
-from typing import List
 
-import aiohttp
 import pandas as pd
 import sqlalchemy
 from aiohttp import ClientSession, TCPConnector
@@ -143,16 +141,6 @@ def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_tim
 
     del list_of_daily_snapshot_df, list_of_daily_node_df
     return sliced_snapshot_df, sliced_node_data_df
-
-def create_timeslice_effectivity_score(sliced_snapshot_df: pd.DataFrame) -> pd.DataFrame:
-
-    print("Scoring address specific daily effectivity...")
-    # Time is a factor here too: longer node uptime can cause higher deviation
-    sliced_snapshot_df = sliced_snapshot_df.sort_values(by=['dag_address_daily_sum_dev', 'dag_address_daily_mean', 'dag_daily_std_dev'],
-                                      ascending=[False, False, True]).reset_index(drop=True)
-    sliced_snapshot_df['daily_effectivity_score'] = sliced_snapshot_df.index + 1
-    print("Scoring done!")
-    return sliced_snapshot_df
 
 
 def create_visualizations(df: pd.DataFrame, from_timestamp: int):
@@ -295,11 +283,6 @@ async def run(configuration):
         print("Cleaning done!")
         print(sliced_snapshot_df)
         input("sliced_snapshot_df looks clean? ")
-        try:
-            sliced_snapshot_df = create_timeslice_effectivity_score(sliced_snapshot_df)
-        except Exception:
-            print(traceback.format_exc())
-
 
         """
         CREATE OVERALL DATA
@@ -350,15 +333,7 @@ async def run(configuration):
                 drop=True)
         except Exception:
             print(traceback.format_exc())
-        """
-        # The effectivity score: close to zero is good.
-        """
-        print("Creating effectivity score...")
-        try:
-            snapshot_data['effectivity_score'] = (snapshot_data.index + snapshot_data['daily_effectivity_score']) / 2
-        except ZeroDivisionError:
-            snapshot_data['effectivity_score'] = 0.0
-        print("Score created!")
+
         try:
             snapshot_data = snapshot_data.sort_values(by='dag_address_sum_dev', ascending=False).reset_index(drop=True)
             snapshot_data['earner_score'] = snapshot_data.index + 1
