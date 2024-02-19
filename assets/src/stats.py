@@ -124,7 +124,7 @@ def create_timeslice_data(data: pd.DataFrame, node_data: pd.DataFrame, start_tim
         sliced_node_data_df['daily_cpu_load'] = sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'])['cpu_load_1m'].transform('mean')
         # Clean the data
         sliced_snapshot_df = sliced_snapshot_df[sliced_columns].drop_duplicates('destinations', ignore_index=True)
-        # Keeping the last one
+        # Keeping the last grouped row; free disk space, disk space and cpu count
         sliced_node_data_df = sliced_node_data_df.sort_values(by='timestamp').drop_duplicates(['destinations', 'layer', 'ip', 'public_port', ], keep='last', ignore_index=True)
         list_of_daily_snapshot_df.append(sliced_snapshot_df)
         list_of_daily_node_df.append(sliced_node_data_df)
@@ -278,10 +278,13 @@ async def run(configuration):
             print(traceback.format_exc())
         sliced_snapshot_df['dag_daily_std_dev'].fillna(0, inplace=True)
         create_visualizations(sliced_snapshot_df, timestamp)
+        print('Visualizations done')
 
         # (!) After visual only keep last (sort_values) timestamp and drop duplicates
-
-        print('Visualizations done')
+        # Keeping the last grouped row; free disk space, disk space and cpu count. You only need the latest timestamp in database
+        # since it's updated daily
+        sliced_node_df = sliced_node_df.sort_values(by='timestamp').drop_duplicates(
+            ['destinations', 'layer', 'ip', 'public_port', ], keep='last', ignore_index=True)
         try:
             sliced_snapshot_df = sum_usd(sliced_snapshot_df, 'usd_address_daily_sum', 'dag_address_daily_sum')
         except Exception:
