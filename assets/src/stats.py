@@ -228,7 +228,59 @@ def create_timeslice_data(
     return sliced_snapshot_df, sliced_node_data_df
 
 
-def create_visualizations(df: pd.DataFrame, from_timestamp: int):
+def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
+    # Something here is causing a Tkinter related async issue: probably related to .close() or the fact that this was a
+    # async function. Look into this.
+    unique_destinations = df["destinations"].unique()
+    path = "static"
+    print("Starting loop")
+    for destination in unique_destinations:
+        destination_df = df[df["destinations"] == destination]
+        plt.style.use("Solarize_Light2")
+        fig = plt.figure(figsize=(12, 6), dpi=80)
+        try:
+            print("style ok")
+            plt.plot(
+                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
+                destination_df["daily_cpu_load"],
+                marker="o",
+                color="blue",
+                label="Daily CPU load",
+            )
+            print("Daily node earnings plot: OK!")
+            # Don't limit average to any particular address
+
+            plt.axhline(
+                destination_df["daily_cpu_load"].median(),
+                color="blue",
+                linestyle="--",
+                label=f'Average daily node CPU load (since {datetime.fromtimestamp(timestamp=from_timestamp).strftime("%d. %B %Y")})',
+                alpha=0.5,
+            )
+
+            plt.axhline(
+                df["daily_cpu_load"].median(),
+                color="green",
+                linestyle="--",
+                label=f'Average daily network CPU load (since {datetime.fromtimestamp(timestamp=from_timestamp).strftime("%d. %B %Y")})',
+                alpha=0.5,
+            )
+            plt.xlabel("Time")
+            plt.ylabel("CPU load")
+            plt.title("")
+        except Exception:
+            print(traceback.format_exc())
+
+        plt.legend()
+        plt.xticks(rotation=45)  # Rotate x-axis labels for better readability if needed
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig(f"{path}/cpu_{destination}.jpg")
+        plt.show()
+        plt.close(fig)
+
+
+def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
     # Something here is causing a Tkinter related async issue: probably related to .close() or the fact that this was a
     # async function. Look into this.
     unique_destinations = df["destinations"].unique()
@@ -378,7 +430,8 @@ async def run(configuration):
         except Exception:
             print(traceback.format_exc())
         sliced_snapshot_df["dag_daily_std_dev"].fillna(0, inplace=True)
-        create_visualizations(sliced_snapshot_df, timestamp)
+        create_reward_visualizations(sliced_snapshot_df, timestamp)
+        create_cpu_visualizations(sliced_node_df, timestamp)
         print("Visualizations done")
 
         # (!) After visual only keep last (sort_values) timestamp and drop duplicates
