@@ -246,14 +246,16 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
                 color="blue",
                 label="Daily CPU load",
             )
-            print("Daily node earnings plot: OK!")
+            print("Daily node cpu plot: OK!")
             # Don't limit average to any particular address
 
-            plt.axhline(
+            plt.plot(
+                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
                 destination_df["cpu_count"],
+                marker="o",
                 color="red",
                 linestyle=":",
-                label=f'CPU load threshold',
+                label='CPU load threshold',
                 alpha=0.5,
             )
 
