@@ -228,6 +228,7 @@ def create_timeslice_data(
 
 
 def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
+    """Creates CPU visualizations. However, we need one per IP"""
     # Something here is causing a Tkinter related async issue: probably related to .close() or the fact that this was a
     # async function. Look into this.
     unique_destinations = df["destinations"].unique()
