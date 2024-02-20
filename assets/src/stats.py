@@ -250,6 +250,14 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
             # Don't limit average to any particular address
 
             plt.axhline(
+                destination_df["cpu_count"],
+                color="red",
+                linestyle=":",
+                label=f'CPU load threshold',
+                alpha=0.5,
+            )
+
+            plt.axhline(
                 destination_df["daily_cpu_load"].median(),
                 color="blue",
                 linestyle="--",
