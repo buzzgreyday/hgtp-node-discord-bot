@@ -202,8 +202,7 @@ def create_timeslice_data(
             keep="last",
             ignore_index=True,
         )
-        print(sliced_node_data_df)
-        input("Daily okay? ")
+
         list_of_daily_snapshot_df.append(sliced_snapshot_df)
         list_of_daily_node_df.append(sliced_node_data_df)
         print(f"Timeslice data transformation done, t >= {start_time}!")
