@@ -86,8 +86,7 @@ async def unsubscibe_menu(interaction):
 
     async with aiohttp.ClientSession() as session:
         lst, resp_status = await assets.src.api.Request(
-            session,
-            f"http://127.0.0.1:8000/user/{str(interaction.user)}"
+            session, f"http://127.0.0.1:8000/user/{str(interaction.user)}"
         ).db_json()
         if lst:
             ips = ["All"]
@@ -101,7 +100,9 @@ async def unsubscibe_menu(interaction):
             view = nextcord.ui.View(timeout=90)
             ip_menu = SelectMenu("Select the IP you want to unsubscribe", set(ips))
             port_menu = SelectMenu("Select port", set(ports))
-            button = nextcord.ui.Button(style=nextcord.ButtonStyle.primary, label="Confirm")
+            button = nextcord.ui.Button(
+                style=nextcord.ButtonStyle.primary, label="Confirm"
+            )
             button.callback = on_button_click  # Set the callback for the button
             view.add_item(ip_menu)
             view.add_item(port_menu)

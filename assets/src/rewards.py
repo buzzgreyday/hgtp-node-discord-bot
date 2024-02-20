@@ -26,7 +26,9 @@ class RequestSnapshot:
                     else:
                         return
                 else:
-                    logging.getLogger("rewards").warning(f"rewards.py - Failed getting snapshot data from {request_url}, retrying in 3 seconds")
+                    logging.getLogger("rewards").warning(
+                        f"rewards.py - Failed getting snapshot data from {request_url}, retrying in 3 seconds"
+                    )
                     await asyncio.sleep(3)
 
     async def database(self, request_url):
@@ -41,7 +43,8 @@ class RequestSnapshot:
                 else:
                     logging.getLogger("rewards").warning(
                         f"rewards.py - Failed getting snapshot data from {request_url}, retrying in 3 seconds:\n"
-                        f"\tResponse: {response}")
+                        f"\tResponse: {response}"
+                    )
                     await asyncio.sleep(3)
 
 
@@ -52,46 +55,63 @@ def normalize_timestamp(timestamp):
 async def request_prices(session, first_timestamp):
     now = datetime.timestamp(datetime.utcnow())
     while True:
-        async with session.get(f"https://api.coingecko.com/api/v3/coins/constellation-labs/market_chart/range?vs_currency=usd&from={first_timestamp}&to={now}&precision=4") as response:
+        async with session.get(
+            f"https://api.coingecko.com/api/v3/coins/constellation-labs/market_chart/range?vs_currency=usd&from={first_timestamp}&to={now}&precision=4"
+        ) as response:
             if response.status == 200:
                 data = await response.json()
                 # The data, incl. timestamp, is "prices" - timestamp @ idx 0, prices @ idx 1
                 for t, p in data.get("prices"):
-                    t = int(round(t)/1000)
+                    t = int(round(t) / 1000)
                     data = PriceSchema(timestamp=t, usd=p)
-                    logging.getLogger("rewards").debug(f"rewards.py - Writing price to DB: {data}")
+                    logging.getLogger("rewards").debug(
+                        f"rewards.py - Writing price to DB: {data}"
+                    )
                     await post_prices(data)
                 break
             else:
-                logging.getLogger("rewards").warning(f"rewards.py - Failed getting price data from Coingecko, retrying in 3 seconds")
+                logging.getLogger("rewards").warning(
+                    f"rewards.py - Failed getting price data from Coingecko, retrying in 3 seconds"
+                )
                 await asyncio.sleep(3)
 
 
 async def process_ordinal_data(session, url, ordinal, ordinal_data, configuration):
     if isinstance(ordinal_data["timestamp"], str):
         try:
-            timestamp = datetime.strptime(ordinal_data["timestamp"], '%Y-%m-%dT%H:%M:%S.%fZ')
+            timestamp = datetime.strptime(
+                ordinal_data["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ"
+            )
         except ValueError:
-            timestamp = datetime.strptime(ordinal_data["timestamp"], '%Y-%m-%dT%H:%M:%SZ')
+            timestamp = datetime.strptime(
+                ordinal_data["timestamp"], "%Y-%m-%dT%H:%M:%SZ"
+            )
         ordinal_data["timestamp"] = normalize_timestamp(datetime.timestamp(timestamp))
     while True:
         try:
-            db_price_data, status_code = await Request(session, f"http://127.0.0.1:8000/price/{ordinal_data['timestamp']}").db_json(configuration)
-        except (asyncio.exceptions.TimeoutError,
-                aiohttp.client_exceptions.ClientConnectorError,
-                aiohttp.client_exceptions.ClientOSError,
-                aiohttp.client_exceptions.ServerDisconnectedError,
-                aiohttp.client_exceptions.ClientPayloadError,
+            db_price_data, status_code = await Request(
+                session, f"http://127.0.0.1:8000/price/{ordinal_data['timestamp']}"
+            ).db_json(configuration)
+        except (
+            asyncio.exceptions.TimeoutError,
+            aiohttp.client_exceptions.ClientConnectorError,
+            aiohttp.client_exceptions.ClientOSError,
+            aiohttp.client_exceptions.ServerDisconnectedError,
+            aiohttp.client_exceptions.ClientPayloadError,
         ):
             logging.getLogger("rewards").warning(
-                f"rewards.py - Failed getting price data ({ordinal_data['timestamp']}), retrying in 3 seconds")
+                f"rewards.py - Failed getting price data ({ordinal_data['timestamp']}), retrying in 3 seconds"
+            )
 
             await asyncio.sleep(3)
         else:
             if db_price_data and status_code == 200:
                 logging.getLogger("rewards").info(
-                    f"rewards.py - latest price data is {db_price_data}")
-                ordinal_rewards_data = await RequestSnapshot(session).explorer(f"{url}/global-snapshots/{ordinal}/rewards")
+                    f"rewards.py - latest price data is {db_price_data}"
+                )
+                ordinal_rewards_data = await RequestSnapshot(session).explorer(
+                    f"{url}/global-snapshots/{ordinal}/rewards"
+                )
                 if ordinal_rewards_data:
                     for r_data in ordinal_rewards_data:
                         ordinal_data.update(r_data)
@@ -101,18 +121,25 @@ async def process_ordinal_data(session, url, ordinal, ordinal_data, configuratio
                 break
             elif db_price_data is None and status_code == 200:
                 logging.getLogger("rewards").warning(
-                    f"rewards.py - price data is None db response status code is {status_code}")
-                await request_prices(session, ordinal_data['timestamp'])
+                    f"rewards.py - price data is None db response status code is {status_code}"
+                )
+                await request_prices(session, ordinal_data["timestamp"])
             else:
                 logging.getLogger("rewards").warning(
-                f"rewards.py - price data db response status code is {status_code}")
+                    f"rewards.py - price data db response status code is {status_code}"
+                )
+
 
 async def fetch_and_process_ordinal_data(session, url, ordinal, configuration):
     logging.getLogger("rewards").info(f"rewards.py - Processing ordinal {ordinal}")
     while True:
-        ordinal_data = await RequestSnapshot(session).explorer(f"{url}/global-snapshots/{ordinal}")
+        ordinal_data = await RequestSnapshot(session).explorer(
+            f"{url}/global-snapshots/{ordinal}"
+        )
         if ordinal_data:
-            await process_ordinal_data(session, url, ordinal, ordinal_data, configuration)
+            await process_ordinal_data(
+                session, url, ordinal, ordinal_data, configuration
+            )
             break
         else:
             await asyncio.sleep(3)
@@ -121,18 +148,27 @@ async def fetch_and_process_ordinal_data(session, url, ordinal, configuration):
 async def run(configuration):
     async def process():
         url = "https://be-mainnet.constellationnetwork.io"
-        async with ClientSession(connector=TCPConnector(
+        async with ClientSession(
+            connector=TCPConnector(
                 # You need to obtain a real (non-self-signed certificate) to run in production
                 # ssl=db.ssl_context.load_cert_chain(certfile=ssl_cert_file, keyfile=ssl_key_file)
                 # Not intended for production:
-                ssl=False)) as session:
+                ssl=False
+            )
+        ) as session:
             while True:
                 now = normalize_timestamp(datetime.utcnow().timestamp())
-                latest_snapshot = await RequestSnapshot(session).explorer(f"{url}/global-snapshots/latest")
+                latest_snapshot = await RequestSnapshot(session).explorer(
+                    f"{url}/global-snapshots/latest"
+                )
                 if latest_snapshot:
                     latest_ordinal = latest_snapshot.get("ordinal")
-                    db_data = await RequestSnapshot(session).database("http://127.0.0.1:8000/ordinal/latest")
-                    db_price_data = await RequestSnapshot(session).database("http://127.0.0.1:8000/price/latest")
+                    db_data = await RequestSnapshot(session).database(
+                        "http://127.0.0.1:8000/ordinal/latest"
+                    )
+                    db_price_data = await RequestSnapshot(session).database(
+                        "http://127.0.0.1:8000/price/latest"
+                    )
                     if db_data:
                         first_timestamp = db_price_data[0]
                         first_ordinal = db_data[1]
@@ -143,15 +179,16 @@ async def run(configuration):
                         first_timestamp = 1609459200
 
                     if first_timestamp < now:
-                        await request_prices(
-                            session, first_timestamp
-                        )
+                        await request_prices(session, first_timestamp)
                     for ordinal in range(first_ordinal, latest_ordinal):
-                        await fetch_and_process_ordinal_data(session, url, ordinal, configuration)
+                        await fetch_and_process_ordinal_data(
+                            session, url, ordinal, configuration
+                        )
                     break
                 else:
                     logging.getLogger("rewards").error(
-                        f"rewards.py - Failed getting snapshot from ({url}/global-snapshots/latest), retrying in 3 seconds")
+                        f"rewards.py - Failed getting snapshot from ({url}/global-snapshots/latest), retrying in 3 seconds"
+                    )
                     await asyncio.sleep(3)
             await session.close()
 
@@ -167,5 +204,6 @@ async def run(configuration):
                 except Exception:
                     logging.getLogger("rewards").critical(
                         f"rewards.py - Run process failed:\n"
-                        f"\t{traceback.format_exc()}")
+                        f"\t{traceback.format_exc()}"
+                    )
             await asyncio.sleep(1)

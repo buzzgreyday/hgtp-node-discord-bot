@@ -6,8 +6,19 @@ import os
 
 import numpy as np
 from dotenv import load_dotenv
-from assets.src.database.models import UserModel, NodeModel, OrdinalModel, PriceModel, RewardStatsModel
-from assets.src.schemas import User as UserSchema, PriceSchema, OrdinalSchema, RewardStatsSchema
+from assets.src.database.models import (
+    UserModel,
+    NodeModel,
+    OrdinalModel,
+    PriceModel,
+    RewardStatsModel,
+)
+from assets.src.schemas import (
+    User as UserSchema,
+    PriceSchema,
+    OrdinalSchema,
+    RewardStatsSchema,
+)
 from assets.src.schemas import Node as NodeSchema
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
 from sqlalchemy import select, delete, update, desc
@@ -41,13 +52,13 @@ class DatabaseBatchProcessor:
             self.batch_data = []
 
     async def add_to_batch(self, data, async_session: async_sessionmaker[AsyncSession]):
-
         self.batch_data.append(data)
         if len(self.batch_data) >= self.batch_size:
             await self.process_batch(async_session)
 
 
 batch_processor = DatabaseBatchProcessor(batch_size=100)
+
 
 class CRUD:
     async def post_user(
@@ -76,7 +87,6 @@ class CRUD:
                 await session.commit()
         return jsonable_encoder(data_dict)
 
-
     async def post_data(
         self, data: NodeSchema, async_session: async_sessionmaker[AsyncSession]
     ):
@@ -94,13 +104,15 @@ class CRUD:
                 await asyncio.sleep(60)
         return jsonable_encoder(data_dict)
 
-    async def post_ordinal(self, data: OrdinalSchema, async_session: async_sessionmaker[AsyncSession]):
+    async def post_ordinal(
+        self, data: OrdinalSchema, async_session: async_sessionmaker[AsyncSession]
+    ):
         """Inserts node data from automatic check into database file"""
         await batch_processor.add_to_batch(OrdinalModel(**data.__dict__), async_session)
         return jsonable_encoder(data)
 
     async def post_prices(
-            self, data: PriceSchema, async_session: async_sessionmaker[AsyncSession]
+        self, data: PriceSchema, async_session: async_sessionmaker[AsyncSession]
     ):
         """Inserts node data from automatic check into database file"""
         async with async_session() as session:
@@ -115,7 +127,7 @@ class CRUD:
         return jsonable_encoder(data)
 
     async def post_stats(
-            self, data: RewardStatsSchema, async_session: async_sessionmaker[AsyncSession]
+        self, data: RewardStatsSchema, async_session: async_sessionmaker[AsyncSession]
     ):
         """Post statistical data row by row"""
         async with async_session() as session:
@@ -123,13 +135,12 @@ class CRUD:
             # Create a StatModel instance for each row of data
             session.add(stat_data)
             await session.commit()
-            logging.getLogger("rewards").error(
-                f"crud.py - Stats post: SUCCESS!"
-            )
+            logging.getLogger("rewards").error(f"crud.py - Stats post: SUCCESS!")
         return jsonable_encoder(stat_data)
 
-
-    async def update_stats(self, data: RewardStatsSchema, async_session: async_sessionmaker[AsyncSession]):
+    async def update_stats(
+        self, data: RewardStatsSchema, async_session: async_sessionmaker[AsyncSession]
+    ):
         """Update statistical data"""
 
         async with async_session() as session:
@@ -144,7 +155,6 @@ class CRUD:
             except:
                 print("Stats update: FAILED!\n", traceback.format_exc())
 
-
     async def delete_user_entry(
         self, data: UserModel, async_session: async_sessionmaker[AsyncSession]
     ):
@@ -157,7 +167,6 @@ class CRUD:
             await session.execute(statement)
             await session.commit()
 
-
     async def delete_old_entries(self, async_session: async_sessionmaker[AsyncSession]):
         """
         Placeholder for automatic deletion of database entries older than x.
@@ -166,14 +175,13 @@ class CRUD:
         async with async_session() as session:
             pass
 
-
-    async def delete_db_ordinal(self, ordinal, async_session: async_sessionmaker[AsyncSession]):
+    async def delete_db_ordinal(
+        self, ordinal, async_session: async_sessionmaker[AsyncSession]
+    ):
         """Delete the user subscription based on name, ip, port"""
 
         async with async_session() as session:
-            statement = delete(OrdinalModel).where(
-                (OrdinalModel.ordinal == ordinal)
-            )
+            statement = delete(OrdinalModel).where((OrdinalModel.ordinal == ordinal))
             await session.execute(statement)
             await session.commit()
             logging.getLogger("rewards").warning(
@@ -181,12 +189,18 @@ class CRUD:
             )
             return
 
-
-    async def get_html_page_stats(self, request, templates, dag_address, async_session: async_sessionmaker[AsyncSession]
+    async def get_html_page_stats(
+        self,
+        request,
+        templates,
+        dag_address,
+        async_session: async_sessionmaker[AsyncSession],
     ):
         async with async_session() as session:
             results = await session.execute(
-                select(RewardStatsModel).where(RewardStatsModel.destinations == dag_address)
+                select(RewardStatsModel).where(
+                    RewardStatsModel.destinations == dag_address
+                )
             )
 
         results = results.scalar_one_or_none()
@@ -201,11 +215,21 @@ class CRUD:
         usd_address_sum = results.usd_address_sum
         usd_address_daily_sum = results.usd_address_daily_sum
         daily_network_earnings_average = np.array(results.daily_overall_median).mean()
-        daily_dag_estimation_low = (results.dag_address_daily_mean - results.dag_daily_std_dev)
-        daily_dag_estimation_high = (results.dag_address_daily_mean + results.dag_daily_std_dev)
-        dag_address_daily_std_dev = f"{round(daily_dag_estimation_low)} - {round(daily_dag_estimation_high)}"
-        monthly_dag_estimation_low = (results.dag_address_daily_mean - results.dag_daily_std_dev) * 30
-        monthly_dag_estimation_high = (results.dag_address_daily_mean + results.dag_daily_std_dev) * 30
+        daily_dag_estimation_low = (
+            results.dag_address_daily_mean - results.dag_daily_std_dev
+        )
+        daily_dag_estimation_high = (
+            results.dag_address_daily_mean + results.dag_daily_std_dev
+        )
+        dag_address_daily_std_dev = (
+            f"{round(daily_dag_estimation_low)} - {round(daily_dag_estimation_high)}"
+        )
+        monthly_dag_estimation_low = (
+            results.dag_address_daily_mean - results.dag_daily_std_dev
+        ) * 30
+        monthly_dag_estimation_high = (
+            results.dag_address_daily_mean + results.dag_daily_std_dev
+        ) * 30
         dag_address_monthly_std_dev = f"{round(monthly_dag_estimation_low)} - {round(monthly_dag_estimation_high)}"
         if results.dag_address_sum_dev > 0:
             dag_address_sum_dev = f"+{round(results.dag_address_sum_dev)}"
@@ -218,33 +242,40 @@ class CRUD:
         print(f"http://localhost:8000/static/{results.destinations}.jpg")
         print(results.__dict__)
         if results:
-            return templates.TemplateResponse("index.html",
-                                              {"request": request,
-                                               "dag_address": dag_address,
-                                               "earner_score": earner_score,
-                                               "count": count,
-                                               "percent_earning_more": round(percent_earning_more, 2),
-                                               "dag_address_sum": round(dag_address_sum, 2),
-                                               "dag_address_sum_dev": dag_address_sum_dev,
-                                               "dag_median_sum": round(dag_median_sum, 2),
-                                               "daily_network_earnings_average": round(daily_network_earnings_average, 2),
-                                               "dag_address_daily_sum_dev": dag_address_daily_sum_dev,
-                                               "dag_address_daily_mean": round(dag_address_daily_mean, 2),
-                                               "dag_address_daily_std_dev": dag_address_daily_std_dev,
-                                               "dag_address_monthly_std_dev": dag_address_monthly_std_dev,
-                                               "usd_address_sum": round(usd_address_sum, 2),
-                                               "usd_address_daily_sum": round(usd_address_daily_sum, 2),
-                                               "rewards_plot_path": f"http://localhost:8000/static/rewards_{dag_address}.jpg"})
+            return templates.TemplateResponse(
+                "index.html",
+                {
+                    "request": request,
+                    "dag_address": dag_address,
+                    "earner_score": earner_score,
+                    "count": count,
+                    "percent_earning_more": round(percent_earning_more, 2),
+                    "dag_address_sum": round(dag_address_sum, 2),
+                    "dag_address_sum_dev": dag_address_sum_dev,
+                    "dag_median_sum": round(dag_median_sum, 2),
+                    "daily_network_earnings_average": round(
+                        daily_network_earnings_average, 2
+                    ),
+                    "dag_address_daily_sum_dev": dag_address_daily_sum_dev,
+                    "dag_address_daily_mean": round(dag_address_daily_mean, 2),
+                    "dag_address_daily_std_dev": dag_address_daily_std_dev,
+                    "dag_address_monthly_std_dev": dag_address_monthly_std_dev,
+                    "usd_address_sum": round(usd_address_sum, 2),
+                    "usd_address_daily_sum": round(usd_address_daily_sum, 2),
+                    "rewards_plot_path": f"http://localhost:8000/static/rewards_{dag_address}.jpg",
+                },
+            )
         else:
             print("Error")
 
-
-    async def get_latest_db_price(self,
-            async_session: async_sessionmaker[AsyncSession]
+    async def get_latest_db_price(
+        self, async_session: async_sessionmaker[AsyncSession]
     ):
         """Get the latest ordinal data existing in the database"""
         async with async_session() as session:
-            statement = select(PriceModel).order_by(PriceModel.timestamp.desc()).limit(1)
+            statement = (
+                select(PriceModel).order_by(PriceModel.timestamp.desc()).limit(1)
+            )
             results = await session.execute(statement)
             latest_price_data = results.scalar()
         if latest_price_data:
@@ -258,14 +289,17 @@ class CRUD:
             )
             return
 
-
-    async def get_timestamp_db_price(self,
-            ordinal_timestamp: int, async_session: async_sessionmaker[AsyncSession]
+    async def get_timestamp_db_price(
+        self, ordinal_timestamp: int, async_session: async_sessionmaker[AsyncSession]
     ):
         """Get the latest ordinal data existing in the database"""
         async with async_session() as session:
-            statement = select(PriceModel).filter(PriceModel.timestamp <= ordinal_timestamp).order_by(
-                desc(PriceModel.timestamp)).limit(1)
+            statement = (
+                select(PriceModel)
+                .filter(PriceModel.timestamp <= ordinal_timestamp)
+                .order_by(desc(PriceModel.timestamp))
+                .limit(1)
+            )
             results = await session.execute(statement)
             timestamp_price_data = results.scalar()
         if timestamp_price_data:
@@ -279,13 +313,14 @@ class CRUD:
             )
             return
 
-
-    async def get_latest_db_ordinal(self,
-            async_session: async_sessionmaker[AsyncSession]
+    async def get_latest_db_ordinal(
+        self, async_session: async_sessionmaker[AsyncSession]
     ):
         """Get the latest ordinal data existing in the database"""
         async with async_session() as session:
-            statement = select(OrdinalModel).order_by(OrdinalModel.ordinal.desc()).limit(1)
+            statement = (
+                select(OrdinalModel).order_by(OrdinalModel.ordinal.desc()).limit(1)
+            )
             results = await session.execute(statement)
             latest_ordinal_data = results.scalar()
 
@@ -300,24 +335,34 @@ class CRUD:
             )
             return
 
-    async def get_ordinals_data_from_timestamp(self, timestamp: int, async_session: async_sessionmaker[AsyncSession]):
-
+    async def get_ordinals_data_from_timestamp(
+        self, timestamp: int, async_session: async_sessionmaker[AsyncSession]
+    ):
         print(f"Requesting ordinals from timestamp: {timestamp}")
         async with async_session() as session:
             batch_size = 200000
             offset = 0
             data = {
-                'timestamp': [],
-                'ordinals': [],
-                'destinations': [],
-                'dag': [],
-                'usd_per_token': []
+                "timestamp": [],
+                "ordinals": [],
+                "destinations": [],
+                "dag": [],
+                "usd_per_token": [],
             }
             while True:
                 try:
-                    statement = select(OrdinalModel.timestamp, OrdinalModel.ordinal, OrdinalModel.destination,
-                                       OrdinalModel.amount, OrdinalModel.usd).filter(
-                        OrdinalModel.timestamp >= timestamp).offset(offset).limit(batch_size)
+                    statement = (
+                        select(
+                            OrdinalModel.timestamp,
+                            OrdinalModel.ordinal,
+                            OrdinalModel.destination,
+                            OrdinalModel.amount,
+                            OrdinalModel.usd,
+                        )
+                        .filter(OrdinalModel.timestamp >= timestamp)
+                        .offset(offset)
+                        .limit(batch_size)
+                    )
                     print(f"Get ordinals from timestamp: {timestamp}, offset: {offset}")
                     results = await session.execute(statement)
                     batch_results = results.fetchall()
@@ -328,18 +373,20 @@ class CRUD:
                     break  # No more data
 
                 for row in batch_results:
-                    data['timestamp'].append(row.timestamp)
-                    data['ordinals'].append(row.ordinal)
-                    data['destinations'].append(row.destination)
-                    data['dag'].append(row.amount)
-                    data['usd_per_token'].append(row.usd)
+                    data["timestamp"].append(row.timestamp)
+                    data["ordinals"].append(row.ordinal)
+                    data["destinations"].append(row.destination)
+                    data["dag"].append(row.amount)
+                    data["usd_per_token"].append(row.usd)
 
                 offset += batch_size
                 # await asyncio.sleep(3)
 
         return data
 
-    async def get_historic_node_data_from_timestamp(self, timestamp: int, async_session: async_sessionmaker[AsyncSession]):
+    async def get_historic_node_data_from_timestamp(
+        self, timestamp: int, async_session: async_sessionmaker[AsyncSession]
+    ):
         """
         Get timeslice data from the node database.
         """
@@ -349,59 +396,75 @@ class CRUD:
             batch_size = 200000
             offset = 0
             data = {
-                'timestamp': [],
-                'destinations': [],
-                'layer': [],
-                'ip': [],
-                'id': [],
-                'public_port': [],
-                'cpu_load_1m': [],
-                'cpu_count': [],
-                'disk_free': [],
-                'disk_total': []
+                "timestamp": [],
+                "destinations": [],
+                "layer": [],
+                "ip": [],
+                "id": [],
+                "public_port": [],
+                "cpu_load_1m": [],
+                "cpu_count": [],
+                "disk_free": [],
+                "disk_total": [],
             }
             timestamp_datetime = datetime.utcfromtimestamp(timestamp)
             print(timestamp_datetime)
 
             while True:
                 try:
-                    statement = select(NodeModel.timestamp_index, NodeModel.wallet_address, NodeModel.layer, NodeModel.ip,
-                                       NodeModel.id, NodeModel.public_port, NodeModel.one_m_system_load_average,
-                                       NodeModel.cpu_count, NodeModel.disk_space_free, NodeModel.disk_space_total,
-                                       NodeModel.last_known_cluster_name
-                                       ).filter(NodeModel.timestamp_index >= timestamp_datetime).offset(offset).limit(batch_size)
-                    print(f"Get node_data from timestamp: {timestamp}, offset: {offset}")
+                    statement = (
+                        select(
+                            NodeModel.timestamp_index,
+                            NodeModel.wallet_address,
+                            NodeModel.layer,
+                            NodeModel.ip,
+                            NodeModel.id,
+                            NodeModel.public_port,
+                            NodeModel.one_m_system_load_average,
+                            NodeModel.cpu_count,
+                            NodeModel.disk_space_free,
+                            NodeModel.disk_space_total,
+                            NodeModel.last_known_cluster_name,
+                        )
+                        .filter(NodeModel.timestamp_index >= timestamp_datetime)
+                        .offset(offset)
+                        .limit(batch_size)
+                    )
+                    print(
+                        f"Get node_data from timestamp: {timestamp}, offset: {offset}"
+                    )
                     results = await session.execute(statement)
                     batch_results = results.fetchall()
                 except Exception:
                     print(traceback.format_exc())
-                    logging.getLogger('stats').error(traceback.format_exc())
+                    logging.getLogger("stats").error(traceback.format_exc())
 
                 if not batch_results:
                     break  # No more data
 
                 for row in batch_results:
                     if row.last_known_cluster_name == "mainnet":
-                        data['timestamp'].append(round(row.timestamp_index.timestamp()))
-                        data['destinations'].append(row.wallet_address)
-                        data['layer'].append(row.layer)
-                        data['ip'].append(row.ip)
-                        data['id'].append(row.id)
-                        data['public_port'].append(row.public_port)
-                        data['cpu_load_1m'].append(row.one_m_system_load_average)
-                        data['cpu_count'].append(row.cpu_count)
+                        data["timestamp"].append(round(row.timestamp_index.timestamp()))
+                        data["destinations"].append(row.wallet_address)
+                        data["layer"].append(row.layer)
+                        data["ip"].append(row.ip)
+                        data["id"].append(row.id)
+                        data["public_port"].append(row.public_port)
+                        data["cpu_load_1m"].append(row.one_m_system_load_average)
+                        data["cpu_count"].append(row.cpu_count)
                         try:
-                            data['disk_free'].append(row.disk_space_free / one_gigabyte)
-                            data['disk_total'].append(row.disk_space_total / one_gigabyte)
+                            data["disk_free"].append(row.disk_space_free / one_gigabyte)
+                            data["disk_total"].append(
+                                row.disk_space_total / one_gigabyte
+                            )
                         except ZeroDivisionError:
-                            data['disk_free'].append(0.0)
-                            data['disk_total'].append(0.0)
+                            data["disk_free"].append(0.0)
+                            data["disk_total"].append(0.0)
 
                 offset += batch_size
                 # await asyncio.sleep(3)
 
         return data
-
 
     async def get_user(self, name, async_session: async_sessionmaker[AsyncSession]):
         """Returns a list of all user data"""

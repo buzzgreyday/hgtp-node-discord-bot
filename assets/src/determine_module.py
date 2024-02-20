@@ -7,7 +7,11 @@ from assets.src import schemas
 
 
 async def get_module_name_and_layer(d, configuration) -> tuple:
-    names = [a for a in (d.cluster_name, d.former_cluster_name, d.last_known_cluster_name) if a]
+    names = [
+        a
+        for a in (d.cluster_name, d.former_cluster_name, d.last_known_cluster_name)
+        if a
+    ]
     if names:
         return names[0], d.layer
     else:

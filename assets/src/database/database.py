@@ -8,7 +8,9 @@ from assets.src.database.crud import CRUD, engine
 from assets.src.schemas import OrdinalSchema, PriceSchema, RewardStatsSchema
 
 app = FastAPI(
-    title="Hypergraph Node Status Bot", description="This is a Node Bot", docs_url="/swagger"
+    title="Hypergraph Node Status Bot",
+    description="This is a Node Bot",
+    docs_url="/swagger",
 )
 
 templates = Jinja2Templates(directory="templates")
@@ -34,6 +36,7 @@ async def post_data(data):
 async def get_html_page_stats(dag_address, request: Request):
     """Return a html pages showing node stats"""
     return await db.get_html_page_stats(request, templates, dag_address, session)
+
 
 @app.get("/user/{name}")
 async def get_user(name: str):
@@ -76,15 +79,18 @@ async def delete_user_entry(data):
     """Delete the user subscription based on name, ip, port"""
     return await db.delete_user_entry(data, session)
 
+
 @app.delete("/ordinal/{ordinal}/delete")
 async def delete_db_ordinal(ordinal: int):
     """Delete the ordinal from the database"""
     return await db.delete_db_ordinal(ordinal, session)
 
+
 @app.post("/ordinal/create")
 async def post_ordinal(data: OrdinalSchema):
     """Inserts node data from automatic check into database"""
     return await db.post_ordinal(data, session)
+
 
 @app.put("/stat/create")
 async def post_stats(data: RewardStatsSchema):

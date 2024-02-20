@@ -31,7 +31,6 @@ class Request:
                 return None, resp.status
 
     async def db_json(self, configuration=None):
-
         async with self.session.get(self.url) as resp:
             await asyncio.sleep(0)
             if resp.status == 200:
@@ -39,8 +38,6 @@ class Request:
                 return data, resp.status
             else:
                 return None, resp.status
-
-
 
     async def text(self, configuration: dict):
         timeout = aiohttp.ClientTimeout(

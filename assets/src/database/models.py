@@ -86,7 +86,9 @@ class NodeModel(SQLBase):
     reward_state: Mapped[Optional[bool]] = mapped_column(nullable=True)
     reward_true_count: Mapped[Optional[int]] = mapped_column(nullable=True)
     state: Mapped[Optional[str]] = mapped_column(nullable=True)
-    timestamp_index: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True, index=True)
+    timestamp_index: Mapped[Optional[datetime.datetime]] = mapped_column(
+        nullable=True, index=True
+    )
     version: Mapped[Optional[str]] = mapped_column(nullable=True)
     cluster_check_ordinal: Mapped[Optional[str]] = mapped_column(nullable=True)
 
@@ -142,7 +144,6 @@ class RewardStatsModel(SQLBase):
 
 
 class MetricStatsModel(SQLBase):
-
     __tablename__ = "metric_stats"
 
     hash_index: Mapped[str] = mapped_column(primary_key=True)
@@ -155,5 +156,3 @@ class MetricStatsModel(SQLBase):
     daily_disk_gb_total: Mapped[float]
     daily_cpu_core_count: Mapped[int]
     daily_cpu_load: Mapped[float]
-
-

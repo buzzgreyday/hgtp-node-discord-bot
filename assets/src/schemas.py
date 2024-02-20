@@ -249,6 +249,7 @@ class RewardSchema(BaseModel):
     amount: int
     destination: str | None
 
+
 class OrdinalSchema(BaseModel):
     """This class is the schema to validate the rewards table data"""
 
@@ -265,7 +266,7 @@ class OrdinalSchema(BaseModel):
 
     @validator("amount", pre=True)
     def amount_validate(cls, amount):
-        return amount/100000000
+        return amount / 100000000
 
 
 class PriceSchema(BaseModel):

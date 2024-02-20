@@ -15,6 +15,7 @@ from assets.src import preliminaries, run_process, history, rewards, stats
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
 
+
 def load_configuration():
     try:
         with open("config.yml", "r") as file:
@@ -103,28 +104,43 @@ def main():
 
     logger = logging.getLogger("app")
     logger.setLevel(logging.INFO)
-    handler = logging.FileHandler(filename="assets/data/logs/bot/app.log", encoding='utf-8', mode='w')
-    handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))
+    handler = logging.FileHandler(
+        filename="assets/data/logs/bot/app.log", encoding="utf-8", mode="w"
+    )
+    handler.setFormatter(
+        logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s")
+    )
     logger.addHandler(handler)
 
-    logger = logging.getLogger('rewards')
+    logger = logging.getLogger("rewards")
     logger.setLevel(logging.INFO)
-    handler = logging.FileHandler(filename='assets/data/logs/bot/rewards.log', encoding='utf-8', mode='w')
-    handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))
+    handler = logging.FileHandler(
+        filename="assets/data/logs/bot/rewards.log", encoding="utf-8", mode="w"
+    )
+    handler.setFormatter(
+        logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s")
+    )
     logger.addHandler(handler)
 
-    logger = logging.getLogger('nextcord')
+    logger = logging.getLogger("nextcord")
     logger.setLevel(logging.CRITICAL)
-    handler = logging.FileHandler(filename='assets/data/logs/bot/nextcord.log', encoding='utf-8', mode='w')
-    handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))
+    handler = logging.FileHandler(
+        filename="assets/data/logs/bot/nextcord.log", encoding="utf-8", mode="w"
+    )
+    handler.setFormatter(
+        logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s")
+    )
     logger.addHandler(handler)
 
-    logger = logging.getLogger('stats')
+    logger = logging.getLogger("stats")
     logger.setLevel(logging.INFO)
-    handler = logging.FileHandler(filename='assets/data/logs/bot/stats.log', encoding='utf-8', mode='w')
-    handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))
+    handler = logging.FileHandler(
+        filename="assets/data/logs/bot/stats.log", encoding="utf-8", mode="w"
+    )
+    handler.setFormatter(
+        logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s")
+    )
     logger.addHandler(handler)
-
 
     # version_manager = preliminaries.VersionManager(_configuration)
 
@@ -135,14 +151,18 @@ def main():
 
     # Create a thread for running uvicorn
     uvicorn_thread = threading.Thread(target=run_uvicorn_process)
-    #get_tessellation_version_thread = threading.Thread(
+    # get_tessellation_version_thread = threading.Thread(
     #    target=version_manager.update_version, daemon=True
-    #)
-    #get_tessellation_version_thread.start()
+    # )
+    # get_tessellation_version_thread.start()
     uvicorn_thread.start()
-    rewards_thread = threading.Thread(target=start_rewards_coroutine, args=(_configuration,))
+    rewards_thread = threading.Thread(
+        target=start_rewards_coroutine, args=(_configuration,)
+    )
     rewards_thread.start()
-    stats_thread = threading.Thread(target=start_stats_coroutine, args=(_configuration,))
+    stats_thread = threading.Thread(
+        target=start_stats_coroutine, args=(_configuration,)
+    )
     stats_thread.start()
 
     while True:
