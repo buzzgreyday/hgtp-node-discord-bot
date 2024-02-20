@@ -252,7 +252,7 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
             plt.plot(
                 pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
                 destination_df["cpu_count"],
-                marker="o",
+                marker=",",
                 color="red",
                 linestyle=":",
                 label='CPU load threshold',
