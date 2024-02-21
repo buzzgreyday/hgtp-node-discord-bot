@@ -290,7 +290,7 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
                 destination_df["dag_address_daily_sum"],
                 marker="o",
                 color="blue",
-                label="Daily node earnings",
+                label="Node earnings",
             )
             print("Daily node earnings plot: OK!")
             plt.plot(
@@ -298,7 +298,7 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
                 destination_df["daily_overall_median"],
                 marker="o",
                 color="green",
-                label="Daily network earnings",
+                label="Network earnings",
                 linestyle=":",
                 alpha=0.5,
             )
@@ -309,14 +309,14 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
                 destination_df["dag_address_daily_mean"].median(),
                 color="blue",
                 linestyle="--",
-                label=f'Average daily node earnings (since {datetime.fromtimestamp(timestamp=from_timestamp).strftime("%d. %B %Y")})',
+                label=f'Average node earnings (since {datetime.fromtimestamp(timestamp=from_timestamp).strftime("%d. %B %Y")})',
                 alpha=0.5,
             )
             plt.axhline(
                 df["daily_overall_median"].median(),
                 color="green",
                 linestyle="--",
-                label=f'Average daily network earnings (since {datetime.fromtimestamp(timestamp=from_timestamp).strftime("%d. %B %Y")})',
+                label=f'Average network earnings (since {datetime.fromtimestamp(timestamp=from_timestamp).strftime("%d. %B %Y")})',
                 alpha=0.5,
             )
             plt.xlabel("Time")
