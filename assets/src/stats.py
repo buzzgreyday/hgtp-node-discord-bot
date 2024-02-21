@@ -235,51 +235,34 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
     path = "static"
     print("Starting loop")
     for destination in unique_destinations:
-        destination_df = df[df["destinations"] == destination]
         plt.style.use("Solarize_Light2")
         fig = plt.figure(figsize=(12, 6), dpi=80)
-        try:
-            print("style ok")
-            plt.plot(
-                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
-                destination_df["daily_cpu_load"],
-                marker="o",
-                color="blue",
-                label="Daily CPU load",
-            )
-            print("Daily node cpu plot: OK!")
-            # Don't limit average to any particular address
+        print("style ok")
+        destination_df = df[df["destinations"] == destination]
+        for port in destination_df["public_port"].unique():
+            layer_df = destination_df[destination_df["public_port"] == port]
+            print(layer_df)
+            try:
+                plt.plot(
+                    pd.to_datetime(layer_df["timestamp"] * 1000, unit="ms"),
+                    layer_df["daily_cpu_load"] / layer_df["cpu_count"] * 100,
+                    marker="o",
+                    label=f"L{layer_df['layer'].values[0]}, IP {layer_df['ip'].values[0]}, Port {layer_df['public_port'].values[0]}",
+                )
+            except Exception:
+                print(traceback.format_exc())
 
-            plt.plot(
-                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
-                destination_df["cpu_count"],
-                marker=",",
-                color="red",
-                linestyle=":",
-                label='CPU load threshold',
-                alpha=0.5,
-            )
+        plt.axhline(
+            df["daily_cpu_load"].median() / df["cpu_count"].median() * 100,
+            color="green",
+            linestyle="--",
+            label=f'Average Nodebot user',
+            alpha=0.5,
+        )
 
-            plt.axhline(
-                destination_df["daily_cpu_load"].median(),
-                color="blue",
-                linestyle="--",
-                label=f'Average daily node CPU load (since {datetime.fromtimestamp(timestamp=from_timestamp).strftime("%d. %B %Y")})',
-                alpha=0.5,
-            )
-
-            plt.axhline(
-                df["daily_cpu_load"].median(),
-                color="green",
-                linestyle="--",
-                label=f'Average daily network CPU load (since {datetime.fromtimestamp(timestamp=from_timestamp).strftime("%d. %B %Y")})',
-                alpha=0.5,
-            )
-            plt.xlabel("Time")
-            plt.ylabel("CPU load")
-            plt.title("")
-        except Exception:
-            print(traceback.format_exc())
+        plt.xlabel("Time")
+        plt.ylabel("CPU Load Percentage")
+        plt.title("")
 
         plt.legend()
         plt.xticks(rotation=45)  # Rotate x-axis labels for better readability if needed
