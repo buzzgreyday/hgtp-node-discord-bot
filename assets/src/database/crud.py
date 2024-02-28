@@ -131,7 +131,7 @@ class CRUD:
     ):
         """Post statistical data row by row"""
         async with async_session() as session:
-            stat_data = StatModel(**data.__dict__)
+            stat_data = RewardStatsModel(**data.__dict__)
             # Create a StatModel instance for each row of data
             session.add(stat_data)
             await session.commit()
@@ -204,6 +204,7 @@ class CRUD:
             )
 
         results = results.scalar_one_or_none()
+        print(results.__dict__)
 
         dag_address = results.destinations
         earner_score = results.earner_score
@@ -239,8 +240,6 @@ class CRUD:
             dag_address_daily_sum_dev = f"+{round(results.dag_address_daily_sum_dev)}"
         else:
             dag_address_daily_sum_dev = round(results.dag_address_daily_sum_dev)
-        print(f"http://localhost:8000/static/{results.destinations}.jpg")
-        print(results.__dict__)
         if results:
             return templates.TemplateResponse(
                 "index.html",
@@ -262,7 +261,8 @@ class CRUD:
                     "dag_address_monthly_std_dev": dag_address_monthly_std_dev,
                     "usd_address_sum": round(usd_address_sum, 2),
                     "usd_address_daily_sum": round(usd_address_daily_sum, 2),
-                    "rewards_plot_path": f"http://localhost:8000/static/rewards_{dag_address}.jpg",
+                    "rewards_plot_path": f"http://localhost:8000/static/rewards_{dag_address}.html",
+                    "cpu_plot_path": f"http://localhost:8000/static/cpu_{dag_address}.html"
                 },
             )
         else:

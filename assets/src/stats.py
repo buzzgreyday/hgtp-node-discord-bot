@@ -3,6 +3,9 @@ import logging
 import traceback
 from datetime import datetime, timedelta
 
+from bokeh.plotting import figure, output_file, save
+from bokeh.models import ColumnDataSource
+from bokeh.io import show
 import pandas as pd
 import sqlalchemy
 from aiohttp import ClientSession, TCPConnector
@@ -229,109 +232,53 @@ def create_timeslice_data(
 
 def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
     """Creates CPU visualizations. However, we need one per IP"""
-    # Something here is causing a Tkinter related async issue: probably related to .close() or the fact that this was a
-    # async function. Look into this.
     unique_destinations = df["destinations"].unique()
     path = "static"
     print("Starting loop")
     for destination in unique_destinations:
-        plt.style.use("Solarize_Light2")
-        fig = plt.figure(figsize=(12, 6), dpi=80)
-        print("style ok")
+        output_file(f"{path}/cpu_{destination}.html")
+        print("Creating visualization for destination:", destination)
         destination_df = df[df["destinations"] == destination]
+        p = figure(title=f"CPU Load Percentage - {destination}", x_axis_label="Time", y_axis_label="CPU Load Percentage", x_axis_type="datetime", width=800, height=400)
         for port in destination_df["public_port"].unique():
             layer_df = destination_df[destination_df["public_port"] == port]
-            print(layer_df)
             try:
-                plt.plot(
-                    pd.to_datetime(layer_df["timestamp"] * 1000, unit="ms"),
-                    layer_df["daily_cpu_load"] / layer_df["cpu_count"] * 100,
-                    marker="o",
-                    label=f"L{layer_df['layer'].values[0]}, IP {layer_df['ip'].values[0]}, Port {layer_df['public_port'].values[0]}",
-                )
+                p.circle(pd.to_datetime(layer_df["timestamp"] * 1000, unit="ms"), layer_df["daily_cpu_load"] / layer_df["cpu_count"] * 100, legend_label=f"L{layer_df['layer'].values[0]}, IP {layer_df['ip'].values[0]}, Port {layer_df['public_port'].values[0]}", size=8)
             except Exception:
                 print(traceback.format_exc())
 
-        plt.axhline(
-            df["daily_cpu_load"].median() / df["cpu_count"].median() * 100,
-            color="green",
-            linestyle="--",
-            label=f'Average Nodebot user',
-            alpha=0.5,
-        )
+        p.line(df.index, df["daily_cpu_load"].median() / df["cpu_count"].median() * 100, line_color="green", line_dash="dashed", legend_label="Average Nodebot user", alpha=0.5)
 
-        plt.xlabel("Time")
-        plt.ylabel("CPU Load Percentage")
-        plt.title("")
+        p.legend.location = "top_left"
+        p.legend.click_policy = "hide"
+        p.xaxis.major_label_orientation = 3.14/4
 
-        plt.legend()
-        plt.xticks(rotation=45)  # Rotate x-axis labels for better readability if needed
-        plt.grid(True)
-        plt.tight_layout()
-        plt.savefig(f"{path}/cpu_{destination}.jpg")
-        plt.show()
-        plt.close(fig)
+        save(p)
 
 
 def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
-    # Something here is causing a Tkinter related async issue: probably related to .close() or the fact that this was a
-    # async function. Look into this.
+    """Creates reward visualizations."""
     unique_destinations = df["destinations"].unique()
     path = "static"
     print("Starting loop")
     for destination in unique_destinations:
-        destination_df = df[df["destinations"] == destination]
-        plt.style.use("Solarize_Light2")
-        fig = plt.figure(figsize=(12, 6), dpi=80)
+        output_file(f"{path}/rewards_{destination}.html")
+        print("Creating visualization for destination:", destination)
         try:
-            print("style ok")
-            plt.plot(
-                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
-                destination_df["dag_address_daily_sum"],
-                marker="o",
-                color="blue",
-                label="Node earnings",
-            )
-            print("Daily node earnings plot: OK!")
-            plt.plot(
-                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
-                destination_df["daily_overall_median"],
-                marker="o",
-                color="green",
-                label="Network earnings",
-                linestyle=":",
-                alpha=0.5,
-            )
-            print("Daily average network earnings plot: OK!")
-            # Don't limit average to any particular address
-
-            plt.axhline(
-                destination_df["dag_address_daily_mean"].median(),
-                color="blue",
-                linestyle="--",
-                label=f'Average node earnings (since {datetime.fromtimestamp(timestamp=from_timestamp).strftime("%d. %B %Y")})',
-                alpha=0.5,
-            )
-            plt.axhline(
-                df["daily_overall_median"].median(),
-                color="green",
-                linestyle="--",
-                label=f'Average network earnings (since {datetime.fromtimestamp(timestamp=from_timestamp).strftime("%d. %B %Y")})',
-                alpha=0.5,
-            )
-            plt.xlabel("Time")
-            plt.ylabel("$DAG Earnings")
-            plt.title("")
+            destination_df = df[df["destinations"] == destination]
+            p = figure(title=f"DAG Earnings - {destination}", x_axis_label="Time", y_axis_label="$DAG Earnings", x_axis_type="datetime", width=800, height=400)
+            p.circle(pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"), destination_df["dag_address_daily_sum"], legend_label="Node earnings", color="blue", size=8)
+            p.circle(pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"), destination_df["daily_overall_median"], legend_label="Network earnings", color="green", size=8, line_dash="dashed", alpha=0.5)
+            p.line(pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"), destination_df["dag_address_daily_mean"].median(), line_color="blue", line_dash="dashed", legend_label=f"Average node earnings (since {datetime.fromtimestamp(from_timestamp).strftime('%d. %B %Y')})", alpha=0.5)
+            p.line(pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"), df["daily_overall_median"].median(), line_color="green", line_dash="dashed", legend_label=f"Average network earnings (since {datetime.fromtimestamp(from_timestamp).strftime('%d. %B %Y')})", alpha=0.5)
         except Exception:
             print(traceback.format_exc())
 
-        plt.legend()
-        plt.xticks(rotation=45)  # Rotate x-axis labels for better readability if needed
-        plt.grid(True)
-        plt.tight_layout()
-        plt.savefig(f"{path}/rewards_{destination}.jpg")
-        # plt.show()
-        plt.close(fig)
+        p.legend.location = "top_left"
+        p.legend.click_policy = "hide"
+        p.xaxis.major_label_orientation = 3.14/4
+
+        save(p)
 
 
 async def get_data(session, timestamp):
