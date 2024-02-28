@@ -243,13 +243,11 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
         for port in destination_df["public_port"].unique():
             layer_df = destination_df[destination_df["public_port"] == port]
             try:
-                print(layer_df["timestamp"])
-                input("Datetime format? ")
                 p.line(pd.to_datetime(layer_df["timestamp"] * 1000, unit="ms"), layer_df["daily_cpu_load"] / layer_df["cpu_count"] * 100, legend_label=f"L{layer_df['layer'].values[0]}, IP {layer_df['ip'].values[0]}, Port {layer_df['public_port'].values[0]}")
             except Exception:
                 print(traceback.format_exc())
 
-        p.line(df.index, df["daily_cpu_load"].median() / df["cpu_count"].median() * 100, line_color="green", line_dash="dashed", legend_label="Average Nodebot user", alpha=0.5)
+        p.line(pd.to_datetime(df["timestamp"] * 1000, unit="ms"), df["daily_cpu_load"].median() / df["cpu_count"].median() * 100, line_color="green", line_dash="dashed", legend_label="Average Nodebot user", alpha=0.5)
 
         p.legend.location = "top_left"
         p.legend.click_policy = "hide"
