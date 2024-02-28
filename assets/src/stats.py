@@ -243,7 +243,7 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
         for port in destination_df["public_port"].unique():
             layer_df = destination_df[destination_df["public_port"] == port]
             try:
-                p.circle(pd.to_datetime(layer_df["timestamp"] * 1000, unit="ms"), layer_df["daily_cpu_load"] / layer_df["cpu_count"] * 100, legend_label=f"L{layer_df['layer'].values[0]}, IP {layer_df['ip'].values[0]}, Port {layer_df['public_port'].values[0]}", size=8)
+                p.line(pd.to_datetime(layer_df["timestamp"] * 1000, unit="ms"), layer_df["daily_cpu_load"] / layer_df["cpu_count"] * 100, legend_label=f"L{layer_df['layer'].values[0]}, IP {layer_df['ip'].values[0]}, Port {layer_df['public_port'].values[0]}")
             except Exception:
                 print(traceback.format_exc())
 
@@ -267,8 +267,8 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
         try:
             destination_df = df[df["destinations"] == destination]
             p = figure(title=f"DAG Earnings - {destination}", x_axis_label="Time", y_axis_label="$DAG Earnings", x_axis_type="datetime", width=800, height=400)
-            p.circle(pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"), destination_df["dag_address_daily_sum"], legend_label="Node earnings", color="blue", size=8)
-            p.circle(pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"), destination_df["daily_overall_median"], legend_label="Network earnings", color="green", size=8, line_dash="dashed", alpha=0.5)
+            p.line(pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"), destination_df["dag_address_daily_sum"], legend_label="Node earnings", color="blue",)
+            p.line(pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"), destination_df["daily_overall_median"], legend_label="Network earnings", color="green", line_dash="dashed", alpha=0.5)
             p.line(pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"), destination_df["dag_address_daily_mean"].median(), line_color="blue", line_dash="dashed", legend_label=f"Average node earnings (since {datetime.fromtimestamp(from_timestamp).strftime('%d. %B %Y')})", alpha=0.5)
             p.line(pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"), df["daily_overall_median"].median(), line_color="green", line_dash="dashed", legend_label=f"Average network earnings (since {datetime.fromtimestamp(from_timestamp).strftime('%d. %B %Y')})", alpha=0.5)
         except Exception:
