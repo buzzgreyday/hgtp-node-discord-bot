@@ -225,8 +225,8 @@ class CRUD:
         dag_address_daily_std_dev = (
             f"{round(daily_dag_estimation_low)} - {round(daily_dag_estimation_high)}"
         )
-        monthly_dag_estimation_low = daily_dag_estimation_low * 30
-        monthly_dag_estimation_high = daily_dag_estimation_high * 30
+        monthly_dag_estimation_low = dag_address_sum - (results.dag_daily_std_dev * 30)
+        monthly_dag_estimation_high = dag_address_sum + (results.dag_daily_std_dev * 30)
         dag_address_monthly_std_dev = f"{round(monthly_dag_estimation_low)} - {round(monthly_dag_estimation_high)}"
         if results.dag_address_sum_dev > 0:
             dag_address_sum_dev = f"+{round(results.dag_address_sum_dev)}"
@@ -236,6 +236,7 @@ class CRUD:
             dag_address_daily_sum_dev = f"+{round(results.dag_address_daily_sum_dev)}"
         else:
             dag_address_daily_sum_dev = round(results.dag_address_daily_sum_dev)
+        node_daily_earnings_deviation = dag_address_daily_mean - daily_network_earnings_average
         if results:
             return templates.TemplateResponse(
                 "index.html",
@@ -251,7 +252,7 @@ class CRUD:
                     "daily_network_earnings_average": round(
                         daily_network_earnings_average, 2
                     ),
-                    "dag_address_daily_sum_dev": dag_address_daily_sum_dev,
+                    "dag_address_daily_sum_dev": round(node_daily_earnings_deviation, 2),
                     "dag_address_daily_mean": round(dag_address_daily_mean, 2),
                     "dag_address_daily_std_dev": dag_address_daily_std_dev,
                     "dag_address_monthly_std_dev": dag_address_monthly_std_dev,
