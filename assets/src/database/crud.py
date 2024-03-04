@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import traceback
-from datetime import datetime, timedelta
+from datetime import datetime
 import os
 
 import numpy as np
@@ -226,75 +226,86 @@ class CRUD:
         async_session: async_sessionmaker[AsyncSession],
     ):
         async with async_session() as session:
-            results = await session.execute(
+            reward_results = await session.execute(
                 select(RewardStatsModel).where(
                     RewardStatsModel.destinations == dag_address
                 )
             )
+            metric_results = await session.execute(
+                select(MetricStatsModel).where(
+                    MetricStatsModel.destinations == dag_address
+                )
+            )
 
-        results = results.scalar_one_or_none()
-        print(results.__dict__)
+        reward_results = reward_results.scalar_one_or_none()
+        metric_results = metric_results.fetchall()
+        print(reward_results.__dict__)
 
-        dag_address = results.destinations
-        earner_score = results.earner_score
-        count = results.count
-        percent_earning_more = results.percent_earning_more
-        dag_address_sum = results.dag_address_sum
-        dag_median_sum = results.dag_median_sum
-        dag_address_daily_mean = results.dag_address_daily_mean
-        usd_address_sum = results.usd_address_sum
-        usd_address_daily_sum = results.usd_address_daily_sum
-        daily_network_earnings_average = np.array(results.daily_overall_median).mean()
+        metric_dicts = []
+        for node_metrics in metric_results:
+            metric_dicts.append(node_metrics[0].__dict__)
+            print(metric_dicts)
+
+        dag_address = reward_results.destinations
+        earner_score = reward_results.earner_score
+        count = reward_results.count
+        percent_earning_more = reward_results.percent_earning_more
+        dag_address_sum = reward_results.dag_address_sum
+        dag_median_sum = reward_results.dag_median_sum
+        dag_address_daily_mean = reward_results.dag_address_daily_mean
+        usd_address_sum = reward_results.usd_address_sum
+        usd_address_daily_sum = reward_results.usd_address_daily_sum
+        daily_network_earnings_average = np.array(reward_results.daily_overall_median).mean()
         daily_dag_estimation_low = (
-            results.dag_address_daily_mean - results.dag_daily_std_dev
+            reward_results.dag_address_daily_mean - reward_results.dag_daily_std_dev
         )
         daily_dag_estimation_high = (
-            results.dag_address_daily_mean + results.dag_daily_std_dev
+            reward_results.dag_address_daily_mean + reward_results.dag_daily_std_dev
         )
         dag_address_daily_std_dev = (
             f"{round(daily_dag_estimation_low)} - {round(daily_dag_estimation_high)}"
         )
-        monthly_dag_estimation_low = dag_address_sum - (results.dag_daily_std_dev * 30)
-        monthly_dag_estimation_high = dag_address_sum + (results.dag_daily_std_dev * 30)
+        monthly_dag_estimation_low = dag_address_sum - (reward_results.dag_daily_std_dev * 30)
+        monthly_dag_estimation_high = dag_address_sum + (reward_results.dag_daily_std_dev * 30)
         dag_address_monthly_std_dev = f"{round(monthly_dag_estimation_low)} - {round(monthly_dag_estimation_high)}"
-        if results.dag_address_sum_dev > 0:
-            dag_address_sum_dev = f"+{round(results.dag_address_sum_dev)}"
+        if reward_results.dag_address_sum_dev > 0:
+            dag_address_sum_dev = f"+{round(reward_results.dag_address_sum_dev)}"
         else:
-            dag_address_sum_dev = round(results.dag_address_sum_dev)
-        if results.dag_address_daily_sum_dev >= 1:
-            dag_address_daily_sum_dev = f"+{round(results.dag_address_daily_sum_dev)}"
+            dag_address_sum_dev = round(reward_results.dag_address_sum_dev)
+        if reward_results.dag_address_daily_sum_dev >= 1:
+            dag_address_daily_sum_dev = f"+{round(reward_results.dag_address_daily_sum_dev)}"
         else:
-            dag_address_daily_sum_dev = round(results.dag_address_daily_sum_dev)
+            dag_address_daily_sum_dev = round(reward_results.dag_address_daily_sum_dev)
         node_daily_earnings_deviation = (
             dag_address_daily_mean - daily_network_earnings_average
         )
-        if results:
+        if reward_results:
             return templates.TemplateResponse(
                 "index.html",
-                {
-                    "request": request,
-                    "dag_address": dag_address,
-                    "earner_score": earner_score,
-                    "count": count,
-                    "percent_earning_more": round(percent_earning_more, 2),
-                    "dag_address_sum": round(dag_address_sum, 2),
-                    "dag_address_sum_dev": dag_address_sum_dev,
-                    "dag_median_sum": round(dag_median_sum, 2),
-                    "daily_network_earnings_average": round(
-                        daily_network_earnings_average, 2
-                    ),
-                    "dag_address_daily_sum_dev": round(
+                dict(request=request, dag_address=dag_address, earner_score=earner_score, count=count,
+                     percent_earning_more=round(percent_earning_more, 2), dag_address_sum=round(dag_address_sum, 2),
+                     dag_address_sum_dev=dag_address_sum_dev, dag_median_sum=round(dag_median_sum, 2),
+                     daily_network_earnings_average=round(
+                         daily_network_earnings_average, 2
+                     ), dag_address_daily_sum_dev=round(
                         node_daily_earnings_deviation, 2
-                    ),
-                    "dag_address_daily_mean": round(dag_address_daily_mean, 2),
-                    "dag_address_daily_std_dev": dag_address_daily_std_dev,
-                    "dag_address_monthly_std_dev": dag_address_monthly_std_dev,
-                    "usd_address_sum": round(usd_address_sum, 2),
-                    "usd_address_daily_sum": round(usd_address_daily_sum, 2),
-                    "rewards_plot_path": f"http://localhost:8000/static/rewards_{dag_address}.html",
-                    "cpu_plot_path": f"http://localhost:8000/static/cpu_{dag_address}.html",
-                },
+                    ), dag_address_daily_mean=round(dag_address_daily_mean, 2),
+                     dag_address_daily_std_dev=dag_address_daily_std_dev,
+                     dag_address_monthly_std_dev=dag_address_monthly_std_dev,
+                     usd_address_sum=round(usd_address_sum, 2),
+                     usd_address_daily_sum=round(usd_address_daily_sum, 2),
+                     rewards_plot_path=f"http://localhost:8000/static/rewards_{dag_address}.html",
+                     cpu_plot_path=f"http://localhost:8000/static/cpu_{dag_address}.html"),
+                     metric_ips=(val["ip"] for val in metric_dicts),
+                     metric_ports=(val["public_port"] for val in metric_dicts),
+                     metric_layers=(val["layer"] for val in metric_dicts),
+                     metric_free_disk_gb=(val["disk_free"] for val in metric_dicts),
+                     metric_total_disk_gb=(val["disk_total"] for val in metric_dicts),
+                     metric_daily_cpu_count=(val["cpu_count"] for val in metric_dicts),
+                     metric_daily_cpu_load=(val["daily_cpu_load'"] for val in metric_dicts),
+
             )
+            print()
         else:
             print("Error")
 

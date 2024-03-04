@@ -544,7 +544,6 @@ async def run(configuration):
                 print(row)
                 metric_data = MetricStatsSchema(**row.to_dict())
 
-                input(metric_data)
                 try:
                     # Post
                     await post_metric_stats(metric_data)
