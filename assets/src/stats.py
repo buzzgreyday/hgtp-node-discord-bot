@@ -440,7 +440,6 @@ async def run(configuration):
             ignore_index=True,
         )
         print(sliced_node_df)
-        input("Values OK? ")
         try:
             sliced_snapshot_df = sum_usd(
                 sliced_snapshot_df, "usd_address_daily_sum", "dag_address_daily_sum"
@@ -453,7 +452,6 @@ async def run(configuration):
             "destinations"
         )
         print("Cleaning done!")
-        input("sliced_snapshot_df looks clean? ")
 
         """
         CREATE OVERALL DATA
@@ -472,7 +470,6 @@ async def run(configuration):
                 how="left",
             )
             print(snapshot_data)
-            input("Merged data looks okay? ")
         except Exception:
             print(traceback.format_exc())
         print("Merging done!")

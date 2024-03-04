@@ -147,6 +147,7 @@ class MetricStatsModel(SQLBase):
     __tablename__ = "metric_stats"
 
     hash_index: Mapped[str] = mapped_column(primary_key=True)
+    timestamp: Mapped[int]
     destinations: Mapped[str] = mapped_column(index=True)
     ip: Mapped[str] = mapped_column(index=True)
     id: Mapped[str]

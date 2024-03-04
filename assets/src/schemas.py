@@ -295,6 +295,7 @@ class RewardStatsSchema(BaseModel):
 class MetricStatsSchema(BaseModel):
     hash_index: str
     destinations: str
+    timestamp: int
     ip: str
     id: str
     public_port: int
