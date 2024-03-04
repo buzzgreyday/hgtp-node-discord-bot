@@ -152,7 +152,7 @@ class MetricStatsModel(SQLBase):
     id: Mapped[str]
     public_port: Mapped[int] = mapped_column(index=True)
     layer: Mapped[int]
-    daily_disk_gb_free: Mapped[float]
-    daily_disk_gb_total: Mapped[float]
-    daily_cpu_core_count: Mapped[int]
+    disk_free: Mapped[float]
+    disk_total: Mapped[float]
+    cpu_count: Mapped[int]
     daily_cpu_load: Mapped[float]

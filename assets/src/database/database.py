@@ -5,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
 from assets.src.database.crud import CRUD, engine
-from assets.src.schemas import OrdinalSchema, PriceSchema, RewardStatsSchema
+from assets.src.schemas import OrdinalSchema, PriceSchema, RewardStatsSchema, MetricStatsSchema
 
 app = FastAPI(
     title="Hypergraph Node Status Bot",
@@ -92,16 +92,28 @@ async def post_ordinal(data: OrdinalSchema):
     return await db.post_ordinal(data, session)
 
 
-@app.put("/stat/create")
-async def post_stats(data: RewardStatsSchema):
+@app.put("/reward-stat/create")
+async def post_reward_stats(data: RewardStatsSchema):
     """insert statistical data into database"""
-    return await db.post_stats(data, session)
+    return await db.post_reward_stats(data, session)
 
 
-@app.put("/stat/update")
-async def update_stats(data: RewardStatsSchema):
+@app.put("/reward-stat/update")
+async def update_reward_stats(data: RewardStatsSchema):
     """insert statistical data into database"""
-    return await db.update_stats(data, session)
+    return await db.update_reward_stats(data, session)
+
+
+@app.put("/metric-stat/create")
+async def post_metric_stats(data: MetricStatsSchema):
+    """insert statistical data into database"""
+    return await db.post_metric_stats(data, session)
+
+
+@app.put("/metric-stat/update")
+async def update_metric_stats(data: MetricStatsSchema):
+    """insert statistical data into database"""
+    return await db.update_metric_stats(data, session)
 
 
 @app.get("/ordinal/latest")

@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import logging
 import traceback
 from datetime import datetime, timedelta
@@ -11,9 +12,9 @@ import sqlalchemy
 from aiohttp import ClientSession, TCPConnector
 import matplotlib.pyplot as plt
 
-from assets.src.database.database import post_stats, update_stats
+from assets.src.database.database import post_reward_stats, update_reward_stats, post_metric_stats, update_metric_stats
 from assets.src.rewards import normalize_timestamp
-from assets.src.schemas import RewardStatsSchema
+from assets.src.schemas import RewardStatsSchema, MetricStatsSchema
 
 
 class Request:
@@ -239,19 +240,37 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
         output_file(f"{path}/cpu_{destination}.html")
         print("Creating visualization for destination:", destination)
         destination_df = df[df["destinations"] == destination]
-        p = figure(title=f"CPU Load Percentage - {destination}", x_axis_label="Time", y_axis_label="CPU Load Percentage", x_axis_type="datetime", width=800, height=400)
+        p = figure(
+            title=f"CPU Load Percentage - {destination}",
+            x_axis_label="Time",
+            y_axis_label="CPU Load Percentage",
+            x_axis_type="datetime",
+            width=800,
+            height=400,
+        )
         for port in destination_df["public_port"].unique():
             layer_df = destination_df[destination_df["public_port"] == port]
             try:
-                p.line(pd.to_datetime(layer_df["timestamp"] * 1000, unit="ms"), layer_df["daily_cpu_load"] / layer_df["cpu_count"] * 100, legend_label=f"L{layer_df['layer'].values[0]}, IP {layer_df['ip'].values[0]}, Port {layer_df['public_port'].values[0]}")
+                p.line(
+                    pd.to_datetime(layer_df["timestamp"] * 1000, unit="ms"),
+                    layer_df["daily_cpu_load"] / layer_df["cpu_count"] * 100,
+                    legend_label=f"L{layer_df['layer'].values[0]}, IP {layer_df['ip'].values[0]}, Port {layer_df['public_port'].values[0]}",
+                )
             except Exception:
                 print(traceback.format_exc())
 
-        p.line(pd.to_datetime(df["timestamp"] * 1000, unit="ms"), df["daily_cpu_load"].median() / df["cpu_count"].median() * 100, line_color="green", line_dash="dashed", legend_label="Average Nodebot user", alpha=0.5)
+        p.line(
+            pd.to_datetime(df["timestamp"] * 1000, unit="ms"),
+            df["daily_cpu_load"].median() / df["cpu_count"].median() * 100,
+            line_color="green",
+            line_dash="dashed",
+            legend_label="Average Nodebot user",
+            alpha=0.5,
+        )
 
         p.legend.location = "top_left"
         p.legend.click_policy = "hide"
-        p.xaxis.major_label_orientation = 3.14/4
+        p.xaxis.major_label_orientation = 3.14 / 4
 
         save(p)
 
@@ -266,17 +285,50 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
         print("Creating visualization for destination:", destination)
         try:
             destination_df = df[df["destinations"] == destination]
-            p = figure(title=f"DAG Earnings - {destination}", x_axis_label="Time", y_axis_label="$DAG Earnings", x_axis_type="datetime", width=800, height=400)
-            p.line(pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"), destination_df["dag_address_daily_sum"], legend_label="Node earnings", color="blue",)
-            p.line(pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"), destination_df["daily_overall_median"], legend_label="Network earnings", color="green", line_dash="dashed", alpha=0.5)
-            p.line(pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"), destination_df["dag_address_daily_mean"].median(), line_color="blue", line_dash="dashed", legend_label=f"Average node earnings (since {datetime.fromtimestamp(from_timestamp).strftime('%d. %B %Y')})", alpha=0.5)
-            p.line(pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"), df["daily_overall_median"].median(), line_color="green", line_dash="dashed", legend_label=f"Average network earnings (since {datetime.fromtimestamp(from_timestamp).strftime('%d. %B %Y')})", alpha=0.5)
+            p = figure(
+                title=f"DAG Earnings - {destination}",
+                x_axis_label="Time",
+                y_axis_label="$DAG Earnings",
+                x_axis_type="datetime",
+                width=800,
+                height=400,
+            )
+            p.line(
+                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
+                destination_df["dag_address_daily_sum"],
+                legend_label="Node earnings",
+                color="blue",
+            )
+            p.line(
+                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
+                destination_df["daily_overall_median"],
+                legend_label="Network earnings",
+                color="green",
+                line_dash="dashed",
+                alpha=0.5,
+            )
+            p.line(
+                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
+                destination_df["dag_address_daily_mean"].median(),
+                line_color="blue",
+                line_dash="dashed",
+                legend_label=f"Average node earnings (since {datetime.fromtimestamp(from_timestamp).strftime('%d. %B %Y')})",
+                alpha=0.5,
+            )
+            p.line(
+                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
+                df["daily_overall_median"].median(),
+                line_color="green",
+                line_dash="dashed",
+                legend_label=f"Average network earnings (since {datetime.fromtimestamp(from_timestamp).strftime('%d. %B %Y')})",
+                alpha=0.5,
+            )
         except Exception:
             print(traceback.format_exc())
 
         p.legend.location = "top_left"
         p.legend.click_policy = "hide"
-        p.xaxis.major_label_orientation = 3.14/4
+        p.xaxis.major_label_orientation = 3.14 / 4
 
         save(p)
 
@@ -388,7 +440,7 @@ async def run(configuration):
             ignore_index=True,
         )
         print(sliced_node_df)
-        input("Okay? ")
+        input("Values OK? ")
         try:
             sliced_snapshot_df = sum_usd(
                 sliced_snapshot_df, "usd_address_daily_sum", "dag_address_daily_sum"
@@ -401,7 +453,6 @@ async def run(configuration):
             "destinations"
         )
         print("Cleaning done!")
-        print(sliced_snapshot_df)
         input("sliced_snapshot_df looks clean? ")
 
         """
@@ -411,9 +462,8 @@ async def run(configuration):
             "dag"
         ].transform("sum")
         print(snapshot_data.head(20))
-        input("DAG general sum looks okay? ")
 
-        print("Merging daily daily sliced data...")
+        print("Merging daily sliced data...")
 
         try:
             snapshot_data = sliced_snapshot_df.merge(
@@ -432,7 +482,6 @@ async def run(configuration):
         except Exception:
             print(traceback.format_exc())
         print(snapshot_data)
-        input("USD general sum looks okay? ")
 
         # The node is earning more than the average if sum deviation is positive
         try:
@@ -443,10 +492,8 @@ async def run(configuration):
         except Exception:
             print(traceback.format_exc())
         print(snapshot_data)
-        input("Deviation looks okay? ")
         snapshot_data["dag_median_sum"] = snapshot_data["dag_address_sum"].median()
         print(snapshot_data)
-        input("Median looks okay? ")
 
         """
         # The most effective node is the node with the lowest daily standard deviation, the highest daily mean earnings,
@@ -484,14 +531,29 @@ async def run(configuration):
                 percentage = ((i + 1) / total_len) * 100
                 snapshot_data.at[i, "percent_earning_more"] = percentage
                 row["percent_earning_more"] = percentage
-                schema = RewardStatsSchema(**row.to_dict())
+                reward_data = RewardStatsSchema(**row.to_dict())
                 try:
                     # Post
-                    await post_stats(schema)
+                    await post_reward_stats(reward_data)
                 except sqlalchemy.exc.IntegrityError:
-                    await update_stats(schema)
+                    await update_reward_stats(reward_data)
+        except Exception:
+            print(traceback.format_exc())
+        try:
+            for i, row in sliced_node_df.iterrows():
+                key_str = f"{row.id}-{row.ip}-{row.public_port}"
+                hash_index = hashlib.sha256(key_str.encode()).hexdigest()
+                row['hash_index'] = hash_index
+                print(row)
+                metric_data = MetricStatsSchema(**row.to_dict())
+
+                input(metric_data)
+                try:
+                    # Post
+                    await post_metric_stats(metric_data)
+                except Exception:
+                    await update_metric_stats(metric_data)
         except Exception:
             print(traceback.format_exc())
 
-        print(snapshot_data["earner_score"])
-        del snapshot_data
+        del snapshot_data, metric_data

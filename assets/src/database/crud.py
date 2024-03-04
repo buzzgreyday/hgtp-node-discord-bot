@@ -11,13 +11,13 @@ from assets.src.database.models import (
     NodeModel,
     OrdinalModel,
     PriceModel,
-    RewardStatsModel,
+    RewardStatsModel, MetricStatsModel,
 )
 from assets.src.schemas import (
     User as UserSchema,
     PriceSchema,
     OrdinalSchema,
-    RewardStatsSchema,
+    RewardStatsSchema, MetricStatsSchema,
 )
 from assets.src.schemas import Node as NodeSchema
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
@@ -126,7 +126,7 @@ class CRUD:
                 )
         return jsonable_encoder(data)
 
-    async def post_stats(
+    async def post_reward_stats(
         self, data: RewardStatsSchema, async_session: async_sessionmaker[AsyncSession]
     ):
         """Post statistical data row by row"""
@@ -138,7 +138,7 @@ class CRUD:
             logging.getLogger("rewards").error(f"crud.py - Stats post: SUCCESS!")
         return jsonable_encoder(stat_data)
 
-    async def update_stats(
+    async def update_reward_stats(
         self, data: RewardStatsSchema, async_session: async_sessionmaker[AsyncSession]
     ):
         """Update statistical data"""
@@ -154,6 +154,35 @@ class CRUD:
                 logging.getLogger("rewards").error(f"crud.py - Stats update: SUCCESS!")
             except:
                 print("Stats update: FAILED!\n", traceback.format_exc())
+
+    async def post_metric_stats(
+        self, data: MetricStatsSchema, async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Post statistical data row by row"""
+        async with async_session() as session:
+            metric_data = MetricStatsModel(**data.__dict__)
+            # Create a StatModel instance for each row of data
+            session.add(metric_data)
+            await session.commit()
+            logging.getLogger("rewards").error(f"crud.py - Metric stats post: SUCCESS!")
+        return jsonable_encoder(metric_data)
+
+    async def update_metric_stats(
+        self, data: MetricStatsSchema, async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Update statistical data based on hash_index"""
+
+        async with async_session() as session:
+            try:
+                await session.execute(
+                    update(MetricStatsModel)
+                    .where(MetricStatsModel.hash_index == data.hash_index)
+                    .values(**data.__dict__)
+                )
+                await session.commit()
+                logging.getLogger("rewards").error(f"crud.py - Metric stats update: SUCCESS!")
+            except:
+                print("Metric stats update: FAILED!\n", traceback.format_exc())
 
     async def delete_user_entry(
         self, data: UserModel, async_session: async_sessionmaker[AsyncSession]
@@ -236,7 +265,9 @@ class CRUD:
             dag_address_daily_sum_dev = f"+{round(results.dag_address_daily_sum_dev)}"
         else:
             dag_address_daily_sum_dev = round(results.dag_address_daily_sum_dev)
-        node_daily_earnings_deviation = dag_address_daily_mean - daily_network_earnings_average
+        node_daily_earnings_deviation = (
+            dag_address_daily_mean - daily_network_earnings_average
+        )
         if results:
             return templates.TemplateResponse(
                 "index.html",
@@ -252,14 +283,16 @@ class CRUD:
                     "daily_network_earnings_average": round(
                         daily_network_earnings_average, 2
                     ),
-                    "dag_address_daily_sum_dev": round(node_daily_earnings_deviation, 2),
+                    "dag_address_daily_sum_dev": round(
+                        node_daily_earnings_deviation, 2
+                    ),
                     "dag_address_daily_mean": round(dag_address_daily_mean, 2),
                     "dag_address_daily_std_dev": dag_address_daily_std_dev,
                     "dag_address_monthly_std_dev": dag_address_monthly_std_dev,
                     "usd_address_sum": round(usd_address_sum, 2),
                     "usd_address_daily_sum": round(usd_address_daily_sum, 2),
                     "rewards_plot_path": f"http://localhost:8000/static/rewards_{dag_address}.html",
-                    "cpu_plot_path": f"http://localhost:8000/static/cpu_{dag_address}.html"
+                    "cpu_plot_path": f"http://localhost:8000/static/cpu_{dag_address}.html",
                 },
             )
         else:

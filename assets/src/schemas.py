@@ -7,7 +7,7 @@ import datetime as dt
 
 import numpy as np
 import pandas as pd
-from pydantic import BaseModel, ValidationError, validator
+from pydantic import BaseModel, ValidationError, validator, field_validator
 
 from assets.src import api
 from assets.src.encode_decode import id_to_dag_address
@@ -299,12 +299,14 @@ class MetricStatsSchema(BaseModel):
     id: str
     public_port: int
     layer: int
-    daily_disk_gb_free: float
-    daily_disk_gb_total: float
-    daily_cpu_core_count: int
+    disk_free: float
+    disk_total: float
+    cpu_count: int
     daily_cpu_load: float
 
-    @validator("hash_index", pre=True)
-    def generate_hash(cls):
-        key_str = f"{cls.id}_{cls.ip}_{cls.public_port}"
-        return hashlib.sha256(key_str.encode()).hexdigest()
+    """@validator("hash_index", pre=True)
+    def auto_generate_hash(cls, hash_index):
+        key_str = f"{cls.id}-{cls.ip}-{cls.public_port}"
+        hash_index = hashlib.sha256(key_str.encode()).hexdigest()
+        print(f"{key_str}, {hash_index}")
+        return hash_index"""
