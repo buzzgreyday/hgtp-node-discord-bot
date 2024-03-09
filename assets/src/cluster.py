@@ -41,10 +41,6 @@ def locate_node_binary(node_data: schemas.Node, peer_data: List[dict]):
             and peer["ip"] == node_data.ip
             and peer["publicPort"] == node_data.public_port
         ):
-            if node_data.name == "rebelrouser1885":
-                print("cluster.py - locate_node_binary", node_data.name, node_data.id, peer['id'], node_data.ip,
-                      peer['ip'],
-                      node_data.public_port)
             return True
 
         elif (

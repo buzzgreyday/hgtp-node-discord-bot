@@ -96,7 +96,7 @@ def main():
     _configuration = load_configuration()
 
     logger = logging.getLogger("app")
-    logger.setLevel(logging.CRITICAL)
+    logger.setLevel(logging.INFO)
     handler = logging.FileHandler(filename="assets/data/logs/bot/app.log", encoding='utf-8', mode='w')
     handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
