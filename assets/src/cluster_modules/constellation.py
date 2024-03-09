@@ -296,7 +296,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                         f"constellation.py - {module_name.title()} is dissociated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
                     )
                     node_data.cluster_connectivity = "dissociation"
-            elif curr_name:
+            else:
                 logging.getLogger("app").debug(
                     f"constellation.py - {module_name.title()} is dissociated with {node_data.name} ({node_data.ip} [node has forked]:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
                 )
@@ -318,7 +318,10 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                     )
                     node_data.cluster_connectivity = "association"
             else:
-                print(f"Session is latest but curr_name is {curr_name}")
+                logging.getLogger("app").debug(
+                    f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Due to session being the latest ({session, latest_session})"
+                )
+                node_data.cluster_connectivity = "association"
 
     # If edge node is down
     else:
