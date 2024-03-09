@@ -895,7 +895,6 @@ def mark_notify(d: schemas.Node, configuration):
     if d.cluster_connectivity in ("new association", "new dissociation", "forked"):
         d.notify = True
     elif d.state != d.former_state and d.state in ["ready", "downloadinprogress", "waitingfordownload", "offline"]:
-        print(d.state, d.former_state)
         d.notify = True
     elif d.last_notified_timestamp:
         if d.reward_state is False:

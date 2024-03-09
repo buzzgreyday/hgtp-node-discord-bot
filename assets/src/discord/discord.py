@@ -161,7 +161,7 @@ async def send(bot, node_data: schemas.Node, configuration):
                      f"Build: {configuration['general']['version']}",
                 icon_url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-color.png",
             )
-            # await member.send(embed=embed)
+            await member.send(embed=embed)
             logging.getLogger("app").info(
                 f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}"
             )

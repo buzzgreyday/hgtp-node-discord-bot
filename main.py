@@ -96,39 +96,39 @@ def main():
     _configuration = load_configuration()
 
     logger = logging.getLogger("app")
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.WARNING)
     handler = logging.FileHandler(filename="assets/data/logs/bot/app.log", encoding='utf-8', mode='w')
     handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
 
     logger = logging.getLogger('rewards')
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.WARNING)
     handler = logging.FileHandler(filename='assets/data/logs/bot/rewards.log', encoding='utf-8', mode='w')
     handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
 
     logger = logging.getLogger('nextcord')
-    logger.setLevel(logging.CRITICAL)
+    logger.setLevel(logging.WARNING)
     handler = logging.FileHandler(filename='assets/data/logs/bot/nextcord.log', encoding='utf-8', mode='w')
     handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
 
     version_manager = preliminaries.VersionManager(_configuration)
 
-    # bot.load_extension("assets.src.discord.commands")
+    bot.load_extension("assets.src.discord.commands")
     bot.load_extension("assets.src.discord.events")
 
     bot.loop.create_task(main_loop(version_manager, _configuration))
 
     # Create a thread for running uvicorn
     uvicorn_thread = threading.Thread(target=run_uvicorn_process)
-    # get_tessellation_version_thread = threading.Thread(
-    #     target=version_manager.update_version, daemon=True
-    # )
-    # get_tessellation_version_thread.start()
+    get_tessellation_version_thread = threading.Thread(
+        target=version_manager.update_version, daemon=True
+    )
+    get_tessellation_version_thread.start()
     uvicorn_thread.start()
-    # rewards_thread = threading.Thread(target=start_rewards_coroutine, args=(_configuration,))
-    # rewards_thread.start()
+    rewards_thread = threading.Thread(target=start_rewards_coroutine, args=(_configuration,))
+    rewards_thread.start()
 
     while True:
         try:
