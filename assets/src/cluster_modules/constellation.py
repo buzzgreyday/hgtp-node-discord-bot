@@ -279,53 +279,45 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
     session = node_data.node_cluster_session
     latest_session = node_data.latest_cluster_session
     former_session = node_data.former_node_cluster_session
-    if session != latest_session:
-        if curr_name is None and former_name == module_name:
-            logging.getLogger("app").debug(
-                f"constellation.py - New dissociation with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})"
-            )
-            node_data.cluster_connectivity = "new dissociation"
-            node_data.last_known_cluster_name = former_name
-        elif curr_name is None and former_name is None:
-            logging.getLogger("app").debug(
-                f"constellation.py - {module_name.title()} is dissociated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})"
-            )
-            node_data.cluster_connectivity = "dissociation"
-        elif curr_name == module_name and former_name is None:
-            logging.getLogger("app").debug(
-                f"constellation.py - New association with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})"
-            )
-            node_data.cluster_connectivity = "new association"
-        elif curr_name == module_name and former_name == curr_name:
-            logging.getLogger("app").debug(
-                f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})"
-            )
-            node_data.cluster_connectivity = "association"
+    # latest_session is only registered if something crucial... But what? If cluster_data is found, right?
+    # And I only need to register when cluster_data is found, right? How about when report is requested?
+    if latest_session:
+        if session != latest_session:
+            # In case the node is dissociated from a known cluster
+            if not curr_name:
+                if former_name == module_name:
+                    logging.getLogger("app").debug(
+                        f"constellation.py - New dissociation with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+                    )
+                    node_data.cluster_connectivity = "new dissociation"
+                    # node_data.last_known_cluster_name = former_name
+                elif former_name is None:
+                    logging.getLogger("app").debug(
+                        f"constellation.py - {module_name.title()} is dissociated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+                    )
+                    node_data.cluster_connectivity = "dissociation"
+            elif curr_name:
+                logging.getLogger("app").debug(
+                    f"constellation.py - {module_name.title()} is dissociated with {node_data.name} ({node_data.ip} [node has forked]:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+                )
+                node_data.cluster_connectivity = "forked"
 
-    elif session == latest_session:
-        # If new connection is made with this node then alert
-        if curr_name == module_name and (
-                former_name != module_name or former_name is None
-        ):
-            logging.getLogger("app").debug(
-                f"constellation.py - New association with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})"
-            )
-            node_data.cluster_connectivity = "new association"
-        elif curr_name == former_name and session == former_session:
-            logging.getLogger("app").debug(
-                f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})"
-            )
-            node_data.cluster_connectivity = "association"
-        elif curr_name == former_name and session != former_session:
-            logging.getLogger("app").debug(
-                f"constellation.py - {module_name.title()} has forked but is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})"
-            )
-            node_data.cluster_connectivity = "association"
-    else:
-        logging.getLogger("app").warning(
-            f"constellation.py - Unknown cluster association or connectivity (dissociation) for {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})"
-        )
-        node_data.cluster_connectivity = "dissociation"
+        elif session == latest_session:
+            # If new connection is made with this node then alert
+            if curr_name == module_name:
+                # If former name is None or another metagraph name
+                if former_name != module_name:
+                    logging.getLogger("app").debug(
+                        f"constellation.py - New association with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+                    )
+                    node_data.cluster_connectivity = "new association"
+                    node_data.last_known_cluster_name = module_name
+                elif former_name == module_name:
+                    logging.getLogger("app").debug(
+                        f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+                    )
+                    node_data.cluster_connectivity = "association"
+
     return node_data
 
 
@@ -900,9 +892,10 @@ def build_embed(node_data: schemas.Node, module_name):
 
 def mark_notify(d: schemas.Node, configuration):
     # The hardcoded values should be adjustable in config_new.yml
-    if d.cluster_connectivity in ("new association", "new dissociation"):
+    if d.cluster_connectivity in ("new association", "new dissociation", "forked"):
         d.notify = True
     elif d.state != d.former_state and d.state in ["ready", "downloadinprogress", "waitingfordownload", "offline"]:
+        print(d.state, d.former_state)
         d.notify = True
     elif d.last_notified_timestamp:
         if d.reward_state is False:
@@ -917,7 +910,7 @@ def mark_notify(d: schemas.Node, configuration):
                 d.notify = True
                 d.last_notified_timestamp = d.timestamp_index
                 d.last_notified_reason = "rewards"
-        elif (d.version != d.cluster_version):
+        elif d.version != d.cluster_version:
             if (
                 (d.timestamp_index.second - d.last_notified_timestamp.second)
                 >= timedelta(hours=6).seconds

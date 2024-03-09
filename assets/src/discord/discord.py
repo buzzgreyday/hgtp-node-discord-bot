@@ -152,28 +152,37 @@ async def get_requester(ctx):
 
 
 async def send(bot, node_data: schemas.Node, configuration):
+    async def finalize(embed):
+        try:
+            await bot.wait_until_ready()
+            member = await guild.fetch_member(int(node_data.discord))
+            embed.set_footer(
+                text=f"Data: {node_data.timestamp_index.utcnow().strftime('%d-%m-%Y %H:%M')} UTC\n"
+                     f"Build: {configuration['general']['version']}",
+                icon_url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-color.png",
+            )
+            # await member.send(embed=embed)
+            logging.getLogger("app").info(
+                f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}"
+            )
+        except nextcord.Forbidden:
+            logging.getLogger("app").warning(
+                f"discord.py - Discord message could not be sent to {node_data.name, node_data.ip, node_data.public_port}. The member doesn't allow DMs."
+            )
+
     guild = await bot.fetch_guild(974431346850140201)
-    module_name = list(
-        str(value)
-        for value in (
-            node_data.cluster_name,
-            node_data.former_cluster_name,
-            node_data.last_known_cluster_name,
-        )
-        if value is not None
-    )
+    module_name = [value for value in (node_data.cluster_name, node_data.former_cluster_name, node_data.last_known_cluster_name) if value]
     if module_name:
         module_name = module_name[0]
-    else:
-        module_name = None
-    if await os.path.exists(
-        f"{configuration['file settings']['locations']['cluster modules']}/{module_name}.py"
-    ):
-        logging.getLogger("app").info(
-            f"discord.py - Choosing {module_name} module embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})"
-        )
-        module = determine_module.set_module(module_name, configuration)
-        embed = module.build_embed(node_data, module_name)
+        if await os.path.exists(
+                f"{configuration['file settings']['locations']['cluster modules']}/{module_name}.py"
+        ):
+            logging.getLogger("app").info(
+                f"discord.py - Choosing {module_name} module embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})"
+            )
+            module = determine_module.set_module(module_name, configuration)
+            embed = module.build_embed(node_data, module_name)
+            await finalize(embed)
     else:
         # This will not work because there won't be any data if no last_know_cluster exists.
         # Therefore, we need to request database for the last known data upon request.
@@ -181,22 +190,8 @@ async def send(bot, node_data: schemas.Node, configuration):
             f"discord.py - Choosing default embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})"
         )
         embed = defaults.build_embed(node_data)
-    try:
-        await bot.wait_until_ready()
-        member = await guild.fetch_member(int(node_data.discord))
-        embed.set_footer(
-            text=f"Data: {node_data.timestamp_index.utcnow().strftime('%d-%m-%Y %H:%M')} UTC\n"
-            f"Build: {configuration['general']['version']}",
-            icon_url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-color.png",
-        )
-        await member.send(embed=embed)
-        logging.getLogger("app").info(
-            f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):\n\t{node_data}"
-        )
-    except nextcord.Forbidden:
-        logging.getLogger("app").warning(
-            f"discord.py - Discord message could not be sent to {node_data.name, node_data.ip, node_data.public_port}. The member doesn't allow DMs."
-        )
+
+        await finalize(embed)
 
 
 async def send_notification(bot, data: List[schemas.Node], configuration):

@@ -39,7 +39,6 @@ def start_rewards_coroutine(_configuration):
     asyncio.run_coroutine_threadsafe(rewards.run(_configuration), bot.loop)
 
 
-
 async def main_loop(version_manager, _configuration):
     times = preliminaries.generate_runtimes(_configuration)
     logging.getLogger("app").info(f"main.py - runtime schedule:\n\t{times}")
@@ -97,7 +96,7 @@ def main():
     _configuration = load_configuration()
 
     logger = logging.getLogger("app")
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
     handler = logging.FileHandler(filename="assets/data/logs/bot/app.log", encoding='utf-8', mode='w')
     handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
@@ -114,23 +113,22 @@ def main():
     handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
 
-
     version_manager = preliminaries.VersionManager(_configuration)
 
-    bot.load_extension("assets.src.discord.commands")
+    # bot.load_extension("assets.src.discord.commands")
     bot.load_extension("assets.src.discord.events")
 
     bot.loop.create_task(main_loop(version_manager, _configuration))
 
     # Create a thread for running uvicorn
     uvicorn_thread = threading.Thread(target=run_uvicorn_process)
-    get_tessellation_version_thread = threading.Thread(
-        target=version_manager.update_version, daemon=True
-    )
-    get_tessellation_version_thread.start()
+    # get_tessellation_version_thread = threading.Thread(
+    #     target=version_manager.update_version, daemon=True
+    # )
+    # get_tessellation_version_thread.start()
     uvicorn_thread.start()
-    rewards_thread = threading.Thread(target=start_rewards_coroutine, args=(_configuration,))
-    rewards_thread.start()
+    # rewards_thread = threading.Thread(target=start_rewards_coroutine, args=(_configuration,))
+    # rewards_thread.start()
 
     while True:
         try:

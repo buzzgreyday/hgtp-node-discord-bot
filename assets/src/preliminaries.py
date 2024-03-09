@@ -22,17 +22,14 @@ class VersionManager:
 
     def update_version(self):
         while True:
-            # Sets the version to the latest, every 30 seconds
+            # Sets the version to the latest, every 10 minutes
             with self.lock:
                 self.version = self.check_github_version()
-            time.sleep(180)
+            time.sleep(600)
 
     def check_github_version(self):
         # Actual version check logic here
-        i = 0
         while True:
-            i += 1
-            sleep = 20 * i
             data = requests.get(
                 f"{self.configuration['tessellation']['github']['url']}/"
                 f"{self.configuration['tessellation']['github']['releases']['latest']}"
@@ -41,18 +38,21 @@ class VersionManager:
                 data = data.json()
                 try:
                     version = data["tag_name"][1:]
+                    logging.getLogger("app").debug(
+                        f"preliminaries.py - {self.configuration['tessellation']['github']['url']}/{self.configuration['tessellation']['github']['releases']['latest']} got version: {version}"
+                    )
                 except (KeyError, requests.exceptions.ConnectionError):
                     logging.getLogger("app").warning(
-                        f"preliminaries.py - {self.configuration['tessellation']['github']['url']}/{self.configuration['tessellation']['github']['releases']['latest']} KeyError: forcing retry in {3660} seconds\n\t{traceback.print_exc()}"
+                        f"preliminaries.py - {self.configuration['tessellation']['github']['url']}/{self.configuration['tessellation']['github']['releases']['latest']} KeyError: forcing retry in {3600*2} seconds\n\t{traceback.print_exc()}"
                     )
-                    time.sleep(3660)
+                    time.sleep(600)
                 else:
                     return version
             else:
                 logging.getLogger("app").warning(
                     f"preliminaries.py - {self.configuration['tessellation']['github']['url']}/{self.configuration['tessellation']['github']['releases']['latest']} not reachable; forcing retry in {sleep} seconds"
                 )
-                time.sleep(sleep)
+                time.sleep(600)
 
     def get_version(self):
         # Returns the version
