@@ -512,8 +512,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                 f"{field_symbol} **WALLET**\n"
                 f"```\n"
                 f"Address: {node_data.wallet_address}\n"
-                f"Balance: {node_data.wallet_balance / 100000000} ＄DAG\n"
-                f"Reward frequency: {round(float(reward_percentage), 2)}%```"
+                f"Balance: {node_data.wallet_balance / 100000000} ＄DAG```"
                 f"{field_info}"
             )
 
@@ -893,8 +892,6 @@ def build_embed(node_data: schemas.Node, module_name):
 def mark_notify(d: schemas.Node, configuration):
     # The hardcoded values should be adjustable in config_new.yml
     if d.cluster_connectivity in ("new association", "new dissociation", "forked"):
-        d.notify = True
-    elif d.state != d.former_state and d.state in ["ready", "downloadinprogress", "waitingfordownload", "offline"]:
         d.notify = True
     elif d.last_notified_timestamp:
         if d.reward_state is False:
