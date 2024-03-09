@@ -560,11 +560,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
             field_info = f"`⚠  The wallet doesn't hold sufficient collateral`"
             red_color_trigger = True
             yellow_color_trigger = False
-            return (
-                wallet_field(field_symbol, reward_percentage, field_info),
-                red_color_trigger,
-                yellow_color_trigger,
-            )
+            return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, yellow_color_trigger
         elif (
                 node_data.reward_state in (False, None)
                 and node_data.former_reward_state is True
@@ -576,11 +572,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                 )
                 red_color_trigger = True
                 yellow_color_trigger = False
-                return (
-                    wallet_field(field_symbol, reward_percentage, field_info),
-                    red_color_trigger,
-                    yellow_color_trigger,
-                )
+                return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, yellow_color_trigger
             elif module_name in ("integrationnet", "testnet"):
                 field_symbol = ":green_square:"
                 field_info = (
@@ -589,11 +581,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                 )
                 red_color_trigger = False
                 yellow_color_trigger = False
-                return (
-                    wallet_field(field_symbol, reward_percentage, field_info),
-                    red_color_trigger,
-                    yellow_color_trigger,
-                )
+                return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, yellow_color_trigger
         elif node_data.reward_state in (
                 False,
                 None,
@@ -606,22 +594,14 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                 )
                 red_color_trigger = False
                 yellow_color_trigger = False
-                return (
-                    wallet_field(field_symbol, reward_percentage, field_info),
-                    red_color_trigger,
-                    yellow_color_trigger,
-                )
+                return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, yellow_color_trigger
             else:
                 if module_name == "mainnet":
                     field_symbol = ":red_square:"
                     field_info = f":red_circle:` The wallet doesn't receive rewards`"
                     red_color_trigger = True
                     yellow_color_trigger = False
-                    return (
-                        wallet_field(field_symbol, reward_percentage, field_info),
-                        red_color_trigger,
-                        yellow_color_trigger,
-                    )
+                    return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, yellow_color_trigger
                 elif module_name in ("integrationnet", "testnet"):
                     field_symbol = ":green_square:"
                     field_info = (
@@ -630,11 +610,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                     )
                     red_color_trigger = False
                     yellow_color_trigger = False
-                    return (
-                        wallet_field(field_symbol, reward_percentage, field_info),
-                        red_color_trigger,
-                        yellow_color_trigger,
-                    )
+                    return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, yellow_color_trigger
         elif node_data.reward_state is True and node_data.former_reward_state in (
                 False,
                 None,
@@ -643,21 +619,13 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
             field_info = f":coin:` The wallet recently started receiving rewards`"
             red_color_trigger = False
             yellow_color_trigger = False
-            return (
-                wallet_field(field_symbol, reward_percentage, field_info),
-                red_color_trigger,
-                yellow_color_trigger,
-            )
+            return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, yellow_color_trigger
         elif node_data.reward_state is True and node_data.former_reward_state is True:
             field_symbol = ":green_square:"
             field_info = f":coin:` The wallet receives rewards`"
             red_color_trigger = False
             yellow_color_trigger = False
-            return (
-                wallet_field(field_symbol, reward_percentage, field_info),
-                red_color_trigger,
-                yellow_color_trigger,
-            )
+            return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, yellow_color_trigger
         else:
             field_symbol = ":yellow_square:"
             field_info = (
@@ -666,11 +634,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
             )
             red_color_trigger = False
             yellow_color_trigger = True
-            return (
-                wallet_field(field_symbol, reward_percentage, field_info),
-                red_color_trigger,
-                yellow_color_trigger,
-            )
+            return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, yellow_color_trigger
 
     reward_percentage = (
         0
@@ -736,11 +700,7 @@ def build_system_node_version(node_data: schemas.Node):
             return version_field(), red_color_trigger, False
 
     else:
-        return (
-            f":yellow_square: **TESSELLATION**\n" f"`ⓘ  No data available`",
-            red_color_trigger,
-            False,
-        )
+        return f":yellow_square: **TESSELLATION**\n" f"`ⓘ  No data available`", red_color_trigger, False
 
 
 def build_system_node_load_average(node_data: schemas.Node):
