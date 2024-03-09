@@ -649,14 +649,11 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
     )
 
     if node_data.wallet_address is not None:
-        (
-            field_content,
-            red_color_trigger,
-            yellow_color_trigger,
-        ) = generate_field_from_reward_states(reward_percentage, module_name)
+        field_content, red_color_trigger, yellow_color_trigger = generate_field_from_reward_states(reward_percentage, module_name)
         return field_content, red_color_trigger, yellow_color_trigger
     else:
-        return f":yellow_square: **WALLET**\n" f"`ⓘ  No data available`", False, False
+        return (f":yellow_square: **WALLET**\n"
+                f"" f"`ⓘ  No data available`"), False, False
 
 
 def build_system_node_version(node_data: schemas.Node):
@@ -700,7 +697,8 @@ def build_system_node_version(node_data: schemas.Node):
             return version_field(), red_color_trigger, False
 
     else:
-        return f":yellow_square: **TESSELLATION**\n" f"`ⓘ  No data available`", red_color_trigger, False
+        return (f":yellow_square: **TESSELLATION**\n"
+                f"" f"`ⓘ  No data available`"), red_color_trigger, False
 
 
 def build_system_node_load_average(node_data: schemas.Node):
