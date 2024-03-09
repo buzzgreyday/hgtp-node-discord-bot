@@ -25,7 +25,7 @@ from assets.src.cluster_modules import constellation
 # ---------------------------------------------------------------------------------------------------------------------
 
 
-async def request_cluster_data(session, url, layer, name, configuration) -> dict:
+async def request_cluster_data(session, url, layer, name, configuration) -> schemas.Cluster:
     cluster_data = await constellation.request_cluster_data(
         session, url, layer, name, configuration
     )

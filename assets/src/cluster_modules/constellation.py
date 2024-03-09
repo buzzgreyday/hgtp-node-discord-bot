@@ -33,7 +33,7 @@ from assets.src import schemas, config, cluster, api
 
 
 async def request_cluster_data(
-    session, url, layer, name, configuration
+        session, url, layer, name, configuration
 ) -> schemas.Cluster:
     cluster_resp, status_code = await api.safe_request(
         session,
@@ -167,7 +167,7 @@ red_color_trigger = False
 
 
 async def node_cluster_data(
-    session, node_data: schemas.Node, module_name, configuration: dict
+        session, node_data: schemas.Node, module_name, configuration: dict
 ) -> schemas.Node:
     """Get node data. IMPORTANT: Create Pydantic Schema for node data"""
     if node_data.public_port:
@@ -240,7 +240,7 @@ def check_rewards(node_data: schemas.Node, cluster_data: schemas.Cluster):
 
 
 async def request_wallet_data(
-    session, node_data: schemas.Node, module_name, configuration
+        session, node_data: schemas.Node, module_name, configuration
 ) -> schemas.Node:
     wallet_data, status_code = await api.safe_request(
         session,
@@ -279,53 +279,45 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
     session = node_data.node_cluster_session
     latest_session = node_data.latest_cluster_session
     former_session = node_data.former_node_cluster_session
-    if session != latest_session:
-        if curr_name is None and former_name == module_name:
-            logging.getLogger("app").debug(
-                f"constellation.py - New dissociation with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})"
-            )
-            node_data.cluster_connectivity = "new dissociation"
-            node_data.last_known_cluster_name = former_name
-        elif curr_name is None and former_name is None:
-            logging.getLogger("app").debug(
-                f"constellation.py - {module_name.title()} is dissociated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})"
-            )
-            node_data.cluster_connectivity = "dissociation"
-        elif curr_name == module_name and former_name is None:
-            logging.getLogger("app").debug(
-                f"constellation.py - New association with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})"
-            )
-            node_data.cluster_connectivity = "new association"
-        elif curr_name == module_name and former_name == curr_name:
-            logging.getLogger("app").debug(
-                f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})"
-            )
-            node_data.cluster_connectivity = "association"
+    # latest_session is only registered if something crucial... But what? If cluster_data is found, right?
+    # And I only need to register when cluster_data is found, right? How about when report is requested?
+    if latest_session:
+        if session != latest_session:
+            # In case the node is dissociated from a known cluster
+            if not curr_name:
+                if former_name == module_name:
+                    logging.getLogger("app").debug(
+                        f"constellation.py - New dissociation with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+                    )
+                    node_data.cluster_connectivity = "new dissociation"
+                    # node_data.last_known_cluster_name = former_name
+                elif former_name is None:
+                    logging.getLogger("app").debug(
+                        f"constellation.py - {module_name.title()} is dissociated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+                    )
+                    node_data.cluster_connectivity = "dissociation"
+            elif curr_name:
+                logging.getLogger("app").debug(
+                    f"constellation.py - {module_name.title()} is dissociated with {node_data.name} ({node_data.ip} [node has forked]:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+                )
+                node_data.cluster_connectivity = "forked"
 
-    elif session == latest_session:
-        # If new connection is made with this node then alert
-        if curr_name == module_name and (
-            former_name != module_name or former_name is None
-        ):
-            logging.getLogger("app").debug(
-                f"constellation.py - New association with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})"
-            )
-            node_data.cluster_connectivity = "new association"
-        elif curr_name == former_name and session == former_session:
-            logging.getLogger("app").debug(
-                f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})"
-            )
-            node_data.cluster_connectivity = "association"
-        elif curr_name == former_name and session != former_session:
-            logging.getLogger("app").debug(
-                f"constellation.py - {module_name.title()} has forked but is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})"
-            )
-            node_data.cluster_connectivity = "association"
-    else:
-        logging.getLogger("app").warning(
-            f"constellation.py - Unknown cluster association or connectivity (dissociation) for {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer})"
-        )
-        node_data.cluster_connectivity = "dissociation"
+        elif session == latest_session:
+            # If new connection is made with this node then alert
+            if curr_name == module_name:
+                # If former name is None or another metagraph name
+                if former_name != module_name:
+                    logging.getLogger("app").debug(
+                        f"constellation.py - New association with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+                    )
+                    node_data.cluster_connectivity = "new association"
+                    node_data.last_known_cluster_name = module_name
+                elif former_name == module_name:
+                    logging.getLogger("app").debug(
+                        f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+                    )
+                    node_data.cluster_connectivity = "association"
+
     return node_data
 
 
@@ -333,8 +325,8 @@ def set_association_time(node_data: schemas.Node):
     if node_data.former_timestamp_index is not None:
         # LINE BELOW IS TEMPORARY
         time_difference = (
-            pd.Timestamp(node_data.timestamp_index)
-            - pd.Timestamp(node_data.former_timestamp_index)
+                pd.Timestamp(node_data.timestamp_index)
+                - pd.Timestamp(node_data.former_timestamp_index)
         ).seconds
     else:
         time_difference = node_data.timestamp_index.second
@@ -350,12 +342,12 @@ def set_association_time(node_data: schemas.Node):
 
     if node_data.cluster_connectivity == "association":
         node_data.cluster_association_time = (
-            time_difference + node_data.former_cluster_association_time
+                time_difference + node_data.former_cluster_association_time
         )
         node_data.cluster_dissociation_time = node_data.former_cluster_dissociation_time
     elif node_data.cluster_connectivity == "dissociation":
         node_data.cluster_dissociation_time = (
-            time_difference + node_data.former_cluster_dissociation_time
+                time_difference + node_data.former_cluster_dissociation_time
         )
         node_data.cluster_association_time = node_data.former_cluster_association_time
     elif node_data.cluster_connectivity in ("new association", "new dissociation"):
@@ -372,15 +364,11 @@ def set_association_time(node_data: schemas.Node):
 
 def build_title(node_data: schemas.Node):
     cluster_name = None
-    names = [
-        cluster
-        for cluster in (
-            node_data.cluster_name,
-            node_data.former_cluster_name,
-            node_data.last_known_cluster_name,
-        )
-        if cluster
-    ]
+    names = [cluster for cluster in (
+        node_data.cluster_name,
+        node_data.former_cluster_name,
+        node_data.last_known_cluster_name,
+    ) if cluster]
     if names:
         cluster_name = names[0]
     if node_data.cluster_connectivity in ("new association", "association"):
@@ -450,23 +438,23 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
 
     def association_percent():
         if node_data.cluster_association_time not in (
-            0,
-            None,
+                0,
+                None,
         ) and node_data.cluster_dissociation_time not in (0, None):
             down_percent = float(node_data.cluster_dissociation_time) / (
-                float(node_data.cluster_association_time)
-                + float(node_data.cluster_dissociation_time)
+                    float(node_data.cluster_association_time)
+                    + float(node_data.cluster_dissociation_time)
             )
             up_percent = float(1 - down_percent) * 100
             return float(up_percent)
         elif node_data.cluster_association_time not in (
-            0,
-            None,
+                0,
+                None,
         ) and node_data.cluster_dissociation_time in (0, None):
             return round(float(100.0), 2)
         elif node_data.cluster_association_time in (
-            0,
-            None,
+                0,
+                None,
         ) and node_data.cluster_dissociation_time not in (0, None):
             return round(float(0.0), 2)
         else:
@@ -524,8 +512,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                 f"{field_symbol} **WALLET**\n"
                 f"```\n"
                 f"Address: {node_data.wallet_address}\n"
-                f"Balance: {node_data.wallet_balance / 100000000} ＄DAG\n"
-                f"Reward frequency: {round(float(reward_percentage), 2)}%```"
+                f"Balance: {node_data.wallet_balance / 100000000} ＄DAG```"
                 f"{field_info}"
             )
 
@@ -541,8 +528,8 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                 yellow_color_trigger,
             )
         elif (
-            node_data.reward_state in (False, None)
-            and node_data.former_reward_state is True
+                node_data.reward_state in (False, None)
+                and node_data.former_reward_state is True
         ):
             if module_name == "mainnet":
                 field_symbol = ":red_square:"
@@ -571,8 +558,8 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                     yellow_color_trigger,
                 )
         elif node_data.reward_state in (
-            False,
-            None,
+                False,
+                None,
         ) and node_data.former_reward_state in (False, None):
             if node_data.layer == 1:
                 field_symbol = ":green_square:"
@@ -613,8 +600,8 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                         yellow_color_trigger,
                     )
         elif node_data.reward_state is True and node_data.former_reward_state in (
-            False,
-            None,
+                False,
+                None,
         ):
             field_symbol = ":green_square:"
             field_info = f":coin:` The wallet recently started receiving rewards`"
@@ -655,9 +642,9 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
         else 100
         if node_data.reward_false_count in (0, None)
         else (
-            float(node_data.reward_true_count)
-            * 100
-            / float(node_data.reward_false_count)
+                float(node_data.reward_true_count)
+                * 100
+                / float(node_data.reward_false_count)
         )
     )
 
@@ -737,7 +724,7 @@ def build_system_node_load_average(node_data: schemas.Node):
             yellow_color_trigger = True
             return load_average_field(), red_color_trigger, yellow_color_trigger
         elif (
-            float(node_data.one_m_system_load_average) / float(node_data.cpu_count) < 1
+                float(node_data.one_m_system_load_average) / float(node_data.cpu_count) < 1
         ):
             field_symbol = ":green_square:"
             field_info = f'`ⓘ  "CPU load" is ok - should be below "CPU count"`'
@@ -760,11 +747,11 @@ def build_system_node_disk_space(node_data: schemas.Node):
 
     if node_data.disk_space_free is not None:
         if (
-            0
-            <= float(node_data.disk_space_free)
-            * 100
-            / float(node_data.disk_space_total)
-            <= 10
+                0
+                <= float(node_data.disk_space_free)
+                * 100
+                / float(node_data.disk_space_total)
+                <= 10
         ):
             field_symbol = ":red_square:"
             field_info = f"`⚠ Free disk space is low`"
@@ -809,7 +796,7 @@ def build_embed(node_data: schemas.Node, module_name):
         node_data
     )
     if (
-        red_color_trigger is True or yellow_color_trigger is True
+            red_color_trigger is True or yellow_color_trigger is True
     ) and not embed_created:
         embed = determine_color_and_create_embed(
             yellow_color_trigger, red_color_trigger
@@ -821,7 +808,7 @@ def build_embed(node_data: schemas.Node, module_name):
         yellow_color_trigger,
     ) = build_general_cluster_state(node_data, module_name)
     if (
-        red_color_trigger is True or yellow_color_trigger is True
+            red_color_trigger is True or yellow_color_trigger is True
     ) and not embed_created:
         embed = determine_color_and_create_embed(
             yellow_color_trigger, red_color_trigger
@@ -834,7 +821,7 @@ def build_embed(node_data: schemas.Node, module_name):
             yellow_color_trigger,
         ) = build_general_node_wallet(node_data, module_name)
         if (
-            red_color_trigger is True or yellow_color_trigger is True
+                red_color_trigger is True or yellow_color_trigger is True
         ) and not embed_created:
             embed = determine_color_and_create_embed(
                 yellow_color_trigger, red_color_trigger
@@ -847,7 +834,7 @@ def build_embed(node_data: schemas.Node, module_name):
             yellow_color_trigger,
         ) = build_system_node_version(node_data)
         if (
-            red_color_trigger is True or yellow_color_trigger is True
+                red_color_trigger is True or yellow_color_trigger is True
         ) and not embed_created:
             embed = determine_color_and_create_embed(
                 yellow_color_trigger, red_color_trigger
@@ -860,7 +847,7 @@ def build_embed(node_data: schemas.Node, module_name):
             yellow_color_trigger,
         ) = build_system_node_load_average(node_data)
         if (
-            red_color_trigger is True or yellow_color_trigger is True
+                red_color_trigger is True or yellow_color_trigger is True
         ) and not embed_created:
             embed = determine_color_and_create_embed(
                 yellow_color_trigger, red_color_trigger
@@ -873,7 +860,7 @@ def build_embed(node_data: schemas.Node, module_name):
             yellow_color_trigger,
         ) = build_system_node_disk_space(node_data)
         if (
-            red_color_trigger is True or yellow_color_trigger is True
+                red_color_trigger is True or yellow_color_trigger is True
         ) and not embed_created:
             embed = determine_color_and_create_embed(
                 yellow_color_trigger, red_color_trigger
@@ -904,27 +891,17 @@ def build_embed(node_data: schemas.Node, module_name):
 
 def mark_notify(d: schemas.Node, configuration):
     # The hardcoded values should be adjustable in config_new.yml
-    if d.cluster_connectivity in ("new association", "new dissociation"):
-        d.notify = True
-    elif d.state != d.former_state and d.state in [
-        "ready",
-        "downloadinprogress",
-        "waitingfordownload",
-        "offline",
-    ]:
+    if d.cluster_connectivity in ("new association", "new dissociation", "forked"):
         d.notify = True
     elif d.last_notified_timestamp:
         if d.reward_state is False:
             if (
-                d.timestamp_index - d.last_notified_timestamp
+                    d.timestamp_index - d.last_notified_timestamp
             ).total_seconds() >= timedelta(
                 hours=configuration["general"]["notifications"][
                     "free disk space sleep (hours)"
                 ]
-            ).seconds or d.last_notified_reason in (
-                "disk",
-                "version",
-            ):
+            ).seconds or d.last_notified_reason in ("disk", "version"):
                 # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
                 d.notify = True
                 d.last_notified_timestamp = d.timestamp_index
@@ -939,14 +916,14 @@ def mark_notify(d: schemas.Node, configuration):
                 d.last_notified_reason = "version"
         elif d.disk_space_free and d.disk_space_total:
             if (
-                0
-                <= float((d.disk_space_free) * 100 / float(d.disk_space_total))
-                <= configuration["general"]["notifications"][
-                    "free disk space threshold (percentage)"
-                ]
+                    0
+                    <= float((d.disk_space_free) * 100 / float(d.disk_space_total))
+                    <= configuration["general"]["notifications"][
+                "free disk space threshold (percentage)"
+            ]
             ) or d.last_notified_reason in ("rewards", "version"):
                 if (
-                    d.timestamp_index - d.last_notified_timestamp
+                        d.timestamp_index - d.last_notified_timestamp
                 ).total_seconds() >= timedelta(
                     hours=configuration["general"]["notifications"][
                         "free disk space sleep (hours)"
@@ -964,11 +941,11 @@ def mark_notify(d: schemas.Node, configuration):
             d.notify = True
             d.last_notified_timestamp = d.timestamp_index
         elif (
-            0
-            <= float(d.disk_space_free) * 100 / float(d.disk_space_total)
-            <= configuration["general"]["notifications"][
-                "free disk space threshold (percentage)"
-            ]
+                0
+                <= float(d.disk_space_free) * 100 / float(d.disk_space_total)
+                <= configuration["general"]["notifications"][
+                    "free disk space threshold (percentage)"
+                ]
         ):
             d.notify = True
             d.last_notified_timestamp = d.timestamp_index
