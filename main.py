@@ -73,7 +73,7 @@ async def main_loop(version_manager, _configuration):
 
                 except Exception as e:
                     logging.getLogger("app").error(
-                        f"main.py - error: {traceback.format_exc()}\n\tCurrent check exited..."
+                        f"main.py - error: {traceback.format_exc()}"
                     )
                     await discord.messages.send_traceback(bot, traceback.format_exc())
 
