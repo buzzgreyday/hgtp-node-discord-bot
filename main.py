@@ -42,17 +42,18 @@ def start_rewards_coroutine(_configuration):
 async def main_loop(version_manager, _configuration):
     times = preliminaries.generate_runtimes(_configuration)
     logging.getLogger("app").info(f"main.py - runtime schedule:\n\t{times}")
-    # THIS NEEDS TO RUN AS A SEPARATE THREAD
-    # FOR NOW PRICE JUST LOOPS
+
     while True:
         async with asyncio.Semaphore(8):
             async with aiohttp.ClientSession() as session:
                 try:
                     data_queue = asyncio.Queue()
                     tasks = []
-                    if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
-                        for cluster_name in _configuration["modules"].keys():
-                            for layer in _configuration["modules"][cluster_name].keys():
+
+                    current_time = datetime.utcnow().time().strftime("%H:%M:%S")
+                    if current_time in times:
+                        for cluster_name, layers in _configuration["modules"].items():
+                            for layer in layers:
                                 task = run_process.automatic_check(
                                     session,
                                     cluster_name,
@@ -61,14 +62,16 @@ async def main_loop(version_manager, _configuration):
                                     _configuration,
                                 )
                                 tasks.append(task)
+
                         for completed_task in asyncio.as_completed(tasks):
                             data = await completed_task
                             await data_queue.put(data)
+
                         while not data_queue.empty():
                             data = await data_queue.get()
                             await history.write(data)
 
-                except Exception:
+                except Exception as e:
                     logging.getLogger("app").error(
                         f"main.py - error: {traceback.format_exc()}\n\tCurrent check exited..."
                     )
