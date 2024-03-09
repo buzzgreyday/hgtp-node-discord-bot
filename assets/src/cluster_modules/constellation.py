@@ -397,7 +397,7 @@ def build_title(node_data: schemas.Node):
     if cluster_name is not None:
         return f"{cluster_name.title()} layer {node_data.layer} node ({node_data.ip}) {title_ending}"
     else:
-        return f"layer {node_data.layer} node ({node_data.ip}) {title_ending}"
+        return f"Layer {node_data.layer} node ({node_data.ip}) {title_ending}"
 
 
 def build_general_node_state(node_data: schemas.Node):
@@ -439,13 +439,13 @@ def build_general_node_state(node_data: schemas.Node):
         if node_data.state == "readytojoin":
             field_info = f"`ⓘ  The node is ready to join a cluster`"
         else:
-            field_info = f"`ⓘ  The node is attempting to connection to cluster`"
+            field_info = f"`ⓘ  The node is attempting to establish connection to the cluster`"
         node_state = node_data.state.title()
         yellow_color_trigger = True
         return node_state_field(), False, yellow_color_trigger
     else:
         field_symbol = f":red_square:"
-        field_info = f"`ⓘ  The node is not connected to the previously associated cluster`"
+        field_info = f"`ⓘ  The node is not associated with the previously associated cluster`"
         node_state = "Offline"
         red_color_trigger = True
         return node_state_field(), red_color_trigger, False
@@ -499,7 +499,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
         if node_data.state != "ready":
             field_info = f"`ⓘ  The node was recently dissociated from the cluster`"
         else:
-            field_info = f"`ⓘ  The cluster might be in under maintenance, you might not need to take any action`"
+            field_info = f"`ⓘ  The cluster might be in under maintenance (no action necessary)`"
         red_color_trigger = True
         return general_cluster_state_field(), red_color_trigger, False
     elif node_data.cluster_connectivity == "dissociation":
@@ -507,7 +507,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
         if node_data.state != "ready":
             field_info = f"`ⓘ  The node is consecutively dissociated from the cluster`"
         else:
-            field_info = f"`ⓘ  The cluster might be in under maintenance, you might not need to take any action`"
+            field_info = f"`ⓘ  The cluster might be in under maintenance (no action necessary)`"
         red_color_trigger = True
         return general_cluster_state_field(), red_color_trigger, False
     elif node_data.cluster_connectivity == "forked":
@@ -522,7 +522,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
         return general_cluster_state_field(), False, yellow_color_trigger
     elif node_data.cluster_connectivity is None:
         field_symbol = ":yellow_square:"
-        field_info = f"`⚠  Connectivity state is None: Please contact hgtp_michael with a screenshot of this report`"
+        field_info = f"`⚠  Please report to hgtp_michael: connectivity state is None`"
         yellow_color_trigger = True
         return general_cluster_state_field(), False, yellow_color_trigger
     else:
@@ -530,7 +530,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
             f"constellation.py - {node_data.cluster_connectivity.title()} is not a supported node state ({node_data.name}, {node_data.ip}:{node_data.public_port}, L{node_data.layer})"
         )
         field_symbol = ":yellow_square:"
-        field_info = f"`⚠  Cluster connectivity is {node_data.cluster_connectivity}: please contact hgtp_michael with a screenshot of this report`"
+        field_info = f"`⚠  please contact hgtp_michael: cluster connectivity is {node_data.cluster_connectivity}`"
         yellow_color_trigger = True
         return general_cluster_state_field(), False, yellow_color_trigger
 
@@ -584,9 +584,8 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
             elif module_name in ("integrationnet", "testnet"):
                 field_symbol = ":green_square:"
                 field_info = (
-                    f":red_circle:` The wallet recently stopped receive rewards, "
-                    f"but the above wallet is not a Mainnet wallet. "
-                    f"The balance and reward data listed above is not associated with your Mainnet wallet`"
+                    f":red_circle:` The {module_name.title()}-wallet recently stopped receiving ({module_name.title()}) $DAG rewards. "
+                    f"However, this might not affect the rewards transferred to your registered mainnet wallet`"
                 )
                 red_color_trigger = False
                 yellow_color_trigger = False
@@ -626,9 +625,8 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                 elif module_name in ("integrationnet", "testnet"):
                     field_symbol = ":green_square:"
                     field_info = (
-                        f":red_circle:` The wallet still doesn't currently receive rewards, "
-                        f"but the above wallet is not a Mainnet wallet. "
-                        f"The balance and reward data listed above is not associated with your Mainnet wallet`"
+                        f":red_circle:` The {module_name.title()}-wallet doesn't receive ({module_name.title()}) $DAG rewards. "
+                        f"However, this might not affect the rewards transferred to your registered mainnet wallet`"
                     )
                     red_color_trigger = False
                     yellow_color_trigger = False
@@ -663,7 +661,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
         else:
             field_symbol = ":yellow_square:"
             field_info = (
-                f"`ⓘ  The wallet reward state is unknown. Please report`\n"
+                f"`ⓘ  Please report to hgtp_michael: the wallet reward state is unknown.`\n"
                 f"`ⓘ  No minimum collateral required`"
             )
             red_color_trigger = False
@@ -710,18 +708,18 @@ def build_system_node_version(node_data: schemas.Node):
         if node_data.version == node_data.cluster_version:
             field_symbol = ":green_square:"
             if node_data.cluster_version == node_data.latest_version:
-                field_info = "`ⓘ  No new version available`"
+                field_info = "`ⓘ  You are running the latest version of Tessellation`"
             elif node_data.cluster_version < node_data.latest_version:
-                field_info = f"`ⓘ  You are running the latest version but a new release ({node_data.latest_version}) should be available soon`"
+                field_info = f"`ⓘ  You are running the latest version but a new Tessellation release ({node_data.latest_version}) should soon be available`"
             elif node_data.cluster_version > node_data.latest_version:
                 field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is {node_data.latest_version}`"
             else:
-                field_info = "`ⓘ  This line should not be seen`"
+                field_info = "`⚠  Please report this issue to hgtp_michael: version clutter`"
             return version_field(), red_color_trigger, False
 
         elif node_data.version < node_data.cluster_version:
             field_symbol = ":red_square:"
-            field_info = f"`⚠  New upgrade (v{node_data.latest_version}) available`"
+            field_info = f"`⚠  New Tessellation upgrade available (v{node_data.latest_version})`"
             yellow_color_trigger = True
             return version_field(), red_color_trigger, yellow_color_trigger
     elif node_data.version is not None and node_data.latest_version is not None:
@@ -758,18 +756,18 @@ def build_system_node_load_average(node_data: schemas.Node):
     if (node_data.one_m_system_load_average or node_data.cpu_count) is not None:
         if float(node_data.one_m_system_load_average) / float(node_data.cpu_count) >= 1:
             field_symbol = ":red_square:"
-            field_info = f'`⚠  "CPU load" is too high - should be below "CPU count". You might need more CPU power`'
+            field_info = f'`⚠  "CPU load" is high (should be below "CPU count"). You might want to monitor CPU usage`'
             yellow_color_trigger = True
             return load_average_field(), red_color_trigger, yellow_color_trigger
         elif (
                 float(node_data.one_m_system_load_average) / float(node_data.cpu_count) < 1
         ):
             field_symbol = ":green_square:"
-            field_info = f'`ⓘ  "CPU load" is ok - should be below "CPU count"`'
+            field_info = f'`ⓘ  "CPU load" is ok (should be below "CPU count")`'
             return load_average_field(), red_color_trigger, False
     else:
         field_symbol = ":yellow_square:"
-        field_info = f"`ⓘ  None-type is present`"
+        field_info = f"`⚠  Please report to hgtp_michael: None-type is present`"
         return load_average_field(), red_color_trigger, False
 
 
