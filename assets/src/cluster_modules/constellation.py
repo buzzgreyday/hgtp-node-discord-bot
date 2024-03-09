@@ -676,13 +676,23 @@ def build_system_node_version(node_data: schemas.Node):
                 field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is {node_data.latest_version}`"
             else:
                 field_info = "`⚠  Please report this issue to hgtp_michael: version clutter`"
-            return version_field(), red_color_trigger, False
+            return version_field(), False, False
 
         elif node_data.version < node_data.cluster_version:
             field_symbol = ":red_square:"
             field_info = f"`⚠  New Tessellation upgrade available (v{node_data.latest_version})`"
-            yellow_color_trigger = True
-            return version_field(), red_color_trigger, yellow_color_trigger
+            red_color_trigger = True
+            return version_field(), red_color_trigger, False
+        elif node_data.version > node_data.cluster_version:
+            field_symbol = ":red_square:"
+            field_info = f"`⚠  Your Tessellation version is higher than the cluster version (v{node_data.cluster_version})`"
+            red_color_trigger = True
+            return version_field(), red_color_trigger, False
+        else:
+            field_symbol = ":red_square:"
+            field_info = f"`⚠  Please report to hgtp_michael: latest version {node_data.latest_version}, cluster version {node_data.cluster_version}, node version {node_data.version}`"
+            red_color_trigger = True
+            return version_field(), red_color_trigger, False
     elif node_data.version is not None and node_data.latest_version is not None:
         if node_data.version > node_data.latest_version:
             field_symbol = ":green_square:"
@@ -690,15 +700,15 @@ def build_system_node_version(node_data: schemas.Node):
                 field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is {node_data.latest_version}`"
             else:
                 field_info = f"`ⓘ  You seem to be running a test-release. Latest stable version is {node_data.latest_version}`"
-            return version_field(), red_color_trigger, False
+            return version_field(), False, False
         else:
             field_symbol = ":yellow_square:"
             field_info = f"`ⓘ  Latest version is {node_data.latest_version}`"
-            return version_field(), red_color_trigger, False
+            return version_field(), False, False
 
     else:
         return (f":yellow_square: **TESSELLATION**\n"
-                f"" f"`ⓘ  No data available`"), red_color_trigger, False
+                f"" f"`ⓘ  No data available`"), False, True
 
 
 def build_system_node_load_average(node_data: schemas.Node):
