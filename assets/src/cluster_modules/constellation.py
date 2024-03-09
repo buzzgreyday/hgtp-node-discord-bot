@@ -421,7 +421,7 @@ def build_general_node_state(node_data: schemas.Node):
                 f"{field_info}"
             )
 
-    if node_data.state not in ("offline", "waitingfordownload", "downloadinprogress", None):
+    if node_data.state not in ("offline", "waitingfordownload", "downloadinprogress", "readytojoin", None):
         field_symbol = ":green_square:"
         if node_data.cluster_peer_count in (None, 0):
             field_info = f"`ⓘ  The node is not connected to any known cluster`"
@@ -431,9 +431,12 @@ def build_general_node_state(node_data: schemas.Node):
             field_info = f"`ⓘ  Connected to {round(float(node_data.node_peer_count * 100 / node_data.cluster_peer_count), 2)}% of the cluster peers`"
         node_state = node_data.state.title()
         return node_state_field(), False, False
-    elif node_data.state in ("waitingfordownload", "downloadinprogress"):
+    elif node_data.state in ("waitingfordownload", "downloadinprogress", "readytojoin"):
         field_symbol = ":yellow_square:"
-        field_info = f"`ⓘ  The node is attempting to connection to cluster`"
+        if node_data.state == "readytojoin":
+            field_info = f"`ⓘ  The node is ready to join a cluster`"
+        else:
+            field_info = f"`ⓘ  The node is attempting to connection to cluster`"
         node_state = node_data.state.title()
         yellow_color_trigger = True
         return node_state_field(), False, yellow_color_trigger
@@ -516,7 +519,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
         return general_cluster_state_field(), False, yellow_color_trigger
     elif node_data.cluster_connectivity is None:
         field_symbol = ":yellow_square:"
-        field_info = f"`ⓘ  Connectivity state is None: Please contact hgtp_michael with a screenshot of this report`"
+        field_info = f"`⚠  Connectivity state is None: Please contact hgtp_michael with a screenshot of this report`"
         yellow_color_trigger = True
         return general_cluster_state_field(), False, yellow_color_trigger
     else:
@@ -524,7 +527,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
             f"constellation.py - {node_data.cluster_connectivity.title()} is not a supported node state ({node_data.name}, {node_data.ip}:{node_data.public_port}, L{node_data.layer})"
         )
         field_symbol = ":yellow_square:"
-        field_info = f"`ⓘ  Cluster connectivity is {node_data.cluster_connectivity}: please contact hgtp_michael with a screenshot of this report`"
+        field_info = f"`⚠  Cluster connectivity is {node_data.cluster_connectivity}: please contact hgtp_michael with a screenshot of this report`"
         yellow_color_trigger = True
         return general_cluster_state_field(), False, yellow_color_trigger
 
@@ -551,7 +554,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
     def generate_field_from_reward_states(reward_percentage, module_name):
         if module_name == "mainnet" and node_data.wallet_balance <= 250000 * 100000000:
             field_symbol = ":red_square:"
-            field_info = f"`⚠ The wallet doesn't hold sufficient collateral`"
+            field_info = f"`⚠  The wallet doesn't hold sufficient collateral`"
             red_color_trigger = True
             yellow_color_trigger = False
             return (
@@ -715,7 +718,7 @@ def build_system_node_version(node_data: schemas.Node):
 
         elif node_data.version < node_data.cluster_version:
             field_symbol = ":red_square:"
-            field_info = f"`⚠ New upgrade (v{node_data.latest_version}) available`"
+            field_info = f"`⚠  New upgrade (v{node_data.latest_version}) available`"
             yellow_color_trigger = True
             return version_field(), red_color_trigger, yellow_color_trigger
     elif node_data.version is not None and node_data.latest_version is not None:
@@ -752,7 +755,7 @@ def build_system_node_load_average(node_data: schemas.Node):
     if (node_data.one_m_system_load_average or node_data.cpu_count) is not None:
         if float(node_data.one_m_system_load_average) / float(node_data.cpu_count) >= 1:
             field_symbol = ":red_square:"
-            field_info = f'`⚠ "CPU load" is too high - should be below "CPU count". You might need more CPU power`'
+            field_info = f'`⚠  "CPU load" is too high - should be below "CPU count". You might need more CPU power`'
             yellow_color_trigger = True
             return load_average_field(), red_color_trigger, yellow_color_trigger
         elif (
@@ -786,7 +789,7 @@ def build_system_node_disk_space(node_data: schemas.Node):
                 <= 10
         ):
             field_symbol = ":red_square:"
-            field_info = f"`⚠ Free disk space is low`"
+            field_info = f"`⚠  Free disk space is low`"
             yellow_color_trigger = True
             return disk_space_field(), red_color_trigger, yellow_color_trigger
         else:
