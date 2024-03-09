@@ -488,13 +488,15 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
         return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
     elif node_data.cluster_connectivity is None:
         field_symbol = ":yellow_square:"
-        field_info = f""
+        field_info = f"`ⓘ  Please report with a screenshot: Connectivity state is unknown ({node_data.name}, {node_data.ip}:{node_data.public_port}, L{node_data.layer})`"
         return general_cluster_state_field(), False, yellow_color_trigger
     else:
         logging.getLogger("app").warning(
             f"constellation.py - {node_data.cluster_connectivity.title()} is not a supported node state ({node_data.name}, {node_data.ip}:{node_data.public_port}, L{node_data.layer})"
         )
-        node_data.cluster_connectivity = "dissociation"
+        field_symbol = ":yellow_square:"
+        field_info = f"`ⓘ  Please report with a screenshot: {node_data.cluster_connectivity.title()} is not a supported node state ({node_data.name}, {node_data.ip}:{node_data.public_port}, L{node_data.layer})`"
+        return general_cluster_state_field(), False, yellow_color_trigger
 
 
 def build_general_node_wallet(node_data: schemas.Node, module_name):
@@ -790,9 +792,7 @@ def build_embed(node_data: schemas.Node, module_name):
     node_state, red_color_trigger, yellow_color_trigger = build_general_node_state(
         node_data
     )
-    if (
-            red_color_trigger is True or yellow_color_trigger is True
-    ) and not embed_created:
+    if not embed_created:
         embed = determine_color_and_create_embed(
             yellow_color_trigger, red_color_trigger
         )
@@ -802,13 +802,7 @@ def build_embed(node_data: schemas.Node, module_name):
         red_color_trigger,
         yellow_color_trigger,
     ) = build_general_cluster_state(node_data, module_name)
-    if (
-            red_color_trigger is True or yellow_color_trigger is True
-    ) and not embed_created:
-        embed = determine_color_and_create_embed(
-            yellow_color_trigger, red_color_trigger
-        )
-        embed_created = True
+
     if node_data.wallet_address is not None:
         (
             node_wallet,
