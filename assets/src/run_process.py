@@ -48,7 +48,8 @@ async def automatic_check(
 
     dt_stop, timer_stop = dt.timing()
     logger.info(
-        f"main.py - Automatic L{layer} check {cluster_name} completed in completed in {round(timer_stop - timer_start, 2)} seconds"
+        f"main.py - Automatic L{layer} check {cluster_name} completed in completed in "
+        f"{round(timer_stop - timer_start, 2)} seconds"
     )
 
     return data

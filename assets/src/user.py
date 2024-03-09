@@ -10,11 +10,11 @@ IP_REGEX = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4]
 
 
 async def node_status_check(
-    session,
-    subscriber,
-    cluster_data: schemas.Cluster,
-    version_manager,
-    configuration: dict,
+        session,
+        subscriber,
+        cluster_data: schemas.Cluster,
+        version_manager,
+        configuration: dict,
 ) -> schemas.Node:
     node_data = schemas.Node(
         name=subscriber.name.values[0],
@@ -35,29 +35,29 @@ async def node_status_check(
     node_data = cluster.merge_data(node_data, found_in_cluster, cluster_data)
     node_data = await cluster.get_module_data(session, node_data, configuration)
     if (
-        node_data.cluster_name is not None
-        and cluster_data is not None
-        and configuration["modules"][node_data.cluster_name][node_data.layer]["rewards"]
+            node_data.cluster_name is not None
+            and cluster_data is not None
+            and configuration["modules"][node_data.cluster_name][node_data.layer]["rewards"]
     ):
         node_data = determine_module.set_module(
             node_data.cluster_name, configuration
         ).check_rewards(node_data, cluster_data)
     elif (
-        node_data.former_cluster_name is not None
-        and cluster_data is not None
-        and configuration["modules"][node_data.former_cluster_name][node_data.layer][
-            "rewards"
-        ]
+            node_data.former_cluster_name is not None
+            and cluster_data is not None
+            and configuration["modules"][node_data.former_cluster_name][node_data.layer][
+                "rewards"
+            ]
     ):
         node_data = determine_module.set_module(
             node_data.former_cluster_name, configuration
         ).check_rewards(node_data, cluster_data)
     elif (
-        node_data.last_known_cluster_name is not None
-        and cluster_data is not None
-        and configuration["modules"][node_data.last_known_cluster_name][
-            node_data.layer
-        ]["rewards"]
+            node_data.last_known_cluster_name is not None
+            and cluster_data is not None
+            and configuration["modules"][node_data.last_known_cluster_name][
+                node_data.layer
+            ]["rewards"]
     ):
         node_data = determine_module.set_module(
             node_data.last_known_cluster_name, configuration
@@ -66,7 +66,7 @@ async def node_status_check(
 
 
 async def process_node_data_per_user(
-    session, name, ids, cluster_data, version_manager, _configuration
+        session, name, ids, cluster_data, version_manager, _configuration
 ) -> List[schemas.Node]:
     futures = []
     data = []
