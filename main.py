@@ -89,8 +89,6 @@ def run_uvicorn_process():
             "8000",
             "--log-config",
             "assets/data/logs/bot/uvicorn.ini",
-            # "--log-level",
-            # "info",
         ]
     )
 
