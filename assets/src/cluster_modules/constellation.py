@@ -290,7 +290,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                         f"constellation.py - New dissociation with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
                     )
                     node_data.cluster_connectivity = "new dissociation"
-                    # node_data.last_known_cluster_name = former_name
+                    node_data.last_known_cluster_name = former_name
                 else:
                     logging.getLogger("app").debug(
                         f"constellation.py - {module_name.title()} is dissociated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
