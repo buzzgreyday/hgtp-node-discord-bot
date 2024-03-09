@@ -838,11 +838,7 @@ def build_embed(node_data: schemas.Node, module_name):
         )
         embed_created = True
     if node_data.wallet_address is not None:
-        (
-            node_wallet,
-            red_color_trigger,
-            yellow_color_trigger,
-        ) = build_general_node_wallet(node_data, module_name)
+        node_wallet, red_color_trigger, yellow_color_trigger = build_general_node_wallet(node_data, module_name)
         if (
                 red_color_trigger is True or yellow_color_trigger is True
         ) and not embed_created:
@@ -851,11 +847,7 @@ def build_embed(node_data: schemas.Node, module_name):
             )
             embed_created = True
     if node_data.version is not None:
-        (
-            node_version,
-            red_color_trigger,
-            yellow_color_trigger,
-        ) = build_system_node_version(node_data)
+        node_version, red_color_trigger, yellow_color_trigger = build_system_node_version(node_data)
         if (
                 red_color_trigger is True or yellow_color_trigger is True
         ) and not embed_created:
@@ -864,11 +856,7 @@ def build_embed(node_data: schemas.Node, module_name):
             )
             embed_created = True
     if node_data.one_m_system_load_average is not None:
-        (
-            node_load,
-            red_color_trigger,
-            yellow_color_trigger,
-        ) = build_system_node_load_average(node_data)
+        node_load, red_color_trigger, yellow_color_trigger = build_system_node_load_average(node_data)
         if (
                 red_color_trigger is True or yellow_color_trigger is True
         ) and not embed_created:
@@ -877,11 +865,7 @@ def build_embed(node_data: schemas.Node, module_name):
             )
             embed_created = True
     if node_data.disk_space_total is not None:
-        (
-            node_disk,
-            red_color_trigger,
-            yellow_color_trigger,
-        ) = build_system_node_disk_space(node_data)
+        node_disk, red_color_trigger, yellow_color_trigger = build_system_node_disk_space(node_data)
         if (
                 red_color_trigger is True or yellow_color_trigger is True
         ) and not embed_created:
