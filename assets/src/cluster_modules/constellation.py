@@ -291,7 +291,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                     )
                     node_data.cluster_connectivity = "new dissociation"
                     # node_data.last_known_cluster_name = former_name
-                elif former_name is None:
+                else:
                     logging.getLogger("app").debug(
                         f"constellation.py - {module_name.title()} is dissociated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
                     )
@@ -312,11 +312,20 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                     )
                     node_data.cluster_connectivity = "new association"
                     node_data.last_known_cluster_name = module_name
-                elif former_name == module_name:
+                else:
                     logging.getLogger("app").debug(
                         f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
                     )
                     node_data.cluster_connectivity = "association"
+            else:
+                print(f"Session is latest but curr_name is {curr_name}")
+
+    # If edge node is down
+    else:
+        logging.getLogger("app").debug(
+            f"constellation.py - {node_data.name.title()} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}) could not establish connection to {module_name.title()}"
+        )
+        node_data.cluster_connectivity = "uncertain"
 
     return node_data
 
@@ -345,12 +354,15 @@ def set_association_time(node_data: schemas.Node):
                 time_difference + node_data.former_cluster_association_time
         )
         node_data.cluster_dissociation_time = node_data.former_cluster_dissociation_time
-    elif node_data.cluster_connectivity == "dissociation":
+    elif node_data.cluster_connectivity in ("dissociation", "forked"):
         node_data.cluster_dissociation_time = (
                 time_difference + node_data.former_cluster_dissociation_time
         )
         node_data.cluster_association_time = node_data.former_cluster_association_time
     elif node_data.cluster_connectivity in ("new association", "new dissociation"):
+        node_data.cluster_association_time = node_data.former_cluster_association_time
+        node_data.cluster_dissociation_time = node_data.former_cluster_dissociation_time
+    elif node_data.cluster_connectivity == "uncertain":
         node_data.cluster_association_time = node_data.former_cluster_association_time
         node_data.cluster_dissociation_time = node_data.former_cluster_dissociation_time
 
@@ -373,8 +385,10 @@ def build_title(node_data: schemas.Node):
         cluster_name = names[0]
     if node_data.cluster_connectivity in ("new association", "association"):
         title_ending = f"is up"
-    elif node_data.cluster_connectivity in ("new dissociation", "dissociation"):
+    elif node_data.cluster_connectivity in ("new dissociation", "dissociation", "forked"):
         title_ending = f"is down"
+    elif node_data.cluster_connectivity == "uncertain":
+        title_ending = f"connection unstable"
     else:
         title_ending = f"report"
     if cluster_name is not None:
@@ -407,7 +421,7 @@ def build_general_node_state(node_data: schemas.Node):
                 f"{field_info}"
             )
 
-    if node_data.state not in ["offline", None]:
+    if node_data.state not in ("offline", "waitingfordownload", "downloadinprogress", None):
         field_symbol = ":green_square:"
         if node_data.cluster_peer_count in (None, 0):
             field_info = f"`ⓘ  The node is not connected to any known cluster`"
@@ -416,12 +430,22 @@ def build_general_node_state(node_data: schemas.Node):
         else:
             field_info = f"`ⓘ  Connected to {round(float(node_data.node_peer_count * 100 / node_data.cluster_peer_count), 2)}% of the cluster peers`"
         node_state = node_data.state.title()
-        return node_state_field(), False, yellow_color_trigger
+        red_color_trigger = False
+        yellow_color_trigger = False
+        return node_state_field(), red_color_trigger, yellow_color_trigger
+    elif node_data.state in ("waitingfordownload", "downloadinprogress"):
+        field_symbol = ":yellow_square:"
+        field_info = f"`ⓘ  The node is attempting to connection to cluster`"
+        node_state = node_data.state.title()
+        yellow_color_trigger = True
+        red_color_trigger = False
+        return node_state_field(), red_color_trigger, yellow_color_trigger
     else:
         field_symbol = f":red_square:"
         field_info = f"`ⓘ  The node is not connected to to any of the previously associated cluster`"
         node_state = "Offline"
         red_color_trigger = True
+        yellow_color_trigger = False
         return node_state_field(), red_color_trigger, yellow_color_trigger
 
 
@@ -464,11 +488,13 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
         field_symbol = ":green_square:"
         field_info = f"`ⓘ  Association with the cluster was recently established`"
         red_color_trigger = False
+        yellow_color_trigger = False
         return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
     elif node_data.cluster_connectivity == "association":
         field_symbol = ":green_square:"
         field_info = f"`ⓘ  The node is consecutively associated with the cluster`"
         red_color_trigger = False
+        yellow_color_trigger = False
         return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
     elif node_data.cluster_connectivity == "new dissociation":
         field_symbol = ":red_square:"
@@ -477,6 +503,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
         else:
             field_info = f"`ⓘ  The cluster might be in under maintenance, you might not need to take any action`"
         red_color_trigger = True
+        yellow_color_trigger = False
         return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
     elif node_data.cluster_connectivity == "dissociation":
         field_symbol = ":red_square:"
@@ -485,18 +512,33 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
         else:
             field_info = f"`ⓘ  The cluster might be in under maintenance, you might not need to take any action`"
         red_color_trigger = True
+        yellow_color_trigger = False
         return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
+    elif node_data.cluster_connectivity == "forked":
+        field_symbol = ":red_square:"
+        field_info = f"`ⓘ  The node has forked`"
+        red_color_trigger = False
+        yellow_color_trigger = True
+        return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
+    elif node_data.cluster_connectivity == "uncertain":
+        field_symbol = ":yellow_square:"
+        field_info = f"`ⓘ  Could not establish connection to the edge node, might be due to maintenance (no action necessary)`"
+        return general_cluster_state_field(), False, True
     elif node_data.cluster_connectivity is None:
         field_symbol = ":yellow_square:"
-        field_info = f"`ⓘ  Please contact hgtp_michael with a screenshot of this report`"
-        return general_cluster_state_field(), False, yellow_color_trigger
+        field_info = f"`ⓘ  Connectivity state is None: Please contact hgtp_michael with a screenshot of this report`"
+        yellow_color_trigger = True
+        red_color_trigger = False
+        return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
     else:
         logging.getLogger("app").warning(
             f"constellation.py - {node_data.cluster_connectivity.title()} is not a supported node state ({node_data.name}, {node_data.ip}:{node_data.public_port}, L{node_data.layer})"
         )
         field_symbol = ":yellow_square:"
-        field_info = f"`ⓘ  Please contact hgtp_michael with a screenshot of this report`"
-        return general_cluster_state_field(), False, yellow_color_trigger
+        field_info = f"`ⓘ  Cluster connectivity is {node_data.cluster_connectivity}: please contact hgtp_michael with a screenshot of this report`"
+        yellow_color_trigger = True
+        red_color_trigger = False
+        return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
 
 
 def build_general_node_wallet(node_data: schemas.Node, module_name):
@@ -880,10 +922,19 @@ def build_embed(node_data: schemas.Node, module_name):
 
 def mark_notify(d: schemas.Node, configuration):
     # The hardcoded values should be adjustable in config_new.yml
-    if d.cluster_connectivity in ("new association", "new dissociation", "forked"):
+    if d.cluster_connectivity in ("new association", "new dissociation"):
         d.notify = True
     elif d.last_notified_timestamp:
-        if d.reward_state is False:
+        if d.cluster_connectivity in ("forked", "uncertain"):
+            if (
+                    d.timestamp_index - d.last_notified_timestamp
+            ).total_seconds() >= timedelta(
+                hours=configuration["general"]["notifications"][
+                    "free disk space sleep (hours)"
+                ]
+            ).seconds:
+                d.notify = True
+        elif d.reward_state is False:
             if (
                     d.timestamp_index - d.last_notified_timestamp
             ).total_seconds() >= timedelta(

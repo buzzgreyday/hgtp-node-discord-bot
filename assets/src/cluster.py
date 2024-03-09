@@ -81,7 +81,7 @@ def locate_node(node_data: schemas.Node, cluster_data: schemas.Cluster):
 
 async def get_module_data(session, node_data: schemas.Node, configuration):
     # Last known cluster is determined by all recent historic values
-    last_known_cluster, layer = await determine_module.get_module_name_and_layer(
+    last_known_cluster = await determine_module.get_module_name(
         node_data, configuration
     )
 
