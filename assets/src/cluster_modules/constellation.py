@@ -768,13 +768,16 @@ def build_embed(node_data: schemas.Node, module_name):
 
     def determine_color_and_create_embed(yellow_color_trigger, red_color_trigger):
         title = build_title(node_data).upper()
+        embed = nextcord.Embed(title=title, colour=nextcord.Color.dark_teal())
+        embed.set_thumbnail(
+            url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png"
+        )
         if yellow_color_trigger and red_color_trigger is False:
             embed = nextcord.Embed(title=title, colour=nextcord.Color.orange())
             embed.set_thumbnail(
                 url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png"
             )
             # embed.set_image(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/banner-color.png")
-            return embed
         elif red_color_trigger:
             embed = nextcord.Embed(title=title, colour=nextcord.Color.brand_red())
             embed.set_thumbnail(
@@ -782,15 +785,7 @@ def build_embed(node_data: schemas.Node, module_name):
             )
             # embed.set_image(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/banner-color.png")
 
-            return embed
-        else:
-            embed = nextcord.Embed(title=title, colour=nextcord.Color.dark_teal())
-            embed.set_thumbnail(
-                url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png"
-            )
-            # embed.set_image(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/banner-color.png")
-
-            return embed
+        return embed
 
     node_state, red_color_trigger, yellow_color_trigger = build_general_node_state(
         node_data
