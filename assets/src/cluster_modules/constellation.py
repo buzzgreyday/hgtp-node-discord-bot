@@ -407,7 +407,7 @@ def build_general_node_state(node_data: schemas.Node):
                 f"{field_info}"
             )
 
-    if node_data.state != "offline":
+    if node_data.state not in ["offline", None]:
         field_symbol = ":green_square:"
         if node_data.cluster_peer_count in (None, 0):
             field_info = f"`ⓘ  The node is not connected to any known cluster`"
@@ -417,7 +417,7 @@ def build_general_node_state(node_data: schemas.Node):
             field_info = f"`ⓘ  Connected to {round(float(node_data.node_peer_count * 100 / node_data.cluster_peer_count), 2)}% of the cluster peers`"
         node_state = node_data.state.title()
         return node_state_field(), False, yellow_color_trigger
-    elif node_data.state == "offline":
+    else:
         field_symbol = f":red_square:"
         field_info = f"`ⓘ  The node is not connected to to any of the previously associated cluster`"
         node_state = "Offline"
@@ -488,14 +488,14 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
         return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
     elif node_data.cluster_connectivity is None:
         field_symbol = ":yellow_square:"
-        field_info = f"`ⓘ  Please report with a screenshot: Connectivity state is unknown ({node_data.name}, {node_data.ip}:{node_data.public_port}, L{node_data.layer})`"
+        field_info = f"`ⓘ  Please contact hgtp_michael with a screenshot of this report`"
         return general_cluster_state_field(), False, yellow_color_trigger
     else:
         logging.getLogger("app").warning(
             f"constellation.py - {node_data.cluster_connectivity.title()} is not a supported node state ({node_data.name}, {node_data.ip}:{node_data.public_port}, L{node_data.layer})"
         )
         field_symbol = ":yellow_square:"
-        field_info = f"`ⓘ  Please report with a screenshot: {node_data.cluster_connectivity.title()} is not a supported node state ({node_data.name}, {node_data.ip}:{node_data.public_port}, L{node_data.layer})`"
+        field_info = f"`ⓘ  Please contact hgtp_michael with a screenshot of this report`"
         return general_cluster_state_field(), False, yellow_color_trigger
 
 
@@ -770,10 +770,6 @@ def build_embed(node_data: schemas.Node, module_name):
 
     def determine_color_and_create_embed(yellow_color_trigger, red_color_trigger):
         title = build_title(node_data).upper()
-        embed = nextcord.Embed(title=title, colour=nextcord.Color.dark_teal())
-        embed.set_thumbnail(
-            url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png"
-        )
         if yellow_color_trigger and red_color_trigger is False:
             embed = nextcord.Embed(title=title, colour=nextcord.Color.orange())
             embed.set_thumbnail(
@@ -787,22 +783,26 @@ def build_embed(node_data: schemas.Node, module_name):
             )
             # embed.set_image(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/banner-color.png")
 
+        else:
+            embed = nextcord.Embed(title=title, colour=nextcord.Color.dark_teal())
+            embed.set_thumbnail(
+                url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png"
+            )
+            # embed.set_image(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/banner-color.png")
+
         return embed
 
     node_state, red_color_trigger, yellow_color_trigger = build_general_node_state(
         node_data
     )
-    if not embed_created:
+    cluster_state, red_color_trigger, yellow_color_trigger = build_general_cluster_state(node_data, module_name)
+    if (
+            red_color_trigger is True or yellow_color_trigger is True
+    ) and not embed_created:
         embed = determine_color_and_create_embed(
             yellow_color_trigger, red_color_trigger
         )
         embed_created = True
-    (
-        cluster_state,
-        red_color_trigger,
-        yellow_color_trigger,
-    ) = build_general_cluster_state(node_data, module_name)
-
     if node_data.wallet_address is not None:
         (
             node_wallet,
