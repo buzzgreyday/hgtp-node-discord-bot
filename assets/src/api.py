@@ -151,7 +151,7 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
             aiohttp.client_exceptions.ClientPayloadError,
         ):
             logging.getLogger("app").warning(
-                f"api.py - localhost error:\n\t{traceback.format_exc()}"
+                f"api.py - localhost error: http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port}\n\t{traceback.format_exc()}"
             )
             await asyncio.sleep(1)
         else:
