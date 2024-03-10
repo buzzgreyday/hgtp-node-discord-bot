@@ -932,8 +932,13 @@ def mark_notify(d: schemas.Node, configuration):
                 hours=configuration["general"]["notifications"][
                     "free disk space sleep (hours)"
                 ]
-            ).seconds:
+            ).seconds or d.last_notified_reason in ("disk", "version", "rewards"):
+                d.last_notified_timestamp = d.timestamp_index
                 d.notify = True
+                if d.cluster_connectivity == "forked":
+                    d.last_notified_reason = "forked"
+                else:
+                    d.last_notified_reason = "uncertain"
         elif d.reward_state is False:
             if (
                     d.timestamp_index - d.last_notified_timestamp
@@ -941,7 +946,7 @@ def mark_notify(d: schemas.Node, configuration):
                 hours=configuration["general"]["notifications"][
                     "free disk space sleep (hours)"
                 ]
-            ).seconds or d.last_notified_reason in ("disk", "version"):
+            ).seconds or d.last_notified_reason in ("disk", "version", "forked", "uncertain"):
                 # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
                 d.notify = True
                 d.last_notified_timestamp = d.timestamp_index
@@ -950,7 +955,7 @@ def mark_notify(d: schemas.Node, configuration):
             if (
                 (d.timestamp_index.second - d.last_notified_timestamp.second)
                 >= timedelta(hours=6).seconds
-            ) or d.last_notified_reason in ("rewards", "disk"):
+            ) or d.last_notified_reason in ("rewards", "disk", "forked", "uncertain"):
                 d.notify = True
                 d.last_notified_timestamp = d.timestamp_index
                 d.last_notified_reason = "version"
@@ -961,7 +966,7 @@ def mark_notify(d: schemas.Node, configuration):
                     <= configuration["general"]["notifications"][
                 "free disk space threshold (percentage)"
             ]
-            ) or d.last_notified_reason in ("rewards", "version"):
+            ) or d.last_notified_reason in ("rewards", "version", "forked", "uncertain"):
                 if (
                         d.timestamp_index - d.last_notified_timestamp
                 ).total_seconds() >= timedelta(
