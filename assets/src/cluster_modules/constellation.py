@@ -319,8 +319,6 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
     session = node_data.node_cluster_session
     latest_session = node_data.latest_cluster_session
     former_session = node_data.former_node_cluster_session
-    if not former_name and curr_name:
-        print("Former session:", former_session, former_name, curr_name, node_data.name)
     # latest_session is only registered if something crucial... But what? If cluster_data is found, right?
     # And I only need to register when cluster_data is found, right? How about when report is requested?
     if latest_session:
