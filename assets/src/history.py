@@ -44,6 +44,7 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
             node_data = node_data.model_validate(data)
         else:
             data = schemas.Node(**data)
+            node_data.former_node_cluster_session = data.node_cluster_session
             node_data.former_cluster_name = data.cluster_name
             node_data.last_known_cluster_name = data.last_known_cluster_name
             node_data.former_reward_state = data.reward_state

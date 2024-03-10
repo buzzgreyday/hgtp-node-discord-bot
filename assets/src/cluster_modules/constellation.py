@@ -272,63 +272,119 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
     We might need to add some more clarity to how the node has been connected. Like: former_name, latest_name, etc.
     """
 
-    # THIS NEEDS WORK, ALSO MAINNET!!!!
+    def set_association():
+        if session != former_session:
+            logging.getLogger("app").debug(
+                f"constellation.py - New association with {module_name} by {node_data.name} ({node_data.ip}:"
+                f"{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+            )
+            node_data.cluster_connectivity = "new association"
+            node_data.last_known_cluster_name = module_name
+        else:
+            logging.getLogger("app").debug(
+                f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:"
+                f"{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+            )
+            node_data.cluster_connectivity = "association"
+
+    def set_dissociation():
+        if session == former_session:
+            # We know that the session isn't the latest session but the node could be consecutively
+            # dissoc. with the former cluster and just be missing the current cluster name due to connection
+            # error (hypothetically).
+            logger.debug(
+                f"constellation.py - {module_name.title()} is dissoc. with {node_data.name} ({node_data.ip}:"
+                f"{node_data.public_port}, L{node_data.layer}): former session is the same as the current"
+                f"{session, former_session, latest_session}"
+            )
+            node_data.cluster_connectivity = "dissociation"
+        else:
+            logger.debug(
+                f"constellation.py - New dissociation with {module_name} by {node_data.name} ({node_data.ip}:"
+                f"{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+            )
+            node_data.cluster_connectivity = "new dissociation"
+            node_data.last_known_cluster_name = former_name
+
+    def set_uncertain():
+        logger.debug(
+            f"constellation.py - {node_data.name.title()} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}) could not establish connection to {module_name.title()}"
+        )
+        node_data.cluster_connectivity = "uncertain"
+
+    logger = logging.getLogger("app")
 
     former_name = node_data.former_cluster_name
     curr_name = node_data.cluster_name
     session = node_data.node_cluster_session
     latest_session = node_data.latest_cluster_session
     former_session = node_data.former_node_cluster_session
+    if not former_name and curr_name:
+        print("Former session:", former_session, former_name, curr_name, node_data.name)
     # latest_session is only registered if something crucial... But what? If cluster_data is found, right?
     # And I only need to register when cluster_data is found, right? How about when report is requested?
     if latest_session:
+        # "latest_session" is None due to connection error or dissoc.
         if session != latest_session:
-            # In case the node is dissociated from a known cluster
+            # In case the node is dissociated from a known cluster.
+            # Could be dissoc. in the following ways:
+            # "session" is None due to connection error or dissoc.
             if not curr_name:
-                if former_name == module_name:
-                    logging.getLogger("app").debug(
-                        f"constellation.py - New dissociation with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
-                    )
-                    node_data.cluster_connectivity = "new dissociation"
-                    node_data.last_known_cluster_name = former_name
+                # In cas of a dissoc. the current cluster name will be None.
+                # The current cluster name can be missing due to connection error (false negative)
+                if former_name:
+                    # If the current cluster name is None and there's a former cluster name found, the
+                    # dissoc. must be recent. However, the current cluster name could be missing due to a false negative.
+                    # Therefore, we check to see if session is the same as former session (might not make difference now
+                    # but could come in handy).
+                    set_dissociation()
                 else:
-                    logging.getLogger("app").debug(
-                        f"constellation.py - {module_name.title()} is dissociated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
-                    )
-                    node_data.cluster_connectivity = "dissociation"
+                    # We know the latest session is found and the node is not part of this cluster.
+                    # If cluster name is None and former cluster name is also None.
+                    # Then we have the possibility of a consecutive dissoc., if session and former session match (since
+                    # both will be None). If session and former session doesn't match, then we have a new dissoc.
+                    # (because this can't be the latest session).
+                    set_dissociation()
+
             else:
-                logging.getLogger("app").debug(
-                    f"constellation.py - {module_name.title()} is dissociated with {node_data.name} ({node_data.ip} [node has forked]:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+                logger.debug(
+                    f"constellation.py -  {node_data.name} ({node_data.ip}) forked {module_name.title()}:"
+                    f"{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
                 )
                 node_data.cluster_connectivity = "forked"
 
         elif session == latest_session:
             # If new connection is made with this node then alert
             if curr_name == module_name:
-                # If former name is None or another metagraph name
-                if former_name != module_name:
-                    logging.getLogger("app").debug(
-                        f"constellation.py - New association with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
-                    )
-                    node_data.cluster_connectivity = "new association"
-                    node_data.last_known_cluster_name = module_name
+                # If former name is None: could be due to uncertain connection
+                if not former_name:
+                    set_association()
                 else:
-                    logging.getLogger("app").debug(
-                        f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
-                    )
-                    node_data.cluster_connectivity = "association"
+                    set_association()
             else:
-                logging.getLogger("app").debug(
+                logger.debug(
                     f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Due to session being the latest ({session, latest_session})"
                 )
                 node_data.cluster_connectivity = "association"
 
-    # If edge node is down
     else:
-        logging.getLogger("app").debug(
-            f"constellation.py - {node_data.name.title()} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}) could not establish connection to {module_name.title()}"
-        )
-        node_data.cluster_connectivity = "uncertain"
+        # If edge node is under maintenance or connection error
+        if session and former_session:
+            # If neither session nor the former session is None
+            # we have the possibility of node association but connection error with the edge node
+            if session == former_session:
+                # If the session didn't change we don't need to alert anyone just yet.
+                logger.debug(
+                    f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}):"
+                    f"{node_data.public_port}, L{node_data.layer}): due to session being the latest "
+                    f"({session, latest_session}) [Edge node is down]"
+                )
+                node_data.cluster_connectivity = "association"
+            else:
+                set_uncertain()
+        else:
+            # If either session or the former session is None
+            set_uncertain()
 
     return node_data
 
