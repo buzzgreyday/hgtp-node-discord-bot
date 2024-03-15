@@ -1,8 +1,6 @@
 file settings:
   locations:
     cluster modules: assets/src/cluster_modules
-    db: assets/data/db/database.db
-    log: assets/data/logs/bot/app.log
 general:
   loop_init_time: '12:00:00'
   loop_interval_minutes: 1
@@ -15,7 +13,7 @@ general:
   request retry (count): 3
   request retry interval (sec): 1
   request timeout (sec): 5
-  version: 5.0.alpha-30
+  version: 5.0.alpha-31
 modules:
   integrationnet:
     0:

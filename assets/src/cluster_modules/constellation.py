@@ -789,7 +789,10 @@ def build_system_node_version(node_data: schemas.Node):
             return version_field(), False, False
         else:
             field_symbol = ":yellow_square:"
-            field_info = f"`ⓘ  Latest version is {node_data.latest_version}`"
+            if node_data.cluster_peer_count in (0, None):
+                field_info = f"`ⓘ  Could not determine the current cluster version due to unstable connection or maintenance but latest Github version is {node_data.latest_version}`"
+            else:
+                field_info = f"`ⓘ  Latest version is {node_data.latest_version}`"
             return version_field(), False, False
 
     else:
