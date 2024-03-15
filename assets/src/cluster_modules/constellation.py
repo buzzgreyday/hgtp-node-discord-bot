@@ -73,7 +73,7 @@ async def request_cluster_data(
             if cluster_resp is not None
             else [],
         )
-    await config.update_config_with_latest_values(cluster_data, configuration)
+    # await config.update_config_with_latest_values(cluster_data, configuration)
     return cluster_data
 
 
@@ -370,7 +370,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
         if session and former_session:
             # If neither session nor the former session is None
             # we have the possibility of node association but connection error with the edge node
-            if session == former_session:
+            if session == former_session and node_data.state == "ready":
                 # If the session didn't change we don't need to alert anyone just yet.
                 logger.debug(
                     f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}):"
@@ -440,14 +440,14 @@ def build_title(node_data: schemas.Node):
     ) if cluster]
     if names:
         cluster_name = names[0]
-    if node_data.reward_state is False:
-        title_ending = f"MISSING REWARDS"
-    elif node_data.cluster_connectivity in ("new association", "association"):
+    if node_data.cluster_connectivity in ("new association", "association"):
         title_ending = f"UP"
     elif node_data.cluster_connectivity in ("new dissociation", "dissociation"):
         title_ending = f"DOWN"
     elif node_data.cluster_connectivity == "forked":
         title_ending = f"FORKED"
+    elif node_data.reward_state is False:
+        title_ending = f"MISSING REWARDS"
     elif node_data.cluster_connectivity == "uncertain":
         title_ending = f"UNSTABLE CONNECTION"
     else:
@@ -509,11 +509,13 @@ def build_general_node_state(node_data: schemas.Node):
                 return node_state_field(), False, yellow_color_trigger
         elif node_data.node_peer_count in (None, 0):
             field_info = f"`⚠  The node is not connected to any cluster peers`"
+            field_symbol = ":red_square:"
             node_state = node_data.state.title()
             red_color_trigger = True
             return node_state_field(), red_color_trigger, False
         else:
             field_info = f"`ⓘ  Connected to {round(float(node_data.node_peer_count * 100 / node_data.cluster_peer_count), 2)}% of the cluster peers`"
+            field_symbol = ":green_square:"
             node_state = node_data.state.title()
             return node_state_field(), False, False
     elif node_data.state in ("waitingfordownload", "downloadinprogress", "readytojoin"):
