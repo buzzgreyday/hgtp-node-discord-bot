@@ -984,7 +984,7 @@ def mark_notify(d: schemas.Node, configuration):
                 d.notify = True
                 d.last_notified_timestamp = d.timestamp_index
                 d.last_notified_reason = "rewards"
-        elif d.version != d.cluster_version:
+        elif d.version < d.cluster_version:
             if (
                 (d.timestamp_index.second - d.last_notified_timestamp.second)
                 >= timedelta(hours=6).seconds
@@ -1015,9 +1015,11 @@ def mark_notify(d: schemas.Node, configuration):
         if d.reward_state is False:
             d.notify = True
             d.last_notified_timestamp = d.timestamp_index
-        elif d.version != d.cluster_version:
+            d.last_notified_reason = "rewards"
+        elif d.version < d.cluster_version:
             d.notify = True
             d.last_notified_timestamp = d.timestamp_index
+            d.last_notified_reason = "version"
         elif (
                 0
                 <= float(d.disk_space_free) * 100 / float(d.disk_space_total)
@@ -1027,4 +1029,5 @@ def mark_notify(d: schemas.Node, configuration):
         ):
             d.notify = True
             d.last_notified_timestamp = d.timestamp_index
+            d.last_notified_reason = "disk"
     return d
