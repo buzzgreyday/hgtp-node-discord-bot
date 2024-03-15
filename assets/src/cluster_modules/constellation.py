@@ -440,7 +440,9 @@ def build_title(node_data: schemas.Node):
     ) if cluster]
     if names:
         cluster_name = names[0]
-    if node_data.cluster_connectivity in ("new association", "association"):
+    if node_data.state in ("waitingfordownload", "downloadinprogress", "observing"):
+        title_ending = f"CONNECTING"
+    elif node_data.cluster_connectivity in ("new association", "association"):
         title_ending = f"UP"
     elif node_data.cluster_connectivity in ("new dissociation", "dissociation"):
         title_ending = f"DOWN"
