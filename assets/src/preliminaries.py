@@ -39,14 +39,14 @@ class VersionManager:
                 ).json()
                 version = data["tag_name"][1:]
                 logging.getLogger("app").debug(
-                    f"preliminaries.py - {self.configuration['tessellation']['github']['url']}/"
-                    f"https://api.github.com/repos/constellation-labs/tessellation/releases/latest got version: {version}"
+                    f"preliminaries.py - https://api.github.com/repos/constellation-labs/tessellation/releases/latest "
+                    f"got version: {version}"
                 )
                 return version
             except (KeyError, requests.exceptions.ConnectionError):
                 logging.getLogger("app").warning(
-                    f"preliminaries.py - {self.configuration['tessellation']['github']['url']}/"
-                    f"{self.configuration['tessellation']['github']['releases']['latest']} KeyError: "
+                    f"preliminaries.py - https://api.github.com/repos/constellation-labs/tessellation/releases/latest"
+                    f"KeyError: "
                     f"forcing retry in {600} seconds\n\t{traceback.format_exc()}"
                 )
                 time.sleep(600)
