@@ -98,19 +98,19 @@ def main():
 
     logger = logging.getLogger("app")
     logger.setLevel(logging.INFO)
-    handler = logging.FileHandler(filename="assets/data/logs/bot/app.log", encoding='utf-8', mode='w')
+    handler = logging.FileHandler(filename="assets/data/logs/app.log", encoding='utf-8', mode='w')
     handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
 
     logger = logging.getLogger('rewards')
     logger.setLevel(logging.CRITICAL)
-    handler = logging.FileHandler(filename='assets/data/logs/bot/rewards.log', encoding='utf-8', mode='w')
+    handler = logging.FileHandler(filename='assets/data/logs/rewards.log', encoding='utf-8', mode='w')
     handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
 
     logger = logging.getLogger('nextcord')
     logger.setLevel(logging.CRITICAL)
-    handler = logging.FileHandler(filename='assets/data/logs/bot/nextcord.log', encoding='utf-8', mode='w')
+    handler = logging.FileHandler(filename='assets/data/logs/nextcord.log', encoding='utf-8', mode='w')
     handler.setFormatter(logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
 
