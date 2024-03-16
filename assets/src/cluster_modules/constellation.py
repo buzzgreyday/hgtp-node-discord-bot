@@ -16,7 +16,7 @@ import nextcord.embeds
 import nextcord
 import pandas as pd
 
-from assets.src import schemas, config, cluster, api
+from assets.src import schemas, cluster, api
 
 CONNECT_STATES = ("waitingfordownload", "downloadinprogress", "observing")
 
