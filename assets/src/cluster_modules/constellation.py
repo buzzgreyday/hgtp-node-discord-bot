@@ -12,6 +12,7 @@ import asyncio
 import logging
 from datetime import datetime, timedelta
 
+import nextcord.embeds
 import nextcord
 import pandas as pd
 
@@ -291,11 +292,18 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                 node_data.last_known_cluster_name = module_name
 
         else:
-            logging.getLogger("app").debug(
-                f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:"
-                f"{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
-            )
-            node_data.cluster_connectivity = "association"
+            if node_data.state in CONNECT_STATES:
+                logging.getLogger("app").debug(
+                    f"constellation.py - Connect {module_name} by {node_data.name} ({node_data.ip}:"
+                    f"{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+                )
+                node_data.cluster_connectivity = "connecting"
+            else:
+                logging.getLogger("app").debug(
+                    f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:"
+                    f"{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+                )
+                node_data.cluster_connectivity = "association"
 
     def set_dissociation():
         if session == former_session:
@@ -441,7 +449,7 @@ def set_association_time(node_data: schemas.Node):
 """
 
 
-def build_title(node_data: schemas.Node):
+def build_title(node_data: schemas.Node) -> str:
     cluster_name = None
     names = [cluster for cluster in (
         node_data.cluster_name,
@@ -470,8 +478,8 @@ def build_title(node_data: schemas.Node):
         return f"L{node_data.layer} ({node_data.ip}): {title_ending}"
 
 
-def build_general_node_state(node_data: schemas.Node):
-    def node_state_field():
+def build_general_node_state(node_data: schemas.Node) -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
+    def node_state_field() -> str:
         if node_data.id is not None:
             return (
                 f"{field_symbol} **NODE**\n"
@@ -547,8 +555,8 @@ def build_general_node_state(node_data: schemas.Node):
         return node_state_field(), red_color_trigger, False
 
 
-def build_general_cluster_state(node_data: schemas.Node, module_name):
-    def general_cluster_state_field():
+def build_general_cluster_state(node_data: schemas.Node, module_name) -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
+    def general_cluster_state_field() -> str:
         if node_data.cluster_peer_count > 0:
             return (
                 f"{field_symbol} **{module_name.upper()} CLUSTER**\n"
@@ -568,7 +576,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
                 f"{field_info}"
             )
 
-    def association_percent():
+    def association_percent() -> float:
         if node_data.cluster_association_time not in (
                 0,
                 None,
@@ -635,32 +643,32 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
         return general_cluster_state_field(), False, yellow_color_trigger
 
 
-def build_general_node_wallet(node_data: schemas.Node, module_name):
-    def wallet_field(field_symbol, reward_percentage, field_info):
-        if node_data.layer == 1:
-            return (
-                f"{field_symbol} **WALLET**\n"
-                f"```\n"
-                f"Address: {node_data.wallet_address}\n"
-                f"Balance: {node_data.wallet_balance / 100000000} ＄DAG```"
-                f"{field_info}"
-            )
-        else:
-            return (
-                f"{field_symbol} **WALLET**\n"
-                f"```\n"
-                f"Address: {node_data.wallet_address}\n"
-                f"Balance: {node_data.wallet_balance / 100000000} ＄DAG```"
-                f"{field_info}"
-            )
+def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
+    def generate_field_from_reward_states() -> tuple[str, bool, bool]:
+        def wallet_field() -> str:
+            if node_data.layer == 1:
+                return (
+                    f"{field_symbol} **WALLET**\n"
+                    f"```\n"
+                    f"Address: {node_data.wallet_address}\n"
+                    f"Balance: {node_data.wallet_balance / 100000000} ＄DAG```"
+                    f"{field_info}"
+                )
+            else:
+                return (
+                    f"{field_symbol} **WALLET**\n"
+                    f"```\n"
+                    f"Address: {node_data.wallet_address}\n"
+                    f"Balance: {node_data.wallet_balance / 100000000} ＄DAG```"
+                    f"{field_info}"
+                )
 
-    def generate_field_from_reward_states(reward_percentage, module_name):
         if module_name == "mainnet" and node_data.wallet_balance <= 250000 * 100000000:
             field_symbol = ":red_square:"
             field_info = f"`⚠  The wallet doesn't hold sufficient collateral`"
             red_color_trigger = True
             yellow_color_trigger = False
-            return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, yellow_color_trigger
+            return wallet_field(), red_color_trigger, yellow_color_trigger
         elif (
                 node_data.reward_state in (False, None)
                 and node_data.former_reward_state is True
@@ -672,7 +680,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                 )
                 red_color_trigger = True
                 yellow_color_trigger = False
-                return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, yellow_color_trigger
+                return wallet_field(), red_color_trigger, yellow_color_trigger
             elif module_name in ("integrationnet", "testnet"):
                 field_symbol = ":green_square:"
                 field_info = (
@@ -681,7 +689,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                 )
                 red_color_trigger = False
                 yellow_color_trigger = False
-                return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, yellow_color_trigger
+                return wallet_field(), red_color_trigger, yellow_color_trigger
         elif node_data.reward_state in (
                 False,
                 None,
@@ -694,14 +702,14 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                 )
                 red_color_trigger = False
                 yellow_color_trigger = False
-                return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, yellow_color_trigger
+                return wallet_field(), red_color_trigger, yellow_color_trigger
             else:
                 if module_name == "mainnet":
                     field_symbol = ":red_square:"
                     field_info = f":red_circle:` The wallet doesn't receive rewards`"
                     red_color_trigger = True
                     yellow_color_trigger = False
-                    return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, yellow_color_trigger
+                    return wallet_field(), red_color_trigger, yellow_color_trigger
                 elif module_name in ("integrationnet", "testnet"):
                     field_symbol = ":green_square:"
                     field_info = (
@@ -710,7 +718,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                     )
                     red_color_trigger = False
                     yellow_color_trigger = False
-                    return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, yellow_color_trigger
+                    return wallet_field(), red_color_trigger, yellow_color_trigger
         elif node_data.reward_state is True and node_data.former_reward_state in (
                 False,
                 None,
@@ -719,13 +727,13 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
             field_info = f":coin:` The wallet recently started receiving rewards`"
             red_color_trigger = False
             yellow_color_trigger = False
-            return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, yellow_color_trigger
+            return wallet_field(), red_color_trigger, yellow_color_trigger
         elif node_data.reward_state is True and node_data.former_reward_state is True:
             field_symbol = ":green_square:"
             field_info = f":coin:` The wallet receives rewards`"
             red_color_trigger = False
             yellow_color_trigger = False
-            return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, yellow_color_trigger
+            return wallet_field(), red_color_trigger, yellow_color_trigger
         else:
             field_symbol = ":yellow_square:"
             field_info = (
@@ -734,30 +742,18 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
             )
             red_color_trigger = False
             yellow_color_trigger = True
-            return wallet_field(field_symbol, reward_percentage, field_info), red_color_trigger, yellow_color_trigger
-
-    reward_percentage = (
-        0
-        if node_data.reward_true_count in (0, None)
-        else 100
-        if node_data.reward_false_count in (0, None)
-        else (
-                float(node_data.reward_true_count)
-                * 100
-                / float(node_data.reward_false_count)
-        )
-    )
+            return wallet_field(), red_color_trigger, yellow_color_trigger
 
     if node_data.wallet_address is not None:
-        field_content, red_color_trigger, yellow_color_trigger = generate_field_from_reward_states(reward_percentage, module_name)
+        field_content, red_color_trigger, yellow_color_trigger = generate_field_from_reward_states()
         return field_content, red_color_trigger, yellow_color_trigger
     else:
         return (f":yellow_square: **WALLET**\n"
                 f"" f"`ⓘ  No data available`"), False, False
 
 
-def build_system_node_version(node_data: schemas.Node):
-    def version_field():
+def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
+    def version_field() -> str:
         return (
             f"{field_symbol} **TESSELLATION**\n"
             f"```\n"
@@ -814,8 +810,8 @@ def build_system_node_version(node_data: schemas.Node):
                 f"" f"`ⓘ  No data available`"), False, True
 
 
-def build_system_node_load_average(node_data: schemas.Node):
-    def load_average_field():
+def build_system_node_load_average(node_data: schemas.Node)  -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
+    def load_average_field() -> str:
         return (
             f"{field_symbol} **CPU**\n"
             f"```\n"
@@ -842,8 +838,8 @@ def build_system_node_load_average(node_data: schemas.Node):
         return load_average_field(), red_color_trigger, False
 
 
-def build_system_node_disk_space(node_data: schemas.Node):
-    def disk_space_field():
+def build_system_node_disk_space(node_data: schemas.Node) -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
+    def disk_space_field() -> str:
         return (
             f"{field_symbol} **DISK**\n"
             f"```\n"
@@ -870,10 +866,10 @@ def build_system_node_disk_space(node_data: schemas.Node):
             return disk_space_field(), red_color_trigger, False
 
 
-def build_embed(node_data: schemas.Node, module_name):
+def build_embed(node_data: schemas.Node, module_name) -> nextcord.Embed:
     embed_created = False
 
-    def determine_color_and_create_embed(yellow_color_trigger, red_color_trigger):
+    def determine_color_and_create_embed(yellow_color_trigger, red_color_trigger) -> nextcord.Embed:
         title = build_title(node_data).upper()
         if yellow_color_trigger and red_color_trigger is False:
             embed = nextcord.Embed(title=title, colour=nextcord.Color.orange())

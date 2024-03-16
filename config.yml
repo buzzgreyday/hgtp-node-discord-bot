@@ -1,8 +1,6 @@
 file settings:
   locations:
     cluster modules: assets/src/cluster_modules
-    db: assets/data/db/database.db
-    log: assets/data/logs/bot/app.log
 general:
   loop_init_time: '12:00:00'
   loop_interval_minutes: 1
@@ -89,8 +87,3 @@ modules:
       rewards: false
       url:
       - https://l1-lb-testnet.constellationnetwork.io
-tessellation:
-  github:
-    releases:
-      latest: repos/constellation-labs/tessellation/releases/latest
-    url: https://api.github.com

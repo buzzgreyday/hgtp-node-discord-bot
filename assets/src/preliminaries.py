@@ -5,9 +5,15 @@ import traceback
 
 import requests
 from aiofiles import os
+from os import getenv
+from dotenv import load_dotenv
 
 from assets.src import determine_module, schemas
 
+load_dotenv()
+
+
+GH_TOKEN = getenv("GH_TOKEN")
 
 """THREADS"""
 
@@ -28,20 +34,20 @@ class VersionManager:
         while True:
             try:
                 data = requests.get(
-                    f"{self.configuration['tessellation']['github']['url']}/"
-                    f"{self.configuration['tessellation']['github']['releases']['latest']}"
+                    f"https://api.github.com/repos/constellation-labs/tessellation/releases/latest",
+                    headers={'Authorization': f'token {GH_TOKEN}'}
                 ).json()
                 version = data["tag_name"][1:]
                 logging.getLogger("app").debug(
                     f"preliminaries.py - {self.configuration['tessellation']['github']['url']}/"
-                    f"{self.configuration['tessellation']['github']['releases']['latest']} got version: {version}"
+                    f"https://api.github.com/repos/constellation-labs/tessellation/releases/latest got version: {version}"
                 )
                 return version
             except (KeyError, requests.exceptions.ConnectionError):
                 logging.getLogger("app").warning(
                     f"preliminaries.py - {self.configuration['tessellation']['github']['url']}/"
                     f"{self.configuration['tessellation']['github']['releases']['latest']} KeyError: "
-                    f"forcing retry in {3600*2} seconds\n\t{traceback.format_exc()}"
+                    f"forcing retry in {600} seconds\n\t{traceback.format_exc()}"
                 )
                 time.sleep(600)
             except Exception as e:
