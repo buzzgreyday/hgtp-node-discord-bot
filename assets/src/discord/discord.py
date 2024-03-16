@@ -155,8 +155,7 @@ async def send(bot, node_data: schemas.Node, configuration):
     async def finalize(embed):
         try:
             await bot.wait_until_ready()
-            # member = await guild.fetch_member(int(node_data.discord))
-            member = await guild.fetch_member(794353079825727500)
+            member = await guild.fetch_member(int(node_data.discord))
             embed.set_footer(
                 text=f"Data: {node_data.timestamp_index.utcnow().strftime('%d-%m-%Y %H:%M')} UTC\n"
                      f"Build: {configuration['general']['version']}",
