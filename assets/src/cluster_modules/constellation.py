@@ -17,6 +17,8 @@ import pandas as pd
 
 from assets.src import schemas, config, cluster, api
 
+CONNECT_STATES = ("waitingfordownload", "downloadinprogress", "observing")
+
 """
     SECTION 1: PRELIMINARIES
 """
@@ -274,12 +276,20 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
 
     def set_association():
         if session != former_session:
-            logging.getLogger("app").debug(
-                f"constellation.py - New association with {module_name} by {node_data.name} ({node_data.ip}:"
-                f"{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
-            )
-            node_data.cluster_connectivity = "new association"
-            node_data.last_known_cluster_name = module_name
+            if node_data.state in CONNECT_STATES:
+                logging.getLogger("app").debug(
+                    f"constellation.py - Connect {module_name} by {node_data.name} ({node_data.ip}:"
+                    f"{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+                )
+                node_data.cluster_connectivity = "connecting"
+            else:
+                logging.getLogger("app").debug(
+                    f"constellation.py - New association with {module_name} by {node_data.name} ({node_data.ip}:"
+                    f"{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+                )
+                node_data.cluster_connectivity = "new association"
+                node_data.last_known_cluster_name = module_name
+
         else:
             logging.getLogger("app").debug(
                 f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:"
@@ -419,7 +429,7 @@ def set_association_time(node_data: schemas.Node):
     elif node_data.cluster_connectivity in ("new association", "new dissociation"):
         node_data.cluster_association_time = node_data.former_cluster_association_time
         node_data.cluster_dissociation_time = node_data.former_cluster_dissociation_time
-    elif node_data.cluster_connectivity == "uncertain":
+    elif node_data.cluster_connectivity == ("uncertain", "connecting"):
         node_data.cluster_association_time = node_data.former_cluster_association_time
         node_data.cluster_dissociation_time = node_data.former_cluster_dissociation_time
 
@@ -440,7 +450,7 @@ def build_title(node_data: schemas.Node):
     ) if cluster]
     if names:
         cluster_name = names[0]
-    if node_data.state in ("waitingfordownload", "downloadinprogress", "observing"):
+    if node_data.state in CONNECT_STATES:
         title_ending = f"CONNECTING"
     elif node_data.cluster_connectivity in ("new association", "association"):
         title_ending = f"UP"
@@ -870,20 +880,17 @@ def build_embed(node_data: schemas.Node, module_name):
             embed.set_thumbnail(
                 url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png"
             )
-            # embed.set_image(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/banner-color.png")
         elif red_color_trigger:
             embed = nextcord.Embed(title=title, colour=nextcord.Color.brand_red())
             embed.set_thumbnail(
                 url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-red.png"
             )
-            # embed.set_image(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/banner-color.png")
 
         else:
             embed = nextcord.Embed(title=title, colour=nextcord.Color.dark_teal())
             embed.set_thumbnail(
                 url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png"
             )
-            # embed.set_image(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/banner-color.png")
 
         return embed
 
@@ -962,7 +969,7 @@ def mark_notify(d: schemas.Node, configuration):
     if d.cluster_connectivity in ("new association", "new dissociation"):
         d.notify = True
     elif d.last_notified_timestamp:
-        if d.cluster_connectivity in ("forked", "uncertain"):
+        if d.cluster_connectivity in ("forked", "uncertain", "connecting"):
             if (
                     d.timestamp_index - d.last_notified_timestamp
             ).total_seconds() >= timedelta(
@@ -974,6 +981,8 @@ def mark_notify(d: schemas.Node, configuration):
                 d.notify = True
                 if d.cluster_connectivity == "forked":
                     d.last_notified_reason = "forked"
+                elif d.cluster_connectivity == "connecting":
+                    d.last_notified_reason = "connecting"
                 else:
                     d.last_notified_reason = "uncertain"
         elif d.reward_state is False:
@@ -983,7 +992,7 @@ def mark_notify(d: schemas.Node, configuration):
                 hours=configuration["general"]["notifications"][
                     "free disk space sleep (hours)"
                 ]
-            ).seconds or d.last_notified_reason in ("disk", "version", "forked", "uncertain"):
+            ).seconds or d.last_notified_reason in ("disk", "version", "forked", "uncertain", "connecting"):
                 # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
                 d.notify = True
                 d.last_notified_timestamp = d.timestamp_index
@@ -992,7 +1001,7 @@ def mark_notify(d: schemas.Node, configuration):
             if (
                 (d.timestamp_index.second - d.last_notified_timestamp.second)
                 >= timedelta(hours=6).seconds
-            ) or d.last_notified_reason in ("rewards", "disk", "forked", "uncertain"):
+            ) or d.last_notified_reason in ("rewards", "disk", "forked", "uncertain", "connecting"):
                 d.notify = True
                 d.last_notified_timestamp = d.timestamp_index
                 d.last_notified_reason = "version"
@@ -1003,7 +1012,7 @@ def mark_notify(d: schemas.Node, configuration):
                     <= configuration["general"]["notifications"][
                 "free disk space threshold (percentage)"
             ]
-            ) or d.last_notified_reason in ("rewards", "version", "forked", "uncertain"):
+            ) or d.last_notified_reason in ("rewards", "version", "forked", "uncertain", "connecting"):
                 if (
                         d.timestamp_index - d.last_notified_timestamp
                 ).total_seconds() >= timedelta(
@@ -1016,6 +1025,10 @@ def mark_notify(d: schemas.Node, configuration):
                     d.last_notified_reason = "disk"
     # IF NO FORMER DATA
     else:
+        if d.cluster_connectivity == "connecting":
+            d.notify = True
+            d.last_notified_timestamp = d.timestamp_index
+            d.last_notified_reason = "connecting"
         if d.reward_state is False:
             d.notify = True
             d.last_notified_timestamp = d.timestamp_index
