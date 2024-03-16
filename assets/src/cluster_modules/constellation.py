@@ -450,7 +450,7 @@ def build_title(node_data: schemas.Node):
     ) if cluster]
     if names:
         cluster_name = names[0]
-    if node_data.state in CONNECT_STATES:
+    if node_data.cluster_connectivity == "connecting":
         title_ending = f"CONNECTING"
     elif node_data.cluster_connectivity in ("new association", "association"):
         title_ending = f"UP"
@@ -465,9 +465,9 @@ def build_title(node_data: schemas.Node):
     else:
         title_ending = f"REPORT"
     if cluster_name is not None:
-        return f"{cluster_name.title()} layer {node_data.layer} node ({node_data.ip}): {title_ending}"
+        return f"{cluster_name.title()} L{node_data.layer} ({node_data.ip}): {title_ending}"
     else:
-        return f"Layer {node_data.layer} node ({node_data.ip}): {title_ending}"
+        return f"L{node_data.layer} ({node_data.ip}): {title_ending}"
 
 
 def build_general_node_state(node_data: schemas.Node):
