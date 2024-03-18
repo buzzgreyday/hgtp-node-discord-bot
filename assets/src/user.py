@@ -34,6 +34,9 @@ async def node_status_check(
     found_in_cluster, cluster_data = cluster.locate_node(node_data, cluster_data)
     node_data = cluster.merge_data(node_data, found_in_cluster, cluster_data)
     node_data = await cluster.get_module_data(session, node_data, configuration)
+    # You need to check rewards here, if association is made but cluster is down!
+    # The way to do this is to check add addresses for cluster, even if cluster is down
+    # Think I did this now
     if (
             node_data.cluster_name is not None
             and cluster_data is not None

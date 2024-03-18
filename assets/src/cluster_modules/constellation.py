@@ -57,6 +57,13 @@ async def request_cluster_data(
             layer=layer,
             name=name,
             id=await cluster.locate_id_offline(layer, name, configuration),
+            peer_count=len(cluster_resp) if cluster_resp is not None else 0,
+            latest_ordinal=latest_ordinal,
+            latest_timestamp=latest_timestamp,
+            recently_rewarded=addresses,
+            peer_data=sorted(cluster_resp, key=lambda d: d["id"])
+            if cluster_resp is not None
+            else [],
         )
     else:
         cluster_data = schemas.Cluster(
