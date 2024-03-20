@@ -634,6 +634,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name) -> tuple[s
     elif node_data.cluster_connectivity == "connecting":
         field_symbol = ":green_square:"
         field_info = f"`ⓘ  The node is connecting to a cluster`"
+        return general_cluster_state_field(),False, False
     elif node_data.cluster_connectivity == "forked":
         field_symbol = ":red_square:"
         field_info = f"`⚠  The node has forked`"
