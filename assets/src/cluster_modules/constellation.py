@@ -284,6 +284,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
 
     def set_association():
         if session != former_session:
+            # If node just started connecting
             if node_data.state in CONNECT_STATES:
                 logging.getLogger("app").debug(
                     f"constellation.py - Connect {module_name} by {node_data.name} ({node_data.ip}:"
@@ -299,7 +300,12 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                 node_data.last_known_cluster_name = module_name
 
         else:
-            if node_data.state in CONNECT_STATES:
+            # If node was connecting before and now has connection
+            if node_data.state == "ready" and node_data.former_state in CONNECT_STATES:
+                node_data.cluster_connectivity = "new association"
+                node_data.last_known_cluster_name = module_name
+            # If node is consecutively connecting
+            elif node_data.state in CONNECT_STATES:
                 logging.getLogger("app").debug(
                     f"constellation.py - Connect {module_name} by {node_data.name} ({node_data.ip}:"
                     f"{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
@@ -625,6 +631,9 @@ def build_general_cluster_state(node_data: schemas.Node, module_name) -> tuple[s
         field_info = f"`⚠  The node is consecutively dissociated from the cluster`"
         red_color_trigger = True
         return general_cluster_state_field(), red_color_trigger, False
+    elif node_data.cluster_connectivity == "connecting":
+        field_symbol = ":green_square:"
+        field_info = f"`ⓘ  The node is connecting to a cluster`"
     elif node_data.cluster_connectivity == "forked":
         field_symbol = ":red_square:"
         field_info = f"`⚠  The node has forked`"
@@ -645,7 +654,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name) -> tuple[s
             f"constellation.py - {node_data.cluster_connectivity.title()} is not a supported node state ({node_data.name}, {node_data.ip}:{node_data.public_port}, L{node_data.layer})"
         )
         field_symbol = ":yellow_square:"
-        field_info = f"`⚠  please contact hgtp_michael: cluster connectivity is {node_data.cluster_connectivity}`"
+        field_info = f"`⚠  Please contact hgtp_michael: cluster connectivity is {node_data.cluster_connectivity}`"
         yellow_color_trigger = True
         return general_cluster_state_field(), False, yellow_color_trigger
 
