@@ -416,6 +416,12 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                     f"({session, latest_session}) [Edge node is down]"
                 )
                 node_data.cluster_connectivity = "association"
+            elif session == former_session and node_data.state in CONNECT_STATES:
+                logging.getLogger("app").debug(
+                    f"constellation.py - Connect {module_name} by {node_data.name} ({node_data.ip}:"
+                    f"{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+                )
+                node_data.cluster_connectivity = "connecting"
             else:
                 set_uncertain()
         else:
@@ -988,7 +994,7 @@ def mark_notify(d: schemas.Node, configuration):
     # The hardcoded values should be adjustable in config_new.yml
     if d.cluster_connectivity in ("new association", "new dissociation"):
         d.notify = True
-    elif d.former_cluster_connectivity != ("connecting", "uncertain", "forked") and d.cluster_connectivity == "connecting":
+    elif d.former_cluster_connectivity != "connecting" and d.cluster_connectivity == "connecting":
         d.notify = True
         d.last_notified_reason = "connecting"
     elif d.last_notified_timestamp:
