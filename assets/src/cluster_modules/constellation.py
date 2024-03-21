@@ -354,7 +354,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
     # And I only need to register when cluster_data is found, right? How about when report is requested?
     if latest_session:
         # "latest_session" is None due to connection error or dissoc.
-        if session != latest_session:
+        if session < latest_session:
             # In case the node is dissociated from a known cluster.
             # Could be dissoc. in the following ways:
             # "session" is None due to connection error or dissoc.
@@ -395,6 +395,12 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                     f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Due to session being the latest ({session, latest_session})"
                 )
                 node_data.cluster_connectivity = "association"
+        else:
+            logger.debug(
+                f"constellation.py -  {node_data.name} ({node_data.ip}) forked {module_name.title()}:"
+                f"{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+            )
+            node_data.cluster_connectivity = "forked"
 
     else:
         # If edge node is under maintenance or connection error
