@@ -988,7 +988,7 @@ def mark_notify(d: schemas.Node, configuration):
     # The hardcoded values should be adjustable in config_new.yml
     if d.cluster_connectivity in ("new association", "new dissociation"):
         d.notify = True
-    elif d.former_cluster_connectivity != "connecting" and d.cluster_connectivity == "connecting":
+    elif d.former_cluster_connectivity != ("connecting", "uncertain", "forked") and d.cluster_connectivity == "connecting":
         d.notify = True
         d.last_notified_reason = "connecting"
     elif d.last_notified_timestamp:
