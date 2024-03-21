@@ -352,7 +352,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
     former_session = node_data.former_node_cluster_session
     # latest_session is only registered if something crucial... But what? If cluster_data is found, right?
     # And I only need to register when cluster_data is found, right? How about when report is requested?
-    if latest_session:
+    if session and latest_session:
         # "latest_session" is None due to connection error or dissoc.
         if session < latest_session:
             # In case the node is dissociated from a known cluster.
