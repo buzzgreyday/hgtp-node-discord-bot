@@ -283,21 +283,22 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
     """
 
     def set_association():
-        if session != former_session:
-            # If node just started connecting
-            if node_data.state in CONNECT_STATES:
-                logging.getLogger("app").debug(
-                    f"constellation.py - Connect {module_name} by {node_data.name} ({node_data.ip}:"
-                    f"{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
-                )
-                node_data.cluster_connectivity = "connecting"
-            else:
-                logging.getLogger("app").debug(
-                    f"constellation.py - New association with {module_name} by {node_data.name} ({node_data.ip}:"
-                    f"{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
-                )
-                node_data.cluster_connectivity = "new association"
-                node_data.last_known_cluster_name = module_name
+        if session and former_session:
+            if session != former_session:
+                # If node just started connecting
+                if node_data.state in CONNECT_STATES:
+                    logging.getLogger("app").debug(
+                        f"constellation.py - Connect {module_name} by {node_data.name} ({node_data.ip}:"
+                        f"{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+                    )
+                    node_data.cluster_connectivity = "connecting"
+                else:
+                    logging.getLogger("app").debug(
+                        f"constellation.py - New association with {module_name} by {node_data.name} ({node_data.ip}:"
+                        f"{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
+                    )
+                    node_data.cluster_connectivity = "new association"
+                    node_data.last_known_cluster_name = module_name
 
         else:
             # If node was connecting before and now has connection
@@ -998,7 +999,7 @@ def mark_notify(d: schemas.Node, configuration):
                 hours=configuration["general"]["notifications"][
                     "free disk space sleep (hours)"
                 ]
-            ).seconds or d.last_notified_reason in ("disk", "version", "rewards"):
+            ).seconds and d.last_notified_reason in ("disk", "version", "rewards"):
                 d.last_notified_timestamp = d.timestamp_index
                 d.notify = True
                 if d.cluster_connectivity == "forked":
@@ -1014,7 +1015,7 @@ def mark_notify(d: schemas.Node, configuration):
                 hours=configuration["general"]["notifications"][
                     "free disk space sleep (hours)"
                 ]
-            ).seconds or d.last_notified_reason in ("disk", "version", "forked", "uncertain", "connecting"):
+            ).seconds and d.last_notified_reason in ("disk", "version", "forked", "uncertain", "connecting"):
                 # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
                 d.notify = True
                 d.last_notified_timestamp = d.timestamp_index
@@ -1024,7 +1025,7 @@ def mark_notify(d: schemas.Node, configuration):
                 if (
                     (d.timestamp_index.second - d.last_notified_timestamp.second)
                     >= timedelta(hours=6).seconds
-                ) or d.last_notified_reason in ("rewards", "disk", "forked", "uncertain", "connecting"):
+                ) and d.last_notified_reason in ("rewards", "disk", "forked", "uncertain", "connecting"):
                     d.notify = True
                     d.last_notified_timestamp = d.timestamp_index
                     d.last_notified_reason = "version"
@@ -1035,7 +1036,7 @@ def mark_notify(d: schemas.Node, configuration):
                     <= configuration["general"]["notifications"][
                 "free disk space threshold (percentage)"
             ]
-            ) or d.last_notified_reason in ("rewards", "version", "forked", "uncertain", "connecting"):
+            ) and d.last_notified_reason in ("rewards", "version", "forked", "uncertain", "connecting"):
                 if (
                         d.timestamp_index - d.last_notified_timestamp
                 ).total_seconds() >= timedelta(
