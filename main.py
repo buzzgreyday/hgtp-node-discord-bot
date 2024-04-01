@@ -49,17 +49,18 @@ def start_stats_coroutine(_configuration):
 async def main_loop(version_manager, _configuration):
     times = preliminaries.generate_runtimes(_configuration)
     logging.getLogger("app").info(f"main.py - runtime schedule:\n\t{times}")
-    # THIS NEEDS TO RUN AS A SEPARATE THREAD
-    # FOR NOW PRICE JUST LOOPS
+
     while True:
         async with asyncio.Semaphore(8):
             async with aiohttp.ClientSession() as session:
                 try:
                     data_queue = asyncio.Queue()
                     tasks = []
-                    if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
-                        for cluster_name in _configuration["modules"].keys():
-                            for layer in _configuration["modules"][cluster_name].keys():
+
+                    current_time = datetime.utcnow().time().strftime("%H:%M:%S")
+                    if current_time in times:
+                        for cluster_name, layers in _configuration["modules"].items():
+                            for layer in layers:
                                 task = run_process.automatic_check(
                                     session,
                                     cluster_name,
@@ -68,16 +69,18 @@ async def main_loop(version_manager, _configuration):
                                     _configuration,
                                 )
                                 tasks.append(task)
+
                         for completed_task in asyncio.as_completed(tasks):
                             data = await completed_task
                             await data_queue.put(data)
+
                         while not data_queue.empty():
                             data = await data_queue.get()
                             await history.write(data)
 
-                except Exception:
+                except Exception as e:
                     logging.getLogger("app").error(
-                        f"main.py - error: {traceback.format_exc()}\n\tCurrent check exited..."
+                        f"main.py - error: {traceback.format_exc()}"
                     )
                     await discord.messages.send_traceback(bot, traceback.format_exc())
 
@@ -93,8 +96,6 @@ def run_uvicorn_process():
             "8000",
             "--log-config",
             "assets/data/logs/bot/uvicorn.ini",
-            # "--log-level",
-            # "info",
         ]
     )
 
@@ -105,7 +106,7 @@ def main():
     logger = logging.getLogger("app")
     logger.setLevel(logging.INFO)
     handler = logging.FileHandler(
-        filename="assets/data/logs/bot/app.log", encoding="utf-8", mode="w"
+        filename="assets/data/logs/app.log", encoding="utf-8", mode="w"
     )
     handler.setFormatter(
         logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s")
@@ -115,7 +116,7 @@ def main():
     logger = logging.getLogger("rewards")
     logger.setLevel(logging.INFO)
     handler = logging.FileHandler(
-        filename="assets/data/logs/bot/rewards.log", encoding="utf-8", mode="w"
+        filename="assets/data/logs/rewards.log", encoding="utf-8", mode="w"
     )
     handler.setFormatter(
         logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s")
@@ -125,7 +126,7 @@ def main():
     logger = logging.getLogger("nextcord")
     logger.setLevel(logging.CRITICAL)
     handler = logging.FileHandler(
-        filename="assets/data/logs/bot/nextcord.log", encoding="utf-8", mode="w"
+        filename="assets/data/logs/nextcord.log", encoding="utf-8", mode="w"
     )
     handler.setFormatter(
         logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s")
@@ -135,7 +136,7 @@ def main():
     logger = logging.getLogger("stats")
     logger.setLevel(logging.INFO)
     handler = logging.FileHandler(
-        filename="assets/data/logs/bot/stats.log", encoding="utf-8", mode="w"
+        filename="assets/data/logs/stats.log", encoding="utf-8", mode="w"
     )
     handler.setFormatter(
         logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s")
@@ -156,9 +157,7 @@ def main():
     # )
     # get_tessellation_version_thread.start()
     uvicorn_thread.start()
-    rewards_thread = threading.Thread(
-        target=start_rewards_coroutine, args=(_configuration,)
-    )
+    rewards_thread = threading.Thread(target=start_rewards_coroutine, args=(_configuration,))
     rewards_thread.start()
     stats_thread = threading.Thread(
         target=start_stats_coroutine, args=(_configuration,)

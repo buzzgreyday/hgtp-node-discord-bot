@@ -12,10 +12,13 @@ import asyncio
 import logging
 from datetime import datetime, timedelta
 
+import nextcord.embeds
 import nextcord
 import pandas as pd
 
-from assets.src import schemas, config, cluster, api
+from assets.src import schemas, cluster, api
+
+CONNECT_STATES = ("waitingfordownload", "downloadinprogress", "observing")
 
 """
     SECTION 1: PRELIMINARIES
@@ -54,6 +57,13 @@ async def request_cluster_data(
             layer=layer,
             name=name,
             id=await cluster.locate_id_offline(layer, name, configuration),
+            peer_count=len(cluster_resp) if cluster_resp is not None else 0,
+            latest_ordinal=latest_ordinal,
+            latest_timestamp=latest_timestamp,
+            recently_rewarded=addresses,
+            peer_data=sorted(cluster_resp, key=lambda d: d["id"])
+            if cluster_resp is not None
+            else [],
         )
     else:
         cluster_data = schemas.Cluster(
@@ -73,7 +83,7 @@ async def request_cluster_data(
             if cluster_resp is not None
             else [],
         )
-    await config.update_config_with_latest_values(cluster_data, configuration)
+    # await config.update_config_with_latest_values(cluster_data, configuration)
     return cluster_data
 
 
@@ -272,54 +282,159 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
     We might need to add some more clarity to how the node has been connected. Like: former_name, latest_name, etc.
     """
 
-    # THIS NEEDS WORK, ALSO MAINNET!!!!
+    logger = logging.getLogger("app")
 
     former_name = node_data.former_cluster_name
     curr_name = node_data.cluster_name
-    session = node_data.node_cluster_session
-    latest_session = node_data.latest_cluster_session
+    if node_data.node_cluster_session not in ('None', None):
+        session = float(node_data.node_cluster_session)
+    else:
+        session = None
+    if node_data.latest_cluster_session not in ('None', None):
+        latest_session = float(node_data.latest_cluster_session)
+    else:
+        latest_session = None
     former_session = node_data.former_node_cluster_session
-    # latest_session is only registered if something crucial... But what? If cluster_data is found, right?
-    # And I only need to register when cluster_data is found, right? How about when report is requested?
+
     if latest_session:
-        if session != latest_session:
-            # In case the node is dissociated from a known cluster
-            if not curr_name:
-                if former_name == module_name:
-                    logging.getLogger("app").debug(
-                        f"constellation.py - New dissociation with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
-                    )
-                    node_data.cluster_connectivity = "new dissociation"
-                    # node_data.last_known_cluster_name = former_name
-                elif former_name is None:
-                    logging.getLogger("app").debug(
-                        f"constellation.py - {module_name.title()} is dissociated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
-                    )
-                    node_data.cluster_connectivity = "dissociation"
-            elif curr_name:
-                logging.getLogger("app").debug(
-                    f"constellation.py - {module_name.title()} is dissociated with {node_data.name} ({node_data.ip} [node has forked]:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
-                )
-                node_data.cluster_connectivity = "forked"
-
-        elif session == latest_session:
-            # If new connection is made with this node then alert
-            if curr_name == module_name:
-                # If former name is None or another metagraph name
-                if former_name != module_name:
-                    logging.getLogger("app").debug(
-                        f"constellation.py - New association with {module_name} by {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
-                    )
-                    node_data.cluster_connectivity = "new association"
-                    node_data.last_known_cluster_name = module_name
-                elif former_name == module_name:
-                    logging.getLogger("app").debug(
-                        f"constellation.py - {module_name.title()} is associated with {node_data.name} ({node_data.ip}:{node_data.public_port}, L{node_data.layer}): Sessions {session, latest_session}"
-                    )
+        # If LB is up (None)
+        if session:
+            # If node is up
+            if session == latest_session:
+                # If Node is associated with a cluster
+                if node_data.former_cluster_connectivity in ("association", "new association"):
+                    # If node is consecutively associated with a cluster
+                    if node_data.state == "ready":
+                        node_data.cluster_connectivity = "association"
+                        return node_data
+                    elif node_data.state in CONNECT_STATES:
+                        node_data.cluster_connectivity = "connecting"
+                        return node_data
+                    else:
+                        node_data.cluster_connectivity = "uncertain"
+                        return node_data
+                elif node_data.former_cluster_connectivity in (
+                        "dissociation", "new dissociation", "connecting", "forked", "uncertain"):
+                    # If node is recently associated with a cluster
+                    if node_data.state == "ready":
+                        node_data.cluster_connectivity = "new association"
+                        node_data.last_known_cluster_name = node_data.cluster_name
+                        return node_data
+                    elif node_data.state in CONNECT_STATES:
+                        node_data.cluster_connectivity = "connecting"
+                        return node_data
+                    else:
+                        node_data.cluster_connectivity = "uncertain"
+                        return node_data
+                else:
                     node_data.cluster_connectivity = "association"
-
-    return node_data
-
+                    return node_data
+            if session < latest_session:
+                # If node is dissociated from the cluster
+                if node_data.former_cluster_connectivity in ("association", "new association", "forked", "connecting", "uncertain"):
+                    # If node was recently dissociated from the cluster
+                    node_data.cluster_connectivity = "new dissociation"
+                    node_data.last_known_cluster_name = node_data.former_cluster_name
+                    return node_data
+                elif node_data.former_cluster_connectivity in ("dissociation", "new dissociation"):
+                    node_data.cluster_connectivity = "dissociation"
+                    return node_data
+                else:
+                    node_data.cluster_connectivity = "dissociation"
+                    return node_data
+            elif session > latest_session:
+                # If node is dissociated from the cluster (fork)
+                node_data.cluster_connectivity = "forked"
+                return node_data
+            else:
+                node_data.cluster_connectivity = "uncertain"
+                return node_data
+        else:
+            # If node is offline (None), could be false negative connection.
+            # Remember, we can still rely on the edge node finding it and assigning the node it's cluster name
+            if curr_name == module_name:
+                # If the node is found in the edge node data, it's a false negative connection
+                if node_data.former_cluster_connectivity in ("association", "new association"):
+                    node_data.cluster_connectivity = "association"
+                    return node_data
+                elif node_data.former_cluster_connectivity == "connecting":
+                    node_data.cluster_connectivity = "connecting"
+                    return node_data
+                elif node_data.former_cluster_connectivity in ("dissociation", "new dissociation", "uncertain"):
+                    node_data.former_cluster_connectivity = "new association"
+                    return node_data
+                elif node_data.former_cluster_connectivity == "forked":
+                    node_data.cluster_connectivity = "forked"
+                    return node_data
+                else:
+                    node_data.cluster_connectivity = "association"
+                    return node_data
+            else:
+                # If node is not in the edge node cluster data, it's dissociated
+                if node_data.former_cluster_connectivity in ("association", "new association", "connecting", "uncertain"):
+                    node_data.cluster_connectivity = "new dissociation"
+                    node_data.last_known_cluster_name = node_data.former_cluster_name
+                    return node_data
+                elif node_data.former_cluster_connectivity in ("dissociation", "new dissociation"):
+                    node_data.cluster_connectivity = "dissociation"
+                    return node_data
+                elif node_data.former_cluster_connectivity == "forked":
+                    node_data.cluster_connectivity = "forked"
+                    return node_data
+                else:
+                    node_data.cluster_connectivity = "dissociation"
+                    return node_data
+    else:
+        # If LB is down (None), could be false negative connection
+        if session:
+            # If node is up
+            if node_data.former_cluster_connectivity in ("association", "new association"):
+                # If node was associated with a cluster
+                if node_data.state == "ready":
+                    node_data.cluster_connectivity = "association"
+                    return node_data
+                elif node_data.state in CONNECT_STATES:
+                    node_data.cluster_connectivity = "connecting"
+                    return node_data
+                else:
+                    node_data.cluster_connectivity = "new dissociation"
+                    return node_data
+            elif node_data.former_cluster_connectivity in ("dissociation", "new dissociation"):
+                # If node was dissociated from a cluster
+                node_data.cluster_connectivity = "dissociation"
+                return node_data
+            elif node_data.former_cluster_connectivity == "connecting":
+                # If node was connecting
+                node_data.cluster_connectivity = "connecting"
+                return node_data
+            elif node_data.former_cluster_connectivity == "forked":
+                # If node had forked
+                node_data.cluster_connectivity = "forked"
+                return node_data
+            else:
+                node_data.cluster_connectivity = "uncertain"
+                return node_data
+        else:
+            # If node is offline (None), no present data
+            if node_data.former_cluster_connectivity in ("association", "new association"):
+                # If node was associated with a cluster
+                node_data.cluster_connectivity = "association"
+                return node_data
+            elif node_data.former_cluster_connectivity in ("dissociation", "new dissociation"):
+                # If node was dissociated from a cluster
+                node_data.cluster_connectivity = "dissociation"
+                return node_data
+            elif node_data.former_cluster_connectivity == "connecting":
+                # If node was connecting
+                node_data.cluster_connectivity = "connecting"
+                return node_data
+            elif node_data.former_cluster_connectivity == "forked":
+                # If node had forked
+                node_data.cluster_connectivity = "forked"
+                return node_data
+            else:
+                node_data.cluster_connectivity = "uncertain"
+                return node_data
 
 def set_association_time(node_data: schemas.Node):
     if node_data.former_timestamp_index is not None:
@@ -345,12 +460,15 @@ def set_association_time(node_data: schemas.Node):
                 time_difference + node_data.former_cluster_association_time
         )
         node_data.cluster_dissociation_time = node_data.former_cluster_dissociation_time
-    elif node_data.cluster_connectivity == "dissociation":
+    elif node_data.cluster_connectivity in ("dissociation", "forked"):
         node_data.cluster_dissociation_time = (
                 time_difference + node_data.former_cluster_dissociation_time
         )
         node_data.cluster_association_time = node_data.former_cluster_association_time
     elif node_data.cluster_connectivity in ("new association", "new dissociation"):
+        node_data.cluster_association_time = node_data.former_cluster_association_time
+        node_data.cluster_dissociation_time = node_data.former_cluster_dissociation_time
+    elif node_data.cluster_connectivity == ("uncertain", "connecting"):
         node_data.cluster_association_time = node_data.former_cluster_association_time
         node_data.cluster_dissociation_time = node_data.former_cluster_dissociation_time
 
@@ -362,7 +480,7 @@ def set_association_time(node_data: schemas.Node):
 """
 
 
-def build_title(node_data: schemas.Node):
+def build_title(node_data: schemas.Node) -> str:
     cluster_name = None
     names = [cluster for cluster in (
         node_data.cluster_name,
@@ -371,20 +489,28 @@ def build_title(node_data: schemas.Node):
     ) if cluster]
     if names:
         cluster_name = names[0]
-    if node_data.cluster_connectivity in ("new association", "association"):
-        title_ending = f"is up"
+    if node_data.cluster_connectivity == "connecting":
+        title_ending = f"CONNECTING"
+    elif node_data.cluster_connectivity in ("new association", "association"):
+        title_ending = f"UP"
     elif node_data.cluster_connectivity in ("new dissociation", "dissociation"):
-        title_ending = f"is down"
+        title_ending = f"DOWN"
+    elif node_data.cluster_connectivity == "forked":
+        title_ending = f"FORKED"
+    elif node_data.reward_state is False:
+        title_ending = f"MISSING REWARDS"
+    elif node_data.cluster_connectivity == "uncertain":
+        title_ending = f"UNSTABLE CONNECTION"
     else:
-        title_ending = f"report"
+        title_ending = f"REPORT"
     if cluster_name is not None:
-        return f"{cluster_name.title()} layer {node_data.layer} node ({node_data.ip}) {title_ending}"
+        return f"{cluster_name.title()} L{node_data.layer} ({node_data.ip}): {title_ending}"
     else:
-        return f"layer {node_data.layer} node ({node_data.ip}) {title_ending}"
+        return f"L{node_data.layer} ({node_data.ip}): {title_ending}"
 
 
-def build_general_node_state(node_data: schemas.Node):
-    def node_state_field():
+def build_general_node_state(node_data: schemas.Node) -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
+    def node_state_field() -> str:
         if node_data.id is not None:
             return (
                 f"{field_symbol} **NODE**\n"
@@ -407,36 +533,81 @@ def build_general_node_state(node_data: schemas.Node):
                 f"{field_info}"
             )
 
-    if node_data.state != "offline":
-        field_symbol = ":green_square:"
+    if node_data.state not in ("offline", "waitingfordownload", "downloadinprogress", "readytojoin", None):
         if node_data.cluster_peer_count in (None, 0):
-            field_info = f"`ⓘ  The node is not connected to any known cluster`"
+            if node_data.cluster_connectivity in ("new association", "association"):
+                field_symbol = ":green_square:"
+                field_info = f"`ⓘ  Node is connected but the load balancer is unstable or the network is undergoing maintenance`"
+                node_state = node_data.state.title()
+                return node_state_field(), False, False
+            elif node_data.cluster_connectivity == "forked":
+                field_symbol = ":red_square:"
+                field_info = f"`⚠  Node has forked and the load balancer is unstable or the network is undergoing maintenance`"
+                node_state = node_data.state.title()
+                red_color_trigger = True
+                return node_state_field(), red_color_trigger, False
+            elif node_data.cluster_connectivity in ("new dissociation", "dissociation"):
+                field_symbol = ":red_square:"
+                field_info = f"`⚠  Node is disconnected and the load balancer is unstable or the network is undergoing maintenance`"
+                node_state = node_data.state.title()
+                red_color_trigger = True
+                return node_state_field(), red_color_trigger, False
+            else:
+                field_symbol = ":yellow_square:"
+                field_info = f'⚠  Node connection is uncertain and the load balancer is unstable or the network is undergoing maintenance'
+                node_state = node_data.state.title()
+                yellow_color_trigger = True
+                return node_state_field(), False, yellow_color_trigger
         elif node_data.node_peer_count in (None, 0):
-            field_info = f"`ⓘ  The node is not connected to any known cluster`"
+            field_info = f"`⚠  The node is not connected to any cluster peers`"
+            field_symbol = ":red_square:"
+            node_state = node_data.state.title()
+            red_color_trigger = True
+            return node_state_field(), red_color_trigger, False
         else:
             field_info = f"`ⓘ  Connected to {round(float(node_data.node_peer_count * 100 / node_data.cluster_peer_count), 2)}% of the cluster peers`"
+            field_symbol = ":green_square:"
+            node_state = node_data.state.title()
+            return node_state_field(), False, False
+    elif node_data.state in ("waitingfordownload", "downloadinprogress", "readytojoin"):
+        field_symbol = ":yellow_square:"
+        if node_data.state == "readytojoin":
+            field_info = f"`ⓘ  The node is ready to join a cluster`"
+        else:
+            field_info = f"`ⓘ  The node is attempting to establish connection to the cluster`"
         node_state = node_data.state.title()
+        yellow_color_trigger = True
         return node_state_field(), False, yellow_color_trigger
-    elif node_data.state == "offline":
+    else:
         field_symbol = f":red_square:"
-        field_info = f"`ⓘ  The node is not connected to to any of the previously associated cluster`"
+        field_info = f"`⚠  The node is not associated with the previously associated cluster`"
         node_state = "Offline"
         red_color_trigger = True
-        return node_state_field(), red_color_trigger, yellow_color_trigger
+        return node_state_field(), red_color_trigger, False
 
 
-def build_general_cluster_state(node_data: schemas.Node, module_name):
-    def general_cluster_state_field():
-        return (
-            f"{field_symbol} **{module_name.upper()} CLUSTER**\n"
-            f"```\n"
-            f"Peers:   {node_data.cluster_peer_count}\n"
-            f"Assoc.:  {timedelta(seconds=float(node_data.cluster_association_time)).days} days {round(association_percent(), 2)}%\n"
-            f"Dissoc.: {timedelta(seconds=float(node_data.cluster_dissociation_time)).days} days {round(100.00 - association_percent(), 2)}%```"
-            f"{field_info}"
-        )
+def build_general_cluster_state(node_data: schemas.Node, module_name) -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
+    def general_cluster_state_field() -> str:
+        if node_data.cluster_peer_count > 0:
+            return (
+                f"{field_symbol} **{module_name.upper()} CLUSTER**\n"
+                f"```\n"
+                f"Peers:   {node_data.cluster_peer_count}\n"
+                f"Assoc.:  {timedelta(seconds=float(node_data.cluster_association_time)).days} days {round(association_percent(), 2)}%\n"
+                f"Dissoc.: {timedelta(seconds=float(node_data.cluster_dissociation_time)).days} days {round(100.00 - association_percent(), 2)}%```"
+                f"{field_info}"
+            )
+        else:
+            return (
+                f"{field_symbol} **{module_name.upper()} CLUSTER**\n"
+                f"```\n"
+                f"Peers:   {node_data.node_peer_count}\n"
+                f"Assoc.:  {timedelta(seconds=float(node_data.cluster_association_time)).days} days {round(association_percent(), 2)}%\n"
+                f"Dissoc.: {timedelta(seconds=float(node_data.cluster_dissociation_time)).days} days {round(100.00 - association_percent(), 2)}%```"
+                f"{field_info}"
+            )
 
-    def association_percent():
+    def association_percent() -> float:
         if node_data.cluster_association_time not in (
                 0,
                 None,
@@ -463,70 +634,76 @@ def build_general_cluster_state(node_data: schemas.Node, module_name):
     if node_data.cluster_connectivity == "new association":
         field_symbol = ":green_square:"
         field_info = f"`ⓘ  Association with the cluster was recently established`"
-        red_color_trigger = False
-        return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
+        return general_cluster_state_field(), False, False
     elif node_data.cluster_connectivity == "association":
         field_symbol = ":green_square:"
         field_info = f"`ⓘ  The node is consecutively associated with the cluster`"
-        red_color_trigger = False
-        return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
+        return general_cluster_state_field(), False, False
     elif node_data.cluster_connectivity == "new dissociation":
         field_symbol = ":red_square:"
-        if node_data.state != "ready":
-            field_info = f"`ⓘ  The node was recently dissociated from the cluster`"
-        else:
-            field_info = f"`ⓘ  The cluster might be in under maintenance, you might not need to take any action`"
+        field_info = f"`⚠  The node was recently dissociated from the cluster`"
         red_color_trigger = True
-        return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
+        return general_cluster_state_field(), red_color_trigger, False
     elif node_data.cluster_connectivity == "dissociation":
         field_symbol = ":red_square:"
-        if node_data.state != "ready":
-            field_info = f"`ⓘ  The node is consecutively dissociated from the cluster`"
-        else:
-            field_info = f"`ⓘ  The cluster might be in under maintenance, you might not need to take any action`"
+        field_info = f"`⚠  The node is consecutively dissociated from the cluster`"
         red_color_trigger = True
-        return general_cluster_state_field(), red_color_trigger, yellow_color_trigger
+        return general_cluster_state_field(), red_color_trigger, False
+    elif node_data.cluster_connectivity == "connecting":
+        field_symbol = ":green_square:"
+        field_info = f"`ⓘ  The node is connecting to a cluster`"
+        return general_cluster_state_field(),False, False
+    elif node_data.cluster_connectivity == "forked":
+        field_symbol = ":red_square:"
+        field_info = f"`⚠  The node has forked`"
+        red_color_trigger = True
+        return general_cluster_state_field(), red_color_trigger, False
+    elif node_data.cluster_connectivity == "uncertain":
+        field_symbol = ":yellow_square:"
+        field_info = f"`⚠  Could not establish connection to the edge node`"
+        yellow_color_trigger = True
+        return general_cluster_state_field(), False, yellow_color_trigger
     elif node_data.cluster_connectivity is None:
         field_symbol = ":yellow_square:"
-        field_info = f""
+        field_info = f"`⚠  Please report to hgtp_michael: connectivity state is None`"
+        yellow_color_trigger = True
         return general_cluster_state_field(), False, yellow_color_trigger
     else:
         logging.getLogger("app").warning(
             f"constellation.py - {node_data.cluster_connectivity.title()} is not a supported node state ({node_data.name}, {node_data.ip}:{node_data.public_port}, L{node_data.layer})"
         )
-        node_data.cluster_connectivity = "dissociation"
+        field_symbol = ":yellow_square:"
+        field_info = f"`⚠  Please contact hgtp_michael: cluster connectivity is {node_data.cluster_connectivity}`"
+        yellow_color_trigger = True
+        return general_cluster_state_field(), False, yellow_color_trigger
 
 
-def build_general_node_wallet(node_data: schemas.Node, module_name):
-    def wallet_field(field_symbol, reward_percentage, field_info):
-        if node_data.layer == 1:
-            return (
-                f"{field_symbol} **WALLET**\n"
-                f"```\n"
-                f"Address: {node_data.wallet_address}\n"
-                f"Balance: {node_data.wallet_balance / 100000000} ＄DAG```"
-                f"{field_info}"
-            )
-        else:
-            return (
-                f"{field_symbol} **WALLET**\n"
-                f"```\n"
-                f"Address: {node_data.wallet_address}\n"
-                f"Balance: {node_data.wallet_balance / 100000000} ＄DAG```"
-                f"{field_info}"
-            )
+def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
+    def generate_field_from_reward_states() -> tuple[str, bool, bool]:
+        def wallet_field() -> str:
+            if node_data.layer == 1:
+                return (
+                    f"{field_symbol} **WALLET**\n"
+                    f"```\n"
+                    f"Address: {node_data.wallet_address}\n"
+                    f"Balance: {node_data.wallet_balance / 100000000} ＄DAG```"
+                    f"{field_info}"
+                )
+            else:
+                return (
+                    f"{field_symbol} **WALLET**\n"
+                    f"```\n"
+                    f"Address: {node_data.wallet_address}\n"
+                    f"Balance: {node_data.wallet_balance / 100000000} ＄DAG```"
+                    f"{field_info}"
+                )
 
-    def generate_field_from_reward_states(reward_percentage, module_name):
         if module_name == "mainnet" and node_data.wallet_balance <= 250000 * 100000000:
             field_symbol = ":red_square:"
-            field_info = f"`⚠ The wallet doesn't hold sufficient collateral`"
+            field_info = f"`⚠  The wallet doesn't hold sufficient collateral`"
             red_color_trigger = True
             yellow_color_trigger = False
-            return (
-                wallet_field(field_symbol, reward_percentage, field_info),
-                red_color_trigger,
-                yellow_color_trigger,
-            )
+            return wallet_field(), red_color_trigger, yellow_color_trigger
         elif (
                 node_data.reward_state in (False, None)
                 and node_data.former_reward_state is True
@@ -538,25 +715,16 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                 )
                 red_color_trigger = True
                 yellow_color_trigger = False
-                return (
-                    wallet_field(field_symbol, reward_percentage, field_info),
-                    red_color_trigger,
-                    yellow_color_trigger,
-                )
+                return wallet_field(), red_color_trigger, yellow_color_trigger
             elif module_name in ("integrationnet", "testnet"):
                 field_symbol = ":green_square:"
                 field_info = (
-                    f":red_circle:` The wallet recently stopped receive rewards, "
-                    f"but the above wallet is not a Mainnet wallet. "
-                    f"The balance and reward data listed above is not associated with your Mainnet wallet`"
+                    f":red_circle:` The {module_name.title()}-wallet recently stopped receiving ({module_name.title()}) $DAG rewards. "
+                    f"However, this might not affect the rewards transferred to your registered mainnet wallet`"
                 )
                 red_color_trigger = False
                 yellow_color_trigger = False
-                return (
-                    wallet_field(field_symbol, reward_percentage, field_info),
-                    red_color_trigger,
-                    yellow_color_trigger,
-                )
+                return wallet_field(), red_color_trigger, yellow_color_trigger
         elif node_data.reward_state in (
                 False,
                 None,
@@ -569,36 +737,23 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
                 )
                 red_color_trigger = False
                 yellow_color_trigger = False
-                return (
-                    wallet_field(field_symbol, reward_percentage, field_info),
-                    red_color_trigger,
-                    yellow_color_trigger,
-                )
+                return wallet_field(), red_color_trigger, yellow_color_trigger
             else:
                 if module_name == "mainnet":
                     field_symbol = ":red_square:"
                     field_info = f":red_circle:` The wallet doesn't receive rewards`"
                     red_color_trigger = True
                     yellow_color_trigger = False
-                    return (
-                        wallet_field(field_symbol, reward_percentage, field_info),
-                        red_color_trigger,
-                        yellow_color_trigger,
-                    )
+                    return wallet_field(), red_color_trigger, yellow_color_trigger
                 elif module_name in ("integrationnet", "testnet"):
                     field_symbol = ":green_square:"
                     field_info = (
-                        f":red_circle:` The wallet still doesn't currently receive rewards, "
-                        f"but the above wallet is not a Mainnet wallet. "
-                        f"The balance and reward data listed above is not associated with your Mainnet wallet`"
+                        f":red_circle:` The {module_name.title()}-wallet doesn't receive ({module_name.title()}) $DAG rewards. "
+                        f"However, this might not affect the rewards transferred to your registered mainnet wallet`"
                     )
                     red_color_trigger = False
                     yellow_color_trigger = False
-                    return (
-                        wallet_field(field_symbol, reward_percentage, field_info),
-                        red_color_trigger,
-                        yellow_color_trigger,
-                    )
+                    return wallet_field(), red_color_trigger, yellow_color_trigger
         elif node_data.reward_state is True and node_data.former_reward_state in (
                 False,
                 None,
@@ -607,60 +762,33 @@ def build_general_node_wallet(node_data: schemas.Node, module_name):
             field_info = f":coin:` The wallet recently started receiving rewards`"
             red_color_trigger = False
             yellow_color_trigger = False
-            return (
-                wallet_field(field_symbol, reward_percentage, field_info),
-                red_color_trigger,
-                yellow_color_trigger,
-            )
+            return wallet_field(), red_color_trigger, yellow_color_trigger
         elif node_data.reward_state is True and node_data.former_reward_state is True:
             field_symbol = ":green_square:"
             field_info = f":coin:` The wallet receives rewards`"
             red_color_trigger = False
             yellow_color_trigger = False
-            return (
-                wallet_field(field_symbol, reward_percentage, field_info),
-                red_color_trigger,
-                yellow_color_trigger,
-            )
+            return wallet_field(), red_color_trigger, yellow_color_trigger
         else:
             field_symbol = ":yellow_square:"
             field_info = (
-                f"`ⓘ  The wallet reward state is unknown. Please report`\n"
+                f"`ⓘ  Please report to hgtp_michael: the wallet reward state is unknown.`\n"
                 f"`ⓘ  No minimum collateral required`"
             )
             red_color_trigger = False
             yellow_color_trigger = True
-            return (
-                wallet_field(field_symbol, reward_percentage, field_info),
-                red_color_trigger,
-                yellow_color_trigger,
-            )
-
-    reward_percentage = (
-        0
-        if node_data.reward_true_count in (0, None)
-        else 100
-        if node_data.reward_false_count in (0, None)
-        else (
-                float(node_data.reward_true_count)
-                * 100
-                / float(node_data.reward_false_count)
-        )
-    )
+            return wallet_field(), red_color_trigger, yellow_color_trigger
 
     if node_data.wallet_address is not None:
-        (
-            field_content,
-            red_color_trigger,
-            yellow_color_trigger,
-        ) = generate_field_from_reward_states(reward_percentage, module_name)
+        field_content, red_color_trigger, yellow_color_trigger = generate_field_from_reward_states()
         return field_content, red_color_trigger, yellow_color_trigger
     else:
-        return f":yellow_square: **WALLET**\n" f"`ⓘ  No data available`", False, False
+        return (f":yellow_square: **WALLET**\n"
+                f"" f"`ⓘ  No data available`"), False, False
 
 
-def build_system_node_version(node_data: schemas.Node):
-    def version_field():
+def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
+    def version_field() -> str:
         return (
             f"{field_symbol} **TESSELLATION**\n"
             f"```\n"
@@ -672,20 +800,30 @@ def build_system_node_version(node_data: schemas.Node):
         if node_data.version == node_data.cluster_version:
             field_symbol = ":green_square:"
             if node_data.cluster_version == node_data.latest_version:
-                field_info = "`ⓘ  No new version available`"
+                field_info = "`ⓘ  You are running the latest version of Tessellation`"
             elif node_data.cluster_version < node_data.latest_version:
-                field_info = f"`ⓘ  You are running the latest version but a new release ({node_data.latest_version}) should be available soon`"
+                field_info = f"`ⓘ  You are running the latest version but a new Tessellation release ({node_data.latest_version}) should soon be available`"
             elif node_data.cluster_version > node_data.latest_version:
                 field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is {node_data.latest_version}`"
             else:
-                field_info = "`ⓘ  This line should not be seen`"
-            return version_field(), red_color_trigger, False
+                field_info = "`⚠  Please report this issue to hgtp_michael: version clutter`"
+            return version_field(), False, False
 
         elif node_data.version < node_data.cluster_version:
             field_symbol = ":red_square:"
-            field_info = f"`⚠ New upgrade (v{node_data.latest_version}) available`"
-            yellow_color_trigger = True
-            return version_field(), red_color_trigger, yellow_color_trigger
+            field_info = f"`⚠  New Tessellation upgrade available (v{node_data.latest_version})`"
+            red_color_trigger = True
+            return version_field(), red_color_trigger, False
+        elif node_data.version > node_data.cluster_version:
+            field_symbol = ":red_square:"
+            field_info = f"`⚠  Your Tessellation version is higher than the cluster version (v{node_data.cluster_version})`"
+            red_color_trigger = True
+            return version_field(), red_color_trigger, False
+        else:
+            field_symbol = ":red_square:"
+            field_info = f"`⚠  Please report to hgtp_michael: latest version {node_data.latest_version}, cluster version {node_data.cluster_version}, node version {node_data.version}`"
+            red_color_trigger = True
+            return version_field(), red_color_trigger, False
     elif node_data.version is not None and node_data.latest_version is not None:
         if node_data.version > node_data.latest_version:
             field_symbol = ":green_square:"
@@ -693,22 +831,22 @@ def build_system_node_version(node_data: schemas.Node):
                 field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is {node_data.latest_version}`"
             else:
                 field_info = f"`ⓘ  You seem to be running a test-release. Latest stable version is {node_data.latest_version}`"
-            return version_field(), red_color_trigger, False
+            return version_field(), False, False
         else:
             field_symbol = ":yellow_square:"
-            field_info = f"`ⓘ  Latest version is {node_data.latest_version}`"
-            return version_field(), red_color_trigger, False
+            if node_data.cluster_peer_count in (0, None):
+                field_info = f"`ⓘ  Could not determine the current cluster version due to unstable connection or maintenance but latest Github version is {node_data.latest_version}`"
+            else:
+                field_info = f"`ⓘ  Latest version is {node_data.latest_version}`"
+            return version_field(), False, False
 
     else:
-        return (
-            f":yellow_square: **TESSELLATION**\n" f"`ⓘ  No data available`",
-            red_color_trigger,
-            False,
-        )
+        return (f":yellow_square: **TESSELLATION**\n"
+                f"" f"`ⓘ  No data available`"), False, True
 
 
-def build_system_node_load_average(node_data: schemas.Node):
-    def load_average_field():
+def build_system_node_load_average(node_data: schemas.Node)  -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
+    def load_average_field() -> str:
         return (
             f"{field_symbol} **CPU**\n"
             f"```\n"
@@ -720,23 +858,23 @@ def build_system_node_load_average(node_data: schemas.Node):
     if (node_data.one_m_system_load_average or node_data.cpu_count) is not None:
         if float(node_data.one_m_system_load_average) / float(node_data.cpu_count) >= 1:
             field_symbol = ":red_square:"
-            field_info = f'`⚠ "CPU load" is too high - should be below "CPU count". You might need more CPU power`'
+            field_info = f'`⚠  "CPU load" is high (should be below "CPU count"). You might want to monitor CPU usage`'
             yellow_color_trigger = True
             return load_average_field(), red_color_trigger, yellow_color_trigger
         elif (
                 float(node_data.one_m_system_load_average) / float(node_data.cpu_count) < 1
         ):
             field_symbol = ":green_square:"
-            field_info = f'`ⓘ  "CPU load" is ok - should be below "CPU count"`'
+            field_info = f'`ⓘ  "CPU load" is ok (should be below "CPU count")`'
             return load_average_field(), red_color_trigger, False
     else:
         field_symbol = ":yellow_square:"
-        field_info = f"`ⓘ  None-type is present`"
+        field_info = f"`⚠  Please report to hgtp_michael: None-type is present`"
         return load_average_field(), red_color_trigger, False
 
 
-def build_system_node_disk_space(node_data: schemas.Node):
-    def disk_space_field():
+def build_system_node_disk_space(node_data: schemas.Node) -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
+    def disk_space_field() -> str:
         return (
             f"{field_symbol} **DISK**\n"
             f"```\n"
@@ -754,7 +892,7 @@ def build_system_node_disk_space(node_data: schemas.Node):
                 <= 10
         ):
             field_symbol = ":red_square:"
-            field_info = f"`⚠ Free disk space is low`"
+            field_info = f"`⚠  Free disk space is low`"
             yellow_color_trigger = True
             return disk_space_field(), red_color_trigger, yellow_color_trigger
         else:
@@ -763,50 +901,34 @@ def build_system_node_disk_space(node_data: schemas.Node):
             return disk_space_field(), red_color_trigger, False
 
 
-def build_embed(node_data: schemas.Node, module_name):
+def build_embed(node_data: schemas.Node, module_name) -> nextcord.Embed:
     embed_created = False
 
-    def determine_color_and_create_embed(yellow_color_trigger, red_color_trigger):
+    def determine_color_and_create_embed(yellow_color_trigger, red_color_trigger) -> nextcord.Embed:
         title = build_title(node_data).upper()
         if yellow_color_trigger and red_color_trigger is False:
             embed = nextcord.Embed(title=title, colour=nextcord.Color.orange())
             embed.set_thumbnail(
                 url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png"
             )
-            # embed.set_image(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/banner-color.png")
-            return embed
         elif red_color_trigger:
             embed = nextcord.Embed(title=title, colour=nextcord.Color.brand_red())
             embed.set_thumbnail(
                 url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-red.png"
             )
-            # embed.set_image(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/banner-color.png")
 
-            return embed
         else:
             embed = nextcord.Embed(title=title, colour=nextcord.Color.dark_teal())
             embed.set_thumbnail(
                 url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png"
             )
-            # embed.set_image(url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/transition_to_postgresql/assets/src/images/banner-color.png")
 
-            return embed
+        return embed
 
     node_state, red_color_trigger, yellow_color_trigger = build_general_node_state(
         node_data
     )
-    if (
-            red_color_trigger is True or yellow_color_trigger is True
-    ) and not embed_created:
-        embed = determine_color_and_create_embed(
-            yellow_color_trigger, red_color_trigger
-        )
-        embed_created = True
-    (
-        cluster_state,
-        red_color_trigger,
-        yellow_color_trigger,
-    ) = build_general_cluster_state(node_data, module_name)
+    cluster_state, red_color_trigger, yellow_color_trigger = build_general_cluster_state(node_data, module_name)
     if (
             red_color_trigger is True or yellow_color_trigger is True
     ) and not embed_created:
@@ -815,11 +937,7 @@ def build_embed(node_data: schemas.Node, module_name):
         )
         embed_created = True
     if node_data.wallet_address is not None:
-        (
-            node_wallet,
-            red_color_trigger,
-            yellow_color_trigger,
-        ) = build_general_node_wallet(node_data, module_name)
+        node_wallet, red_color_trigger, yellow_color_trigger = build_general_node_wallet(node_data, module_name)
         if (
                 red_color_trigger is True or yellow_color_trigger is True
         ) and not embed_created:
@@ -828,11 +946,7 @@ def build_embed(node_data: schemas.Node, module_name):
             )
             embed_created = True
     if node_data.version is not None:
-        (
-            node_version,
-            red_color_trigger,
-            yellow_color_trigger,
-        ) = build_system_node_version(node_data)
+        node_version, red_color_trigger, yellow_color_trigger = build_system_node_version(node_data)
         if (
                 red_color_trigger is True or yellow_color_trigger is True
         ) and not embed_created:
@@ -841,11 +955,7 @@ def build_embed(node_data: schemas.Node, module_name):
             )
             embed_created = True
     if node_data.one_m_system_load_average is not None:
-        (
-            node_load,
-            red_color_trigger,
-            yellow_color_trigger,
-        ) = build_system_node_load_average(node_data)
+        node_load, red_color_trigger, yellow_color_trigger = build_system_node_load_average(node_data)
         if (
                 red_color_trigger is True or yellow_color_trigger is True
         ) and not embed_created:
@@ -854,11 +964,7 @@ def build_embed(node_data: schemas.Node, module_name):
             )
             embed_created = True
     if node_data.disk_space_total is not None:
-        (
-            node_disk,
-            red_color_trigger,
-            yellow_color_trigger,
-        ) = build_system_node_disk_space(node_data)
+        node_disk, red_color_trigger, yellow_color_trigger = build_system_node_disk_space(node_data)
         if (
                 red_color_trigger is True or yellow_color_trigger is True
         ) and not embed_created:
@@ -891,29 +997,49 @@ def build_embed(node_data: schemas.Node, module_name):
 
 def mark_notify(d: schemas.Node, configuration):
     # The hardcoded values should be adjustable in config_new.yml
-    if d.cluster_connectivity in ("new association", "new dissociation", "forked"):
+    if d.cluster_connectivity in ("new association", "new dissociation"):
         d.notify = True
+    elif d.former_cluster_connectivity != "connecting" and d.cluster_connectivity == "connecting":
+        d.notify = True
+        d.last_notified_reason = "connecting"
     elif d.last_notified_timestamp:
-        if d.reward_state is False:
+        if d.cluster_connectivity in ("forked", "uncertain", "connecting"):
             if (
                     d.timestamp_index - d.last_notified_timestamp
             ).total_seconds() >= timedelta(
                 hours=configuration["general"]["notifications"][
                     "free disk space sleep (hours)"
                 ]
-            ).seconds or d.last_notified_reason in ("disk", "version"):
+            ).seconds and d.last_notified_reason in ("disk", "version", "rewards"):
+                d.last_notified_timestamp = d.timestamp_index
+                d.notify = True
+                if d.cluster_connectivity == "forked":
+                    d.last_notified_reason = "forked"
+                elif d.cluster_connectivity == "connecting":
+                    d.last_notified_reason = "connecting"
+                else:
+                    d.last_notified_reason = "uncertain"
+        elif d.reward_state is False:
+            if (
+                    d.timestamp_index - d.last_notified_timestamp
+            ).total_seconds() >= timedelta(
+                hours=configuration["general"]["notifications"][
+                    "free disk space sleep (hours)"
+                ]
+            ).seconds and d.last_notified_reason in ("disk", "version", "forked", "uncertain", "connecting"):
                 # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
                 d.notify = True
                 d.last_notified_timestamp = d.timestamp_index
                 d.last_notified_reason = "rewards"
-        elif d.version != d.cluster_version:
-            if (
-                (d.timestamp_index.second - d.last_notified_timestamp.second)
-                >= timedelta(hours=6).seconds
-            ) or d.last_notified_reason in ("rewards", "disk"):
-                d.notify = True
-                d.last_notified_timestamp = d.timestamp_index
-                d.last_notified_reason = "version"
+        elif d.version and d.cluster_version:
+            if d.version < d.cluster_version:
+                if (
+                    (d.timestamp_index.second - d.last_notified_timestamp.second)
+                    >= timedelta(hours=6).seconds
+                ) and d.last_notified_reason in ("rewards", "disk", "forked", "uncertain", "connecting"):
+                    d.notify = True
+                    d.last_notified_timestamp = d.timestamp_index
+                    d.last_notified_reason = "version"
         elif d.disk_space_free and d.disk_space_total:
             if (
                     0
@@ -921,7 +1047,7 @@ def mark_notify(d: schemas.Node, configuration):
                     <= configuration["general"]["notifications"][
                 "free disk space threshold (percentage)"
             ]
-            ) or d.last_notified_reason in ("rewards", "version"):
+            ) and d.last_notified_reason in ("rewards", "version", "forked", "uncertain", "connecting"):
                 if (
                         d.timestamp_index - d.last_notified_timestamp
                 ).total_seconds() >= timedelta(
@@ -934,12 +1060,19 @@ def mark_notify(d: schemas.Node, configuration):
                     d.last_notified_reason = "disk"
     # IF NO FORMER DATA
     else:
+        if d.cluster_connectivity == "connecting":
+            d.notify = True
+            d.last_notified_timestamp = d.timestamp_index
+            d.last_notified_reason = "connecting"
         if d.reward_state is False:
             d.notify = True
             d.last_notified_timestamp = d.timestamp_index
-        elif d.version != d.cluster_version:
-            d.notify = True
-            d.last_notified_timestamp = d.timestamp_index
+            d.last_notified_reason = "rewards"
+        elif d.version and d.cluster_version:
+            if d.version < d.cluster_version:
+                d.notify = True
+                d.last_notified_timestamp = d.timestamp_index
+                d.last_notified_reason = "version"
         elif (
                 0
                 <= float(d.disk_space_free) * 100 / float(d.disk_space_total)
@@ -949,4 +1082,5 @@ def mark_notify(d: schemas.Node, configuration):
         ):
             d.notify = True
             d.last_notified_timestamp = d.timestamp_index
+            d.last_notified_reason = "disk"
     return d

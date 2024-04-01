@@ -1,27 +1,23 @@
 import importlib.util
-from typing import List
+from typing import List, Any
 
 import sys
 
 from assets.src import schemas
 
 
-async def get_module_name_and_layer(d, configuration) -> tuple:
-    names = [
-        a
-        for a in (d.cluster_name, d.former_cluster_name, d.last_known_cluster_name)
-        if a
-    ]
+async def get_module_name(d, configuration) -> Any | None:
+    names = [a for a in (d.cluster_name, d.former_cluster_name, d.last_known_cluster_name) if a]
     if names:
-        return names[0], d.layer
+        return names[0]
     else:
-        return None, d.layer
+        return None
 
 
 async def notify(data: List[schemas.Node], configuration) -> List[schemas.Node]:
     if data:
         for idx, d in enumerate(data):
-            latest_known_cluster, layer = await get_module_name_and_layer(
+            latest_known_cluster = await get_module_name(
                 d, configuration
             )
             if latest_known_cluster:

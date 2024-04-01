@@ -41,10 +41,6 @@ def locate_node_binary(node_data: schemas.Node, peer_data: List[dict]):
             and peer["ip"] == node_data.ip
             and peer["publicPort"] == node_data.public_port
         ):
-            if node_data.name == "rebelrouser1885":
-                print("cluster.py - locate_node_binary", node_data.name, node_data.id, peer['id'], node_data.ip,
-                      peer['ip'],
-                      node_data.public_port)
             return True
 
         elif (
@@ -85,7 +81,7 @@ def locate_node(node_data: schemas.Node, cluster_data: schemas.Cluster):
 
 async def get_module_data(session, node_data: schemas.Node, configuration):
     # Last known cluster is determined by all recent historic values
-    last_known_cluster, layer = await determine_module.get_module_name_and_layer(
+    last_known_cluster = await determine_module.get_module_name(
         node_data, configuration
     )
 
