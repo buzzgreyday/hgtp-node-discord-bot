@@ -305,8 +305,9 @@ class MetricStatsSchema(BaseModel):
     cpu_count: int
     daily_cpu_load: float
 
+    # This is no longer needed as the hash is generated before
     """@validator("hash_index", pre=True)
-    def auto_generate_hash(cls, hash_index):
+    def auto_generate_hash(cls):
         key_str = f"{cls.id}-{cls.ip}-{cls.public_port}"
         hash_index = hashlib.sha256(key_str.encode()).hexdigest()
         print(f"{key_str}, {hash_index}")

@@ -404,6 +404,7 @@ async def run(configuration):
 
         # Raw data calculations: I need the aggregated dag_address_sum from the snapshot data column "dag"
         snapshot_data, node_data = await get_data(session, timestamp)
+        print("Snapshot + node data done!")
         # ! REMEMBER YOU TURNED OF THINGS IN MAIN.PY !
         pd.set_option("display.max_rows", None)
         pd.options.display.float_format = "{:.2f}".format

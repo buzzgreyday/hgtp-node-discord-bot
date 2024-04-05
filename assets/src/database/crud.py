@@ -181,7 +181,7 @@ class CRUD:
                 )
                 await session.commit()
                 logging.getLogger("rewards").error(f"crud.py - Metric stats update: SUCCESS!")
-            except:
+            except Exception:
                 print("Metric stats update: FAILED!\n", traceback.format_exc())
 
     async def delete_user_entry(
@@ -239,12 +239,11 @@ class CRUD:
 
         reward_results = reward_results.scalar_one_or_none()
         metric_results = metric_results.fetchall()
-        print(reward_results.__dict__)
 
         metric_dicts = []
         for node_metrics in metric_results:
             metric_dicts.append(node_metrics[0].__dict__)
-            print(metric_dicts)
+        metric_dicts = sorted(metric_dicts, key=lambda d: d["layer"])
 
         dag_address = reward_results.destinations
         earner_score = reward_results.earner_score
@@ -272,40 +271,32 @@ class CRUD:
             dag_address_sum_dev = f"+{round(reward_results.dag_address_sum_dev)}"
         else:
             dag_address_sum_dev = round(reward_results.dag_address_sum_dev)
-        if reward_results.dag_address_daily_sum_dev >= 1:
-            dag_address_daily_sum_dev = f"+{round(reward_results.dag_address_daily_sum_dev)}"
-        else:
-            dag_address_daily_sum_dev = round(reward_results.dag_address_daily_sum_dev)
+        # if reward_results.dag_address_daily_sum_dev >= 1:
+        #     dag_address_daily_sum_dev = f"+{round(reward_results.dag_address_daily_sum_dev)}"
+        # else:
+        #     dag_address_daily_sum_dev = round(reward_results.dag_address_daily_sum_dev)
         node_daily_earnings_deviation = (
             dag_address_daily_mean - daily_network_earnings_average
         )
-        if reward_results:
-            return templates.TemplateResponse(
+        content = templates.TemplateResponse(
                 "index.html",
                 dict(request=request, dag_address=dag_address, earner_score=earner_score, count=count,
                      percent_earning_more=round(percent_earning_more, 2), dag_address_sum=round(dag_address_sum, 2),
                      dag_address_sum_dev=dag_address_sum_dev, dag_median_sum=round(dag_median_sum, 2),
-                     daily_network_earnings_average=round(
-                         daily_network_earnings_average, 2
-                     ), dag_address_daily_sum_dev=round(
-                        node_daily_earnings_deviation, 2
-                    ), dag_address_daily_mean=round(dag_address_daily_mean, 2),
+                     daily_network_earnings_average=round(daily_network_earnings_average, 2),
+                     dag_address_daily_sum_dev=round(node_daily_earnings_deviation, 2),
+                     dag_address_daily_mean=round(dag_address_daily_mean, 2),
                      dag_address_daily_std_dev=dag_address_daily_std_dev,
                      dag_address_monthly_std_dev=dag_address_monthly_std_dev,
                      usd_address_sum=round(usd_address_sum, 2),
                      usd_address_daily_sum=round(usd_address_daily_sum, 2),
                      rewards_plot_path=f"http://localhost:8000/static/rewards_{dag_address}.html",
-                     cpu_plot_path=f"http://localhost:8000/static/cpu_{dag_address}.html"),
-                     metric_ips=(val["ip"] for val in metric_dicts),
-                     metric_ports=(val["public_port"] for val in metric_dicts),
-                     metric_layers=(val["layer"] for val in metric_dicts),
-                     metric_free_disk_gb=(val["disk_free"] for val in metric_dicts),
-                     metric_total_disk_gb=(val["disk_total"] for val in metric_dicts),
-                     metric_daily_cpu_count=(val["cpu_count"] for val in metric_dicts),
-                     metric_daily_cpu_load=(val["daily_cpu_load'"] for val in metric_dicts),
-
-            )
-            print()
+                     cpu_plot_path=f"http://localhost:8000/static/cpu_{dag_address}.html",
+                     metric_dicts=metric_dicts)
+        )
+        print(content)
+        if reward_results:
+            return content
         else:
             print("Error")
 
@@ -481,6 +472,7 @@ class CRUD:
                     logging.getLogger("stats").error(traceback.format_exc())
 
                 if not batch_results:
+                    print("All node_data batches processed")
                     break  # No more data
 
                 for row in batch_results:

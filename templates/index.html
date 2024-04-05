@@ -8,7 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
     <style>
-        
+
         body {
             background-color: #3d3d3d;
         }
@@ -30,78 +30,68 @@
     </div>
     <div class="row">
         <div class="box">
-            <div class="shadow container-sm m-1 p-3 text-black rounded" style="background-color: #ffffff;">
-                <h3 class="text-center mb-4 fw-bolder" style="color: #3d3d3d;">Rewards</h1>
+            <div class="shadow container-sm ml-3 rounded-top bg-primary" style="background-color: #ffffff;">
+                <div class="h3 mb-0 text-white fw-bold" style="color: #3d3d3d;">Rewards</div>
+            </div>
+            <div class="shadow container-sm ml-3 text-black rounded-bottom" style="background-color: #ffffff;">
                 <iframe src="{{ rewards_plot_path }}" width="800" height="400" frameborder="0"></iframe>
             </div>
         </div>
         <div class="box">
-            <div class="shadow container-sm m-1 p-3 rounded bg-white text-dark">
-                <div class="row m-1">
-                    <div class="col-md-6 rounded p-3 bg-light">
-                        <p class="fs-6 fw-bold">30 Days Node Earnings</p>
-                        <p class="fs-6 fw-light">{{ dag_address_sum }} $DAG</p>
-                        <p class="fs-6 fw-lighter">Cost: ${{ usd_address_sum }}</p>
-                        <p class="fs-6 fw-lighter">Estimated monthly earnings is {{ dag_address_monthly_std_dev }} $DAG</p>
+            <div class="shadow container-sm ml-3 rounded-top bg-primary" style="background-color: #ffffff;">
+                <div class="h3 mb-0 text-white fw-bold" style="color: #3d3d3d;">Stats</div>
+            </div>
+            <div class="shadow container-sm rounded-bottom bg-white text-dark">
+                <p class="h-6 mb-1">30 day node earnings</p>
+                <p class="fs-6 mb-1 fw-light">{{ dag_address_sum }} $DAG</p>
+                <p class="fs-6 mb-1 fw-lighter">Cost: ${{ usd_address_sum }}</p>
+                <p class="fs-6 mb-3 fw-lighter">Estimated monthly earnings is {{ dag_address_monthly_std_dev }} $DAG</p>
 
-                    </div>
-                    <div class="col-md-6 rounded p-3 bg-light">
-                        <p class="fs-6 fw-bold">30 Days Network Average Earnings</p>
-                        <p class="fs-6 fw-light">{{ dag_median_sum }} $DAG</p>
-                        <p class="fs-6 fw-lighter">Node deviation: {{ dag_address_sum_dev }} $DAG</p>
+                <p class="h-6 mb-1">Average 30 day network earnings</p>
+                <p class="fs-6 mb-1 fw-light">{{ dag_median_sum }} $DAG</p>
+                <p class="fs-6 mb-3 fw-lighter">Node deviation: {{ dag_address_sum_dev }} $DAG</p>
 
-                    </div>
-                    <div class="col-md-6 rounded p-3 bg-light">
-                        <p class="fs-6 fw-bold">Percent Earning More </p>
-                        <p class="fs-6 fw-light">{{ percent_earning_more }}% of the network earned more than this node the past 30 days</p>
-                    </div>
-                    <div class="col-md-6 rounded p-3 bg-light">
-                        <p class="fs-6 fw-bold">30 Days Earner Score</p>
-                        <p class="fs-6 fw-light">{{ earner_score }} of {{ count }} nodes</p>
-                    </div>
-                </div>
-                <div class="row m-1">
-                    <div class="col-md-6 rounded p-3 bg-light">
-                        <p class="fs-6 fw-bold">Average Daily Node Earnings</p>
-                        <p class="fs-6 fw-light">{{ dag_address_daily_mean }} $DAG</p>
-                        <p class="fs-6 fw-lighter">Cost: ${{ usd_address_daily_sum }}</p>
-                        <p class="fs-6 fw-lighter">Estimated daily earnings is {{ dag_address_daily_std_dev }} $DAG</p>
-                    </div>
-                    <div class="col-md-6 rounded p-3 bg-light">
-                        <p class="fs-6 fw-bold">Average Daily Network Earnings</p>
-                        <p class="fs-6 fw-light">{{ daily_network_earnings_average }} $DAG</p>
-                        <p class="fs-6 fw-lighter">Node deviation: {{ dag_address_daily_sum_dev }} $DAG</p>
+                <p class="h-6 mb-1">Percent earning more </p>
+                <p class="fs-6 mb-3 fw-light">{{ percent_earning_more }}% of the network earned more than this node the past 30 days</p>
 
-                    </div>
-                </div>
+                <p class="h-6 mb-1">30 days earner score</p>
+                <p class="fs-6 mb-3 fw-light">{{ earner_score }} of {{ count }} nodes</p>
+
+                <p class="h-6 mb-1">Average daily node earnings</p>
+                <p class="fs-6 mb-1 fw-light">{{ dag_address_daily_mean }} $DAG</p>
+                <p class="fs-6 mb-1 fw-lighter">Cost: ${{ usd_address_daily_sum }}</p>
+                <p class="fs-6 mb-3 fw-lighter">Estimated daily earnings is {{ dag_address_daily_std_dev }} $DAG</p>
+
+                <p class="h-6 mb-1">Average daily network earnings</p>
+                <p class="fs-6 mb-1 fw-light">{{ daily_network_earnings_average }} $DAG</p>
+                <p class="fs-6 mb-1 fw-lighter">Node deviation: {{ dag_address_daily_sum_dev }} $DAG</p>
+
             </div>
         </div>
     </div>
     <div class="row">
         <div class="box">
-            <div class="shadow container-sm m-1 p-3 text-black rounded" style="background-color: #ffffff;">
-                <h3 class="text-center mb-4 fw-bolder" style="color: #3d3d3d;">CPU Usage</h1>
+            <div class="shadow container-sm ml-3 rounded-top bg-primary" style="background-color: #ffffff;">
+                <div class="h3 mb-0 text-white fw-bold" style="color: #3d3d3d;">CPU and disk space</div>
+            </div>
+            <div class="shadow container-sm ml-3 text-black rounded-bottom" style="background-color: #ffffff;">
                 <iframe src="{{ cpu_plot_path }}" width="800" height="400" frameborder="0"></iframe>
             </div>
         </div>
         <div class="box">
-            <div class="shadow container-sm m-1 p-3 rounded bg-white text-dark">
-                <div class="row m-1">
-                    <div class="col-md-6 rounded p-3 bg-light">
-                        <p class="fs-6 fw-bold">Placeholder</p>
-                        <p class="fs-6 fw-light">Placeholder</p>
-                        <p class="fs-6 fw-lighter">Placeholder</p>
-                        <p class="fs-6 fw-lighter">Placeholder</p>
-                    </div>
-                </div>
-                <div class="row m-1">
-                    <div class="col-md-6 rounded p-3 bg-light">
-                        <p class="fs-6 fw-bold">Placeholder</p>
-                        <p class="fs-6 fw-light">Placeholder</p>
-                        <p class="fs-6 fw-lighter">Placeholder</p>
-                        <p class="fs-6 fw-lighter">Placeholder</p>
-                    </div>  
-                </div>
+            <div class="shadow container-sm rounded-top bg-primary text-white">
+                <div class="h3 mb-0 text-white fw-bold" style="color: #3d3d3d;">Metrics</div>
+            </div>
+            <div class="shadow container-sm rounded-bottom bg-white text-black">
+                {% for dict in metric_dicts %}
+                Layer {{ dict.layer }} ({{ dict.ip }}:{{ dict.public_port }}) metrics
+                <p class="h-6 mb-1">Daily CPU load</p>
+                <p class="fs-6 mb-1 fw-light">{{ dict.daily_cpu_load | round(2) }}</p>
+                <p class="fs-6 mb-3 fw-lighter">Ideal CPU load average is below {{ dict.cpu_count }}</p>
+
+                <p class="h-6 mb-1">Disk space</p>
+                <p class="fs-6 mb-3 fw-light">{{ dict.disk_free | round(2) }} of {{ dict.disk_total | round(2) }} GB</p>
+                {% endfor %}
             </div>
         </div>
     </div>
