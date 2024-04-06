@@ -241,7 +241,7 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
         print("Creating visualization for destination:", destination)
         destination_df = df[df["destinations"] == destination]
         p = figure(
-            title=f"CPU Load Percentage - {destination}",
+            title=f"",
             x_axis_label="Time",
             y_axis_label="CPU Load Percentage",
             x_axis_type="datetime",
@@ -286,7 +286,7 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
         try:
             destination_df = df[df["destinations"] == destination]
             p = figure(
-                title=f"DAG Earnings - {destination}",
+                title=f"",
                 x_axis_label="Time",
                 y_axis_label="$DAG Earnings",
                 x_axis_type="datetime",

@@ -10,7 +10,7 @@
     <style>
 
         body {
-            background-color: #3d3d3d;
+            background-color: #ffffff;
         }
 
         .container {
@@ -84,7 +84,7 @@
             </div>
             <div class="shadow container-sm rounded-bottom bg-white text-black">
                 {% for dict in metric_dicts %}
-                Layer {{ dict.layer }} ({{ dict.ip }}:{{ dict.public_port }}) metrics
+                <p class="bg-light">Layer {{ dict.layer }} ({{ dict.ip }}:{{ dict.public_port }}) metrics</p>
                 <p class="h-6 mb-1">Daily CPU load</p>
                 <p class="fs-6 mb-1 fw-light">{{ dict.daily_cpu_load | round(2) }}</p>
                 <p class="fs-6 mb-3 fw-lighter">Ideal CPU load average is below {{ dict.cpu_count }}</p>
