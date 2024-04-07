@@ -271,10 +271,7 @@ class CRUD:
             dag_address_sum_dev = f"+{round(reward_results.dag_address_sum_dev)}"
         else:
             dag_address_sum_dev = round(reward_results.dag_address_sum_dev)
-        # if reward_results.dag_address_daily_sum_dev >= 1:
-        #     dag_address_daily_sum_dev = f"+{round(reward_results.dag_address_daily_sum_dev)}"
-        # else:
-        #     dag_address_daily_sum_dev = round(reward_results.dag_address_daily_sum_dev)
+
         node_daily_earnings_deviation = (
             dag_address_daily_mean - daily_network_earnings_average
         )
@@ -294,11 +291,10 @@ class CRUD:
                      cpu_plot_path=f"http://localhost:8000/static/cpu_{dag_address}.html",
                      metric_dicts=metric_dicts)
         )
-        print(content)
         if reward_results:
             return content
         else:
-            print("Error")
+            logging.getLogger("stats").debug(f"Get html stats page request failed: reward_results contained no data")
 
     async def get_latest_db_price(
         self, async_session: async_sessionmaker[AsyncSession]
@@ -370,7 +366,6 @@ class CRUD:
     async def get_ordinals_data_from_timestamp(
         self, timestamp: int, async_session: async_sessionmaker[AsyncSession]
     ):
-        print(f"Requesting ordinals from timestamp: {timestamp}")
         async with async_session() as session:
             batch_size = 200000
             offset = 0
@@ -395,13 +390,14 @@ class CRUD:
                         .offset(offset)
                         .limit(batch_size)
                     )
-                    print(f"Get ordinals from timestamp: {timestamp}, offset: {offset}")
+                    logging.getLogger("stats").debug(f"Get ordinals from timestamp: {timestamp}, offset: {offset}")
                     results = await session.execute(statement)
                     batch_results = results.fetchall()
                 except Exception:
                     logging.getLogger("stats").warning(traceback.format_exc())
 
                 if not batch_results:
+                    logging.getLogger("stats").debug(f"Got all ordinals!")
                     break  # No more data
 
                 for row in batch_results:
@@ -422,7 +418,6 @@ class CRUD:
         """
         Get timeslice data from the node database.
         """
-        print(f"Requesting node data from timestamp: {timestamp}")
         one_gigabyte = 1073741824
         async with async_session() as session:
             batch_size = 200000
@@ -440,7 +435,6 @@ class CRUD:
                 "disk_total": [],
             }
             timestamp_datetime = datetime.utcfromtimestamp(timestamp)
-            print(timestamp_datetime)
 
             while True:
                 try:
@@ -462,17 +456,14 @@ class CRUD:
                         .offset(offset)
                         .limit(batch_size)
                     )
-                    print(
-                        f"Get node_data from timestamp: {timestamp}, offset: {offset}"
-                    )
+                    logging.getLogger("stats").debug(f"Get node_data from timestamp: {timestamp}, offset: {offset}")
                     results = await session.execute(statement)
                     batch_results = results.fetchall()
                 except Exception:
-                    print(traceback.format_exc())
                     logging.getLogger("stats").error(traceback.format_exc())
 
                 if not batch_results:
-                    print("All node_data batches processed")
+                    logging.getLogger("stats").debug("All node_data batches processed")
                     break  # No more data
 
                 for row in batch_results:

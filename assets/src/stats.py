@@ -365,7 +365,7 @@ async def get_data(session, timestamp):
 
 
 async def run():
-    await asyncio.sleep(10)
+    await asyncio.sleep(16)
     times = preliminaries.generate_stats_runtimes()
 
     """
