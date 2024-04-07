@@ -5,14 +5,14 @@ import traceback
 from datetime import datetime, timedelta
 
 from bokeh.plotting import figure, output_file, save
-from bokeh.models import ColumnDataSource
-from bokeh.io import show
 import pandas as pd
 import sqlalchemy
 from aiohttp import ClientSession, TCPConnector
-import matplotlib.pyplot as plt
 
+from assets.src import preliminaries
 from assets.src.database.database import post_reward_stats, update_reward_stats, post_metric_stats, update_metric_stats
+from assets.src.discord import discord
+from assets.src.discord.services import bot
 from assets.src.rewards import normalize_timestamp
 from assets.src.schemas import RewardStatsSchema, MetricStatsSchema
 
@@ -209,7 +209,6 @@ def create_timeslice_data(
 
         list_of_daily_snapshot_df.append(sliced_snapshot_df)
         list_of_daily_node_df.append(sliced_node_data_df)
-        print(f"Timeslice data transformation done, t >= {start_time}!")
         start_time = start_time - travers_seconds
 
     sliced_snapshot_df = pd.concat(list_of_daily_snapshot_df, ignore_index=True)
@@ -235,10 +234,9 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
     """Creates CPU visualizations. However, we need one per IP"""
     unique_destinations = df["destinations"].unique()
     path = "static"
-    print("Starting loop")
     for destination in unique_destinations:
+        logging.getLogger("stats").debug(f"Creating cpu visualization for {destination}")
         output_file(f"{path}/cpu_{destination}.html")
-        print("Creating visualization for destination:", destination)
         destination_df = df[df["destinations"] == destination]
         p = figure(
             title=f"",
@@ -250,14 +248,11 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
         )
         for port in destination_df["public_port"].unique():
             layer_df = destination_df[destination_df["public_port"] == port]
-            try:
-                p.line(
-                    pd.to_datetime(layer_df["timestamp"] * 1000, unit="ms"),
-                    layer_df["daily_cpu_load"] / layer_df["cpu_count"] * 100,
-                    legend_label=f"L{layer_df['layer'].values[0]}, IP {layer_df['ip'].values[0]}, Port {layer_df['public_port'].values[0]}",
-                )
-            except Exception:
-                print(traceback.format_exc())
+            p.line(
+                pd.to_datetime(layer_df["timestamp"] * 1000, unit="ms"),
+                layer_df["daily_cpu_load"] / layer_df["cpu_count"] * 100,
+                legend_label=f"L{layer_df['layer'].values[0]}, IP {layer_df['ip'].values[0]}, Port {layer_df['public_port'].values[0]}",
+            )
 
         p.line(
             pd.to_datetime(df["timestamp"] * 1000, unit="ms"),
@@ -279,52 +274,48 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
     """Creates reward visualizations."""
     unique_destinations = df["destinations"].unique()
     path = "static"
-    print("Starting loop")
     for destination in unique_destinations:
+        logging.getLogger("stats").debug(f"Creating reward visualization for {destination}")
         output_file(f"{path}/rewards_{destination}.html")
-        print("Creating visualization for destination:", destination)
-        try:
-            destination_df = df[df["destinations"] == destination]
-            p = figure(
-                title=f"",
-                x_axis_label="Time",
-                y_axis_label="$DAG Earnings",
-                x_axis_type="datetime",
-                width=800,
-                height=400,
-            )
-            p.line(
-                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
-                destination_df["dag_address_daily_sum"],
-                legend_label="Node earnings",
-                color="blue",
-            )
-            p.line(
-                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
-                destination_df["daily_overall_median"],
-                legend_label="Network earnings",
-                color="green",
-                line_dash="dashed",
-                alpha=0.5,
-            )
-            p.line(
-                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
-                destination_df["dag_address_daily_mean"].median(),
-                line_color="blue",
-                line_dash="dashed",
-                legend_label=f"Average node earnings (since {datetime.fromtimestamp(from_timestamp).strftime('%d. %B %Y')})",
-                alpha=0.5,
-            )
-            p.line(
-                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
-                df["daily_overall_median"].median(),
-                line_color="green",
-                line_dash="dashed",
-                legend_label=f"Average network earnings (since {datetime.fromtimestamp(from_timestamp).strftime('%d. %B %Y')})",
-                alpha=0.5,
-            )
-        except Exception:
-            print(traceback.format_exc())
+        destination_df = df[df["destinations"] == destination]
+        p = figure(
+            title=f"",
+            x_axis_label="Time",
+            y_axis_label="$DAG Earnings",
+            x_axis_type="datetime",
+            width=800,
+            height=400,
+        )
+        p.line(
+            pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
+            destination_df["dag_address_daily_sum"],
+            legend_label="Node earnings",
+            color="blue",
+        )
+        p.line(
+            pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
+            destination_df["daily_overall_median"],
+            legend_label="Network earnings",
+            color="green",
+            line_dash="dashed",
+            alpha=0.5,
+        )
+        p.line(
+            pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
+            destination_df["dag_address_daily_mean"].median(),
+            line_color="blue",
+            line_dash="dashed",
+            legend_label=f"Average node earnings (since {datetime.fromtimestamp(from_timestamp).strftime('%d. %B %Y')})",
+            alpha=0.5,
+        )
+        p.line(
+            pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
+            df["daily_overall_median"].median(),
+            line_color="green",
+            line_dash="dashed",
+            legend_label=f"Average network earnings (since {datetime.fromtimestamp(from_timestamp).strftime('%d. %B %Y')})",
+            alpha=0.5,
+        )
 
         p.legend.location = "top_left"
         p.legend.click_policy = "hide"
@@ -352,11 +343,9 @@ async def get_data(session, timestamp):
             )
         except Exception:
             logging.getLogger("stats").error(traceback.format_exc())
-            print(traceback.format_exc())
             await asyncio.sleep(3)
         else:
             break
-    print(f"Got snapshot_data")
     await asyncio.sleep(6)
 
     while True:
@@ -366,7 +355,6 @@ async def get_data(session, timestamp):
             )
         except Exception:
             logging.getLogger("stats").error(traceback.format_exc())
-            print(traceback.format_exc())
             await asyncio.sleep(3)
         else:
             break
@@ -376,181 +364,150 @@ async def get_data(session, timestamp):
     return snapshot_data, node_data
 
 
-async def run(configuration):
+async def run():
     await asyncio.sleep(10)
+    times = preliminaries.generate_stats_runtimes()
 
     """
     GET DATA
     """
     logging.getLogger("stats").info("Starting process...")
-    async with ClientSession(
-        connector=TCPConnector(
-            # You need to obtain a real (non-self-signed certificate) to run in production
-            # ssl=db.ssl_context.load_cert_chain(certfile=ssl_cert_file, keyfile=ssl_key_file)
-            # Not intended for production:
-            ssl=False
-        )
-    ) as session:
-        # Convert to Epoch
-        timestamp = normalize_timestamp(
-            datetime.utcnow().timestamp() - timedelta(days=30).total_seconds()
-        )
-
-        # From the beginning of time:
-        # timestamp = 1640995200
-
-        # 30 days in seconds = 2592000
-        # 7 days in seconds = 604800
-
-        # Raw data calculations: I need the aggregated dag_address_sum from the snapshot data column "dag"
-        snapshot_data, node_data = await get_data(session, timestamp)
-        print("Snapshot + node data done!")
-        # ! REMEMBER YOU TURNED OF THINGS IN MAIN.PY !
-        pd.set_option("display.max_rows", None)
-        pd.options.display.float_format = "{:.2f}".format
-        """
-        CREATE DAILY DATA
-        TO: Start time is the latest available timestamp
-        FROM: The "timestamp" var is the timestamp from where you wish to retrieve data from
-        """
-        start_time = snapshot_data["timestamp"].values.max()
-        # One day in seconds
-        traverse_seconds = 86400
-        try:
-            sliced_snapshot_df, sliced_node_df = create_timeslice_data(
-                snapshot_data, node_data, start_time, traverse_seconds
+    while True:
+        async with ClientSession(
+            connector=TCPConnector(
+                # You need to obtain a real (non-self-signed certificate) to run in production
+                # ssl=db.ssl_context.load_cert_chain(certfile=ssl_cert_file, keyfile=ssl_key_file)
+                # Not intended for production:
+                ssl=False
             )
-        except Exception:
-            print(traceback.format_exc())
-        sliced_snapshot_df["dag_daily_std_dev"].fillna(0, inplace=True)
-        create_reward_visualizations(sliced_snapshot_df, timestamp)
-        create_cpu_visualizations(sliced_node_df, timestamp)
-        print("Visualizations done")
+        ) as session:
+            current_time = datetime.utcnow().time().strftime("%H:%M:%S")
+            try:
+                if current_time in times:
+                    # Convert to Epoch
+                    timestamp = normalize_timestamp(
+                        datetime.utcnow().timestamp() - timedelta(days=30).total_seconds()
+                    )
 
-        # (!) After visual only keep last (sort_values) timestamp and drop duplicates
-        # Keeping the last grouped row; free disk space, disk space and cpu count. You only need the latest timestamp in database
-        # since it's updated daily
-        sliced_node_df = sliced_node_df.sort_values(by="timestamp").drop_duplicates(
-            [
-                "destinations",
-                "layer",
-                "ip",
-                "public_port",
-            ],
-            keep="last",
-            ignore_index=True,
-        )
-        print(sliced_node_df)
-        try:
-            sliced_snapshot_df = sum_usd(
-                sliced_snapshot_df, "usd_address_daily_sum", "dag_address_daily_sum"
-            )
-        except Exception:
-            print(traceback.format_exc())
-        # Clean the data
-        print("Cleaning daily sliced data...")
-        sliced_snapshot_df = sliced_snapshot_df[final_sliced_columns].drop_duplicates(
-            "destinations"
-        )
-        print("Cleaning done!")
+                    # From the beginning of time:
+                    # timestamp = 1640995200
 
-        """
-        CREATE OVERALL DATA
-        """
-        snapshot_data["dag_address_sum"] = snapshot_data.groupby("destinations")[
-            "dag"
-        ].transform("sum")
-        print(snapshot_data.head(20))
+                    # 30 days in seconds = 2592000
+                    # 7 days in seconds = 604800
 
-        print("Merging daily sliced data...")
+                    # Raw data calculations: I need the aggregated dag_address_sum from the snapshot data column "dag"
+                    snapshot_data, node_data = await get_data(session, timestamp)
 
-        try:
-            snapshot_data = sliced_snapshot_df.merge(
-                snapshot_data.drop_duplicates("destinations"),
-                on="destinations",
-                how="left",
-            )
-            print(snapshot_data)
-        except Exception:
-            print(traceback.format_exc())
-        print("Merging done!")
+                    pd.set_option("display.max_rows", None)
+                    pd.options.display.float_format = "{:.2f}".format
+                    """
+                    CREATE DAILY DATA
+                    TO: Start time is the latest available timestamp
+                    FROM: The "timestamp" var is the timestamp from where you wish to retrieve data from
+                    """
+                    start_time = snapshot_data["timestamp"].values.max()
+                    # One day in seconds
+                    traverse_seconds = 86400
+                    sliced_snapshot_df, sliced_node_df = create_timeslice_data(
+                        snapshot_data, node_data, start_time, traverse_seconds
+                    )
+                    sliced_snapshot_df["dag_daily_std_dev"].fillna(0, inplace=True)
+                    create_reward_visualizations(sliced_snapshot_df, timestamp)
+                    create_cpu_visualizations(sliced_node_df, timestamp)
 
-        try:
-            snapshot_data = sum_usd(snapshot_data, "usd_address_sum", "dag_address_sum")
-        except Exception:
-            print(traceback.format_exc())
-        print(snapshot_data)
+                    # (!) After visual only keep last (sort_values) timestamp and drop duplicates
+                    # Keeping the last grouped row; free disk space, disk space and cpu count. You only need the latest timestamp in database
+                    # since it's updated daily
+                    sliced_node_df = sliced_node_df.sort_values(by="timestamp").drop_duplicates(
+                        [
+                            "destinations",
+                            "layer",
+                            "ip",
+                            "public_port",
+                        ],
+                        keep="last",
+                        ignore_index=True,
+                    )
+                    sliced_snapshot_df = sum_usd(
+                        sliced_snapshot_df, "usd_address_daily_sum", "dag_address_daily_sum"
+                    )
+                    # Clean the data
+                    sliced_snapshot_df = sliced_snapshot_df[final_sliced_columns].drop_duplicates(
+                        "destinations"
+                    )
 
-        # The node is earning more than the average if sum deviation is positive
-        try:
-            snapshot_data["dag_address_sum_dev"] = (
-                snapshot_data["dag_address_sum"]
-                - snapshot_data["dag_address_sum"].median()
-            )
-        except Exception:
-            print(traceback.format_exc())
-        print(snapshot_data)
-        snapshot_data["dag_median_sum"] = snapshot_data["dag_address_sum"].median()
-        print(snapshot_data)
+                    """
+                    CREATE OVERALL DATA
+                    """
+                    snapshot_data["dag_address_sum"] = snapshot_data.groupby("destinations")[
+                        "dag"
+                    ].transform("sum")
 
-        """
-        # The most effective node is the node with the lowest daily standard deviation, the highest daily mean earnings,
-        # the highest daily sum deviation (average node sum earnings, minus network earnings median) and the highest
-        # overall timeslice sum deviation (average node sum earnings, minus network earnings median).
-        """
-        print("Preparing effectivity_score...")
-        try:
-            snapshot_data = snapshot_data.sort_values(
-                by=[
-                    "dag_address_sum_dev",
-                    "dag_address_daily_sum_dev",
-                    "dag_address_daily_mean",
-                    "dag_daily_std_dev",
-                ],
-                ascending=[False, False, False, True],
-            ).reset_index(drop=True)
-        except Exception:
-            print(traceback.format_exc())
+                    snapshot_data = sliced_snapshot_df.merge(
+                        snapshot_data.drop_duplicates("destinations"),
+                        on="destinations",
+                        how="left",
+                    )
 
-        try:
-            snapshot_data = snapshot_data.sort_values(
-                by="dag_address_sum_dev", ascending=False
-            ).reset_index(drop=True)
-            snapshot_data["earner_score"] = snapshot_data.index + 1
-            total_len = len(snapshot_data.index)
-            snapshot_data["count"] = total_len
-            # Initiate the row
-            snapshot_data["percent_earning_more"] = 0.0
-        except Exception:
-            print(traceback.format_exc())
-        print("Post/update database statistics")
-        try:
-            for i, row in snapshot_data.iterrows():
-                percentage = ((i + 1) / total_len) * 100
-                snapshot_data.at[i, "percent_earning_more"] = percentage
-                row["percent_earning_more"] = percentage
-                reward_data = RewardStatsSchema(**row.to_dict())
-                try:
-                    # Post
-                    await post_reward_stats(reward_data)
-                except sqlalchemy.exc.IntegrityError:
-                    await update_reward_stats(reward_data)
-        except Exception:
-            print(traceback.format_exc())
-        try:
-            for i, row in sliced_node_df.iterrows():
-                key_str = f"{row.id}-{row.ip}-{row.public_port}"
-                hash_index = hashlib.sha256(key_str.encode()).hexdigest()
-                row['hash_index'] = hash_index
-                print(row)
-                metric_data = MetricStatsSchema(**row.to_dict())
+                    snapshot_data = sum_usd(snapshot_data, "usd_address_sum", "dag_address_sum")
 
-                try:
-                    # Post
-                    await post_metric_stats(metric_data)
-                except Exception:
-                    await update_metric_stats(metric_data)
-        except Exception:
-            print(traceback.format_exc())
+                    # The node is earning more than the average if sum deviation is positive
+                    snapshot_data["dag_address_sum_dev"] = (
+                        snapshot_data["dag_address_sum"]
+                        - snapshot_data["dag_address_sum"].median()
+                    )
+                    snapshot_data["dag_median_sum"] = snapshot_data["dag_address_sum"].median()
 
-        del snapshot_data, metric_data
+                    # Delete this (Effectivity score)
+                    snapshot_data = snapshot_data.sort_values(
+                        by=[
+                            "dag_address_sum_dev",
+                            "dag_address_daily_sum_dev",
+                            "dag_address_daily_mean",
+                            "dag_daily_std_dev",
+                        ],
+                        ascending=[False, False, False, True],
+                    ).reset_index(drop=True)
+
+
+                    snapshot_data = snapshot_data.sort_values(
+                        by="dag_address_sum_dev", ascending=False
+                    ).reset_index(drop=True)
+                    snapshot_data["earner_score"] = snapshot_data.index + 1
+                    total_len = len(snapshot_data.index)
+                    snapshot_data["count"] = total_len
+                    # Initiate the row
+                    snapshot_data["percent_earning_more"] = 0.0
+
+                    for i, row in snapshot_data.iterrows():
+                        percentage = ((i + 1) / total_len) * 100
+                        snapshot_data.at[i, "percent_earning_more"] = percentage
+                        row["percent_earning_more"] = percentage
+                        reward_data = RewardStatsSchema(**row.to_dict())
+                        try:
+                            # Post
+                            await post_reward_stats(reward_data)
+                        except sqlalchemy.exc.IntegrityError:
+                            await update_reward_stats(reward_data)
+
+                    for i, row in sliced_node_df.iterrows():
+                        key_str = f"{row.id}-{row.ip}-{row.public_port}"
+                        hash_index = hashlib.sha256(key_str.encode()).hexdigest()
+                        row['hash_index'] = hash_index
+                        metric_data = MetricStatsSchema(**row.to_dict())
+
+                        try:
+                            # Post
+                            await post_metric_stats(metric_data)
+                        except Exception:
+                            await update_metric_stats(metric_data)
+
+                    del snapshot_data, metric_data
+                else:
+                    await asyncio.sleep(0.5)
+
+            except Exception as e:
+                logging.getLogger("app").error(
+                    f"main.py - error: {traceback.format_exc()}"
+                )
+                await discord.messages.send_traceback(bot, traceback.format_exc())

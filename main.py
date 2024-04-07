@@ -40,10 +40,7 @@ def start_rewards_coroutine(_configuration):
 
 
 def start_stats_coroutine(_configuration):
-    try:
-        asyncio.run_coroutine_threadsafe(stats.run(_configuration), bot.loop)
-    except Exception:
-        print(traceback.format_exc())
+    asyncio.run_coroutine_threadsafe(stats.run(), bot.loop)
 
 
 async def main_loop(version_manager, _configuration):
@@ -73,10 +70,11 @@ async def main_loop(version_manager, _configuration):
                         for completed_task in asyncio.as_completed(tasks):
                             data = await completed_task
                             await data_queue.put(data)
-
                         while not data_queue.empty():
                             data = await data_queue.get()
                             await history.write(data)
+                    else:
+                        await asyncio.sleep(0.5)
 
                 except Exception as e:
                     logging.getLogger("app").error(

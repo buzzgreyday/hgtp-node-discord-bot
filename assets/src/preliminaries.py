@@ -87,3 +87,7 @@ def generate_runtimes(configuration) -> list:
 
 def generate_rewards_runtimes() -> list:
     return _generate_runtimes({"general": {"loop_init_time": "12:00:00"}}, 5)
+
+
+def generate_stats_runtimes() -> list:
+    return _generate_runtimes({"general": {"loop_init_time": "12:00:00"}}, 3600*24)
