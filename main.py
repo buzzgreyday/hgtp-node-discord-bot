@@ -132,7 +132,7 @@ def main():
     logger.addHandler(handler)
 
     logger = logging.getLogger("stats")
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
     handler = logging.FileHandler(
         filename="assets/data/logs/stats.log", encoding="utf-8", mode="w"
     )
@@ -143,7 +143,7 @@ def main():
 
     version_manager = preliminaries.VersionManager(_configuration)
 
-    # bot.load_extension("assets.src.discord.commands")
+    bot.load_extension("assets.src.discord.commands")
     bot.load_extension("assets.src.discord.events")
 
     bot.loop.create_task(main_loop(version_manager, _configuration))

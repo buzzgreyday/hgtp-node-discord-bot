@@ -2,6 +2,7 @@ import asyncio
 import hashlib
 import logging
 import traceback
+import warnings
 from datetime import datetime, timedelta
 
 from bokeh.plotting import figure, output_file, save
@@ -410,7 +411,11 @@ async def run():
                     sliced_snapshot_df, sliced_node_df = create_timeslice_data(
                         snapshot_data, node_data, start_time, traverse_seconds
                     )
+
+                    # This will be deprecated
+                    warnings.filterwarnings("ignore", category=FutureWarning)
                     sliced_snapshot_df["dag_daily_std_dev"].fillna(0, inplace=True)
+
                     create_reward_visualizations(sliced_snapshot_df, timestamp)
                     create_cpu_visualizations(sliced_node_df, timestamp)
 
