@@ -151,9 +151,9 @@ class CRUD:
                     .values(**data.__dict__)
                 )
                 await session.commit()
-                logging.getLogger("rewards").error(f"crud.py - Stats update: SUCCESS!")
-            except:
-                print("Stats update: FAILED!\n", traceback.format_exc())
+                logging.getLogger("stats").debug(f"crud.py - Stats update success")
+            except Exception as e:
+                logging.getLogger("stats").error(f"crud.py - Stats update failed {traceback.format_exc()}")
 
     async def post_metric_stats(
         self, data: MetricStatsSchema, async_session: async_sessionmaker[AsyncSession]
@@ -164,7 +164,7 @@ class CRUD:
             # Create a StatModel instance for each row of data
             session.add(metric_data)
             await session.commit()
-            logging.getLogger("rewards").error(f"crud.py - Metric stats post: SUCCESS!")
+            logging.getLogger("stats").error(f"crud.py - Metric stats post: SUCCESS!")
         return jsonable_encoder(metric_data)
 
     async def update_metric_stats(
@@ -180,9 +180,9 @@ class CRUD:
                     .values(**data.__dict__)
                 )
                 await session.commit()
-                logging.getLogger("rewards").error(f"crud.py - Metric stats update: SUCCESS!")
+                logging.getLogger("stats").debug(f"crud.py - Metric stats update success")
             except Exception:
-                print("Metric stats update: FAILED!\n", traceback.format_exc())
+                logging.getLogger("stats").error(f"crud.py - Metric stats update success")
 
     async def delete_user_entry(
         self, data: UserModel, async_session: async_sessionmaker[AsyncSession]
