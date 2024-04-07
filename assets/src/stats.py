@@ -367,11 +367,10 @@ async def get_data(session, timestamp):
 async def run():
     await asyncio.sleep(16)
     times = preliminaries.generate_stats_runtimes()
-
     """
     GET DATA
     """
-    logging.getLogger("stats").info("Starting process...")
+    logging.getLogger("stats").info(f"Runtimes: {times}")
     while True:
         async with ClientSession(
             connector=TCPConnector(

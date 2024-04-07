@@ -132,7 +132,7 @@ def main():
     logger.addHandler(handler)
 
     logger = logging.getLogger("stats")
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
     handler = logging.FileHandler(
         filename="assets/data/logs/stats.log", encoding="utf-8", mode="w"
     )
