@@ -74,7 +74,7 @@ async def main_loop(version_manager, _configuration):
                             data = await data_queue.get()
                             await history.write(data)
                     else:
-                        await asyncio.sleep(0.5)
+                        await asyncio.sleep(0.2)
 
                 except Exception as e:
                     logging.getLogger("app").error(
