@@ -72,7 +72,7 @@
     <div class="row">
         <div class="box">
             <div class="shadow container-sm ml-3 rounded-top bg-primary" style="background-color: #ffffff;">
-                <div class="h3 mb-0 text-white fw-bold" style="color: #3d3d3d;">CPU and disk space</div>
+                <div class="h3 mb-0 text-white fw-bold" style="color: #3d3d3d;">CPU</div>
             </div>
             <div class="shadow container-sm ml-3 text-black rounded-bottom" style="background-color: #ffffff;">
                 <iframe src="{{ cpu_plot_path }}" width="800" height="400" frameborder="0"></iframe>
@@ -84,13 +84,13 @@
             </div>
             <div class="shadow container-sm rounded-bottom bg-white text-black">
                 {% for dict in metric_dicts %}
-                <p class="bg-light">Layer {{ dict.layer }} ({{ dict.ip }}:{{ dict.public_port }}) metrics</p>
+                <p class="bg-light">Layer {{ dict.layer }} ({{ dict.ip }}:{{ dict.public_port }})</p>
                 <p class="h-6 mb-1">Daily CPU load</p>
                 <p class="fs-6 mb-1 fw-light">{{ dict.daily_cpu_load | round(2) }}</p>
                 <p class="fs-6 mb-3 fw-lighter">Ideal CPU load average is below {{ dict.cpu_count }}</p>
 
                 <p class="h-6 mb-1">Disk space</p>
-                <p class="fs-6 mb-3 fw-light">{{ dict.disk_free | round(2) }} of {{ dict.disk_total | round(2) }} GB</p>
+                <p class="fs-6 mb-3 fw-light">{{ dict.disk_free | round(2) }} free of {{ dict.disk_total | round(2) }} GB</p>
                 {% endfor %}
             </div>
         </div>
