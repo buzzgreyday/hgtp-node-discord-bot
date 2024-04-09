@@ -131,19 +131,19 @@ async def verify(interaction=nextcord.Interaction):
     try:
         await interaction.user.send(f"Checking Discord server settings...")
     except nextcord.Forbidden:
-        await interaction.send(
-            content=f"{interaction.user.mention}, to gain access you need to navigate to `Privacy Settings` an enable `Direct Messages` from server members. If you experience issues, please contact an admin.",
-            ephemeral=True,
-        )
         logging.getLogger("app").info(
             f"discord.py - Verification of {interaction.user} denied"
+        )
+        await interaction.user.send(
+            content=f"{interaction.user.mention}, to gain access you need to navigate to `Privacy Settings` an enable `Direct Messages` from server members. If you experience issues, please contact an admin.",
+            ephemeral=True,
         )
     else:
         guild = await bot.fetch_guild(974431346850140201)
         role = nextcord.utils.get(guild.roles, name="verified")
         if role:
             await interaction.user.add_roles(role)
-            await interaction.send(
+            await interaction.response.send(
                 content=f"{interaction.user.mention}, your settings were verified!",
                 ephemeral=True,
             )
