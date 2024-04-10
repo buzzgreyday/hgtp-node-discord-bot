@@ -244,9 +244,9 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
             x_axis_label="Time",
             y_axis_label="CPU Load Percentage",
             x_axis_type="datetime",
-            width=800,
-            height=400,
         )
+        p.sizing_mode = 'scale_width'
+
         for port in destination_df["public_port"].unique():
             layer_df = destination_df[destination_df["public_port"] == port]
             p.line(
@@ -284,9 +284,8 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
             x_axis_label="Time",
             y_axis_label="$DAG Earnings",
             x_axis_type="datetime",
-            width=800,
-            height=400,
         )
+        p.sizing_mode = 'scale_width'
         p.line(
             pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
             destination_df["dag_address_daily_sum"],
