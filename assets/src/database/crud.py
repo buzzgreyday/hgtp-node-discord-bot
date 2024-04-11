@@ -287,10 +287,8 @@ class CRUD:
                      dag_address_monthly_std_dev=dag_address_monthly_std_dev,
                      usd_address_sum=round(usd_address_sum, 2),
                      usd_address_daily_sum=round(usd_address_daily_sum, 2),
-                     # rewards_plot_path=f"http://localhost:8000/static/rewards_{dag_address}.html",
-                     # cpu_plot_path=f"http://localhost:8000/static/cpu_{dag_address}.html",
-                     rewards_plot_path=f"http://b1tco.de/static/rewards_{dag_address}.html",
-                     cpu_plot_path=f"http://b1tco.de/static/cpu_{dag_address}.html",
+                     rewards_plot_path=f"rewards_{dag_address}.html",
+                     cpu_plot_path=f"cpu_{dag_address}.html",
                      metric_dicts=metric_dicts)
         )
         if reward_results:

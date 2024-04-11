@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Statistics for {{ dag_address }}</title>
+    <title>NodeBot Statistics</title>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,7 +25,7 @@
 <body>
     <div class="row">
         <div class="container-sm">
-            <img src="http://b1tco.de/static/logo/banner-color.png" style="width:35%" alt="logo">
+            <img src="../../static/logo/banner-color.png" style="width:25em;" alt="logo">
         </div>
     </div>
     <div class="row">
@@ -33,15 +33,15 @@
             <div class="shadow container-sm ml-3 rounded-top bg-primary" style="display:block; min-width:20em; max-width:80em; width:100%; background-color: #ffffff;">
                 <div class="h3 mb-0 text-white fw-bold" style="color: #3d3d3d;">Rewards</div>
             </div>
-            <div class="shadow container-sm ml-3 text-black rounded-bottom" style="width:100%; background-color: #ffffff;">
-                <iframe src="{{ rewards_plot_path }}" style="width:100%;" frameborder="0" id="reward_plot_frame"></iframe>
+            <div class="shadow container-sm ml-3 text-black rounded-bottom" style="width:100%; min-width:20em; max-width:80em; background-color: #ffffff;">
+                <iframe src="../../static/{{ rewards_plot_path }}" style="width:100%; height:100%" frameborder="0" id="reward_plot_frame">Reward plot</iframe>
             </div>
         </div>
         <div class="box">
-            <div class="shadow container-sm ml-3 rounded-top bg-primary" style="min-width:20em; max-width:80em; background-color: #ffffff;">
+            <div class="shadow container-sm ml-3 rounded-top bg-primary" style="display:block; min-width:20em; max-width:80em; width:100%; background-color: #ffffff;">
                 <div class="h3 mb-0 text-white fw-bold" style="width:100%; color: #3d3d3d;">Stats</div>
             </div>
-            <div class="shadow container-sm rounded-bottom bg-white text-dark">
+            <div class="shadow container-sm rounded-bottom bg-white text-dark" style="display:block; min-width:20em; max-width:80em; width:100%; background-color: #ffffff;">
                 <p class="h-6 mb-1">30 day node earnings</p>
                 <p class="fs-6 mb-1 fw-light">{{ dag_address_sum }} $DAG</p>
                 <p class="fs-6 mb-1 fw-lighter">Cost: ${{ usd_address_sum }}</p>
@@ -74,15 +74,15 @@
             <div class="shadow container-sm ml-3 rounded-top bg-primary" style="display:block; min-width:20em; max-width:80em; width:100%; background-color: #ffffff;">
                 <div class="h3 mb-0 text-white fw-bold" style="width:100%; color: #3d3d3d;">CPU</div>
             </div>
-            <div class="shadow container-sm ml-3 text-black rounded-bottom" style="width:100%; background-color: #ffffff;">
-                <iframe src="{{ cpu_plot_path }}" style="width:100%;" frameborder="0" id="cpu_plot_frame"></iframe>
+            <div class="shadow container-sm ml-3 text-black rounded-bottom" style="width:100%; min-width:20em; max-width:80em; background-color: #ffffff;">
+                <iframe src="../../static/{{ cpu_plot_path }}" style="width:100%; height:100%" frameborder="0" id="cpu_plot_frame">CPU plot</iframe>
             </div>
         </div>
         <div class="box">
-            <div class="shadow container-sm rounded-top bg-primary text-white" style="min-width:20em; max-width:80em;">
+            <div class="shadow container-sm rounded-top bg-primary text-white" style="display:block; min-width:20em; max-width:80em; width:100%; background-color: #ffffff;">
                 <div class="h3 mb-0 text-white fw-bold" style="width:100%; color: #3d3d3d;">Metrics</div>
             </div>
-            <div class="shadow container-sm rounded-bottom bg-white text-black" style="width:100%;">
+            <div class="shadow container-sm rounded-bottom bg-white text-black" style="display:block; min-width:20em; max-width:80em; width:100%; background-color: #ffffff;">
                 {% for dict in metric_dicts %}
                 <p class="bg-light">Layer {{ dict.layer }} ({{ dict.ip }}:{{ dict.public_port }})</p>
                 <p class="h-6 mb-1">Daily CPU load</p>
