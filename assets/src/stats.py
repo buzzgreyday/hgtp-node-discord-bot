@@ -247,7 +247,7 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
             width=600,
             height=400,
         )
-        p.sizing_mode = 'scale_both'
+        # p.sizing_mode = 'scale_both'
 
         for port in destination_df["public_port"].unique():
             layer_df = destination_df[destination_df["public_port"] == port]
@@ -289,7 +289,7 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
             width=600,
             height=400,
         )
-        p.sizing_mode = 'scale_both'
+        # p.sizing_mode = 'scale_both'
         p.line(
             pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
             destination_df["dag_address_daily_sum"],
