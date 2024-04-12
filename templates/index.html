@@ -25,7 +25,7 @@
 <body>
     <div class="row">
         <div class="container-sm">
-            <img src="../../static/logo/banner-color.png" style="width:25em;" alt="logo">
+            <img src="../../static/logo/banner-color.png" style="width:100%; max-width:30em; min-width:20em;" alt="logo">
         </div>
     </div>
     <div class="row">
@@ -33,8 +33,8 @@
             <div class="shadow container-sm ml-3 rounded-top bg-primary" style="display:block; min-width:20em; max-width:80em; width:100%; background-color: #ffffff;">
                 <div class="h3 mb-0 text-white fw-bold" style="color: #3d3d3d;">Rewards</div>
             </div>
-            <div class="shadow container-sm ml-3 text-black rounded-bottom" style="width:100%; min-width:20em; max-width:80em; background-color: #ffffff;">
-                <iframe src="../../static/{{ rewards_plot_path }}" style="width:100%; height:100%" frameborder="0" id="reward_plot_frame">Reward plot</iframe>
+            <div class="shadow container-sm ml-3 text-black rounded-bottom" style="height:400px; width:100%; min-width:20em; max-width:80em; background-color: #ffffff;">
+                <iframe src="../../static/{{ rewards_plot_path }}" style="width:100%; height:100%;" frameborder="0" id="reward_plot_frame">Reward plot</iframe>
             </div>
         </div>
         <div class="box">
@@ -74,8 +74,8 @@
             <div class="shadow container-sm ml-3 rounded-top bg-primary" style="display:block; min-width:20em; max-width:80em; width:100%; background-color: #ffffff;">
                 <div class="h3 mb-0 text-white fw-bold" style="width:100%; color: #3d3d3d;">CPU</div>
             </div>
-            <div class="shadow container-sm ml-3 text-black rounded-bottom" style="width:100%; min-width:20em; max-width:80em; background-color: #ffffff;">
-                <iframe src="../../static/{{ cpu_plot_path }}" style="width:100%; height:100%" frameborder="0" id="cpu_plot_frame">CPU plot</iframe>
+            <div class="shadow container-sm ml-3 text-black rounded-bottom" style="height:400px; width:100%; min-width:20em; max-width:80em; background-color: #ffffff;">
+                <iframe src="../../static/{{ cpu_plot_path }}" style="width:100%; height:100%;" frameborder="0" id="cpu_plot_frame">CPU plot</iframe>
             </div>
         </div>
         <div class="box">
@@ -95,25 +95,6 @@
             </div>
         </div>
     </div>
-    <script>
-        var reward_frame = document.getElementById("reward_plot_frame");
-        var cpu_frame = document.getElementById("cpu_plot_frame");
-
-        reward_frame.onload = function()
-        {
-
-          reward_frame.style.height =
-          reward_frame.contentWindow.document.body.scrollHeight + 'px';
-
-        }
-
-        cpu_frame.onload = function()
-        {
-
-          cpu_frame.style.height =
-          cpu_frame.contentWindow.document.body.scrollHeight + 'px';
-
-        }
-    </script>
+    <p class="fs-6 m-1 fw-light">v0.0-a2, by hgtp_Michael (aka Buzz Greyday)</p>
 </body>
 </html>

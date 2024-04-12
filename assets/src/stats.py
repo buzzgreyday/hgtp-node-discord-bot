@@ -244,6 +244,8 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
             x_axis_label="Time",
             y_axis_label="CPU Load Percentage",
             x_axis_type="datetime",
+            width=600,
+            height=400,
         )
         p.sizing_mode = 'scale_both'
 
@@ -261,7 +263,7 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
             line_color="green",
             line_dash="dashed",
             legend_label="Average Nodebot user",
-            alpha=0.5,
+            alpha=0.7,
         )
 
         p.legend.location = "top_left"
@@ -284,6 +286,8 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
             x_axis_label="Time",
             y_axis_label="$DAG Earnings",
             x_axis_type="datetime",
+            width=600,
+            height=400,
         )
         p.sizing_mode = 'scale_both'
         p.line(
