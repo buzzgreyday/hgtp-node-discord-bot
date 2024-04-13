@@ -269,6 +269,7 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
         p.legend.location = "bottom_right"
         p.legend.click_policy = "hide"
         p.legend.label_text_font_size = '8pt'
+        p.legend.background_fill_alhpa = 0.1
         # p.xaxis.major_label_orientation = 3.14 / 4
 
         save(p)
@@ -324,6 +325,7 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
         p.legend.location = "bottom_right"
         p.legend.click_policy = "hide"
         p.legend.label_text_font_size = '8pt'
+        p.legend.background_fill_alhpa = 0.1
         # p.xaxis.major_label_orientation = 3.14 / 4
 
         save(p)
