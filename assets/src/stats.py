@@ -303,7 +303,6 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
             legend_label="Network",
             color="green",
             line_dash="dotted",
-            alpha=0.5,
         )
         p.line(
             pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
