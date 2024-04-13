@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 
 from bokeh.models import BoxAnnotation
 from bokeh.plotting import figure, output_file, save
+from bokeh.palettes import Category20c_10
 import pandas as pd
 import sqlalchemy
 from aiohttp import ClientSession, TCPConnector
@@ -249,19 +250,24 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
             height=400,
         )
         p.sizing_mode = 'scale_width'
-
-        for port in destination_df["public_port"].unique():
+        ports = destination_df["public_port"].unique()
+        palette = Category20c_10
+        for i, port in enumerate(ports):
+            color = palette[i]
             layer_df = destination_df[destination_df["public_port"] == port]
+
             p.line(
                 pd.to_datetime(layer_df["timestamp"] * 1000, unit="ms"),
                 layer_df["daily_cpu_load"] / layer_df["cpu_count"] * 100,
+                line_width=3,
                 legend_label=f"{layer_df['ip'].values[0]}:{layer_df['public_port'].values[0]}",
+                color=color,
             )
 
         p.line(
             pd.to_datetime(df["timestamp"] * 1000, unit="ms"),
             df["daily_cpu_load"].median() / df["cpu_count"].median() * 100,
-            line_color="green",
+            line_color="grey",
             line_dash="dashed",
             legend_label="Av. user",
             alpha=0.5,
@@ -276,7 +282,6 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
         p.legend.click_policy = "hide"
         p.legend.label_text_font_size = '8pt'
         p.legend.background_fill_alpha = 0.1
-        # p.xaxis.major_label_orientation = 3.14 / 4
 
         save(p)
 
@@ -285,6 +290,7 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
     """Creates reward visualizations."""
     unique_destinations = df["destinations"].unique()
     path = "static"
+    palette = Category20c_10
     for destination in unique_destinations:
         logging.getLogger("stats").debug(f"Creating reward visualization for {destination}")
         output_file(f"{path}/rewards_{destination}.html")
@@ -302,31 +308,25 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
             pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
             destination_df["dag_address_daily_sum"],
             legend_label="Node",
-            color="blue",
+            color=palette[0],
+            line_width=3,
         )
         p.line(
             pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
             destination_df["daily_overall_median"],
             legend_label="Network",
-            color="green",
+            color="silver",
             line_dash="dotted",
+            line_width=3,
         )
         p.line(
             pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
             destination_df["dag_address_daily_mean"].median(),
-            line_color="blue",
+            line_color=palette[0],
             line_dash="dashed",
             legend_label=f"Av. node",
-            alpha=0.5,
         )
-        p.line(
-            pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
-            df["daily_overall_median"].median(),
-            line_color="green",
-            line_dash="dashed",
-            legend_label=f"Av. network",
-            alpha=0.5,
-        )
+
         green_box = BoxAnnotation(bottom=df["daily_overall_median"].median(), left=0, fill_alpha=0.1, fill_color='green')
         red_box = BoxAnnotation(top=df["daily_overall_median"].median(), left=0, fill_alpha=0.1, fill_color='red')
         p.add_layout(green_box)
@@ -335,7 +335,6 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
         p.legend.click_policy = "hide"
         p.legend.label_text_font_size = '8pt'
         p.legend.background_fill_alpha = 0.1
-        # p.xaxis.major_label_orientation = 3.14 / 4
 
         save(p)
 

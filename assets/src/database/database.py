@@ -9,8 +9,8 @@ from assets.src.schemas import OrdinalSchema, PriceSchema, RewardStatsSchema, Me
 
 app = FastAPI(
     title="Hypergraph Node Status Bot",
-    description="This is a Node Bot",
-    docs_url="/swagger",
+    description="This is a the Node Bot",
+    docs_url="/nodebot/swagger",
 )
 
 templates = Jinja2Templates(directory="templates")
