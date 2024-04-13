@@ -5,6 +5,7 @@ import traceback
 import warnings
 from datetime import datetime, timedelta
 
+from bokeh.models import BoxAnnotation
 from bokeh.plotting import figure, output_file, save
 import pandas as pd
 import sqlalchemy
@@ -265,11 +266,16 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
             legend_label="Av. user",
             alpha=0.5,
         )
-
+        green_box = BoxAnnotation(bottom=0, top=80, left=0, fill_alpha=0.1, fill_color='green')
+        yellow_box = BoxAnnotation(bottom=80, top=100, left=0, fill_alpha=0.1, fill_color='yellow')
+        red_box = BoxAnnotation(bottom=100, left=0, fill_alpha=0.1, fill_color='red')
+        p.add_layout(green_box)
+        p.add_layout(yellow_box)
+        p.add_layout(red_box)
         p.legend.location = "bottom_right"
         p.legend.click_policy = "hide"
         p.legend.label_text_font_size = '8pt'
-        p.legend.background_fill_alhpa = 0.1
+        p.legend.background_fill_alpha = 0.1
         # p.xaxis.major_label_orientation = 3.14 / 4
 
         save(p)
@@ -321,11 +327,14 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
             legend_label=f"Av. network",
             alpha=0.5,
         )
-
+        green_box = BoxAnnotation(bottom=df["daily_overall_median"].median(), left=0, fill_alpha=0.1, fill_color='green')
+        red_box = BoxAnnotation(top=df["daily_overall_median"].median(), left=0, fill_alpha=0.1, fill_color='red')
+        p.add_layout(green_box)
+        p.add_layout(red_box)
         p.legend.location = "bottom_right"
         p.legend.click_policy = "hide"
         p.legend.label_text_font_size = '8pt'
-        p.legend.background_fill_alhpa = 0.1
+        p.legend.background_fill_alpha = 0.1
         # p.xaxis.major_label_orientation = 3.14 / 4
 
         save(p)
