@@ -24,7 +24,7 @@ class Request:
 
     async def database(self, request_url):
         while True:
-            logging.getLogger("stats").warning(
+            logging.getLogger("stats").info(
                 f"stats.py - Requesting database {request_url}"
             )
             try:
@@ -247,14 +247,14 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
             width=600,
             height=400,
         )
-        # p.sizing_mode = 'scale_both'
+        p.sizing_mode = 'scale_width'
 
         for port in destination_df["public_port"].unique():
             layer_df = destination_df[destination_df["public_port"] == port]
             p.line(
                 pd.to_datetime(layer_df["timestamp"] * 1000, unit="ms"),
                 layer_df["daily_cpu_load"] / layer_df["cpu_count"] * 100,
-                legend_label=f"L{layer_df['layer'].values[0]}, IP {layer_df['ip'].values[0]}, Port {layer_df['public_port'].values[0]}",
+                legend_label=f"{layer_df['ip'].values[0]}:{layer_df['public_port'].values[0]}",
             )
 
         p.line(
@@ -262,13 +262,14 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
             df["daily_cpu_load"].median() / df["cpu_count"].median() * 100,
             line_color="green",
             line_dash="dashed",
-            legend_label="Average Nodebot user",
-            alpha=0.7,
+            legend_label="Av. user",
+            alpha=0.5,
         )
 
-        p.legend.location = "top_left"
+        p.legend.location = "bottom_right"
         p.legend.click_policy = "hide"
-        p.xaxis.major_label_orientation = 3.14 / 4
+        p.legend.label_text_font_size = '8pt'
+        # p.xaxis.major_label_orientation = 3.14 / 4
 
         save(p)
 
@@ -289,19 +290,19 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
             width=600,
             height=400,
         )
-        # p.sizing_mode = 'scale_both'
+        p.sizing_mode = ('scale_width')
         p.line(
             pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
             destination_df["dag_address_daily_sum"],
-            legend_label="Node earnings",
+            legend_label="Node",
             color="blue",
         )
         p.line(
             pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
             destination_df["daily_overall_median"],
-            legend_label="Network earnings",
+            legend_label="Network",
             color="green",
-            line_dash="dashed",
+            line_dash="dotted",
             alpha=0.5,
         )
         p.line(
@@ -309,7 +310,7 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
             destination_df["dag_address_daily_mean"].median(),
             line_color="blue",
             line_dash="dashed",
-            legend_label=f"Average node earnings (since {datetime.fromtimestamp(from_timestamp).strftime('%d. %B %Y')})",
+            legend_label=f"Av. node",
             alpha=0.5,
         )
         p.line(
@@ -317,13 +318,14 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
             df["daily_overall_median"].median(),
             line_color="green",
             line_dash="dashed",
-            legend_label=f"Average network earnings (since {datetime.fromtimestamp(from_timestamp).strftime('%d. %B %Y')})",
+            legend_label=f"Av. network",
             alpha=0.5,
         )
 
-        p.legend.location = "top_left"
+        p.legend.location = "bottom_right"
         p.legend.click_policy = "hide"
-        p.xaxis.major_label_orientation = 3.14 / 4
+        p.legend.label_text_font_size = '8pt'
+        # p.xaxis.major_label_orientation = 3.14 / 4
 
         save(p)
 

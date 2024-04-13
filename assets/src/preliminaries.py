@@ -91,4 +91,4 @@ def generate_rewards_runtimes() -> list:
 
 def generate_stats_runtimes() -> list:
     # daily = 60*24
-    return _generate_runtimes({"general": {"loop_init_time": "12:00:00"}}, 60*24)
+    return _generate_runtimes({"general": {"loop_init_time": "12:00:00"}}, 1)
