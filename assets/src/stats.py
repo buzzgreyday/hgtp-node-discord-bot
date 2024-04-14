@@ -19,6 +19,8 @@ from assets.src.discord.services import bot
 from assets.src.rewards import normalize_timestamp
 from assets.src.schemas import RewardStatsSchema, MetricStatsSchema
 
+"""CLASSES"""
+
 
 class Request:
     def __init__(self, session):
@@ -72,6 +74,8 @@ class Request:
                     await asyncio.sleep(60)
 
 
+"""PANDAS COLUMNS"""
+
 sliced_columns = [
     "timestamp",
     "ordinals",
@@ -104,6 +108,8 @@ final_columns = [
     "usd_address_daily_sum",
 ]
 
+
+"""FUNCTIONS"""
 
 def sum_usd(
     df: pd.DataFrame, new_column_name: str, address_specific_sum_column
@@ -390,6 +396,10 @@ async def get_data(session, timestamp):
 
 
 async def run():
+    """
+    Initiate the statistics process
+    :return:
+    """
     await asyncio.sleep(16)
     times = preliminaries.generate_stats_runtimes()
     logging.getLogger("stats").info(f"Runtimes: {times}")
