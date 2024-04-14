@@ -392,9 +392,6 @@ async def get_data(session, timestamp):
 async def run():
     await asyncio.sleep(16)
     times = preliminaries.generate_stats_runtimes()
-    """
-    GET DATA
-    """
     logging.getLogger("stats").info(f"Runtimes: {times}")
     while True:
         async with ClientSession(
@@ -408,18 +405,21 @@ async def run():
             current_time = datetime.utcnow().time().strftime("%H:%M:%S")
             try:
                 if current_time in times:
+                    """PANDAS SETTINGS"""
+                    pd.set_option("display.max_rows", None)
+                    pd.options.display.float_format = "{:.2f}".format
                     # Convert timestamp to epoch
                     timestamp = normalize_timestamp(
                         datetime.utcnow().timestamp() - timedelta(days=30).total_seconds()
                     )
-
-                    # Raw data calculations: I need the aggregated dag_address_sum from the snapshot data column "dag"
+                    """GET DATA"""
+                    # Important: The original data requested below is used after creation of daily data.
+                    # Therefore, do not delete the data before updating the database.
+                    #
                     # The df "snapshot_data" is the rewards used to calc reward statistics and "node_data" is used to
                     # calc CPU statistics
                     snapshot_data, node_data = await get_data(session, timestamp)
 
-                    pd.set_option("display.max_rows", None)
-                    pd.options.display.float_format = "{:.2f}".format
                     """
                     CREATE DAILY DATA
                     TO: Start time is the latest available timestamp
@@ -466,9 +466,7 @@ async def run():
                         "destinations"
                     )
 
-                    """
-                    CREATE OVERALL DATA
-                    """
+                    """CREATE DATA FOR THE ENTIRE PERIOD"""
                     # Use the unsliced data to calculate the sum of all $DAG earned per node wallet
                     snapshot_data["dag_address_sum"] = snapshot_data.groupby("destinations")[
                         "dag"
