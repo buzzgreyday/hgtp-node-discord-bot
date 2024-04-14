@@ -517,7 +517,7 @@ async def run():
                     # Calculate the percentage of node wallets earning more than each individual node wallet.
                     # Start by preparing the new data column
                     snapshot_data["percent_earning_more"] = 0.0
-                    # Calculate percentage earning more and then upload reward data to database, row-by-row
+                    # Calculate percentage earning more and then save reward data to database, row-by-row.
                     for i, row in snapshot_data.iterrows():
                         percentage = ((i + 1) / total_len) * 100
                         # Add the new data to the reward data for the entire period
@@ -532,7 +532,9 @@ async def run():
                         except sqlalchemy.exc.IntegrityError:
                             # Update data, if data already exists
                             await update_reward_stats(reward_data)
-
+                    # Upload metrics (CPU) data to database. Since every wallet can be associated with multiple node
+                    # instances and different server specifications, we'll create a hash to properly update the
+                    # database.
                     for i, row in sliced_node_df.iterrows():
                         key_str = f"{row.id}-{row.ip}-{row.public_port}"
                         hash_index = hashlib.sha256(key_str.encode()).hexdigest()
@@ -540,16 +542,18 @@ async def run():
                         metric_data = MetricStatsSchema(**row.to_dict())
 
                         try:
-                            # Post
+                            # Post data if no data exists
                             await post_metric_stats(metric_data)
                         except Exception:
+                            # Update data, if data already exists
                             await update_metric_stats(metric_data)
-
+                    # After saving data, give GIL something to do.
                     del snapshot_data, metric_data
                 else:
                     await asyncio.sleep(0.2)
 
             except Exception as e:
+                # If anything fails, send a traceback to the creator
                 logging.getLogger("app").error(
                     f"main.py - error: {traceback.format_exc()}"
                 )
