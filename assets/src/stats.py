@@ -473,24 +473,26 @@ async def run():
                     snapshot_data["dag_address_sum"] = snapshot_data.groupby("destinations")[
                         "dag"
                     ].transform("sum")
-                    # Missing dag_address_mean
-
+                    # Merge the daily data into the original unsliced snapshot data
                     snapshot_data = sliced_snapshot_df.merge(
                         snapshot_data.drop_duplicates("destinations"),
                         on="destinations",
                         how="left",
                     )
-
+                    # Calculate USD value of total amount of $DAG earned per node wallet in the period.
+                    # If 30 days then 86400
                     snapshot_data = sum_usd(snapshot_data, "usd_address_sum", "dag_address_sum")
 
-                    # The node is earning more than the average if sum deviation is positive
+                    # The node is earning more than the average if sum deviation is positive, less if negative
                     snapshot_data["dag_address_sum_dev"] = (
                         snapshot_data["dag_address_sum"]
                         - snapshot_data["dag_address_sum"].median()
                     )
+                    # Calculate the overall average. Since there's possibly some extreme unwanted outliers,
+                    # we'll find the median. (Should be moved up to speed a little bit).
                     snapshot_data["dag_median_sum"] = snapshot_data["dag_address_sum"].median()
 
-                    # Delete this (Effectivity score)
+                    # Delete this: ############################
                     snapshot_data = snapshot_data.sort_values(
                         by=[
                             "dag_address_sum_dev",
@@ -500,26 +502,35 @@ async def run():
                         ],
                         ascending=[False, False, False, True],
                     ).reset_index(drop=True)
+                    ##########################################
 
-
+                    # Order the data by top earners
                     snapshot_data = snapshot_data.sort_values(
                         by="dag_address_sum_dev", ascending=False
                     ).reset_index(drop=True)
                     snapshot_data["earner_score"] = snapshot_data.index + 1
+                    # Total len is used to count the total number of nodes and calc the percent of node wallets
+                    # earning more than each individual node wallet
                     total_len = len(snapshot_data.index)
+                    # Count total number of node wallets earning rewards in the period
                     snapshot_data["count"] = total_len
-                    # Initiate the row
+                    # Calculate the percentage of node wallets earning more than each individual node wallet.
+                    # Start by preparing the new data column
                     snapshot_data["percent_earning_more"] = 0.0
-
+                    # Calculate percentage earning more and then upload reward data to database, row-by-row
                     for i, row in snapshot_data.iterrows():
                         percentage = ((i + 1) / total_len) * 100
+                        # Add the new data to the reward data for the entire period
                         snapshot_data.at[i, "percent_earning_more"] = percentage
+                        # Add the new data to the reward database entry
                         row["percent_earning_more"] = percentage
+                        # Validate the data
                         reward_data = RewardStatsSchema(**row.to_dict())
                         try:
-                            # Post
+                            # Post data if no data exists
                             await post_reward_stats(reward_data)
                         except sqlalchemy.exc.IntegrityError:
+                            # Update data, if data already exists
                             await update_reward_stats(reward_data)
 
                     for i, row in sliced_node_df.iterrows():
