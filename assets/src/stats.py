@@ -460,6 +460,7 @@ async def run():
                     snapshot_data["dag_address_sum"] = snapshot_data.groupby("destinations")[
                         "dag"
                     ].transform("sum")
+                    # Missing dag_address_mean
 
                     snapshot_data = sliced_snapshot_df.merge(
                         snapshot_data.drop_duplicates("destinations"),
