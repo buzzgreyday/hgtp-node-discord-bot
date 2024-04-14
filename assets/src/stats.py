@@ -198,7 +198,7 @@ def create_timeslice_data(
         sliced_snapshot_df = sliced_snapshot_df[sliced_columns].drop_duplicates(
             "destinations", ignore_index=True
         )
-        # Clean CPU data rows: keeping the last grouped row
+        # Clean CPU data rows but keep the last grouped row.
         # Last row should be used to save most recent free space and in case an operator upgraded disk or CPUs.
         # This might later look like a duplicated clean-up, but it isn't.
         sliced_node_data_df = sliced_node_data_df.sort_values(
