@@ -108,7 +108,7 @@ final_columns = [
 def sum_usd(
     df: pd.DataFrame, new_column_name: str, address_specific_sum_column
 ) -> pd.DataFrame:
-    # THE USD VALUE NEEDS TO BE MULTIPLIED SINCE IT'S THE VALUE PER DAG
+    # THE USD VALUE NEEDS TO BE MULTIPLIED SINCE IT'S THE VALUE PER DAG :)
     df[new_column_name] = df["usd_per_token"] * df[address_specific_sum_column]
     return df
 
