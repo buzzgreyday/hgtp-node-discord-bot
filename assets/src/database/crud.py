@@ -266,6 +266,7 @@ class CRUD:
         )
         monthly_dag_estimation_low = dag_address_sum - (reward_results.dag_daily_std_dev * 30)
         monthly_dag_estimation_high = dag_address_sum + (reward_results.dag_daily_std_dev * 30)
+        monthly_dag_average = dag_address_daily_mean * 30
         dag_address_monthly_std_dev = f"{round(monthly_dag_estimation_low)} - {round(monthly_dag_estimation_high)}"
         if reward_results.dag_address_sum_dev > 0:
             dag_address_sum_dev = f"+{round(reward_results.dag_address_sum_dev)}"
@@ -277,13 +278,19 @@ class CRUD:
         )
         content = templates.TemplateResponse(
                 "index.html",
-                dict(request=request, dag_address=dag_address, earner_score=earner_score, count=count,
-                     percent_earning_more=round(percent_earning_more, 2), dag_address_sum=round(dag_address_sum, 2),
-                     dag_address_sum_dev=dag_address_sum_dev, dag_median_sum=round(dag_median_sum, 2),
+                dict(request=request,
+                     dag_address=dag_address,
+                     earner_score=earner_score,
+                     count=count,
+                     percent_earning_more=round(percent_earning_more, 2),
+                     dag_address_sum=round(dag_address_sum, 2),
+                     dag_address_sum_dev=dag_address_sum_dev,
+                     dag_median_sum=round(dag_median_sum, 2),
                      daily_network_earnings_average=round(daily_network_earnings_average, 2),
                      dag_address_daily_sum_dev=round(node_daily_earnings_deviation, 2),
                      dag_address_daily_mean=round(dag_address_daily_mean, 2),
                      dag_address_daily_std_dev=dag_address_daily_std_dev,
+                     dag_address_monthly_mean=round(monthly_dag_average, 2),
                      dag_address_monthly_std_dev=dag_address_monthly_std_dev,
                      usd_address_sum=round(usd_address_sum, 2),
                      usd_address_daily_sum=round(usd_address_daily_sum, 2),

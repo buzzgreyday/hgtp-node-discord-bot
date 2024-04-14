@@ -42,27 +42,25 @@
                 <div class="h3 mb-0 text-white fw-bold" style="width:100%; color: #3d3d3d;">Stats</div>
             </div>
             <div class="shadow container-sm rounded-bottom bg-white text-dark" style="width:100%; min-width:20em; max-width:80em; background-color: #ffffff;">
-                <p class="h-6 mb-1">30 day node earnings</p>
+                <p class="h-6 mb-1">30-day node earnings</p>
                 <p class="fs-6 mb-1 fw-light">{{ dag_address_sum }} $DAG</p>
                 <p class="fs-6 mb-1 fw-lighter">Cost: ${{ usd_address_sum }}</p>
+                <p class="fs-6 mb-1 fw-lighter">Average monthly earnings: ${{ dag_address_monthly_mean }}</p>
                 <p class="fs-6 mb-3 fw-lighter">Estimated monthly earnings is {{ dag_address_monthly_std_dev }} $DAG</p>
 
-                <p class="h-6 mb-1">Average 30 day network earnings</p>
+                <p class="h-6 mb-1">30-day average network earnings</p>
                 <p class="fs-6 mb-1 fw-light">{{ dag_median_sum }} $DAG</p>
                 <p class="fs-6 mb-3 fw-lighter">Node deviation: {{ dag_address_sum_dev }} $DAG</p>
 
-                <p class="h-6 mb-1">Percent earning more </p>
-                <p class="fs-6 mb-3 fw-light">{{ percent_earning_more }}% of the network earned more than this node the past 30 days</p>
-
-                <p class="h-6 mb-1">30 days earner score</p>
+                <p class="h-6 mb-1">30-day earnings score</p>
                 <p class="fs-6 mb-3 fw-light">{{ earner_score }} of {{ count }} nodes</p>
+                <p class="fs-6 mb-3 fw-lighter">{{ percent_earning_more }}% of the network earned more</p>
 
-                <p class="h-6 mb-1">Average daily node earnings</p>
+                <p class="h-6 mb-1">1-day average node earnings</p>
                 <p class="fs-6 mb-1 fw-light">{{ dag_address_daily_mean }} $DAG</p>
-                <p class="fs-6 mb-1 fw-lighter">Cost: ${{ usd_address_daily_sum }}</p>
                 <p class="fs-6 mb-3 fw-lighter">Estimated daily earnings is {{ dag_address_daily_std_dev }} $DAG</p>
 
-                <p class="h-6 mb-1">Average daily network earnings</p>
+                <p class="h-6 mb-1">1-day average network earnings</p>
                 <p class="fs-6 mb-1 fw-light">{{ daily_network_earnings_average }} $DAG</p>
                 <p class="fs-6 mb-1 fw-lighter">Node deviation: {{ dag_address_daily_sum_dev }} $DAG</p>
 
