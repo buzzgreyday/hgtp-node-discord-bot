@@ -164,13 +164,14 @@ def create_timeslice_data(
     data: pd.DataFrame, node_data: pd.DataFrame, start_time: int, travers_seconds: int
 ):
     """
+    COULD USE SOME CLEANING
     TO: Start time is usually the latest available timestamp
     FROM: Traverse seconds is for example seven days, one day or 24 hours in seconds (the time you wish to traverse)
     """
     list_of_daily_snapshot_df = []
     list_of_daily_node_df = []
     while start_time >= data["timestamp"].values.min():
-        # Also add 7 days and 24 hours
+        # Slice daily data
         sliced_snapshot_df = data[
             (data["timestamp"] >= start_time - travers_seconds)
             & (data["timestamp"] <= start_time)
@@ -180,23 +181,26 @@ def create_timeslice_data(
             & (node_data["timestamp"] <= start_time)
         ].copy()
 
-        # The following time is a datetime
+        # Sum together the daily amount of $DAG earned by every individual operator
+        # and create the column "dag_address_daily_sum"
         sliced_snapshot_df = calculate_address_specific_sum(
             sliced_snapshot_df, "dag_address_daily_sum", "dag"
         )
+        # Calculate the daily median of all $DAG earned by all operators
         sliced_snapshot_df = calculate_general_data_median(
             sliced_snapshot_df, "daily_overall_median", "dag_address_daily_sum"
         )
-        # sliced_node_data_df.groupby(['destinations', 'layer', 'public_port'], sort=False)['timestamp'].max()
-        # Drop all but the last in the group here and after visualization
+        # Calculate the average daily CPU for each operator instance
         sliced_node_data_df["daily_cpu_load"] = sliced_node_data_df.groupby(
             ["destinations", "layer", "public_port"]
         )["cpu_load_1m"].transform("mean")
-        # Clean the data
+        # Clean snapshot data rows
         sliced_snapshot_df = sliced_snapshot_df[sliced_columns].drop_duplicates(
             "destinations", ignore_index=True
         )
-        # Keeping the last grouped row; free disk space, disk space and cpu count
+        # Clean CPU data rows: keeping the last grouped row
+        # Last row should be used to save most recent free space and in case an operator upgraded disk or CPUs.
+        # This might later look like a duplicated clean-up, but it isn't.
         sliced_node_data_df = sliced_node_data_df.sort_values(
             by="timestamp"
         ).drop_duplicates(
@@ -209,27 +213,33 @@ def create_timeslice_data(
             keep="last",
             ignore_index=True,
         )
-
+        # Add daily data to the chain of daily data before traversing to the day before
         list_of_daily_snapshot_df.append(sliced_snapshot_df)
         list_of_daily_node_df.append(sliced_node_data_df)
+        # Set start_time to the day before and continue loop
         start_time = start_time - travers_seconds
-
+    # When timestamp is over 30 days old create a new dfs containing the daily sliced data
     sliced_snapshot_df = pd.concat(list_of_daily_snapshot_df, ignore_index=True)
     sliced_node_data_df = pd.concat(list_of_daily_node_df, ignore_index=True)
+    # Calculate the daily rewards standard deviation per wallet
     sliced_snapshot_df = calculate_address_specific_standard_deviation(
         sliced_snapshot_df, "dag_daily_std_dev", "dag_address_daily_sum"
     )
+    # Calculate the daily average rewards received per wallet
     sliced_snapshot_df = calculate_address_specific_mean(
         sliced_snapshot_df, "dag_address_daily_mean", "dag_address_daily_sum"
     )
+    # Calculate how much the daily rewards received per address deviates from the average of all daily rewards received
+    # by operators
     sliced_snapshot_df = calculate_address_specific_deviation(
         sliced_snapshot_df,
         "dag_address_daily_sum_dev",
         "dag_address_daily_sum",
         "daily_overall_median",
     )
-
+    # Give GIL something to do, if she has time
     del list_of_daily_snapshot_df, list_of_daily_node_df
+    # Return the data containing cleaner daily data
     return sliced_snapshot_df, sliced_node_data_df
 
 
@@ -398,18 +408,14 @@ async def run():
             current_time = datetime.utcnow().time().strftime("%H:%M:%S")
             try:
                 if current_time in times:
-                    # Convert to Epoch
+                    # Convert timestamp to epoch
                     timestamp = normalize_timestamp(
                         datetime.utcnow().timestamp() - timedelta(days=30).total_seconds()
                     )
 
-                    # From the beginning of time:
-                    # timestamp = 1640995200
-
-                    # 30 days in seconds = 2592000
-                    # 7 days in seconds = 604800
-
                     # Raw data calculations: I need the aggregated dag_address_sum from the snapshot data column "dag"
+                    # The df "snapshot_data" is the rewards used to calc reward statistics and "node_data" is used to
+                    # calc CPU statistics
                     snapshot_data, node_data = await get_data(session, timestamp)
 
                     pd.set_option("display.max_rows", None)
@@ -419,23 +425,28 @@ async def run():
                     TO: Start time is the latest available timestamp
                     FROM: The "timestamp" var is the timestamp from where you wish to retrieve data from
                     """
+                    # Make the most recent available snapshot timestamp the starting point
                     start_time = snapshot_data["timestamp"].values.max()
-                    # One day in seconds
+                    # One day in seconds: 86400
                     traverse_seconds = 86400
+
+                    # Slice snapshot and node data into daily data
                     sliced_snapshot_df, sliced_node_df = create_timeslice_data(
                         snapshot_data, node_data, start_time, traverse_seconds
                     )
 
-                    # This will be deprecated
+                    # Ignore deprecation warning and set None to 0
                     warnings.filterwarnings("ignore", category=FutureWarning)
                     sliced_snapshot_df["dag_daily_std_dev"].fillna(0, inplace=True)
 
+                    # Create visual representations of the daily data
                     create_reward_visualizations(sliced_snapshot_df, timestamp)
                     create_cpu_visualizations(sliced_node_df, timestamp)
 
-                    # (!) After visual only keep last (sort_values) timestamp and drop duplicates
-                    # Keeping the last grouped row; free disk space, disk space and cpu count. You only need the latest timestamp in database
-                    # since it's updated daily
+                    # This might seem like a duplication from the clean-up in "creat_timeslice_data,
+                    # but it isn't. After having created the CPU visuals we don't need all daily CPU data per operator,
+                    # we only need the latest daily data (today) for updating the database CPU table, since data is
+                    # updated daily.
                     sliced_node_df = sliced_node_df.sort_values(by="timestamp").drop_duplicates(
                         [
                             "destinations",
@@ -446,10 +457,11 @@ async def run():
                         keep="last",
                         ignore_index=True,
                     )
+                    # Calculate the USD value of the daily earnings per node wallet
                     sliced_snapshot_df = sum_usd(
                         sliced_snapshot_df, "usd_address_daily_sum", "dag_address_daily_sum"
                     )
-                    # Clean the data
+                    # Clean the daily snapshot data columns
                     sliced_snapshot_df = sliced_snapshot_df[final_sliced_columns].drop_duplicates(
                         "destinations"
                     )
@@ -457,6 +469,7 @@ async def run():
                     """
                     CREATE OVERALL DATA
                     """
+                    # Use the unsliced data to calculate the sum of all $DAG earned per node wallet
                     snapshot_data["dag_address_sum"] = snapshot_data.groupby("destinations")[
                         "dag"
                     ].transform("sum")
