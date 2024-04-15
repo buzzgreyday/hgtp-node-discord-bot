@@ -285,7 +285,7 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
             df["daily_cpu_load"].median() / df["cpu_count"].median() * 100,
             line_color="grey",
             line_dash="dashed",
-            legend_label="Av. user",
+            legend_label="User avg.",
             alpha=0.5,
         )
         green_box = BoxAnnotation(bottom=0, top=80, left=0, fill_alpha=0.1, fill_color='green')
