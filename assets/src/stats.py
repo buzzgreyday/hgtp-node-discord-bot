@@ -340,7 +340,7 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
             destination_df["dag_address_daily_mean"].median(),
             line_color=palette[0],
             line_dash="dashed",
-            legend_label=f"Av. node",
+            legend_label=f"Node avg.",
         )
 
         green_box = BoxAnnotation(bottom=df["daily_overall_median"].median(), left=0, fill_alpha=0.1, fill_color='green')
