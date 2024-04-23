@@ -264,10 +264,7 @@ class CRUD:
         dag_address_daily_std_dev = (
             f"{round(daily_dag_estimation_low)} - {round(daily_dag_estimation_high)}"
         )
-        monthly_dag_estimation_low = dag_address_sum - (reward_results.dag_daily_std_dev * 30)
-        monthly_dag_estimation_high = dag_address_sum + (reward_results.dag_daily_std_dev * 30)
         monthly_dag_average = dag_address_daily_mean * 30
-        dag_address_monthly_std_dev = f"{round(monthly_dag_estimation_low)} - {round(monthly_dag_estimation_high)}"
         if reward_results.dag_address_sum_dev > 0:
             dag_address_sum_dev = f"+{round(reward_results.dag_address_sum_dev)}"
         else:
