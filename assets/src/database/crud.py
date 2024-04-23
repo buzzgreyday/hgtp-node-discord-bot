@@ -254,7 +254,7 @@ class CRUD:
         dag_address_daily_mean = reward_results.dag_address_daily_mean
         usd_address_sum = reward_results.usd_address_sum
         usd_address_daily_sum = reward_results.usd_address_daily_sum
-        daily_network_earnings_average = np.array(reward_results.daily_overall_median).mean()
+        daily_network_earnings_average = np.median(reward_results.daily_overall_median)
         daily_dag_estimation_low = (
             reward_results.dag_address_daily_mean - reward_results.dag_daily_std_dev
         )
