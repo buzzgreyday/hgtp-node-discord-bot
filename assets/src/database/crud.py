@@ -254,7 +254,6 @@ class CRUD:
         dag_address_daily_mean = reward_results.dag_address_daily_mean
         usd_address_sum = reward_results.usd_address_sum
         usd_address_daily_sum = reward_results.usd_address_daily_sum
-        daily_network_earnings_average = np.median(reward_results.daily_overall_median)
         daily_dag_estimation_low = (
             reward_results.dag_address_daily_mean - reward_results.dag_daily_std_dev
         )
@@ -270,9 +269,6 @@ class CRUD:
         else:
             dag_address_sum_dev = round(reward_results.dag_address_sum_dev)
 
-        node_daily_earnings_deviation = (
-            dag_address_daily_mean - daily_network_earnings_average
-        )
         content = templates.TemplateResponse(
                 "index.html",
                 dict(request=request,
@@ -283,8 +279,6 @@ class CRUD:
                      dag_address_sum=round(dag_address_sum, 2),
                      dag_address_sum_dev=dag_address_sum_dev,
                      dag_median_sum=round(dag_median_sum, 2),
-                     daily_network_earnings_average=round(daily_network_earnings_average, 2),
-                     dag_address_daily_sum_dev=round(node_daily_earnings_deviation, 2),
                      dag_address_daily_mean=round(dag_address_daily_mean, 2),
                      dag_address_daily_std_dev=dag_address_daily_std_dev,
                      dag_address_monthly_mean=round(monthly_dag_average, 2),
