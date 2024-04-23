@@ -44,7 +44,7 @@
             <div class="shadow container-sm rounded-bottom bg-white text-dark" style="width:100%; min-width:20em; max-width:80em; background-color: #ffffff;">
                 <p class="h-6 mb-1">30-day node earnings</p>
                 <p class="fs-6 mb-1 fw-light">{{ dag_address_sum }} $DAG</p>
-                <p class="fs-6 mb-1 fw-lighter">Cost was ${{ usd_address_sum }}</p>
+                <p class="fs-6 mb-3 fw-lighter">Cost was ${{ usd_address_sum }}</p>
 
                 <p class="h-6 mb-1">30-day average network earnings</p>
                 <p class="fs-6 mb-1 fw-light">{{ dag_median_sum }} $DAG</p>
@@ -57,10 +57,6 @@
                 <p class="h-6 mb-1">1-day average node earnings</p>
                 <p class="fs-6 mb-1 fw-light">{{ dag_address_daily_mean }} $DAG</p>
                 <p class="fs-6 mb-3 fw-lighter">Estimated daily earnings is {{ dag_address_daily_std_dev }} $DAG</p>
-
-                <p class="h-6 mb-1">1-day average network earnings</p>
-                <p class="fs-6 mb-1 fw-light">{{ daily_network_earnings_average }} $DAG</p>
-                <p class="fs-6 mb-1 fw-lighter">Node deviation is {{ dag_address_daily_sum_dev }} $DAG</p>
 
             </div>
         </div>
