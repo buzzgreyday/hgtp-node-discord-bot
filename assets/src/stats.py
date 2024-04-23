@@ -522,6 +522,7 @@ async def run():
                     total_len = len(snapshot_data.index)
                     # Count total number of node wallets earning rewards in the period
                     snapshot_data["count"] = total_len
+                    dag_minted_sum = snapshot_data["dag"].sum()
                     # Calculate the percentage of node wallets earning more than each individual node wallet.
                     # Start by preparing the new data column
                     snapshot_data["percent_earning_more"] = 0.0
@@ -532,6 +533,10 @@ async def run():
                         snapshot_data.at[i, "percent_earning_more"] = percentage
                         # Add the new data to the reward database entry
                         row["percent_earning_more"] = percentage
+                        what_is_earned_by_those_earning_more = dag_minted_sum * percentage / 100
+                        mean_earnings_of_those_earning_more = what_is_earned_by_those_earning_more / (i + 1)
+                        print(f"{what_is_earned_by_those_earning_more}, Those-earning-more-mean: "
+                              f"{mean_earnings_of_those_earning_more}")
                         # Validate the data
                         reward_data = RewardStatsSchema(**row.to_dict())
                         try:
