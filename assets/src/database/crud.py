@@ -288,7 +288,6 @@ class CRUD:
                      dag_address_daily_mean=round(dag_address_daily_mean, 2),
                      dag_address_daily_std_dev=dag_address_daily_std_dev,
                      dag_address_monthly_mean=round(monthly_dag_average, 2),
-                     dag_address_monthly_std_dev=dag_address_monthly_std_dev,
                      usd_address_sum=round(usd_address_sum, 2),
                      usd_address_daily_sum=round(usd_address_daily_sum, 2),
                      rewards_plot_path=f"rewards_{dag_address}.html",
