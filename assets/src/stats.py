@@ -534,7 +534,7 @@ async def run():
 
                     # Filter out rows where z-score exceeds the threshold by taking the absolute:
                     # treat both positive and negative deviations from the mean in the same manner
-                    filtered_df = filtered_df[snapshot_data['dag_address_sum_zscore'].abs() <= zscore_threshold]
+                    filtered_df = snapshot_data[snapshot_data['dag_address_sum_zscore'].abs() <= zscore_threshold]
                     print(filtered_df)
 
                     for i, row in filtered_df.iterrows():
