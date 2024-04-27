@@ -541,7 +541,7 @@ async def run():
                     for i, row in filtered_df.iterrows():
                         dag_address_earnings_above = filtered_df[filtered_df.dag_address_sum > row.dag_address_sum]
                         print("Minted for non-outlier validators:", filtered_df["dag_address_sum"].sum())
-                        print("Missing out on:", row.dag_address_sum - dag_address_earnings_above.dag_address_sum.mean())
+                        print("Missing out on:", dag_address_earnings_above.dag_address_sum.mean() - row.dag_address_sum)
                     # Calculate percentage earning more and then save reward data to database, row-by-row.
                     for i, row in snapshot_data.iterrows():
                         percentage = ((i + 1) / total_len) * 100
