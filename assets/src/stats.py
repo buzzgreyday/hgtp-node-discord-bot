@@ -531,7 +531,7 @@ async def run():
                     filtered_df["dag_address_sum_zscore"] = stats.zscore(snapshot_data.dag_address_sum)
 
                     # Define a threshold for the Z-score (e.g., 3)
-                    zscore_threshold = 1
+                    zscore_threshold = 0.5
 
                     # Filter out rows where z-score exceeds the threshold by taking the absolute:
                     # treat both positive and negative deviations from the mean in the same manner
