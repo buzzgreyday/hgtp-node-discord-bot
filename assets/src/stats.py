@@ -481,6 +481,7 @@ async def run():
                     snapshot_data["dag_address_sum"] = snapshot_data.groupby("destinations")[
                         "dag"
                     ].transform("sum")
+
                     # Merge the daily data into the original unsliced snapshot data
                     snapshot_data = sliced_snapshot_df.merge(
                         snapshot_data.drop_duplicates("destinations"),
@@ -522,10 +523,15 @@ async def run():
                     total_len = len(snapshot_data.index)
                     # Count total number of node wallets earning rewards in the period
                     snapshot_data["count"] = total_len
-                    dag_minted_sum = snapshot_data["dag"].sum()
                     # Calculate the percentage of node wallets earning more than each individual node wallet.
                     # Start by preparing the new data column
                     snapshot_data["percent_earning_more"] = 0.0
+
+                    # "dag" is deprecated, since I only need "dag_address_sum" to do daily calculations
+                    dag_minted_sum = snapshot_data["dag_address_sum"].sum()
+                    for i, row in snapshot_data.iterrows():
+                        dag_address_earnings_above = snapshot_data[snapshot_data.index <= i]
+                        print(dag_address_earnings_above)
                     # Calculate percentage earning more and then save reward data to database, row-by-row.
                     for i, row in snapshot_data.iterrows():
                         percentage = ((i + 1) / total_len) * 100
@@ -533,10 +539,12 @@ async def run():
                         snapshot_data.at[i, "percent_earning_more"] = percentage
                         # Add the new data to the reward database entry
                         row["percent_earning_more"] = percentage
-                        what_is_earned_by_those_earning_more = dag_minted_sum * percentage / 100
-                        mean_earnings_of_those_earning_more = what_is_earned_by_those_earning_more / (i + 1)
-                        print(f"{what_is_earned_by_those_earning_more}, Those-earning-more-mean: "
-                              f"{mean_earnings_of_those_earning_more}")
+                        # Instead create a list and use for percentiles, etc.
+                        median_earnings_of_those_earning_more = snapshot_data["dag_address_sum"].median
+                        median_earnings_of_those_earning_more = median_earnings_of_those_earning_more * (percentage / 100)
+                        print(f"Minted in period: {dag_minted_sum},\n"
+                              f"Those-earning-more-mean: "
+                              f"{median_earnings_of_those_earning_more}\n\n")
                         # Validate the data
                         reward_data = RewardStatsSchema(**row.to_dict())
                         try:
