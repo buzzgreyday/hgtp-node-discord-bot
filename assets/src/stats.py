@@ -535,15 +535,13 @@ async def run():
 
                     # Filter out rows where z-score exceeds the threshold by taking the absolute:
                     # treat both positive and negative deviations from the mean in the same manner
-                    print(filtered_df['dag_address_sum_zscore'].abs())
                     filtered_df = filtered_df[filtered_df['dag_address_sum_zscore'].abs() <= zscore_threshold]
                     print(filtered_df)
 
-                    # "dag" is deprecated, since I only need "dag_address_sum" to do daily calculations
-                    dag_minted_sum = filtered_df["dag_address_sum"].sum()
                     for i, row in filtered_df.iterrows():
-                        dag_address_earnings_above = filtered_df[filtered_df.dag_address_sum >= row.dag_address_sum]
-                        print(dag_address_earnings_above.dag_address_sum.median())
+                        dag_address_earnings_above = filtered_df[filtered_df.dag_address_sum > row.dag_address_sum]
+                        print("Minted for non-outlier validators:", filtered_df["dag_address_sum"].sum())
+                        print("Missing out on:", row.dag_address_sum - dag_address_earnings_above.dag_address_sum.mean())
                     # Calculate percentage earning more and then save reward data to database, row-by-row.
                     for i, row in snapshot_data.iterrows():
                         percentage = ((i + 1) / total_len) * 100
