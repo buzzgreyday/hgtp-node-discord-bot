@@ -548,7 +548,7 @@ async def run():
                         print("Missing out on", dag_address_earnings_above.dag_address_sum.max() - row.dag_address_sum,
                               "(from most effective earner)")
                         std_dev = dag_address_earnings_above.dag_address_sum.std()
-                        print("Standard deviation:", dag_address_earnings_above.dag_address_sum.mean() - std_dev,
+                        print("Those earning more earns between:", dag_address_earnings_above.dag_address_sum.mean() - std_dev,
                               "-",
                               dag_address_earnings_above.dag_address_sum.mean() + std_dev)
                         print("\n\n")
