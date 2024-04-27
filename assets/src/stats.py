@@ -10,6 +10,7 @@ from bokeh.plotting import figure, output_file, save
 from bokeh.palettes import Category20c_10
 import pandas as pd
 import sqlalchemy
+from scipy import stats
 from aiohttp import ClientSession, TCPConnector
 
 from assets.src import preliminaries
@@ -526,11 +527,20 @@ async def run():
                     # Calculate the percentage of node wallets earning more than each individual node wallet.
                     # Start by preparing the new data column
                     snapshot_data["percent_earning_more"] = 0.0
+                    filtered_df = snapshot_data
+                    filtered_df["dag_address_sum_zscore"] = stats.zscore(snapshot_data.dag_address_sum)
+
+                    # Define a threshold for the Z-score (e.g., 3)
+                    zscore_threshold = 0
+
+                    # Filter out rows where z-score exceeds the threshold
+                    filtered_df = filtered_df[filtered_df['dag_address_sum_zscore'].abs() <= zscore_threshold]
+                    print(filtered_df)
 
                     # "dag" is deprecated, since I only need "dag_address_sum" to do daily calculations
-                    dag_minted_sum = snapshot_data["dag_address_sum"].sum()
-                    for i, row in snapshot_data.iterrows():
-                        dag_address_earnings_above = snapshot_data[snapshot_data.dag_address_sum >= row.dag_address_sum]
+                    dag_minted_sum = filtered_df["dag_address_sum"].sum()
+                    for i, row in filtered_df.iterrows():
+                        dag_address_earnings_above = filtered_df[filtered_df.dag_address_sum >= row.dag_address_sum]
                         print(dag_address_earnings_above.dag_address_sum.median())
                     # Calculate percentage earning more and then save reward data to database, row-by-row.
                     for i, row in snapshot_data.iterrows():
@@ -539,12 +549,6 @@ async def run():
                         snapshot_data.at[i, "percent_earning_more"] = percentage
                         # Add the new data to the reward database entry
                         row["percent_earning_more"] = percentage
-                        # Instead create a list and use for percentiles, etc.
-                        median_earnings_of_those_earning_more = snapshot_data["dag_address_sum"].median
-                        median_earnings_of_those_earning_more = median_earnings_of_those_earning_more * (percentage / 100)
-                        print(f"Minted in period: {dag_minted_sum},\n"
-                              f"Those-earning-more-mean: "
-                              f"{median_earnings_of_those_earning_more}\n\n")
                         # Validate the data
                         reward_data = RewardStatsSchema(**row.to_dict())
                         try:

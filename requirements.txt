@@ -12,3 +12,4 @@ requests>=2.31.0
 asyncpg>=0.29.0
 numpy>=1.26.3
 bokeh>=3.3.4
+scipy>=1.13.0
