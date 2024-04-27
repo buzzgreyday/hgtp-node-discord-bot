@@ -131,6 +131,7 @@ class RewardStatsModel(SQLBase):
     earner_score: Mapped[int]
     percent_earning_more: Mapped[float]
     dag_address_sum: Mapped[float]
+    dag_address_sum_zscore: Mapped[float]
     dag_median_sum: Mapped[float]
     daily_overall_median: Mapped[float]
     dag_address_sum_dev: Mapped[float]

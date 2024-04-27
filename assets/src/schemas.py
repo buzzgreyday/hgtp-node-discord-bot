@@ -280,6 +280,7 @@ class RewardStatsSchema(BaseModel):
     earner_score: int
     percent_earning_more: float
     dag_address_sum: float
+    dag_address_sum_zscore: float
     dag_median_sum: float
     daily_overall_median: float
     dag_address_sum_dev: float

@@ -527,15 +527,14 @@ async def run():
                     # Calculate the percentage of node wallets earning more than each individual node wallet.
                     # Start by preparing the new data column
                     snapshot_data["percent_earning_more"] = 0.0
-                    filtered_df = snapshot_data
-                    filtered_df["dag_address_sum_zscore"] = stats.zscore(snapshot_data.dag_address_sum)
+                    snapshot_data["dag_address_sum_zscore"] = stats.zscore(snapshot_data.dag_address_sum)
 
                     # Define a threshold for the Z-score (e.g., 3)
                     zscore_threshold = 0.5
 
                     # Filter out rows where z-score exceeds the threshold by taking the absolute:
                     # treat both positive and negative deviations from the mean in the same manner
-                    filtered_df = filtered_df[filtered_df['dag_address_sum_zscore'].abs() <= zscore_threshold]
+                    filtered_df = filtered_df[snapshot_data['dag_address_sum_zscore'].abs() <= zscore_threshold]
                     print(filtered_df)
 
                     for i, row in filtered_df.iterrows():
