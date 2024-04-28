@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 WAIT=3
-PY_VERSION="venv/bin/python3.10"
+PY_VERSION="venv/bin/python3.12"
 DB_NAME="postgres"
 DB_USER="postgres"
 
@@ -111,6 +111,8 @@ function update_bot() {
     fi
     start_venv
     cd "$HOME/bot" && venv/bin/pip3 install -r "$HOME/bot/requirements.txt"
+    venv/bin/pip3 install setuptools
+    venv/bin/pip3 install uvicorn
   fi
   main
 }
@@ -122,8 +124,8 @@ function install_bot() {
   sudo add-apt-repository ppa:deadsnakes/ppa -y
   sudo apt update && sudo apt upgrade -y
   sudo apt install -y python3-pip
-  sudo apt install -y python3.10
-  sudo apt install -y python3.10-venv
+  sudo apt install -y python3.12
+  sudo apt install -y python3.12-venv
   sudo apt install -y postgresql
   sudo apt install -y postgresql-contrib
   sudo apt install -y libcurl4-openssl-dev

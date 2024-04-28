@@ -538,19 +538,25 @@ async def run():
                     print(filtered_df)
 
                     for i, row in filtered_df.iterrows():
-                        dag_address_earnings_above = filtered_df[filtered_df.dag_address_sum > row.dag_address_sum]
+                        filtered_df = filtered_df[filtered_df.dag_address_sum > row.dag_address_sum]
+                        # After excluding outliers (might be needing revision when nodes goes public),
+                        # add to db:
+                        # non-outlier validator earnings to db, most effective non-outlier earner (missing out is =
+                        # most_effective - dag_address_sum), non-outlier average (missing out is =
+                        # average - dag_address_sum), standard dev for those earning more (they earn between =
+                        # non-outlier average -/+ std_dev)
                         print("Minted for non-outlier validators:", filtered_df["dag_address_sum"].sum())
-                        print("Most effective earner:", dag_address_earnings_above.dag_address_sum.max())
-                        print("More productive earners average:", dag_address_earnings_above.dag_address_sum.mean())
+                        print("Most effective earner:", filtered_df.dag_address_sum.max())
+                        print("More productive earners average:", filtered_df.dag_address_sum.mean())
                         print("Node earnings:", row.dag_address_sum)
-                        print("Missing out on", dag_address_earnings_above.dag_address_sum.mean() - row.dag_address_sum,
+                        print("Missing out on", filtered_df.dag_address_sum.mean() - row.dag_address_sum,
                               "(average)")
-                        print("Missing out on", dag_address_earnings_above.dag_address_sum.max() - row.dag_address_sum,
+                        print("Missing out on", filtered_df.dag_address_sum.max() - row.dag_address_sum,
                               "(from most effective earner)")
-                        std_dev = dag_address_earnings_above.dag_address_sum.std()
-                        print("Those earning more earns between:", dag_address_earnings_above.dag_address_sum.mean() - std_dev,
+                        std_dev = filtered_df.dag_address_sum.std()
+                        print("Those earning more earns between:", filtered_df.dag_address_sum.mean() - std_dev,
                               "-",
-                              dag_address_earnings_above.dag_address_sum.mean() + std_dev)
+                              filtered_df.dag_address_sum.mean() + std_dev)
                         print("\n\n")
                     # Calculate percentage earning more and then save reward data to database, row-by-row.
                     for i, row in snapshot_data.iterrows():
