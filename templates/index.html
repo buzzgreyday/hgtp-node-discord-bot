@@ -43,20 +43,24 @@
             </div>
             <div class="shadow container-sm rounded-bottom bg-white text-dark" style="width:100%; min-width:20em; max-width:80em; background-color: #ffffff;">
                 <p class="h-6 mb-1">30-day node earnings</p>
-                <p class="fs-6 mb-1 fw-light">{{ dag_address_sum }} $DAG</p>
-                <p class="fs-6 mb-3 fw-lighter">Cost was ${{ usd_address_sum }}</p>
+                <p class="fs-6 mb-1 fw-light">Earnings:  {{ dag_address_sum }} $DAG</p>
+                <p class="fs-6 mb-3 fw-lighter">Cost:  ${{ usd_address_sum }}</p>
 
-                <p class="h-6 mb-1">30-day average network earnings</p>
-                <p class="fs-6 mb-1 fw-light">{{ dag_median_sum }} $DAG</p>
-                <p class="fs-6 mb-3 fw-lighter">Node deviation is {{ dag_address_sum_dev }} $DAG</p>
+                <p class="fs-6 mb-1 fw-light">Potential: +{{ above_dag_address_deviation_from_mean }} $DAG</p>
+                <p class="fs-6 mb-3 fw-lighter">Most validator wallets earn between {{ above_dag_address_std_dev_low }} - {{ above_dag_address_std_dev_high }}. The potential is the deviation from what higher earning validator wallets earn on average.</p>
 
-                <p class="h-6 mb-1">30-day earnings score</p>
                 <p class="fs-6 mb-1 fw-light">{{ earner_score }} of {{ count }} nodes</p>
                 <p class="fs-6 mb-3 fw-lighter">{{ percent_earning_more }}% of the network was earning more</p>
 
-                <p class="h-6 mb-1">1-day average node earnings</p>
-                <p class="fs-6 mb-1 fw-light">{{ dag_address_daily_mean }} $DAG</p>
-                <p class="fs-6 mb-3 fw-lighter">Estimated daily earnings is {{ dag_address_daily_std_dev }} $DAG</p>
+                <p class="fs-6 mb-1 fw-light">Daily: {{ dag_address_daily_mean }} $DAG (average)</p>
+                <p class="fs-6 mb-3 fw-lighter">Estimated daily earnings is {{ dag_address_daily_std_dev }} $DAG </p>
+
+
+
+                <p class="h-6 mb-1">30-day network earnings</p>
+                <p class="fs-6 mb-1 fw-light">Average: {{ dag_median_sum }} $DAG</p>
+                <p class="fs-6 mb-1 fw-light">Highest: {{ dag_highest_earner }} $DAG</p>
+                <p class="fs-6 mb-1 fw-light">Minted:  {{ dag_minted_for_validators }} $DAG</p>
 
             </div>
         </div>

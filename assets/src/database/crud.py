@@ -306,7 +306,7 @@ class CRUD:
                      dag_minted_for_validators=round(dag_minted_for_validators, 2),
                      dag_highest_earner=round(dag_highest_earning, 2),
                      above_dag_earnings_mean=round(above_dag_earnings_mean, 2),
-                     above_dag_address_potential_from_mean=round(above_dag_address_deviation_from_mean, 2),
+                     above_dag_address_deviation_from_mean=round(above_dag_address_deviation_from_mean, 2),
                      above_dag_address_deviation_from_highest_earning=round(above_dag_address_deviation_from_highest_earning, 2),
                      above_dag_address_std_dev_high=round(above_dag_address_std_dev_high, 2),
                      above_dag_address_std_dev_low=round(above_dag_address_std_dev_low, 2),
