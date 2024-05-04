@@ -576,11 +576,14 @@ async def run():
                         print("\n\n")
 
                     # Merge zscore calculations with snapshot data here?
-                    snapshot_data = snapshot_data.merge(
-                        filtered_df,
-                        on="destinations",
-                        how="right",
-                    )
+                    try:
+                        snapshot_data = snapshot_data.merge(
+                            filtered_df,
+                            on="destinations",
+                            how="right",
+                        )
+                    except Exception:
+                        print(traceback.format_exc())
 
                     # Calculate percentage earning more and then save reward data to database, row-by-row.
                     for i, row in snapshot_data.iterrows():
@@ -609,9 +612,11 @@ async def run():
                         try:
                             # Post data if no data exists
                             await post_metric_stats(metric_data)
+                            logging.getLogger("stats").debug(f"Posted new data to db:\n\t{row}")
                         except Exception:
                             # Update data, if data already exists
                             await update_metric_stats(metric_data)
+                            logging.getLogger("stats").debug(f"Updated data in db:\n\t{row}")
                     # After saving data, give GIL something to do.
                     del snapshot_data, metric_data
                 else:
