@@ -5,6 +5,7 @@ import traceback
 import warnings
 from datetime import datetime, timedelta
 
+import numpy as np
 from bokeh.models import BoxAnnotation
 from bokeh.plotting import figure, output_file, save
 from bokeh.palettes import Category20c_10
@@ -529,34 +530,49 @@ async def run():
                     snapshot_data["percent_earning_more"] = 0.0
                     snapshot_data["dag_address_sum_zscore"] = stats.zscore(snapshot_data.dag_address_sum)
 
+                    # Prepare dataframe for zscore based calculations
+                    snapshot_data["non-outlier_validators_minted_sum"] = np.nan
+                    snapshot_data["non-outlier_validator_earner_highest"] = np.nan
+                    snapshot_data["non-outlier_validator_earnings_mean"] = np.nan
+                    snapshot_data["non-outlier_validator_earnings_potential_from_mean"] = np.nan
+                    snapshot_data["non-outlier_validator_earnings_from_highest"] = np.nan
+                    snapshot_data["non-outlier_validator_earnings_potential_std_dev"] = np.nan
+
                     # Define a threshold for the Z-score (e.g., 3)
                     zscore_threshold = 0.5
 
                     # Filter out rows where z-score exceeds the threshold by taking the absolute:
                     # treat both positive and negative deviations from the mean in the same manner
                     filtered_df = snapshot_data[snapshot_data['dag_address_sum_zscore'].abs() <= zscore_threshold]
-                    print(filtered_df)
 
                     for i, row in filtered_df.iterrows():
-                        filtered_df = filtered_df[filtered_df.dag_address_sum > row.dag_address_sum]
                         # After excluding outliers (might be needing revision when nodes goes public),
                         # add to db:
-                        # non-outlier validator earnings to db, most effective non-outlier earner (missing out is =
+                        # non-outlier validator earnings, most effective non-outlier earner (missing out is =
                         # most_effective - dag_address_sum), non-outlier average (missing out is =
                         # average - dag_address_sum), standard dev for those earning more (they earn between =
                         # non-outlier average -/+ std_dev)
                         print("Minted for non-outlier validators:", filtered_df["dag_address_sum"].sum())
-                        print("Most effective earner:", filtered_df.dag_address_sum.max())
-                        print("More productive earners average:", filtered_df.dag_address_sum.mean())
+                        filtered_df["non-outlier_validators_minted_sum"] = filtered_df["dag_address_sum"].sum()
+                        # Only those earning more than the row
+                        df = filtered_df[filtered_df.dag_address_sum > row.dag_address_sum]
+                        print("Most effective earner:", df.dag_address_sum.max())
+                        row["non-outlier_validator_earner_highest"] = df.dag_address_sum.max()
+                        print("More productive earners average:", df.dag_address_sum.mean())
+                        row["non-outlier_validator_earnings_mean"] = df.dag_address_sum.mean()
                         print("Node earnings:", row.dag_address_sum)
-                        print("Missing out on", filtered_df.dag_address_sum.mean() - row.dag_address_sum,
+                        print("Missing out on", df.dag_address_sum.mean() - row.dag_address_sum,
                               "(average)")
-                        print("Missing out on", filtered_df.dag_address_sum.max() - row.dag_address_sum,
+                        row["non-outlier_validator_earnings_potential_from_mean"] = df.dag_address_sum.mean() - row.dag_address_sum
+                        print("Missing out on", df.dag_address_sum.max() - row.dag_address_sum,
                               "(from most effective earner)")
+                        row["non-outlier_validator_earnings_from_highest"] = df.dag_address_sum.max() - row.dag_address_sum
+
                         std_dev = filtered_df.dag_address_sum.std()
-                        print("Those earning more earns between:", filtered_df.dag_address_sum.mean() - std_dev,
+                        print("Those earning more earns between:", df.dag_address_sum.mean() - std_dev,
                               "-",
                               filtered_df.dag_address_sum.mean() + std_dev)
+                        row["non-outlier_validator_earnings_potential_std_dev"] = df.dag_address_sum.std()
                         print("\n\n")
                     # Calculate percentage earning more and then save reward data to database, row-by-row.
                     for i, row in snapshot_data.iterrows():
