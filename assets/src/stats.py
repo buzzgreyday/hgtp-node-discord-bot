@@ -544,7 +544,8 @@ async def run():
                     # Filter out rows where z-score exceeds the threshold by taking the absolute:
                     # treat both positive and negative deviations from the mean in the same manner
                     filtered_df = snapshot_data[snapshot_data['dag_address_sum_zscore'].abs() <= zscore_threshold]
-
+                    print("Minted for non-outlier validators:", filtered_df["dag_address_sum"].sum())
+                    filtered_df["nonoutlier_dag_addresses_minted_sum"] = filtered_df["dag_address_sum"].sum()
                     for i, row in filtered_df.iterrows():
                         # After excluding outliers (might be needing revision when nodes goes public),
                         # add to db:
@@ -552,8 +553,7 @@ async def run():
                         # most_effective - dag_address_sum), non-outlier average (missing out is =
                         # average - dag_address_sum), standard dev for those earning more (they earn between =
                         # non-outlier average -/+ std_dev)
-                        print("Minted for non-outlier validators:", row["dag_address_sum"].sum())
-                        filtered_df["nonoutlier_dag_addresses_minted_sum"] = row["dag_address_sum"].sum()
+
                         # Only those earning more than the row
                         df = filtered_df[filtered_df.dag_address_sum > row.dag_address_sum]
                         print("Most effective earner:", df.dag_address_sum.max())
