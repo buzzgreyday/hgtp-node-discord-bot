@@ -34,7 +34,7 @@ function create_swap_file() {
 function start_venv() {
   # NOT FUNCTIONING YET
   if [ ! -d "$HOME/bot/venv" ]; then
-    python3.10 -m venv "$HOME/bot/venv"
+    python3.12 -m venv "$HOME/bot/venv"
     source "$HOME/bot/venv/bin/activate"
   else
     source "$HOME/bot/venv/bin/activate"

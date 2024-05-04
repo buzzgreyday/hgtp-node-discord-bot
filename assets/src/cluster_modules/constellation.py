@@ -513,23 +513,22 @@ def build_general_node_state(node_data: schemas.Node) -> tuple[str, bool: red_co
     def node_state_field() -> str:
         if node_data.id is not None:
             return (
-                f"{field_symbol} **NODE**\n"
-                f"```\n"
-                f"Peers: {node_data.node_peer_count}\n"
-                f"ID: {node_data.id[:6]}...{node_data.id[-6:]}\n"
-                f"IP: {node_data.ip}\n"
-                f"Subscribed Port: {node_data.public_port}\n"
-                f"State: {node_state}```"
+                f"{field_symbol} **NODE**"
+                f"```State {node_state}```"
+                f"```Peers {node_data.node_peer_count}```"
+                f"```ID```"
+                f"```{node_data.id}```"
+                f"```Subscribed IP and Port```"
+                f"```{node_data.ip}:{node_data.public_port}```"
                 f"{field_info}"
             )
         elif node_data.id is None:
             return (
-                f"{field_symbol} **NODE**\n"
-                f"```\n"
-                f"Peers: {node_data.node_peer_count}\n"
-                f"IP: {node_data.ip}\n"
-                f"Subscribed Port: {node_data.public_port}\n"
-                f"State: {node_state}```"
+                f"{field_symbol} **NODE**"
+                f"```State {node_state}```"
+                f"```Peers {node_data.node_peer_count}```"
+                f"```Subscribed IP and Port```"
+                f"```{node_data.ip}:{node_data.public_port}```"
                 f"{field_info}"
             )
 
@@ -590,20 +589,18 @@ def build_general_cluster_state(node_data: schemas.Node, module_name) -> tuple[s
     def general_cluster_state_field() -> str:
         if node_data.cluster_peer_count > 0:
             return (
-                f"{field_symbol} **{module_name.upper()} CLUSTER**\n"
-                f"```\n"
-                f"Peers:   {node_data.cluster_peer_count}\n"
-                f"Assoc.:  {timedelta(seconds=float(node_data.cluster_association_time)).days} days {round(association_percent(), 2)}%\n"
-                f"Dissoc.: {timedelta(seconds=float(node_data.cluster_dissociation_time)).days} days {round(100.00 - association_percent(), 2)}%```"
+                f"{field_symbol} **{module_name.upper()} CLUSTER**"
+                f"```Peers   {node_data.cluster_peer_count}```"
+                f"```Assoc.  {timedelta(seconds=float(node_data.cluster_association_time)).days} days {round(association_percent(), 2)}%```"
+                f"```Dissoc. {timedelta(seconds=float(node_data.cluster_dissociation_time)).days} days {round(100.00 - association_percent(), 2)}%```"
                 f"{field_info}"
             )
         else:
             return (
-                f"{field_symbol} **{module_name.upper()} CLUSTER**\n"
-                f"```\n"
-                f"Peers:   {node_data.node_peer_count}\n"
-                f"Assoc.:  {timedelta(seconds=float(node_data.cluster_association_time)).days} days {round(association_percent(), 2)}%\n"
-                f"Dissoc.: {timedelta(seconds=float(node_data.cluster_dissociation_time)).days} days {round(100.00 - association_percent(), 2)}%```"
+                f"{field_symbol} **{module_name.upper()} CLUSTER**"
+                f"```Peers   {node_data.node_peer_count}```"
+                f"```Assoc.  {timedelta(seconds=float(node_data.cluster_association_time)).days} days {round(association_percent(), 2)}%```"
+                f"```Dissoc. {timedelta(seconds=float(node_data.cluster_dissociation_time)).days} days {round(100.00 - association_percent(), 2)}%```"
                 f"{field_info}"
             )
 
@@ -683,18 +680,20 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
         def wallet_field() -> str:
             if node_data.layer == 1:
                 return (
-                    f"{field_symbol} **WALLET**\n"
-                    f"```\n"
-                    f"Address: {node_data.wallet_address}\n"
-                    f"Balance: {node_data.wallet_balance / 100000000} ＄DAG```"
+                    f"{field_symbol} **WALLET**"
+                    f"```$DAG Address```"
+                    f"```{node_data.wallet_address}```"
+                    f"```＄DAG Balance```"
+                    f"```{round(node_data.wallet_balance / 100000000, 2)}```"
                     f"{field_info}"
                 )
             else:
                 return (
-                    f"{field_symbol} **WALLET**\n"
-                    f"```\n"
-                    f"Address: {node_data.wallet_address}\n"
-                    f"Balance: {node_data.wallet_balance / 100000000} ＄DAG```"
+                    f"{field_symbol} **WALLET**"
+                    f"```$DAG Address```"
+                    f"```{node_data.wallet_address}```"
+                    f"```$DAG Balance```"
+                    f"```{round(node_data.wallet_balance / 100000000, 2)}```"
                     f"{field_info}"
                 )
 
@@ -790,9 +789,8 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
 def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
     def version_field() -> str:
         return (
-            f"{field_symbol} **TESSELLATION**\n"
-            f"```\n"
-            f"Version {node_data.version} installed```"
+            f"{field_symbol} **TESSELLATION**"
+            f"```Version {node_data.version}```"
             f"{field_info}"
         )
 
@@ -848,10 +846,9 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
 def build_system_node_load_average(node_data: schemas.Node)  -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
     def load_average_field() -> str:
         return (
-            f"{field_symbol} **CPU**\n"
-            f"```\n"
-            f"Count: {round(float(node_data.cpu_count))}\n"
-            f"Load:  {round(float(node_data.one_m_system_load_average), 2)}```"
+            f"{field_symbol} **CPU**"
+            f"```Count {round(float(node_data.cpu_count))}```"
+            f"```Load  {round(float(node_data.one_m_system_load_average), 2)}```"
             f"{field_info}"
         )
 
@@ -876,10 +873,9 @@ def build_system_node_load_average(node_data: schemas.Node)  -> tuple[str, bool:
 def build_system_node_disk_space(node_data: schemas.Node) -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
     def disk_space_field() -> str:
         return (
-            f"{field_symbol} **DISK**\n"
-            f"```\n"
-            f"Free:  {round(float(node_data.disk_space_free) / 1073741824, 2)} GB {round(float(node_data.disk_space_free) * 100 / float(node_data.disk_space_total), 2)}%\n"
-            f"Total: {round(float(node_data.disk_space_total) / 1073741824, 2)} GB```"
+            f"{field_symbol} **DISK**"
+            f"```Free  {round(float(node_data.disk_space_free) / 1073741824, 2)} GB {round(float(node_data.disk_space_free) * 100 / float(node_data.disk_space_total), 2)}%```"
+            f"```Total {round(float(node_data.disk_space_total) / 1073741824, 2)} GB```"
             f"{field_info}"
         )
 
