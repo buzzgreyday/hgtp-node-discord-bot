@@ -142,6 +142,13 @@ class RewardStatsModel(SQLBase):
     count: Mapped[int]
     usd_address_sum: Mapped[float]
     usd_address_daily_sum: Mapped[float]
+    nonoutlier_dag_addresses_minted_sum: Mapped[float]
+    above_dag_address_earner_highest: Mapped[float]
+    above_dag_addresses_earnings_mean: Mapped[float]
+    above_dag_address_earnings_deviation_from_mean: Mapped[float]
+    above_dag_address_earnings_from_highest: Mapped[float]
+    above_dag_address_earnings_std_dev: Mapped[float]
+
 
 
 class MetricStatsModel(SQLBase):

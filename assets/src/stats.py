@@ -531,12 +531,12 @@ async def run():
                     snapshot_data["dag_address_sum_zscore"] = stats.zscore(snapshot_data.dag_address_sum)
 
                     # Prepare dataframe for zscore based calculations
-                    snapshot_data["non-outlier_validators_minted_sum"] = np.nan
-                    snapshot_data["non-outlier_validator_earner_highest"] = np.nan
-                    snapshot_data["non-outlier_validator_earnings_mean"] = np.nan
-                    snapshot_data["non-outlier_validator_earnings_potential_from_mean"] = np.nan
-                    snapshot_data["non-outlier_validator_earnings_from_highest"] = np.nan
-                    snapshot_data["non-outlier_validator_earnings_potential_std_dev"] = np.nan
+                    snapshot_data["nonoutlier_validators_minted_sum"] = np.nan
+                    snapshot_data["above_validator_earner_highest"] = np.nan
+                    snapshot_data["above_validator_earnings_mean"] = np.nan
+                    snapshot_data["above_validator_earnings_potential_from_mean"] = np.nan
+                    snapshot_data["above_validator_earnings_from_highest"] = np.nan
+                    snapshot_data["above_validator_earnings_potential_std_dev"] = np.nan
 
                     # Define a threshold for the Z-score (e.g., 3)
                     zscore_threshold = 0.5
@@ -553,27 +553,35 @@ async def run():
                         # average - dag_address_sum), standard dev for those earning more (they earn between =
                         # non-outlier average -/+ std_dev)
                         print("Minted for non-outlier validators:", filtered_df["dag_address_sum"].sum())
-                        filtered_df["non-outlier_validators_minted_sum"] = filtered_df["dag_address_sum"].sum()
+                        filtered_df["nonoutlier_dag_addresses_minted_sum"] = filtered_df["dag_address_sum"].sum()
                         # Only those earning more than the row
                         df = filtered_df[filtered_df.dag_address_sum > row.dag_address_sum]
                         print("Most effective earner:", df.dag_address_sum.max())
-                        row["non-outlier_validator_earner_highest"] = df.dag_address_sum.max()
+                        row["above_dag_address_earner_highest"] = df.dag_address_sum.max()
                         print("More productive earners average:", df.dag_address_sum.mean())
-                        row["non-outlier_validator_earnings_mean"] = df.dag_address_sum.mean()
+                        row["above_dag_addresses_earnings_mean"] = df.dag_address_sum.mean()
                         print("Node earnings:", row.dag_address_sum)
                         print("Missing out on", df.dag_address_sum.mean() - row.dag_address_sum,
                               "(average)")
-                        row["non-outlier_validator_earnings_potential_from_mean"] = df.dag_address_sum.mean() - row.dag_address_sum
+                        row["above_dag_address_earnings_deviation_from_mean"] = df.dag_address_sum.mean() - row.dag_address_sum
                         print("Missing out on", df.dag_address_sum.max() - row.dag_address_sum,
                               "(from most effective earner)")
-                        row["non-outlier_validator_earnings_from_highest"] = df.dag_address_sum.max() - row.dag_address_sum
+                        row["above_dag_address_earnings_from_highest"] = df.dag_address_sum.max() - row.dag_address_sum
 
                         std_dev = filtered_df.dag_address_sum.std()
                         print("Those earning more earns between:", df.dag_address_sum.mean() - std_dev,
                               "-",
                               filtered_df.dag_address_sum.mean() + std_dev)
-                        row["non-outlier_validator_earnings_potential_std_dev"] = df.dag_address_sum.std()
+                        row["above_dag_address_earnings_std_dev"] = df.dag_address_sum.std()
                         print("\n\n")
+
+                    # Merge zscore calculations with snapshot data here?
+                    snapshot_data = snapshot_data.merge(
+                        filtered_df,
+                        on="destinations",
+                        how="right",
+                    )
+
                     # Calculate percentage earning more and then save reward data to database, row-by-row.
                     for i, row in snapshot_data.iterrows():
                         percentage = ((i + 1) / total_len) * 100

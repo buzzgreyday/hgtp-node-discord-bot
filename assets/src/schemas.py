@@ -291,6 +291,12 @@ class RewardStatsSchema(BaseModel):
     count: int
     usd_address_sum: float
     usd_address_daily_sum: float
+    nonoutlier_dag_addresses_minted_sum: float
+    above_dag_address_earner_highest: float
+    above_dag_addresses_earnings_mean: float
+    above_dag_address_earnings_deviation_from_mean: float
+    above_dag_address_earnings_from_highest: float
+    above_dag_address_earnings_std_dev: float
 
 
 class MetricStatsSchema(BaseModel):

@@ -269,6 +269,22 @@ class CRUD:
         else:
             dag_address_sum_dev = round(reward_results.dag_address_sum_dev)
 
+        # Sum of all $DAG minted, minus very high earning wallets (Stardust Collective wallet, etc.)
+        dag_minted_for_validators = reward_results.nonoutlier_dag_addresses_minted_sum
+        # Highest earning address, minus very high earning wallets (Stardust Collective wallet, etc.)
+        dag_highest_earning = reward_results.above_dag_address_earner_highest
+        # What addresses earning more are earning on average
+        above_dag_earnings_mean = reward_results.above_dag_addresses_earnings_mean
+        # What the address is missing out on (average)
+        above_dag_address_deviation_from_mean = reward_results.above_dag_address_earnings_deviation_from_mean
+        # What the address is missing out on (compared to highest earning address)
+        above_dag_address_deviation_from_highest_earning = reward_results.above_dag_address_earnings_from_highest
+        above_dag_address_std_dev = reward_results.above_dag_address_earnings_std_dev
+        # What those addresses earning more is earning (standard deviation)
+        above_dag_address_std_dev_high = above_dag_earnings_mean + above_dag_address_std_dev
+        above_dag_address_std_dev_low = above_dag_earnings_mean - above_dag_address_std_dev
+
+
         content = templates.TemplateResponse(
                 "index.html",
                 dict(request=request,
@@ -286,6 +302,15 @@ class CRUD:
                      usd_address_daily_sum=round(usd_address_daily_sum, 2),
                      rewards_plot_path=f"rewards_{dag_address}.html",
                      cpu_plot_path=f"cpu_{dag_address}.html",
+
+                     dag_minted_for_validators=round(dag_minted_for_validators, 2),
+                     dag_highest_earner=round(dag_highest_earning, 2),
+                     above_dag_earnings_mean=round(above_dag_earnings_mean, 2),
+                     above_dag_address_potential_from_mean=round(above_dag_address_deviation_from_mean, 2),
+                     above_dag_address_deviation_from_highest_earning=round(above_dag_address_deviation_from_highest_earning, 2),
+                     above_dag_address_std_dev_high=round(above_dag_address_std_dev_high, 2),
+                     above_dag_address_std_dev_low=round(above_dag_address_std_dev_low, 2),
+
                      metric_dicts=metric_dicts)
         )
         if reward_results:
