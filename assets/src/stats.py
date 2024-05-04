@@ -552,8 +552,8 @@ async def run():
                         # most_effective - dag_address_sum), non-outlier average (missing out is =
                         # average - dag_address_sum), standard dev for those earning more (they earn between =
                         # non-outlier average -/+ std_dev)
-                        print("Minted for non-outlier validators:", filtered_df["dag_address_sum"].sum())
-                        filtered_df["nonoutlier_dag_addresses_minted_sum"] = filtered_df["dag_address_sum"].sum()
+                        print("Minted for non-outlier validators:", row["dag_address_sum"].sum())
+                        filtered_df["nonoutlier_dag_addresses_minted_sum"] = row["dag_address_sum"].sum()
                         # Only those earning more than the row
                         df = filtered_df[filtered_df.dag_address_sum > row.dag_address_sum]
                         print("Most effective earner:", df.dag_address_sum.max())
