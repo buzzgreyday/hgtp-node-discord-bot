@@ -1,4 +1,6 @@
 import asyncio
+import os
+import signal
 import subprocess
 import threading
 
@@ -29,21 +31,25 @@ async def create_db():
 print("starting process...")
 
 
-def run_server():
-    subprocess.run(
-        [
-            "venv/bin/uvicorn",
-            "assets.src.database.database:app",
-            "--host",
-            "127.0.0.1",
-            "--port",
-            "8000",
-        ]
-    )
+def main():
+    try:
+        uvi_process = subprocess.Popen(
+            [
+                "venv/bin/uvicorn",
+                "assets.src.database.database:app",
+                "--host",
+                "127.0.0.1",
+                "--port",
+                "8000",
+            ]
+        )
+        pid = uvi_process.pid
+        asyncio.run(create_db())
+        os.kill(pid, signal.SIGTERM)
+    except Exception:
+        exit(1)
+    else:
+        exit(0)
 
 
-uvi = threading.Thread(target=run_server, daemon=True)
-uvi.start()
-asyncio.run(create_db())
-
-exit(0)
+main()

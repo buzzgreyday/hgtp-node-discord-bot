@@ -94,7 +94,6 @@ function update_bot() {
   else
     echo "[1] Master"
     echo "[2] Develop"
-    echo "[3] Sprint"
     echo
     read -rp "Bot: choose a number " input
     if [ "$input" == 1 ]; then
@@ -104,10 +103,6 @@ function update_bot() {
       cd $HOME/bot && git checkout master
       cd $HOME/bot && git pull origin develop
       cd $HOME/bot && git checkout develop
-    elif [ "$input" == 3 ]; then
-      cd $HOME/bot && git checkout master
-      cd $HOME/bot && git pull origin sprint
-      cd $HOME/bot && git checkout experimental
     fi
     start_venv
     cd "$HOME/bot" && venv/bin/pip3 install -r "$HOME/bot/requirements.txt"
@@ -141,7 +136,7 @@ function install_bot() {
   cd "$HOME/bot" && venv/bin/pip3 install -r "$HOME/bot/requirements.txt"
   venv/bin/pip3 install setuptools
   venv/bin/pip3 install uvicorn
-  venv/bin/python3 assets/src/database/create_db.py
+  venv/bin/python3.12 assets/src/database/create_db.py
   sudo -u postgres psql -U "$DB_USER" -d "template1" -c "GRANT ALL PRIVILEGES ON DATABASE postgres to $USER"
   sudo -u postgres psql -U "$DB_USER" -d "template1" -c "GRANT ALL PRIVILEGES ON DATABASE postgres to $USER"
   exho '(!) You might want to create ".psqlrc" in the "postgres" user home directory containing "SET statement_timeout=18000000 and in /var/local/postgres.conf, set work_mem=32MB, shared_buffersize=4GB (25% of RAM max)"'
@@ -149,6 +144,7 @@ function install_bot() {
 }
 
 function main() {
+
   echo "[1] Start Bot"
   echo "[2] Stop Bot"
   echo "[3] Update -and Change Bot Branch"
