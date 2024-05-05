@@ -503,18 +503,6 @@ async def run():
                     # we'll find the median. (Should be moved up to speed a little bit).
                     snapshot_data["dag_median_sum"] = snapshot_data["dag_address_sum"].median()
 
-                    # Delete this: ############################
-                    snapshot_data = snapshot_data.sort_values(
-                        by=[
-                            "dag_address_sum_dev",
-                            "dag_address_daily_sum_dev",
-                            "dag_address_daily_mean",
-                            "dag_daily_std_dev",
-                        ],
-                        ascending=[False, False, False, True],
-                    ).reset_index(drop=True)
-                    ##########################################
-
                     # Order the data by top earners
                     snapshot_data = snapshot_data.sort_values(
                         by="dag_address_sum_dev", ascending=False
@@ -555,35 +543,18 @@ async def run():
 
                         # Only those earning more than the row
                         df = filtered_df[filtered_df.dag_address_sum > row.dag_address_sum]
-                        print("Most effective earner:", df.dag_address_sum.max())
                         filtered_df.loc[i, "above_dag_address_earner_highest"] = df.dag_address_sum.max()
-                        print("More productive earners average:", df.dag_address_sum.mean())
                         filtered_df.loc[i, "above_dag_addresses_earnings_mean"] = df.dag_address_sum.mean()
-                        print("Node earnings:", row.dag_address_sum)
-                        print("Missing out on", df.dag_address_sum.mean() - row.dag_address_sum,
-                              "(average)")
                         filtered_df.loc[i, "above_dag_address_earnings_deviation_from_mean"] = df.dag_address_sum.mean() - row.dag_address_sum
-                        print("Missing out on", df.dag_address_sum.max() - row.dag_address_sum,
-                              "(from most effective earner)")
                         filtered_df.loc[i, "above_dag_address_earnings_from_highest"] = df.dag_address_sum.max() - row.dag_address_sum
-
-                        std_dev = filtered_df.dag_address_sum.std()
-                        print("Those earning more earns between:", df.dag_address_sum.mean() - std_dev,
-                              "-",
-                              filtered_df.dag_address_sum.mean() + std_dev)
                         filtered_df.loc[i, "above_dag_address_earnings_std_dev"] = df.dag_address_sum.std()
-                        print("\n\n")
                     # Merge zscore calculations with snapshot data here?
-                    try:
-                        snapshot_data = pd.merge(snapshot_data, filtered_df, on="destinations", how="right", suffixes=("", "_right"))
-                        conflicting_columns = [col for col in snapshot_data.columns if
-                                               col.endswith('_right')]
-                        print(conflicting_columns)
-                        snapshot_data = snapshot_data.drop(conflicting_columns, axis=1)
-                        snapshot_data = snapshot_data.fillna(0.0)
-                    except Exception:
-                        print(traceback.format_exc())
-                    print(snapshot_data)
+                    snapshot_data = pd.merge(snapshot_data, filtered_df, on="destinations", how="right", suffixes=("", "_right"))
+                    conflicting_columns = [col for col in snapshot_data.columns if
+                                           col.endswith('_right')]
+                    snapshot_data = snapshot_data.drop(conflicting_columns, axis=1)
+                    snapshot_data = snapshot_data.fillna(0.0)
+
 
 
                     # Calculate percentage earning more and then save reward data to database, row-by-row.
@@ -597,19 +568,14 @@ async def run():
                         try:
                             reward_data = RewardStatsSchema(**row.to_dict())
                         except Exception:
-                            print(traceback.format_exc())
                             logging.getLogger("stats").critical(traceback.format_exc())
 
                         try:
                             # Post data if no data exists
-                            logging.getLogger("stats").debug(f"Posting new data to db:\n\t{row}")
                             await post_reward_stats(reward_data)
-                            logging.getLogger("stats").debug(f"Success! Posted new data to db:\n\t{row}")
                         except sqlalchemy.exc.IntegrityError:
                             # Update data, if data already exists
-                            logging.getLogger("stats").debug(f"Updating data in db:\n\t{row}")
                             await update_reward_stats(reward_data)
-                            logging.getLogger("stats").debug(f"Success! Updated data in db:\n\t{row}")
                         except Exception:
                             logging.getLogger("stats").critical(traceback.format_exc())
 
@@ -625,14 +591,12 @@ async def run():
 
                         try:
                             # Post data if no data exists
-                            logging.getLogger("stats").debug(f"Posting new data to db:\n\t{row}")
                             await post_metric_stats(metric_data)
-                            logging.getLogger("stats").debug(f"Success! Posted new data to db:\n\t{row}")
-                        except Exception:
+                        except sqlalchemy.exc.IntegrityError:
                             # Update data, if data already exists
-                            logging.getLogger("stats").debug(f"Updating data in db:\n\t{row}")
                             await update_metric_stats(metric_data)
-                            logging.getLogger("stats").debug(f"Success! Updated data in db:\n\t{row}")
+                        except Exception:
+                            logging.getLogger("stats").critical(traceback.format_exc())
                     # After saving data, give GIL something to do.
                     del snapshot_data, metric_data
                 else:
