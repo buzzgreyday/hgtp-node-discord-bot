@@ -280,7 +280,6 @@ class RewardStatsSchema(BaseModel):
     earner_score: int
     percent_earning_more: float
     dag_address_sum: float
-    dag_address_sum_zscore: float
     dag_median_sum: float
     daily_overall_median: float
     dag_address_sum_dev: float
@@ -291,6 +290,7 @@ class RewardStatsSchema(BaseModel):
     count: int
     usd_address_sum: float
     usd_address_daily_sum: float
+    dag_address_sum_zscore: float
     nonoutlier_dag_addresses_minted_sum: float
     above_dag_address_earner_highest: float
     above_dag_addresses_earnings_mean: float

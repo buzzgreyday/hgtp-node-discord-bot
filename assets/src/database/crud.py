@@ -226,11 +226,14 @@ class CRUD:
         async_session: async_sessionmaker[AsyncSession],
     ):
         async with async_session() as session:
-            reward_results = await session.execute(
-                select(RewardStatsModel).where(
-                    RewardStatsModel.destinations == dag_address
+            try:
+                reward_results = await session.execute(
+                    select(RewardStatsModel).where(
+                        RewardStatsModel.destinations == dag_address
+                    )
                 )
-            )
+            except Exception:
+                logging.getLogger("stats").critical(traceback.format_exc())
             metric_results = await session.execute(
                 select(MetricStatsModel).where(
                     MetricStatsModel.destinations == dag_address
@@ -244,7 +247,6 @@ class CRUD:
         for node_metrics in metric_results:
             metric_dicts.append(node_metrics[0].__dict__)
         metric_dicts = sorted(metric_dicts, key=lambda d: d["layer"])
-
         dag_address = reward_results.destinations
         earner_score = reward_results.earner_score
         count = reward_results.count
@@ -269,21 +271,25 @@ class CRUD:
         else:
             dag_address_sum_dev = round(reward_results.dag_address_sum_dev)
 
-        # Sum of all $DAG minted, minus very high earning wallets (Stardust Collective wallet, etc.)
-        dag_minted_for_validators = reward_results.nonoutlier_dag_addresses_minted_sum
-        # Highest earning address, minus very high earning wallets (Stardust Collective wallet, etc.)
-        dag_highest_earning = reward_results.above_dag_address_earner_highest
-        # What addresses earning more are earning on average
-        above_dag_earnings_mean = reward_results.above_dag_addresses_earnings_mean
-        # What the address is missing out on (average)
-        above_dag_address_deviation_from_mean = reward_results.above_dag_address_earnings_deviation_from_mean
-        # What the address is missing out on (compared to highest earning address)
-        above_dag_address_deviation_from_highest_earning = reward_results.above_dag_address_earnings_from_highest
-        above_dag_address_std_dev = reward_results.above_dag_address_earnings_std_dev
-        # What those addresses earning more is earning (standard deviation)
-        above_dag_address_std_dev_high = above_dag_earnings_mean + above_dag_address_std_dev
-        above_dag_address_std_dev_low = above_dag_earnings_mean - above_dag_address_std_dev
-
+        try:
+            # Sum of all $DAG minted, minus very high earning wallets (Stardust Collective wallet, etc.)
+            dag_minted_for_validators = reward_results.nonoutlier_dag_addresses_minted_sum
+            # Highest earning address, minus very high earning wallets (Stardust Collective wallet, etc.)
+            dag_highest_earning = reward_results.above_dag_address_earner_highest
+            # What addresses earning more are earning on average
+            above_dag_earnings_mean = reward_results.above_dag_addresses_earnings_mean
+            # What the address is missing out on (average)
+            above_dag_address_deviation_from_mean = reward_results.above_dag_address_earnings_deviation_from_mean
+            # What the address is missing out on (compared to highest earning address)
+            above_dag_address_deviation_from_highest_earning = reward_results.above_dag_address_earnings_from_highest
+            above_dag_address_std_dev = reward_results.above_dag_address_earnings_std_dev
+            # What those addresses earning more is earning (standard deviation)
+            above_dag_address_std_dev_high = above_dag_earnings_mean + above_dag_address_std_dev
+            above_dag_address_std_dev_low = above_dag_earnings_mean - above_dag_address_std_dev
+        except Exception:
+            print(traceback.format_exc())
+            logging.getLogger("stats").critical(traceback.format_exc())
+            exit(1)
 
         content = templates.TemplateResponse(
                 "index.html",
@@ -316,7 +322,7 @@ class CRUD:
         if reward_results:
             return content
         else:
-            logging.getLogger("stats").debug(f"Get html stats page request failed: reward_results contained no data")
+            logging.getLogger("stats").critical(f"Get html stats page request failed: reward_results contained no data")
 
     async def get_latest_db_price(
         self, async_session: async_sessionmaker[AsyncSession]

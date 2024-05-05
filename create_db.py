@@ -10,11 +10,20 @@ from assets.src.database.crud import engine
 
 async def create_db():
     async with engine.begin() as conn:
-        # This will delete all data
-        # await conn.run_sync(SQLBase.metadata.drop_all)
-        await conn.run_sync(SQLBase.metadata.create_all)
-        print("Database tables and columns created or updated!")
-        await engine.dispose()
+        # Reflect the metadata
+        metadata = SQLBase.metadata
+        await conn.run_sync(metadata.reflect)
+
+        # Check if the table exists
+        if "reward_stats" in metadata.tables:
+            # Drop the existing table
+            await conn.run_sync(metadata.tables["reward_stats"].drop)
+
+        # Create all tables
+        await conn.run_sync(metadata.create_all)
+
+    print("Database tables and columns created or updated!")
+    await engine.dispose()
 
 
 print("starting process...")

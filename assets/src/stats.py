@@ -530,20 +530,19 @@ async def run():
                     snapshot_data["percent_earning_more"] = 0.0
                     snapshot_data["dag_address_sum_zscore"] = stats.zscore(snapshot_data.dag_address_sum)
 
-                    # Prepare dataframe for zscore based calculations
-                    snapshot_data["nonoutlier_validators_minted_sum"] = np.nan
-                    snapshot_data["above_validator_earner_highest"] = np.nan
-                    snapshot_data["above_validator_earnings_mean"] = np.nan
-                    snapshot_data["above_validator_earnings_potential_from_mean"] = np.nan
-                    snapshot_data["above_validator_earnings_from_highest"] = np.nan
-                    snapshot_data["above_validator_earnings_potential_std_dev"] = np.nan
-
                     # Define a threshold for the Z-score (e.g., 3)
                     zscore_threshold = 0.5
 
                     # Filter out rows where z-score exceeds the threshold by taking the absolute:
                     # treat both positive and negative deviations from the mean in the same manner
                     filtered_df = snapshot_data[snapshot_data['dag_address_sum_zscore'].abs() <= zscore_threshold]
+                    # Prepare dataframe for zscore based calculations
+                    filtered_df["nonoutlier_validators_minted_sum"] = 0.0
+                    filtered_df["above_validator_earner_highest"] = 0.0
+                    filtered_df["above_validator_earnings_mean"] = 0.0
+                    filtered_df["above_validator_earnings_deviation_from_mean"] = 0.0
+                    filtered_df["above_validator_earnings_from_highest"] = 0.0
+                    filtered_df["above_validator_earnings_std_dev"] = 0.0
                     print("Minted for non-outlier validators:", filtered_df["dag_address_sum"].sum())
                     filtered_df["nonoutlier_dag_addresses_minted_sum"] = filtered_df["dag_address_sum"].sum()
                     for i, row in filtered_df.iterrows():
@@ -557,33 +556,35 @@ async def run():
                         # Only those earning more than the row
                         df = filtered_df[filtered_df.dag_address_sum > row.dag_address_sum]
                         print("Most effective earner:", df.dag_address_sum.max())
-                        row["above_dag_address_earner_highest"] = df.dag_address_sum.max()
+                        filtered_df.loc[i, "above_dag_address_earner_highest"] = df.dag_address_sum.max()
                         print("More productive earners average:", df.dag_address_sum.mean())
-                        row["above_dag_addresses_earnings_mean"] = df.dag_address_sum.mean()
+                        filtered_df.loc[i, "above_dag_addresses_earnings_mean"] = df.dag_address_sum.mean()
                         print("Node earnings:", row.dag_address_sum)
                         print("Missing out on", df.dag_address_sum.mean() - row.dag_address_sum,
                               "(average)")
-                        row["above_dag_address_earnings_deviation_from_mean"] = df.dag_address_sum.mean() - row.dag_address_sum
+                        filtered_df.loc[i, "above_dag_address_earnings_deviation_from_mean"] = df.dag_address_sum.mean() - row.dag_address_sum
                         print("Missing out on", df.dag_address_sum.max() - row.dag_address_sum,
                               "(from most effective earner)")
-                        row["above_dag_address_earnings_from_highest"] = df.dag_address_sum.max() - row.dag_address_sum
+                        filtered_df.loc[i, "above_dag_address_earnings_from_highest"] = df.dag_address_sum.max() - row.dag_address_sum
 
                         std_dev = filtered_df.dag_address_sum.std()
                         print("Those earning more earns between:", df.dag_address_sum.mean() - std_dev,
                               "-",
                               filtered_df.dag_address_sum.mean() + std_dev)
-                        row["above_dag_address_earnings_std_dev"] = df.dag_address_sum.std()
+                        filtered_df.loc[i, "above_dag_address_earnings_std_dev"] = df.dag_address_sum.std()
                         print("\n\n")
-
                     # Merge zscore calculations with snapshot data here?
                     try:
-                        snapshot_data = snapshot_data.merge(
-                            filtered_df,
-                            on="destinations",
-                            how="right",
-                        )
+                        snapshot_data = pd.merge(snapshot_data, filtered_df, on="destinations", how="right", suffixes=("", "_right"))
+                        conflicting_columns = [col for col in snapshot_data.columns if
+                                               col.endswith('_right')]
+                        print(conflicting_columns)
+                        snapshot_data = snapshot_data.drop(conflicting_columns, axis=1)
+                        snapshot_data = snapshot_data.fillna(0.0)
                     except Exception:
                         print(traceback.format_exc())
+                    print(snapshot_data)
+
 
                     # Calculate percentage earning more and then save reward data to database, row-by-row.
                     for i, row in snapshot_data.iterrows():
@@ -593,13 +594,26 @@ async def run():
                         # Add the new data to the reward database entry
                         row["percent_earning_more"] = percentage
                         # Validate the data
-                        reward_data = RewardStatsSchema(**row.to_dict())
+                        try:
+                            reward_data = RewardStatsSchema(**row.to_dict())
+                        except Exception:
+                            print(traceback.format_exc())
+                            logging.getLogger("stats").critical(traceback.format_exc())
+
                         try:
                             # Post data if no data exists
+                            logging.getLogger("stats").debug(f"Posting new data to db:\n\t{row}")
                             await post_reward_stats(reward_data)
+                            logging.getLogger("stats").debug(f"Success! Posted new data to db:\n\t{row}")
                         except sqlalchemy.exc.IntegrityError:
                             # Update data, if data already exists
+                            logging.getLogger("stats").debug(f"Updating data in db:\n\t{row}")
                             await update_reward_stats(reward_data)
+                            logging.getLogger("stats").debug(f"Success! Updated data in db:\n\t{row}")
+                        except Exception:
+                            logging.getLogger("stats").critical(traceback.format_exc())
+
+
                     # Upload metrics (CPU) data to database. Since every wallet can be associated with multiple node
                     # instances and different server specifications, we'll create a hash to properly update the
                     # database.
@@ -611,12 +625,14 @@ async def run():
 
                         try:
                             # Post data if no data exists
+                            logging.getLogger("stats").debug(f"Posting new data to db:\n\t{row}")
                             await post_metric_stats(metric_data)
-                            logging.getLogger("stats").debug(f"Posted new data to db:\n\t{row}")
+                            logging.getLogger("stats").debug(f"Success! Posted new data to db:\n\t{row}")
                         except Exception:
                             # Update data, if data already exists
+                            logging.getLogger("stats").debug(f"Updating data in db:\n\t{row}")
                             await update_metric_stats(metric_data)
-                            logging.getLogger("stats").debug(f"Updated data in db:\n\t{row}")
+                            logging.getLogger("stats").debug(f"Success! Updated data in db:\n\t{row}")
                     # After saving data, give GIL something to do.
                     del snapshot_data, metric_data
                 else:
