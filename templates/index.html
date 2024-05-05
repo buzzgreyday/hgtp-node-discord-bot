@@ -58,7 +58,7 @@
                 
                 <p class="fs-6 mb-1 fw-light">Potential (average): +{{ above_dag_address_deviation_from_mean }} $DAG</p>
                 <p class="fs-6 mb-1 fw-light">Potential (highest): +{{ above_dag_address_deviation_from_highest_earning }} $DAG</p>
-                <p class="fs-6 mb-3 fw-lighter">Most validator wallets earn between {{ above_dag_address_std_dev_low }} - {{ above_dag_address_std_dev_high }}<sup>*</sup></p>
+                <p class="fs-6 mb-3 fw-lighter">Most validator wallets earn between {{ above_dag_address_std_dev_low }} - {{ above_dag_address_std_dev_high }} $DAG<sup>*</sup></p>
                 <p class="m-1 fw-light" style="font-size:0.6em;color:#707374;">(*) Extreme outliers are excluded (as these doesn't represent the true potential earnings)</p>
 
 
@@ -93,7 +93,7 @@
             </div>
             <div class="shadow container-sm rounded-bottom bg-white text-black" style="width:100%; min-width:20em; max-width:80em; background-color: #ffffff;">
                 {% for dict in metric_dicts %}
-                <p class="bg-light">Layer {{ dict.layer }} ({{ dict.ip }}:{{ dict.public_port }})</p>
+                <p class="bg-light">{{ dict.ip }}, layer {{ dict.layer }} ({{ dict.public_port }})</p>
                 <p class="fs-6 mb-1 fw-light">Daily CPU load: {{ dict.daily_cpu_load | round(2) }}</p>
                 <p class="fs-6 mb-3 fw-lighter">Ideal CPU load average is below {{ dict.cpu_count }}</p>
 
