@@ -5,7 +5,6 @@ import traceback
 import warnings
 from datetime import datetime, timedelta
 
-import numpy as np
 from bokeh.models import BoxAnnotation
 from bokeh.plotting import figure, output_file, save
 from bokeh.palettes import Category20c_10
@@ -523,31 +522,27 @@ async def run():
 
                     # Filter out rows where z-score exceeds the threshold by taking the absolute:
                     # treat both positive and negative deviations from the mean in the same manner
-                    filtered_df = snapshot_data[snapshot_data['dag_address_sum_zscore'].abs() <= zscore_threshold]
-                    # Prepare dataframe for zscore based calculations
-                    filtered_df["nonoutlier_validators_minted_sum"] = 0.0
-                    filtered_df["above_validator_earner_highest"] = 0.0
-                    filtered_df["above_validator_earnings_mean"] = 0.0
-                    filtered_df["above_validator_earnings_deviation_from_mean"] = 0.0
-                    filtered_df["above_validator_earnings_from_highest"] = 0.0
-                    filtered_df["above_validator_earnings_std_dev"] = 0.0
-                    print("Minted for non-outlier validators:", filtered_df["dag_address_sum"].sum())
-                    filtered_df["nonoutlier_dag_addresses_minted_sum"] = filtered_df["dag_address_sum"].sum()
-                    for i, row in filtered_df.iterrows():
-                        # After excluding outliers (might be needing revision when nodes goes public),
-                        # add to db:
-                        # non-outlier validator earnings, most effective non-outlier earner (missing out is =
-                        # most_effective - dag_address_sum), non-outlier average (missing out is =
-                        # average - dag_address_sum), standard dev for those earning more (they earn between =
-                        # non-outlier average -/+ std_dev)
+                    filtered_df = snapshot_data[snapshot_data['dag_address_sum_zscore'].abs() <= zscore_threshold].copy()
+                    # Use .copy() to ensure a new DataFrame is created, preventing chained assignments
 
-                        # Only those earning more than the row
+                    # Initialize new columns with 0.0
+                    filtered_df.loc[:, "nonoutlier_validators_minted_sum"] = 0.0
+                    filtered_df.loc[:, "above_validator_earner_highest"] = 0.0
+                    filtered_df.loc[:, "above_validator_earnings_mean"] = 0.0
+                    filtered_df.loc[:, "above_validator_earnings_deviation_from_mean"] = 0.0
+                    filtered_df.loc[:, "above_validator_earnings_from_highest"] = 0.0
+                    filtered_df.loc[:, "above_validator_earnings_std_dev"] = 0.0
+                    filtered_df.loc[:, "nonoutlier_dag_addresses_minted_sum"] = filtered_df["dag_address_sum"].sum()
+
+                    # Loop through DataFrame rows using iterrows()
+                    for i, row in filtered_df.iterrows():
                         df = filtered_df[filtered_df.dag_address_sum > row.dag_address_sum]
-                        filtered_df.loc[i, "above_dag_address_earner_highest"] = df.dag_address_sum.max()
-                        filtered_df.loc[i, "above_dag_addresses_earnings_mean"] = df.dag_address_sum.mean()
-                        filtered_df.loc[i, "above_dag_address_earnings_deviation_from_mean"] = df.dag_address_sum.mean() - row.dag_address_sum
-                        filtered_df.loc[i, "above_dag_address_earnings_from_highest"] = df.dag_address_sum.max() - row.dag_address_sum
-                        filtered_df.loc[i, "above_dag_address_earnings_std_dev"] = df.dag_address_sum.std()
+                        # Update each row individually
+                        filtered_df.loc[i, "above_validator_earner_highest"] = df.dag_address_sum.max()
+                        filtered_df.loc[i, "above_validator_earnings_mean"] = df.dag_address_sum.mean()
+                        filtered_df.loc[i, "above_validator_earnings_deviation_from_mean"] = df.dag_address_sum.mean() - row.dag_address_sum
+                        filtered_df.loc[i, "above_validator_earnings_from_highest"] = df.dag_address_sum.max() - row.dag_address_sum
+                        filtered_df.loc[i, "above_validator_earnings_std_dev"] = df.dag_address_sum.std()
                     # Merge zscore calculations with snapshot data here?
                     snapshot_data = pd.merge(snapshot_data, filtered_df, on="destinations", how="right", suffixes=("", "_right"))
                     conflicting_columns = [col for col in snapshot_data.columns if

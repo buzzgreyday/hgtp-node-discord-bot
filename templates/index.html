@@ -10,9 +10,15 @@
     <style>
 
         body {
-            background-color: #ffffff;
+            background-color: #f1f2f2;
         }
-
+        sup {
+            font-size: 0.6em;
+            color: #707374;
+        }
+        .bg-primary {
+            background-color: #00b4cd !important;
+        }
         .container {
             display: flex;
         }
@@ -34,8 +40,10 @@
                 <div class="h3 mb-0 text-white fw-bold" style="color: #3d3d3d;">Rewards</div>
             </div>
             <div class="shadow container-sm text-black rounded-bottom" style="display:flex; min-width:20em; max-width:80em; background-color: #ffffff;">
-                <iframe src="../../static/{{ rewards_plot_path }}" class="d-block mx-auto" id="reward_plot" frameborder="0">Reward plot</iframe>
-                <p class="m-1 fw-light text-center" style="font-size:0.6em;">The threshold between red/green equals the network median</p>
+                <div>
+                    <iframe src="../../static/{{ rewards_plot_path }}" class="d-block mx-auto" id="reward_plot" frameborder="0">Reward plot</iframe>
+                    <p class="m-1 fw-light text-center" style="font-size:0.6em;">The threshold between red/green equals the network median</p>
+                </div>
             </div>
         </div>
         <div class="box">
@@ -45,16 +53,21 @@
             <div class="shadow container-sm rounded-bottom bg-white text-dark" style="width:100%; min-width:20em; max-width:80em; background-color: #ffffff;">
                 <p class="bg-light mb-1">30-day earnings</p>
                 <p class="fs-6 mb-1 fw-light">{{ dag_address_sum }} $DAG</p>
-                <p class="fs-6 mb-1 fw-light">{{ percent_earning_more }}% of the network was earning more</p>
-                <p class="fs-6 mb-3 fw-lighter">Cost:  ${{ usd_address_sum }}</p>
+                <p class="fs-6 mb-1 fw-light">Cost:  ${{ usd_address_sum }}</p>
+                <p class="fs-6 mb-3 fw-lighter">{{ percent_earning_more }}% of the network was earning more</p>
                 
-                <p class="fs-6 mb-1 fw-light">Potential: {{ above_dag_address_deviation_from_mean }} $DAG</p>
-                <p class="fs-6 mb-3 fw-lighter">Most validator wallets earn between {{ above_dag_address_std_dev_low }} - {{ above_dag_address_std_dev_high }}. "Potential" is the deviation from what higher earning validator wallets earn on average</p>
+                <p class="fs-6 mb-1 fw-light">Potential (average): +{{ above_dag_address_deviation_from_mean }} $DAG</p>
+                <p class="fs-6 mb-1 fw-light">Potential (highest): +{{ above_dag_address_deviation_from_highest_earning }} $DAG</p>
+                <p class="fs-6 mb-3 fw-lighter">Most validator wallets earn between {{ above_dag_address_std_dev_low }} - {{ above_dag_address_std_dev_high }}<sup>*</sup></p>
+                <p class="m-1 fw-light" style="font-size:0.6em;color:#707374;">(*) Extreme outliers are excluded (as these doesn't represent the true potential earnings)</p>
+
 
                 <p class="bg-light mb-1">30-day network earnings</p>
                 <p class="fs-6 mb-1 fw-light">Average: {{ dag_median_sum }} $DAG</p>
                 <p class="fs-6 mb-1 fw-light">Highest: {{ dag_highest_earner }} $DAG</p>
-                <p class="fs-6 mb-3 fw-light">Minted:  {{ dag_minted_for_validators }} $DAG</p>
+                <p class="fs-6 mb-3 fw-light">Minted:  {{ dag_minted_for_validators }} $DAG<sup>*</sup></p>
+                <p class="m-1 fw-light" style="font-size:0.6em;color:#707374;">(*) Extreme outliers are excluded (as these doesn't represent the true pool available for validators)</p>
+
 
                 <p class="bg-light mb-1">Daily earnings</p>
                 <p class="fs-6 mb-1 fw-light">{{ dag_address_daily_mean }} $DAG (average)</p>
@@ -66,15 +79,17 @@
     <div class="row">
         <div class="box">
             <div class="shadow container-sm rounded-top bg-primary" style="min-width:20em; max-width:80em; background-color: #ffffff;">
-                <div class="h3 mb-0 text-white fw-bold" style="width:100%; color: #3d3d3d;">CPU</div>
+                <div class="h3 mb-0 text-white fw-bold" style="width:100%;">CPU</div>
             </div>
             <div class="shadow container-sm text-black rounded-bottom" style="display:flex; min-width:20em; max-width:80em; background-color: #ffffff;">
-                <iframe src="../../static/{{ cpu_plot_path }}" class="d-block mx-auto" id="cpu_plot" frameborder="0">CPU plot</iframe>
+                <div>
+                    <iframe src="../../static/{{ cpu_plot_path }}" class="d-block mx-auto" id="cpu_plot" frameborder="0">CPU plot</iframe>
+                </div>
             </div>
         </div>
         <div class="box">
             <div class="shadow container-sm rounded-top bg-primary text-white" style="width:100%; min-width:20em; max-width:80em; background-color: #ffffff;">
-                <div class="h3 mb-0 text-white fw-bold" style="width:100%; color: #3d3d3d;">Metrics</div>
+                <div class="h3 mb-0 text-white fw-bold" style="width:100%;">Metrics</div>
             </div>
             <div class="shadow container-sm rounded-bottom bg-white text-black" style="width:100%; min-width:20em; max-width:80em; background-color: #ffffff;">
                 {% for dict in metric_dicts %}
@@ -88,7 +103,7 @@
         </div>
     </div>
     <footer class="text-dark">
-        <p class="m-1 fw-light text-center" style="font-size:0.6em;">v0.0.8, by hgtp_Michael (aka. Buzz Greyday)</p>
+        <p class="m-1 fw-light text-center" style="font-size:0.6em;color:#707374;">v0.0.8, by hgtp_Michael (aka. Buzz Greyday)</p>
     </footer>
     <script>
         var reward_frame = document.getElementById('reward_plot');

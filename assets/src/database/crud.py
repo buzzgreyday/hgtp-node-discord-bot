@@ -274,6 +274,7 @@ class CRUD:
         try:
             # Sum of all $DAG minted, minus very high earning wallets (Stardust Collective wallet, etc.)
             dag_minted_for_validators = reward_results.nonoutlier_dag_addresses_minted_sum
+            percent_of_nonoutlier_validator_pool = (reward_results.dag_address_sum / dag_minted_for_validators) * 100
             # Highest earning address, minus very high earning wallets (Stardust Collective wallet, etc.)
             dag_highest_earning = reward_results.above_dag_address_earner_highest
             # What addresses earning more are earning on average
@@ -316,6 +317,7 @@ class CRUD:
                      above_dag_address_deviation_from_highest_earning=round(above_dag_address_deviation_from_highest_earning, 2),
                      above_dag_address_std_dev_high=round(above_dag_address_std_dev_high, 2),
                      above_dag_address_std_dev_low=round(above_dag_address_std_dev_low, 2),
+                     percent_of_nonoutlier_validator_pool=round(percent_of_nonoutlier_validator_pool, 2),
 
                      metric_dicts=metric_dicts)
         )

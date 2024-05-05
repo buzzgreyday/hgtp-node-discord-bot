@@ -108,6 +108,7 @@ function update_bot() {
     cd "$HOME/bot" && venv/bin/pip3 install -r "$HOME/bot/requirements.txt"
     venv/bin/pip3 install setuptools
     venv/bin/pip3 install uvicorn
+
   fi
   main
 }
@@ -136,7 +137,7 @@ function install_bot() {
   cd "$HOME/bot" && venv/bin/pip3 install -r "$HOME/bot/requirements.txt"
   venv/bin/pip3 install setuptools
   venv/bin/pip3 install uvicorn
-  venv/bin/python3.12 assets/src/database/create_db.py
+  venv/bin/python3.12 create_db.py
   sudo -u postgres psql -U "$DB_USER" -d "template1" -c "GRANT ALL PRIVILEGES ON DATABASE postgres to $USER"
   sudo -u postgres psql -U "$DB_USER" -d "template1" -c "GRANT ALL PRIVILEGES ON DATABASE postgres to $USER"
   exho '(!) You might want to create ".psqlrc" in the "postgres" user home directory containing "SET statement_timeout=18000000 and in /var/local/postgres.conf, set work_mem=32MB, shared_buffersize=4GB (25% of RAM max)"'
@@ -147,9 +148,11 @@ function main() {
 
   echo "[1] Start Bot"
   echo "[2] Stop Bot"
-  echo "[3] Update -and Change Bot Branch"
-  echo "[4] Install Bot"
-  echo "[5] Exit"
+  echo "[3] Update Bot"
+  echo "[4] Update Database and tables"
+  echo "[5] New Virtual Environment"
+  echo "[6] Install Bot"
+  echo "[7] Exit"
   echo
   read -rp "Bot: Choose number " input
   if [ "$input" == 1 ]; then
@@ -159,8 +162,12 @@ function main() {
   elif [ "$input" == 3 ]; then
     update_bot
   elif [ "$input" == 4 ]; then
-    install_bot
+    venv/bin/python3.12 create_db.py
   elif [ "$input" == 5 ]; then
+    start_venv
+  elif [ "$input" == 5 ]; then
+    install_bot
+  elif [ "$input" == 6 ]; then
     exit 0
   fi
 }
