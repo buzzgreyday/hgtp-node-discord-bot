@@ -164,7 +164,11 @@ function main() {
   elif [ "$input" == 4 ]; then
     venv/bin/python3.12 create_db.py
   elif [ "$input" == 5 ]; then
+    rm -rf "$HOME/bot/venv"
     start_venv
+    cd "$HOME/bot" && venv/bin/pip3 install -r "$HOME/bot/requirements.txt"
+    venv/bin/pip3 install setuptools
+    venv/bin/pip3 install uvicorn
   elif [ "$input" == 5 ]; then
     install_bot
   elif [ "$input" == 6 ]; then
