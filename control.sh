@@ -119,7 +119,7 @@ function install_bot() {
   fi
   sudo apt install software-properties-common -y
   sudo add-apt-repository ppa:deadsnakes/ppa -y
-  sudo apt update && sudo apt upgrade -y
+  sudo apt update -y && sudo apt upgrade -y
   sudo apt install -y python3-pip
   sudo apt install -y python3.12
   sudo apt install -y python3.12-venv
