@@ -150,7 +150,7 @@ function main() {
   echo "[1] Start Bot"
   echo "[2] Stop Bot"
   echo "[3] Update Bot"
-  echo "[4] Update Database and tables"
+  echo "[4] Update Database and Tables"
   echo "[5] New Virtual Environment"
   echo "[6] Install Bot"
   echo "[7] Exit"
