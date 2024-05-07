@@ -32,7 +32,7 @@ database_url = os.getenv("DB_URL")
 engine = create_async_engine(
     database_url,
     future=True,
-    echo=True
+    # echo=True
     # poolclass=NullPool,
 )
 
@@ -225,28 +225,19 @@ class CRUD:
         async_session: async_sessionmaker[AsyncSession],
     ):
         async with async_session() as session:
-            try:
-                reward_results = await session.execute(
-                    select(RewardStatsModel).where(
-                        RewardStatsModel.destinations == dag_address
-                    )
+            reward_results = await session.execute(
+                select(RewardStatsModel).where(
+                    RewardStatsModel.destinations == dag_address
                 )
-            except Exception:
-                logging.getLogger("stats").critical(traceback.format_exc())
-            try:
-                metric_results = await session.execute(
-                    select(MetricStatsModel).where(
-                        MetricStatsModel.destinations == dag_address
-                    )
+            )
+            metric_results = await session.execute(
+                select(MetricStatsModel).where(
+                    MetricStatsModel.destinations == dag_address
                 )
-            except Exception:
-                logging.getLogger("stats").critical(traceback.format_exc())
-        try:
+            )
             reward_results = reward_results.scalar_one_or_none()
             metric_results = metric_results.fetchall()
-        except Exception:
             logging.getLogger("stats").critical(traceback.format_exc())
-        try:
             metric_dicts = []
             for node_metrics in metric_results:
                 metric_dicts.append(node_metrics[0].__dict__)
@@ -274,9 +265,6 @@ class CRUD:
                 dag_address_sum_dev = f"+{round(reward_results.dag_address_sum_dev)}"
             else:
                 dag_address_sum_dev = round(reward_results.dag_address_sum_dev)
-        except Exception:
-            logging.getLogger("stats").critical(traceback.format_exc())
-        try:
             # Sum of all $DAG minted, minus very high earning wallets (Stardust Collective wallet, etc.)
             dag_minted_for_validators = reward_results.nonoutlier_dag_addresses_minted_sum
             percent_of_nonoutlier_validator_pool = (reward_results.dag_address_sum / dag_minted_for_validators) * 100
@@ -324,10 +312,7 @@ class CRUD:
             )
             if reward_results:
                 return content
-            else:
-                logging.getLogger("stats").critical(f"Get html stats page request failed: reward_results contained no data")
-        except Exception:
-            logging.getLogger("stats").critical(traceback.format_exc())
+
 
     async def get_latest_db_price(
         self, async_session: async_sessionmaker[AsyncSession]
