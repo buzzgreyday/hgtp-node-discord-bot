@@ -5,7 +5,7 @@ import sys
 import threading
 import time
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone
 
 import aiohttp
 import yaml
@@ -54,7 +54,7 @@ async def main_loop(version_manager, _configuration):
                     data_queue = asyncio.Queue()
                     tasks = []
 
-                    current_time = datetime.utcnow().time().strftime("%H:%M:%S")
+                    current_time = datetime.now(timezone.utc).time().strftime("%H:%M:%S")
                     if current_time in times:
                         for cluster_name, layers in _configuration["modules"].items():
                             for layer in layers:

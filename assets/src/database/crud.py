@@ -1,10 +1,9 @@
 import asyncio
 import logging
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 
-import numpy as np
 from dotenv import load_dotenv
 from assets.src.database.models import (
     UserModel,
@@ -66,7 +65,7 @@ class CRUD:
     ):
         """Creates a new user subscription"""
         async with async_session() as session:
-            data.date = datetime.utcnow()
+            data.date = datetime.now(timezone.utc)
             data_dict = data.dict()
             user = UserModel(**data_dict)
             statement = select(UserModel).where(
@@ -464,7 +463,7 @@ class CRUD:
                 "disk_free": [],
                 "disk_total": [],
             }
-            timestamp_datetime = datetime.utcfromtimestamp(timestamp)
+            timestamp_datetime = datetime.fromtimestamp(timestamp, timezone.utc)
 
             while True:
                 try:

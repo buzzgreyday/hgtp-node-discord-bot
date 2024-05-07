@@ -138,6 +138,7 @@ function install_bot() {
   cd "$HOME/bot" && venv/bin/pip3 install -r "$HOME/bot/requirements.txt"
   venv/bin/pip3 install setuptools
   venv/bin/pip3 install uvicorn
+  sudo systemctl start postgresql
   venv/bin/python3.12 create_db.py
   sudo -u postgres psql -U "$DB_USER" -d "template1" -c "GRANT ALL PRIVILEGES ON DATABASE postgres to $USER"
   sudo -u postgres psql -U "$DB_USER" -d "template1" -c "GRANT ALL PRIVILEGES ON DATABASE postgres to $USER"
