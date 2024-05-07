@@ -32,7 +32,7 @@ database_url = os.getenv("DB_URL")
 engine = create_async_engine(
     database_url,
     future=True,
-    # echo=True,
+    echo=True
     # poolclass=NullPool,
 )
 
@@ -233,43 +233,49 @@ class CRUD:
                 )
             except Exception:
                 logging.getLogger("stats").critical(traceback.format_exc())
-            metric_results = await session.execute(
-                select(MetricStatsModel).where(
-                    MetricStatsModel.destinations == dag_address
+            try:
+                metric_results = await session.execute(
+                    select(MetricStatsModel).where(
+                        MetricStatsModel.destinations == dag_address
+                    )
                 )
+            except Exception:
+                logging.getLogger("stats").critical(traceback.format_exc())
+        try:
+            reward_results = reward_results.scalar_one_or_none()
+            metric_results = metric_results.fetchall()
+        except Exception:
+            logging.getLogger("stats").critical(traceback.format_exc())
+        try:
+            metric_dicts = []
+            for node_metrics in metric_results:
+                metric_dicts.append(node_metrics[0].__dict__)
+            metric_dicts = sorted(metric_dicts, key=lambda d: d["layer"])
+            dag_address = reward_results.destinations
+            earner_score = reward_results.earner_score
+            count = reward_results.count
+            percent_earning_more = reward_results.percent_earning_more
+            dag_address_sum = reward_results.dag_address_sum
+            dag_median_sum = reward_results.dag_median_sum
+            dag_address_daily_mean = reward_results.dag_address_daily_mean
+            usd_address_sum = reward_results.usd_address_sum
+            usd_address_daily_sum = reward_results.usd_address_daily_sum
+            daily_dag_estimation_low = (
+                reward_results.dag_address_daily_mean - reward_results.dag_daily_std_dev
             )
-
-        reward_results = reward_results.scalar_one_or_none()
-        metric_results = metric_results.fetchall()
-
-        metric_dicts = []
-        for node_metrics in metric_results:
-            metric_dicts.append(node_metrics[0].__dict__)
-        metric_dicts = sorted(metric_dicts, key=lambda d: d["layer"])
-        dag_address = reward_results.destinations
-        earner_score = reward_results.earner_score
-        count = reward_results.count
-        percent_earning_more = reward_results.percent_earning_more
-        dag_address_sum = reward_results.dag_address_sum
-        dag_median_sum = reward_results.dag_median_sum
-        dag_address_daily_mean = reward_results.dag_address_daily_mean
-        usd_address_sum = reward_results.usd_address_sum
-        usd_address_daily_sum = reward_results.usd_address_daily_sum
-        daily_dag_estimation_low = (
-            reward_results.dag_address_daily_mean - reward_results.dag_daily_std_dev
-        )
-        daily_dag_estimation_high = (
-            reward_results.dag_address_daily_mean + reward_results.dag_daily_std_dev
-        )
-        dag_address_daily_std_dev = (
-            f"{round(daily_dag_estimation_low)} - {round(daily_dag_estimation_high)}"
-        )
-        monthly_dag_average = dag_address_daily_mean * 30
-        if reward_results.dag_address_sum_dev > 0:
-            dag_address_sum_dev = f"+{round(reward_results.dag_address_sum_dev)}"
-        else:
-            dag_address_sum_dev = round(reward_results.dag_address_sum_dev)
-
+            daily_dag_estimation_high = (
+                reward_results.dag_address_daily_mean + reward_results.dag_daily_std_dev
+            )
+            dag_address_daily_std_dev = (
+                f"{round(daily_dag_estimation_low)} - {round(daily_dag_estimation_high)}"
+            )
+            monthly_dag_average = dag_address_daily_mean * 30
+            if reward_results.dag_address_sum_dev > 0:
+                dag_address_sum_dev = f"+{round(reward_results.dag_address_sum_dev)}"
+            else:
+                dag_address_sum_dev = round(reward_results.dag_address_sum_dev)
+        except Exception:
+            logging.getLogger("stats").critical(traceback.format_exc())
         try:
             # Sum of all $DAG minted, minus very high earning wallets (Stardust Collective wallet, etc.)
             dag_minted_for_validators = reward_results.nonoutlier_dag_addresses_minted_sum
@@ -286,44 +292,42 @@ class CRUD:
             # What those addresses earning more is earning (standard deviation)
             above_dag_address_std_dev_high = above_dag_earnings_mean + above_dag_address_std_dev
             above_dag_address_std_dev_low = above_dag_earnings_mean - above_dag_address_std_dev
+
+            content = templates.TemplateResponse(
+                    "index.html",
+                    dict(request=request,
+                         dag_address=dag_address,
+                         earner_score=earner_score,
+                         count=count,
+                         percent_earning_more=round(percent_earning_more, 2),
+                         dag_address_sum=round(dag_address_sum, 2),
+                         dag_address_sum_dev=dag_address_sum_dev,
+                         dag_median_sum=round(dag_median_sum, 2),
+                         dag_address_daily_mean=round(dag_address_daily_mean, 2),
+                         dag_address_daily_std_dev=dag_address_daily_std_dev,
+                         dag_address_monthly_mean=round(monthly_dag_average, 2),
+                         usd_address_sum=round(usd_address_sum, 2),
+                         usd_address_daily_sum=round(usd_address_daily_sum, 2),
+                         rewards_plot_path=f"rewards_{dag_address}.html",
+                         cpu_plot_path=f"cpu_{dag_address}.html",
+
+                         dag_minted_for_validators=round(dag_minted_for_validators, 2),
+                         dag_highest_earner=round(dag_highest_earning, 2),
+                         above_dag_earnings_mean=round(above_dag_earnings_mean, 2),
+                         above_dag_address_deviation_from_mean=round(above_dag_address_deviation_from_mean, 2),
+                         above_dag_address_deviation_from_highest_earning=round(above_dag_address_deviation_from_highest_earning, 2),
+                         above_dag_address_std_dev_high=round(above_dag_address_std_dev_high, 2),
+                         above_dag_address_std_dev_low=round(above_dag_address_std_dev_low, 2),
+                         percent_of_nonoutlier_validator_pool=round(percent_of_nonoutlier_validator_pool, 2),
+
+                         metric_dicts=metric_dicts)
+            )
+            if reward_results:
+                return content
+            else:
+                logging.getLogger("stats").critical(f"Get html stats page request failed: reward_results contained no data")
         except Exception:
-            print(traceback.format_exc())
             logging.getLogger("stats").critical(traceback.format_exc())
-            exit(1)
-
-        content = templates.TemplateResponse(
-                "index.html",
-                dict(request=request,
-                     dag_address=dag_address,
-                     earner_score=earner_score,
-                     count=count,
-                     percent_earning_more=round(percent_earning_more, 2),
-                     dag_address_sum=round(dag_address_sum, 2),
-                     dag_address_sum_dev=dag_address_sum_dev,
-                     dag_median_sum=round(dag_median_sum, 2),
-                     dag_address_daily_mean=round(dag_address_daily_mean, 2),
-                     dag_address_daily_std_dev=dag_address_daily_std_dev,
-                     dag_address_monthly_mean=round(monthly_dag_average, 2),
-                     usd_address_sum=round(usd_address_sum, 2),
-                     usd_address_daily_sum=round(usd_address_daily_sum, 2),
-                     rewards_plot_path=f"rewards_{dag_address}.html",
-                     cpu_plot_path=f"cpu_{dag_address}.html",
-
-                     dag_minted_for_validators=round(dag_minted_for_validators, 2),
-                     dag_highest_earner=round(dag_highest_earning, 2),
-                     above_dag_earnings_mean=round(above_dag_earnings_mean, 2),
-                     above_dag_address_deviation_from_mean=round(above_dag_address_deviation_from_mean, 2),
-                     above_dag_address_deviation_from_highest_earning=round(above_dag_address_deviation_from_highest_earning, 2),
-                     above_dag_address_std_dev_high=round(above_dag_address_std_dev_high, 2),
-                     above_dag_address_std_dev_low=round(above_dag_address_std_dev_low, 2),
-                     percent_of_nonoutlier_validator_pool=round(percent_of_nonoutlier_validator_pool, 2),
-
-                     metric_dicts=metric_dicts)
-        )
-        if reward_results:
-            return content
-        else:
-            logging.getLogger("stats").critical(f"Get html stats page request failed: reward_results contained no data")
 
     async def get_latest_db_price(
         self, async_session: async_sessionmaker[AsyncSession]
