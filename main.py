@@ -141,7 +141,7 @@ def main():
     )
     logger.addHandler(handler)
 
-    version_manager = preliminaries.VersionManager(_configuration)
+    # version_manager = preliminaries.VersionManager(_configuration)
 
     # bot.load_extension("assets.src.discord.commands")
     bot.load_extension("assets.src.discord.events")
