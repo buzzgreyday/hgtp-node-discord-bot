@@ -92,8 +92,8 @@ def run_uvicorn_process():
             "127.0.0.1",
             "--port",
             "8000",
-            "--log-config",
-            "assets/data/logs/bot/uvicorn.ini",
+            # "--log-config",
+            # "assets/data/logs/bot/uvicorn.ini",
         ]
     )
 

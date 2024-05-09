@@ -413,7 +413,7 @@ async def run():
                 ssl=False
             )
         ) as session:
-            current_time = datetime.utcnow().time().strftime("%H:%M:%S")
+            current_time = datetime.now(timestamp.utc).time().strftime("%H:%M:%S")
             try:
                 if current_time in times:
                     """PANDAS SETTINGS"""
@@ -421,7 +421,7 @@ async def run():
                     pd.options.display.float_format = "{:.2f}".format
                     # Convert timestamp to epoch
                     timestamp = normalize_timestamp(
-                        datetime.utcnow().timestamp() - timedelta(days=30).total_seconds()
+                        datetime.now(timestamp.utc).timestamp() - timedelta(days=30).total_seconds()
                     )
                     """GET DATA"""
                     # Important: The original data requested below is used after creation of daily data.
@@ -526,29 +526,29 @@ async def run():
                     # Use .copy() to ensure a new DataFrame is created, preventing chained assignments
 
                     # Initialize new columns with 0.0
-                    filtered_df.loc[:, "nonoutlier_validators_minted_sum"] = 0.0
-                    filtered_df.loc[:, "above_validator_earner_highest"] = 0.0
-                    filtered_df.loc[:, "above_validator_earnings_mean"] = 0.0
-                    filtered_df.loc[:, "above_validator_earnings_deviation_from_mean"] = 0.0
-                    filtered_df.loc[:, "above_validator_earnings_from_highest"] = 0.0
-                    filtered_df.loc[:, "above_validator_earnings_std_dev"] = 0.0
-                    filtered_df.loc[:, "nonoutlier_dag_addresses_minted_sum"] = filtered_df["dag_address_sum"].sum()
+                    snapshot_data.loc[:, "nonoutlier_validators_minted_sum"] = 0.0
+                    snapshot_data.loc[:, "above_validator_earner_highest"] = 0.0
+                    snapshot_data.loc[:, "above_validator_earnings_mean"] = 0.0
+                    snapshot_data.loc[:, "above_validator_earnings_deviation_from_mean"] = 0.0
+                    snapshot_data.loc[:, "above_validator_earnings_from_highest"] = 0.0
+                    snapshot_data.loc[:, "above_validator_earnings_std_dev"] = 0.0
+                    snapshot_data.loc[:, "nonoutlier_dag_addresses_minted_sum"] = filtered_df["dag_address_sum"].sum()
 
                     # Loop through DataFrame rows using iterrows()
                     for i, row in filtered_df.iterrows():
                         df = filtered_df[filtered_df.dag_address_sum > row.dag_address_sum]
                         # Update each row individually
-                        filtered_df.loc[i, "above_validator_earner_highest"] = df.dag_address_sum.max()
-                        filtered_df.loc[i, "above_validator_earnings_mean"] = df.dag_address_sum.mean()
-                        filtered_df.loc[i, "above_validator_earnings_deviation_from_mean"] = df.dag_address_sum.mean() - row.dag_address_sum
-                        filtered_df.loc[i, "above_validator_earnings_from_highest"] = df.dag_address_sum.max() - row.dag_address_sum
-                        filtered_df.loc[i, "above_validator_earnings_std_dev"] = df.dag_address_sum.std()
+                        snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_validator_earner_highest"] = df.dag_address_sum.max()
+                        snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_validator_earnings_mean"] = df.dag_address_sum.mean()
+                        snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_validator_earnings_deviation_from_mean"] = df.dag_address_sum.mean() - row.dag_address_sum
+                        snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_validator_earnings_from_highest"] = df.dag_address_sum.max() - row.dag_address_sum
+                        snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_validator_earnings_std_dev"] = df.dag_address_sum.std()
                     # Merge zscore calculations with snapshot data here?
-                    snapshot_data = pd.merge(snapshot_data, filtered_df, on="destinations", how="right", suffixes=("", "_right"))
+                    """snapshot_data = pd.merge(snapshot_data, filtered_df, on="destinations", how="right", suffixes=("", "_right"))
                     conflicting_columns = [col for col in snapshot_data.columns if
                                            col.endswith('_right')]
                     snapshot_data = snapshot_data.drop(conflicting_columns, axis=1)
-                    snapshot_data = snapshot_data.fillna(0.0)
+                    snapshot_data = snapshot_data.fillna(0.0)"""
 
 
 
