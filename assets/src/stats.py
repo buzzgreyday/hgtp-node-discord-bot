@@ -526,22 +526,22 @@ async def run():
                     # Use .copy() to ensure a new DataFrame is created, preventing chained assignments
 
                     # Initialize new columns with 0.0
-                    snapshot_data.loc[:, "above_validator_earner_highest"] = 0.0
-                    snapshot_data.loc[:, "above_validator_earnings_mean"] = 0.0
-                    snapshot_data.loc[:, "above_validator_earnings_deviation_from_mean"] = 0.0
-                    snapshot_data.loc[:, "above_validator_earnings_from_highest"] = 0.0
-                    snapshot_data.loc[:, "above_validator_earnings_std_dev"] = 0.0
+                    snapshot_data.loc[:, "above_dag_address_earner_highest"] = 0.0
+                    snapshot_data.loc[:, "above_dag_addresses_earnings_mean"] = 0.0
+                    snapshot_data.loc[:, "above_dag_address_earnings_deviation_from_mean"] = 0.0
+                    snapshot_data.loc[:, "above_dag_address_earnings_from_highest"] = 0.0
+                    snapshot_data.loc[:, "above_dag_address_earnings_std_dev"] = 0.0
                     snapshot_data.loc[:, "nonoutlier_dag_addresses_minted_sum"] = filtered_df["dag_address_sum"].sum()
 
                     # Loop through DataFrame rows using iterrows()
                     for i, row in filtered_df.iterrows():
                         df = filtered_df[filtered_df.dag_address_sum > row.dag_address_sum]
                         # Update each row individually
-                        snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_validator_earner_highest"] = df.dag_address_sum.max()
-                        snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_validator_earnings_mean"] = df.dag_address_sum.mean()
-                        snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_validator_earnings_deviation_from_mean"] = df.dag_address_sum.mean() - row.dag_address_sum
-                        snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_validator_earnings_from_highest"] = df.dag_address_sum.max() - row.dag_address_sum
-                        snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_validator_earnings_std_dev"] = df.dag_address_sum.std()
+                        snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_dag_address_earner_highest"] = df.dag_address_sum.max()
+                        snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_dag_addresses_earnings_mean"] = df.dag_address_sum.mean()
+                        snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_dag_address_earnings_deviation_from_mean"] = df.dag_address_sum.mean() - row.dag_address_sum
+                        snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_dag_address_earnings_from_highest"] = df.dag_address_sum.max() - row.dag_address_sum
+                        snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_dag_address_earnings_std_dev"] = df.dag_address_sum.std()
                     # Merge zscore calculations with snapshot data here?
                     """snapshot_data = pd.merge(snapshot_data, filtered_df, on="destinations", how="right", suffixes=("", "_right"))
                     conflicting_columns = [col for col in snapshot_data.columns if
