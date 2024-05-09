@@ -414,7 +414,6 @@ async def run():
             )
         ) as session:
             current_time = datetime.now(timezone.utc).time().strftime("%H:%M:%S")
-            print(current_time)
             try:
                 if current_time in times:
                     """PANDAS SETTINGS"""
@@ -527,7 +526,6 @@ async def run():
                     # Use .copy() to ensure a new DataFrame is created, preventing chained assignments
 
                     # Initialize new columns with 0.0
-                    snapshot_data.loc[:, "nonoutlier_validators_minted_sum"] = 0.0
                     snapshot_data.loc[:, "above_validator_earner_highest"] = 0.0
                     snapshot_data.loc[:, "above_validator_earnings_mean"] = 0.0
                     snapshot_data.loc[:, "above_validator_earnings_deviation_from_mean"] = 0.0
@@ -562,7 +560,9 @@ async def run():
                         row["percent_earning_more"] = percentage
                         # Validate the data
                         try:
-                            reward_data = RewardStatsSchema(**row.to_dict())
+                            d = row.to_dict()
+                            print(d)
+                            reward_data = RewardStatsSchema(**d)
                         except Exception:
                             logging.getLogger("stats").critical(traceback.format_exc())
 
