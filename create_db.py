@@ -11,18 +11,18 @@ async def create_db():
     async with engine.begin() as conn:
         # Reflect the metadata
         metadata = SQLBase.metadata
-        # await conn.run_sync(metadata.reflect)
+        await conn.run_sync(metadata.reflect)
 
         # Check if the table exists
-        # if "reward_stats" in metadata.tables:
-        #     # Drop the existing table
-        #     await conn.run_sync(metadata.tables["reward_stats"].drop)
+        if "reward_stats" in metadata.tables:
+            # Drop the existing table
+            await conn.run_sync(metadata.tables["reward_stats"].drop)
 
         # Create all tables
         await conn.run_sync(metadata.create_all)
         await engine.dispose()
 
-    print("Database tables and columns created or updated!")
+        print("Database tables and columns created or updated!")
 
 
 

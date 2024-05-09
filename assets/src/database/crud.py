@@ -452,33 +452,30 @@ class CRUD:
                 "disk_free": [],
                 "disk_total": [],
             }
-            timestamp_datetime = datetime.fromtimestamp(timestamp, timezone.utc)
+            timestamp_datetime = datetime.fromtimestamp(timestamp)
 
             while True:
-                try:
-                    statement = (
-                        select(
-                            NodeModel.timestamp_index,
-                            NodeModel.wallet_address,
-                            NodeModel.layer,
-                            NodeModel.ip,
-                            NodeModel.id,
-                            NodeModel.public_port,
-                            NodeModel.one_m_system_load_average,
-                            NodeModel.cpu_count,
-                            NodeModel.disk_space_free,
-                            NodeModel.disk_space_total,
-                            NodeModel.last_known_cluster_name,
-                        )
-                        .filter(NodeModel.timestamp_index >= timestamp_datetime)
-                        .offset(offset)
-                        .limit(batch_size)
+                statement = (
+                    select(
+                        NodeModel.timestamp_index,
+                        NodeModel.wallet_address,
+                        NodeModel.layer,
+                        NodeModel.ip,
+                        NodeModel.id,
+                        NodeModel.public_port,
+                        NodeModel.one_m_system_load_average,
+                        NodeModel.cpu_count,
+                        NodeModel.disk_space_free,
+                        NodeModel.disk_space_total,
+                        NodeModel.last_known_cluster_name,
                     )
-                    logging.getLogger("stats").debug(f"Get node_data from timestamp: {timestamp}, offset: {offset}")
-                    results = await session.execute(statement)
-                    batch_results = results.fetchall()
-                except Exception:
-                    logging.getLogger("stats").error(traceback.format_exc())
+                    .filter(NodeModel.timestamp_index >= timestamp_datetime)
+                    .offset(offset)
+                    .limit(batch_size)
+                )
+                logging.getLogger("stats").debug(f"Get node_data from timestamp: {timestamp}, offset: {offset}")
+                results = await session.execute(statement)
+                batch_results = results.fetchall()
 
                 if not batch_results:
                     logging.getLogger("stats").debug("All node_data batches processed")

@@ -3,7 +3,7 @@ import hashlib
 import logging
 import traceback
 import warnings
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from bokeh.models import BoxAnnotation
 from bokeh.plotting import figure, output_file, save
@@ -413,7 +413,8 @@ async def run():
                 ssl=False
             )
         ) as session:
-            current_time = datetime.now(timestamp.utc).time().strftime("%H:%M:%S")
+            current_time = datetime.now(timezone.utc).time().strftime("%H:%M:%S")
+            print(current_time)
             try:
                 if current_time in times:
                     """PANDAS SETTINGS"""
@@ -421,7 +422,7 @@ async def run():
                     pd.options.display.float_format = "{:.2f}".format
                     # Convert timestamp to epoch
                     timestamp = normalize_timestamp(
-                        datetime.now(timestamp.utc).timestamp() - timedelta(days=30).total_seconds()
+                        datetime.now(timezone.utc).timestamp() - timedelta(days=30).total_seconds()
                     )
                     """GET DATA"""
                     # Important: The original data requested below is used after creation of daily data.
