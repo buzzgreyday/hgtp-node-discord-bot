@@ -679,27 +679,45 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
     def generate_field_from_reward_states() -> tuple[str, bool, bool]:
         def wallet_field() -> str:
             if node_data.layer == 1:
-                return (
-                    f"{field_symbol} **WALLET**"
-                    f"```$DAG Address```"
-                    f"```{node_data.wallet_address}```"
-                    f"```＄DAG Balance```"
-                    f"```{round(node_data.wallet_balance / 100000000, 2)}```"
-                    f"{field_info}"
-                    f"```Statistics```"
-                    f"[Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address})"
-                )
+                if node_data.last_known_cluster_name == "mainnet":
+                    return (
+                        f"{field_symbol} **WALLET**"
+                        f"```$DAG Address```"
+                        f"```{node_data.wallet_address}```"
+                        f"```＄DAG Balance```"
+                        f"```{round(node_data.wallet_balance / 100000000, 2)}```"
+                        f"{field_info}\n"
+                        f"**[Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address})**"
+                    )
+                else:
+                    return (
+                        f"{field_symbol} **WALLET**"
+                        f"```$DAG Address```"
+                        f"```{node_data.wallet_address}```"
+                        f"```＄DAG Balance```"
+                        f"```{round(node_data.wallet_balance / 100000000, 2)}```"
+                        f"{field_info}"
+                    )
             else:
-                return (
-                    f"{field_symbol} **WALLET**"
-                    f"```$DAG Address```"
-                    f"```{node_data.wallet_address}```"
-                    f"```$DAG Balance```"
-                    f"```{round(node_data.wallet_balance / 100000000, 2)}```"
-                    f"{field_info}"
-                    f"```Statistics```"
-                    f"[Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address})"
-                )
+                if node_data.last_known_cluster_name == "mainnet":
+                    return (
+                        f"{field_symbol} **WALLET**"
+                        f"```$DAG Address```"
+                        f"```{node_data.wallet_address}```"
+                        f"```$DAG Balance```"
+                        f"```{round(node_data.wallet_balance / 100000000, 2)}```"
+                        f"{field_info}\n"
+                        f"**[Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address})**"
+                    )
+                else:
+                    return (
+                        f"{field_symbol} **WALLET**"
+                        f"```$DAG Address```"
+                        f"```{node_data.wallet_address}```"
+                        f"```$DAG Balance```"
+                        f"```{round(node_data.wallet_balance / 100000000, 2)}```"
+                        f"{field_info}"
+                    )
 
         if module_name == "mainnet" and node_data.wallet_balance <= 250000 * 100000000:
             field_symbol = ":red_square:"
