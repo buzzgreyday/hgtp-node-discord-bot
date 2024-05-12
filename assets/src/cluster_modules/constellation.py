@@ -686,6 +686,8 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                     f"```＄DAG Balance```"
                     f"```{round(node_data.wallet_balance / 100000000, 2)}```"
                     f"{field_info}"
+                    f"```Statistics```"
+                    f"[Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address})"
                 )
             else:
                 return (
@@ -695,6 +697,8 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                     f"```$DAG Balance```"
                     f"```{round(node_data.wallet_balance / 100000000, 2)}```"
                     f"{field_info}"
+                    f"```Statistics```"
+                    f"[Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address})"
                 )
 
         if module_name == "mainnet" and node_data.wallet_balance <= 250000 * 100000000:
