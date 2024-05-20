@@ -312,6 +312,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                         return node_data
                     else:
                         node_data.cluster_connectivity = "uncertain"
+                        node_data.cluster_name = node_data.former_cluster_name
                         return node_data
                 elif node_data.former_cluster_connectivity in (
                         "dissociation", "new dissociation", "connecting", "forked", "uncertain"):
@@ -325,6 +326,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                         return node_data
                     else:
                         node_data.cluster_connectivity = "uncertain"
+                        node_data.cluster_name = node_data.former_cluster_name
                         return node_data
                 else:
                     node_data.cluster_connectivity = "association"
@@ -348,6 +350,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                 return node_data
             else:
                 node_data.cluster_connectivity = "uncertain"
+                node_data.cluster_name = node_data.former_cluster_name
                 return node_data
         else:
             # If node is offline (None), could be false negative connection.
@@ -413,6 +416,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                 return node_data
             else:
                 node_data.cluster_connectivity = "uncertain"
+                node_data.cluster_name = node_data.former_cluster_name
                 return node_data
         else:
             # If node is offline (None), no present data
@@ -434,6 +438,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                 return node_data
             else:
                 node_data.cluster_connectivity = "uncertain"
+                node_data.cluster_name = node_data.former_cluster_name
                 return node_data
 
 def set_association_time(node_data: schemas.Node):
