@@ -19,6 +19,7 @@ import pandas as pd
 from assets.src import schemas, cluster, api
 
 CONNECT_STATES = ("waitingfordownload", "downloadinprogress", "observing")
+DISCONNECT_STATES = ("leaving", "offline", "apinotready", "apinotresponding", "sessionignored", "sessionnotfound")
 
 """
     SECTION 1: PRELIMINARIES
@@ -310,12 +311,15 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                     elif node_data.state in CONNECT_STATES:
                         node_data.cluster_connectivity = "connecting"
                         return node_data
+                    elif node_data.state in DISCONNECT_STATES:
+                        node_data.cluster_connectivity = "new dissociation"
+                        return node_data
                     else:
                         node_data.cluster_connectivity = "uncertain"
                         node_data.cluster_name = node_data.former_cluster_name
                         return node_data
                 elif node_data.former_cluster_connectivity in (
-                        "dissociation", "new dissociation", "connecting", "forked", "uncertain"):
+                        "dissociation", "new dissociation", "connecting", "forked"):
                     # If node is recently associated with a cluster
                     if node_data.state == "ready":
                         node_data.cluster_connectivity = "new association"
@@ -323,6 +327,20 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                         return node_data
                     elif node_data.state in CONNECT_STATES:
                         node_data.cluster_connectivity = "connecting"
+                        return node_data
+                    else:
+                        node_data.cluster_connectivity = "uncertain"
+                        node_data.cluster_name = node_data.former_cluster_name
+                        return node_data
+                elif node_data.former_cluster_connectivity == "uncertain":
+                    if node_data.former_state == "ready" and node_data.state == "ready":
+                        node_data.cluster_connectivity = "association"
+                        return node_data
+                    elif node_data.state in CONNECT_STATES:
+                        node_data.cluster_connectivity = "connecting"
+                        return node_data
+                    elif node_data.state in DISCONNECT_STATES:
+                        node_data.cluster_connectivity = "new dissociation"
                         return node_data
                     else:
                         node_data.cluster_connectivity = "uncertain"
@@ -474,6 +492,9 @@ def set_association_time(node_data: schemas.Node):
         node_data.cluster_association_time = node_data.former_cluster_association_time
         node_data.cluster_dissociation_time = node_data.former_cluster_dissociation_time
     elif node_data.cluster_connectivity == ("uncertain", "connecting"):
+        node_data.cluster_association_time = node_data.former_cluster_association_time
+        node_data.cluster_dissociation_time = node_data.former_cluster_dissociation_time
+    else:
         node_data.cluster_association_time = node_data.former_cluster_association_time
         node_data.cluster_dissociation_time = node_data.former_cluster_dissociation_time
 
@@ -1022,6 +1043,10 @@ def mark_notify(d: schemas.Node, configuration):
     # The hardcoded values should be adjustable in config_new.yml
     if d.cluster_connectivity in ("new association", "new dissociation"):
         d.notify = True
+        if d.cluster_connectivity == "new association":
+            d.last_notified_reason = "new association"
+        else:
+            d.last_notified_reason = "new dissociation"
     elif d.former_cluster_connectivity != "connecting" and d.cluster_connectivity == "connecting":
         d.notify = True
         d.last_notified_reason = "connecting"
@@ -1033,7 +1058,7 @@ def mark_notify(d: schemas.Node, configuration):
                 hours=configuration["general"]["notifications"][
                     "free disk space sleep (hours)"
                 ]
-            ).seconds and d.last_notified_reason in ("disk", "version", "rewards"):
+            ).seconds and d.last_notified_reason in ("disk", "version", "rewards", "new association", "new dissociation"):
                 d.last_notified_timestamp = d.timestamp_index
                 d.notify = True
                 if d.cluster_connectivity == "forked":
@@ -1049,7 +1074,7 @@ def mark_notify(d: schemas.Node, configuration):
                 hours=configuration["general"]["notifications"][
                     "free disk space sleep (hours)"
                 ]
-            ).seconds and d.last_notified_reason in ("disk", "version", "forked", "uncertain", "connecting"):
+            ).seconds and d.last_notified_reason in ("disk", "version", "forked", "uncertain", "connecting", "new association", "new dissociation"):
                 # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
                 d.notify = True
                 d.last_notified_timestamp = d.timestamp_index
@@ -1059,7 +1084,7 @@ def mark_notify(d: schemas.Node, configuration):
                 if (
                     (d.timestamp_index.second - d.last_notified_timestamp.second)
                     >= timedelta(hours=6).seconds
-                ) and d.last_notified_reason in ("rewards", "disk", "forked", "uncertain", "connecting"):
+                ) and d.last_notified_reason in ("rewards", "disk", "forked", "uncertain", "connecting", "new association", "new dissociation"):
                     d.notify = True
                     d.last_notified_timestamp = d.timestamp_index
                     d.last_notified_reason = "version"
@@ -1070,7 +1095,7 @@ def mark_notify(d: schemas.Node, configuration):
                     <= configuration["general"]["notifications"][
                 "free disk space threshold (percentage)"
             ]
-            ) and d.last_notified_reason in ("rewards", "version", "forked", "uncertain", "connecting"):
+            ) and d.last_notified_reason in ("rewards", "version", "forked", "uncertain", "connecting", "new association", "new dissociation"):
                 if (
                         d.timestamp_index - d.last_notified_timestamp
                 ).total_seconds() >= timedelta(
