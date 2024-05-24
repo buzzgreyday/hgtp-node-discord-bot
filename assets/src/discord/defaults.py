@@ -7,26 +7,42 @@ red_color_trigger = False
 
 
 def build_title(node_data: schemas.Node):
-    if node_data.cluster_connectivity in ("new association", "associated"):
-        title_ending = f"is up"
-    elif node_data.cluster_connectivity in ("new dissociation", "dissociated"):
-        title_ending = f"is down"
+    cluster_name = None
+    names = [cluster for cluster in (
+        node_data.cluster_name,
+        node_data.former_cluster_name,
+        node_data.last_known_cluster_name,
+    ) if cluster]
+    if names:
+        cluster_name = names[0]
+    if node_data.cluster_connectivity == "connecting":
+        title_ending = f"CONNECTING"
+    elif node_data.cluster_connectivity in ("new association", "association"):
+        title_ending = f"UP"
+    elif node_data.cluster_connectivity in ("new dissociation", "dissociation"):
+        title_ending = f"DOWN"
+    elif node_data.cluster_connectivity == "forked":
+        title_ending = f"FORKED"
+    elif node_data.reward_state is False:
+        title_ending = f"MISSING REWARDS"
+    elif node_data.cluster_connectivity == "uncertain":
+        title_ending = f"UNSTABLE CONNECTION"
     else:
-        title_ending = f"report"
-    if node_data.cluster_name is not None:
-        return f"{node_data.cluster_name.title()} layer {node_data.layer} node ({node_data.ip}) {title_ending}"
+        title_ending = f"REPORT"
+    if cluster_name is not None:
+        return f"{cluster_name.title()} L{node_data.layer} ({node_data.ip}): {title_ending}"
     else:
-        return f"layer {node_data.layer} node ({node_data.ip}) {title_ending}"
+        return f"L{node_data.layer} ({node_data.ip}): {title_ending}"
 
 
 def build_general_node_state(node_data):
     def node_state_field():
         return (
-            f"{field_symbol} **NODE**\n"
-            f"```\n"
-            f"ID: {node_data.id[:6]}...{node_data.id[-6:]}\n"
-            f"IP: {node_data.ip}\n"
-            f"Subscribed Port: {node_data.public_port}```"
+            f"{field_symbol} **NODE**"
+            f"```ID```"
+            f"```{node_data.id}```"
+            f"```Subscribed IP and Port```"
+            f"```{node_data.ip}:{node_data.public_port}```"
             f"{field_info}"
         )
 
@@ -45,9 +61,8 @@ def build_general_node_state(node_data):
 def build_system_node_version(node_data: schemas.Node):
     def version_field():
         return (
-            f"{field_symbol} **TESSELLATION**\n"
-            f"```\n"
-            f"Version {node_data.version} installed```"
+            f"{field_symbol} **TESSELLATION**"
+            f"```Version {node_data.version}```"
             f"{field_info}"
         )
 
@@ -80,10 +95,9 @@ def build_system_node_version(node_data: schemas.Node):
 def build_system_node_load_average(node_data: schemas.Node):
     def load_average_field():
         return (
-            f"{field_symbol} **CPU**\n"
-            f"```\n"
-            f"Count: {round(float(node_data.cpu_count))}\n"
-            f"Load:  {round(float(node_data.one_m_system_load_average), 2)}```"
+            f"{field_symbol} **CPU**"
+            f"```Count {round(float(node_data.cpu_count))}```"
+            f"```Load  {round(float(node_data.one_m_system_load_average), 2)}```"
             f"{field_info}"
         )
 
@@ -108,10 +122,9 @@ def build_system_node_load_average(node_data: schemas.Node):
 def build_system_node_disk_space(node_data: schemas.Node):
     def disk_space_field():
         return (
-            f"{field_symbol} **DISK**\n"
-            f"```\n"
-            f"Free:  {round(float(node_data.disk_space_free)/1073741824, 2)} GB {round(float(node_data.disk_space_free)*100/float(node_data.disk_space_total), 2)}%\n"
-            f"Total: {round(float(node_data.disk_space_total)/1073741824, 2)} GB```"
+            f"{field_symbol} **DISK**"
+            f"```Free  {round(float(node_data.disk_space_free) / 1073741824, 2)} GB {round(float(node_data.disk_space_free) * 100 / float(node_data.disk_space_total), 2)}%```"
+            f"```Total {round(float(node_data.disk_space_total) / 1073741824, 2)} GB```"
             f"{field_info}"
         )
 
@@ -139,11 +152,23 @@ def build_embed(node_data: schemas.Node):
     def determine_color_and_create_embed(yellow_color_trigger, red_color_trigger):
         title = build_title(node_data).upper()
         if yellow_color_trigger and red_color_trigger is False:
-            return nextcord.Embed(title=title, colour=nextcord.Color.orange())
+            embed = nextcord.Embed(title=title, colour=nextcord.Color.orange())
+            embed.set_thumbnail(
+                url="https://raw.githubusercontent.com/buzzgreyday/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png"
+            )
         elif red_color_trigger:
-            return nextcord.Embed(title=title, colour=nextcord.Color.brand_red())
+            embed = nextcord.Embed(title=title, colour=nextcord.Color.brand_red())
+            embed.set_thumbnail(
+                url="https://raw.githubusercontent.com/buzzgreyday/hgtp-node-discord-bot/master/assets/src/images/logo-encased-red.png"
+            )
+
         else:
-            return nextcord.Embed(title=title, colour=nextcord.Color.dark_green())
+            embed = nextcord.Embed(title=title, colour=nextcord.Color.dark_teal())
+            embed.set_thumbnail(
+                url="https://raw.githubusercontent.com/buzzgreyday/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png"
+            )
+
+        return embed
 
     node_state, red_color_trigger, yellow_color_trigger = build_general_node_state(
         node_data

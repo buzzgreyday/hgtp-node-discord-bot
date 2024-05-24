@@ -953,18 +953,18 @@ def build_embed(node_data: schemas.Node, module_name) -> nextcord.Embed:
         if yellow_color_trigger and red_color_trigger is False:
             embed = nextcord.Embed(title=title, colour=nextcord.Color.orange())
             embed.set_thumbnail(
-                url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png"
+                url="https://raw.githubusercontent.com/buzzgreyday/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png"
             )
         elif red_color_trigger:
             embed = nextcord.Embed(title=title, colour=nextcord.Color.brand_red())
             embed.set_thumbnail(
-                url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-red.png"
+                url="https://raw.githubusercontent.com/buzzgreyday/hgtp-node-discord-bot/master/assets/src/images/logo-encased-red.png"
             )
 
         else:
             embed = nextcord.Embed(title=title, colour=nextcord.Color.dark_teal())
             embed.set_thumbnail(
-                url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png"
+                url="https://raw.githubusercontent.com/buzzgreyday/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png"
             )
 
         return embed

@@ -185,8 +185,6 @@ async def send(bot, node_data: schemas.Node, configuration):
             embed = module.build_embed(node_data, module_name)
             await finalize(embed)
     else:
-        # This will not work because there won't be any data if no last_know_cluster exists.
-        # Therefore, we need to request database for the last known data upon request.
         logging.getLogger("app").info(
             f"discord.py - Choosing default embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})"
         )
