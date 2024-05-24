@@ -678,7 +678,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name) -> tuple[s
         return general_cluster_state_field(),False, False
     elif node_data.cluster_connectivity == "forked":
         field_symbol = ":red_square:"
-        field_info = f"`⚠  The node has forked`"
+        field_info = f"`⚠  The node has forked (node session: {node_data.node_cluster_session}, cluster session: {node_data.latest_cluster_session})`"
         red_color_trigger = True
         return general_cluster_state_field(), red_color_trigger, False
     elif node_data.cluster_connectivity == "uncertain":
