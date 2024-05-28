@@ -58,16 +58,18 @@
                 
                 <p class="fs-6 mb-1 fw-light">Potential (average): +{{ above_dag_address_deviation_from_mean }} $DAG<sup>*</sup></p>
                 <p class="fs-6 mb-3 fw-light">Potential (highest): +{{ above_dag_address_deviation_from_highest_earning }} $DAG<sup>*</sup></p>
+                <p class="fs-6 mb-1 fw-light">Outperformers (low): {{ above_dag_address_std_dev_low }} $DAG<sup>*</sup></p>
+                <p class="fs-6 mb-3 fw-light">Outperformers (high): {{ above_dag_address_std_dev_high }} $DAG<sup>*</sup></p>
+
 
                 <p class="bg-light mb-1">30-day network earnings</p>
-                <p class="fs-6 mb-1 fw-light">Minted:  {{ dag_minted_for_validators }} $DAG<sup>*</sup></p>
+                <p class="fs-6 mb-1 fw-light">Minted: {{ dag_minted_for_validators }} $DAG<sup>*</sup></p>
                 <p class="fs-6 mb-1 fw-light">Average: {{ dag_median_sum }} $DAG</p>
-                <p class="fs-6 mb-1 fw-light">Highest: {{ dag_highest_earner }} $DAG</p>
-                <p class="fs-6 mb-3 fw-lighter">Most validator wallets earn between {{ above_dag_address_std_dev_low }} - {{ above_dag_address_std_dev_high }} $DAG<sup>*</sup></p>
+                <p class="fs-6 mb-3 fw-light">Highest: {{ dag_highest_earner }} $DAG</p>
 
                 <p class="bg-light mb-1">Daily earnings</p>
                 <p class="fs-6 mb-1 fw-light">Average: {{ dag_address_daily_mean }} $DAG</p>
-                <p class="fs-6 mb-3 fw-lighter">Estimated daily earnings is {{ dag_address_daily_std_dev }} $DAG </p>
+                <p class="fs-6 mb-3 fw-lighter">Estimated daily earnings is {{ dag_address_daily_std_dev }} $DAG</p>
                 <p class="m-1 fw-light" style="font-size:0.6em;color:#707374;">(*) Extreme outliers are excluded</p>
             </div>
         </div>
@@ -99,7 +101,7 @@
         </div>
     </div>
     <footer class="text-dark">
-        <p class="m-1 fw-light text-center" style="font-size:0.6em;color:#707374;">v0.0.8, by hgtp_Michael (aka. Buzz Greyday)</p>
+        <p class="m-1 fw-light text-center" style="font-size:0.6em;color:#707374;">v0.0.9, by hgtp_Michael (aka. Buzz Greyday)</p>
     </footer>
     <script>
         var reward_frame = document.getElementById('reward_plot');
