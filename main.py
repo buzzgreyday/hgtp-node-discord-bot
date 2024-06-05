@@ -143,7 +143,7 @@ def main():
 
     version_manager = preliminaries.VersionManager(_configuration)
 
-    bot.load_extension("assets.src.discord.commands")
+    # bot.load_extension("assets.src.discord.commands")
     bot.load_extension("assets.src.discord.events")
 
     bot.loop.create_task(main_loop(version_manager, _configuration))
@@ -158,10 +158,10 @@ def main():
     uvicorn_thread.start()
     rewards_thread = threading.Thread(target=start_rewards_coroutine, args=(_configuration,))
     rewards_thread.start()
-    stats_thread = threading.Thread(
-        target=start_stats_coroutine, args=(_configuration,)
-    )
-    stats_thread.start()
+    # stats_thread = threading.Thread(
+    #     target=start_stats_coroutine, args=(_configuration,)
+    # )
+    # stats_thread.start()
 
     while True:
         try:

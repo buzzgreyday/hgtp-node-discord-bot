@@ -51,10 +51,11 @@
                 <div class="h3 mb-0 text-white fw-bold" style="width:100%; color: #3d3d3d;">Stats</div>
             </div>
             <div class="shadow container-sm rounded-bottom bg-white text-dark" style="width:100%; min-width:20em; max-width:80em; background-color: #ffffff;">
-                <p class="bg-light mb-1">30-day earnings</p>
-                <p class="fs-6 mb-1 fw-light">{{ dag_address_sum }} $DAG</p>
+                <p class="h5 bg-light mb-1">30-day earnings</p>
+                <p class="fs-6 mb-1">{{ dag_address_sum }} $DAG</p>
                 <p class="fs-6 mb-1 fw-light">Cost:  ${{ usd_address_sum }}</p>
                 <p class="fs-6 mb-1 fw-light">Price:  ${{ dag_earnings_price_now }} (${{ dag_price_now }} per $DAG)</p>
+                <p class="fs-6 mb-1 fw-light">Gain/loss: {{ dag_earnings_price_now_dev }}</p>
                 <p class="mb-3 fw-light" style="font-size:0.6em;color:#707374;">The price of $DAG is calculated based on data from {{ dag_price_now_timestamp }}</p>
 
                 
@@ -65,12 +66,12 @@
                 <p class="fs-6 mb-3 fw-light">Outperformers (pct.): {{ percent_earning_more }}%<sup>*</sup></p>
 
 
-                <p class="bg-light mb-1">30-day network earnings</p>
+                <p class="h5 bg-light mb-1">30-day network earnings</p>
                 <p class="fs-6 mb-1 fw-light">Minted: {{ dag_minted_for_validators }} $DAG</p>
                 <p class="fs-6 mb-1 fw-light">Average: {{ dag_median_sum }} $DAG<sup>*</sup></p>
                 <p class="fs-6 mb-3 fw-light">Highest: {{ dag_highest_earner }} $DAG</p>
 
-                <p class="bg-light mb-1">Daily earnings</p>
+                <p class="h5 bg-light mb-1">Daily earnings</p>
                 <p class="fs-6 mb-1 fw-light">Average: {{ dag_address_daily_mean }} $DAG</p>
                 <p class="fs-6 mb-3 fw-lighter">Estimated daily earnings is {{ dag_address_daily_std_dev }} $DAG</p>
                 <p class="mb-1 fw-light" style="font-size:0.6em;color:#707374;">(*) Extreme outliers included</p>
@@ -82,7 +83,7 @@
     <div class="row">
         <div class="box">
             <div class="shadow container-sm rounded-top bg-primary" style="min-width:20em; max-width:80em; background-color: #ffffff;">
-                <div class="h3 mb-0 text-white fw-bold" style="width:100%;">CPU</div>
+                <div class="h5 mb-0 text-white fw-bold" style="width:100%;">CPU</div>
             </div>
             <div class="shadow container-sm text-black rounded-bottom justify-content-center" style="display:flex; min-width:20em; max-width:80em; background-color: #ffffff;">
                 <div>
@@ -96,7 +97,7 @@
             </div>
             <div class="shadow container-sm rounded-bottom bg-white text-black" style="width:100%; min-width:20em; max-width:80em; background-color: #ffffff;">
                 {% for dict in metric_dicts %}
-                <p class="bg-light">{{ dict.ip }}, layer {{ dict.layer }} ({{ dict.public_port }})</p>
+                <p class="h5 bg-light">{{ dict.ip }} layer {{ dict.layer }} ({{ dict.public_port }})</p>
                 <p class="fs-6 mb-1 fw-light">Daily CPU load: {{ dict.daily_cpu_load | round(2) }}</p>
                 <p class="fs-6 mb-3 fw-lighter">Ideal CPU load average is below {{ dict.cpu_count }}</p>
 
