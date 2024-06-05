@@ -429,7 +429,9 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
         # If LB is up (None)
         if local_session:
             # If local node is up or not offline
-            return edge_node_is_up_local_node_is_up() if not None else edge_node_is_up_local_node_session_mismatch()
+            node_data = edge_node_is_up_local_node_is_up()
+            node_data = edge_node_is_up_local_node_session_mismatch()
+            return node_data
         else:
             # If node is offline (None), could be false negative connection.
             # Remember, we can still rely on the edge node finding it and assigning the node it's cluster name
