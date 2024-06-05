@@ -53,9 +53,9 @@
             <div class="shadow container-sm rounded-bottom bg-white text-dark" style="width:100%; min-width:20em; max-width:80em; background-color: #ffffff;">
                 <p class="h5 bg-light mb-1">30-day earnings</p>
                 <p class="fs-6 mb-1">{{ dag_address_sum }} $DAG</p>
-                <p class="fs-6 mb-1 fw-light">Cost:  ${{ usd_address_sum }}</p>
-                <p class="fs-6 mb-1 fw-light">Price:  ${{ dag_earnings_price_now }} (${{ dag_price_now }} per $DAG)</p>
-                <p class="fs-6 mb-1 fw-light">Gain/loss: {{ dag_earnings_price_now_dev }}</p>
+                <p class="fs-6 mb-1 fw-light">Cost: {{ usd_address_sum }} $USD</p>
+                <p class="fs-6 mb-1 fw-light">Price:  {{ dag_earnings_price_now }} $USD (${{ dag_price_now }} per $DAG)</p>
+                <p class="fs-6 mb-1 fw-light">Gain/loss: {{ dag_earnings_price_now_dev }} $USD</p>
                 <p class="mb-3 fw-light" style="font-size:0.6em;color:#707374;">The price of $DAG is calculated based on data from {{ dag_price_now_timestamp }}</p>
 
                 
