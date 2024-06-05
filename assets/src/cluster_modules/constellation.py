@@ -281,7 +281,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
     """Determine the connectivity of the node.
     We might need to add some more clarity to how the node has been connected. Like: former_name, latest_name, etc.
     """
-    def clean_sessions():
+    def clean_sessions(node_data):
         if node_data.node_cluster_session not in ('None', None):
             session = float(node_data.node_cluster_session)
         else:
@@ -292,7 +292,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
             latest_session = None
         return session, latest_session
 
-    def edge_node_is_down_local_node_is_down():
+    def edge_node_is_down_local_node_is_down(node_data):
         if node_data.former_cluster_connectivity in ("dissociation", "new dissociation"):
             # If node was dissociated from a cluster
             node_data.cluster_connectivity = "dissociation"
@@ -312,7 +312,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
             node_data.cluster_name = node_data.former_cluster_name
             return node_data
 
-    def edge_node_is_up_local_node_is_down(module_name):
+    def edge_node_is_up_local_node_is_down(node_data, module_name):
 
         if node_data.cluster_name == module_name:
             # If the node is found in the edge node data, it's a false negative connection
@@ -347,7 +347,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                 node_data.cluster_connectivity = "dissociation"
                 return node_data
 
-    def edge_node_is_up_local_node_is_up():
+    def edge_node_is_up_local_node_is_up(node_data):
 
         def dissociation_or_uncertain():
             if node_data.state in CONNECT_STATES:
@@ -397,7 +397,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                 node_data.cluster_connectivity = "association"
                 return node_data
 
-    def edge_node_is_up_local_node_session_mismatch():
+    def edge_node_is_up_local_node_session_mismatch(node_data):
         if local_session < latest_session:
             # If node is dissociated from the cluster
             if node_data.former_cluster_connectivity in (
@@ -423,19 +423,19 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
 
     # logger = logging.getLogger("app")
 
-    local_session, latest_session = clean_sessions()
+    local_session, latest_session = clean_sessions(node_data)
 
     if latest_session:
         # If LB is up (None)
         if local_session:
             # If local node is up or not offline
-            node_data = edge_node_is_up_local_node_is_up()
-            node_data = edge_node_is_up_local_node_session_mismatch()
+            node_data = edge_node_is_up_local_node_is_up(node_data)
+            node_data = edge_node_is_up_local_node_session_mismatch(node_data)
             return node_data
         else:
             # If node is offline (None), could be false negative connection.
             # Remember, we can still rely on the edge node finding it and assigning the node it's cluster name
-            return edge_node_is_up_local_node_is_down(module_name)
+            return edge_node_is_up_local_node_is_down(node_data, module_name)
     else:
         # If LB is down (None), could be false negative connection
         if local_session:
@@ -452,7 +452,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                     node_data.cluster_connectivity = "new dissociation"
                     return node_data
             else:
-                return edge_node_is_down_local_node_is_down()
+                return edge_node_is_down_local_node_is_down(node_data)
 
         else:
             # If node is offline (None), no present data
@@ -461,7 +461,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                 node_data.cluster_connectivity = "association"
                 return node_data
             else:
-                return edge_node_is_down_local_node_is_down()
+                return edge_node_is_down_local_node_is_down(node_data)
 
 
 def set_association_time(node_data: schemas.Node):
