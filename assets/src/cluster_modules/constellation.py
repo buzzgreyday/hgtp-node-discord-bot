@@ -1069,7 +1069,7 @@ def mark_notify(d: schemas.Node, configuration):
         d.last_notified_reason = "connecting"
     elif d.last_notified_timestamp:
         if d.cluster_connectivity in ("forked", "uncertain", "connecting"):
-            if check_time() and d.last_notified_reason in ("disk", "version", "rewards_down", "new association", "new dissociation"):
+            if check_time() and d.last_notified_reason in ("disk", "version", "rewards_down", "rewards_up", "new association", "new dissociation"):
                 d.last_notified_timestamp = d.timestamp_index
                 d.notify = True
                 if d.cluster_connectivity == "forked":
@@ -1079,29 +1079,26 @@ def mark_notify(d: schemas.Node, configuration):
                 else:
                     d.last_notified_reason = "uncertain"
         elif d.reward_state is False:
-            if check_time() and d.last_notified_reason in ("disk", "version", "forked", "uncertain", "connecting", "new association", "new dissociation"):
+            if check_time() and d.last_notified_reason in ("disk", "version", "forked", "rewards_up", "uncertain", "connecting", "new association", "new dissociation"):
                 # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
                 d.notify = True
                 d.last_notified_timestamp = d.timestamp_index
                 d.last_notified_reason = "rewards_down"
+        elif d.reward_state is True and d.former_reward_state is False:
+            if check_time() and d.last_notified_reason in ("disk", "version", "forked", "rewards_down", "uncertain", "connecting", "new association", "new dissociation"):
+                # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
+                d.notify = True
+                d.last_notified_timestamp = d.timestamp_index
+                d.last_notified_reason = "rewards_up"
         elif d.version and d.cluster_version:
             if d.version < d.cluster_version:
-                if (
-                    (d.timestamp_index.second - d.last_notified_timestamp.second)
-                    >= timedelta(hours=6).seconds
-                ) and d.last_notified_reason in ("rewards_down", "disk", "forked", "uncertain", "connecting", "new association", "new dissociation"):
+                if check_time() and d.last_notified_reason in ("rewards_down", "disk", "forked", "uncertain", "connecting", "new association", "new dissociation"):
                     d.notify = True
                     d.last_notified_timestamp = d.timestamp_index
                     d.last_notified_reason = "version"
         elif d.disk_space_free and d.disk_space_total:
             if check_time() and d.last_notified_reason in ("rewards_down", "version", "forked", "uncertain", "connecting", "new association", "new dissociation"):
-                if (
-                        d.timestamp_index - d.last_notified_timestamp
-                ).total_seconds() >= timedelta(
-                    hours=configuration["general"]["notifications"][
-                        "free disk space sleep (hours)"
-                    ]
-                ).seconds:
+                if check_time():
                     d.notify = True
                     d.last_notified_timestamp = d.timestamp_index
                     d.last_notified_reason = "disk"
@@ -1115,6 +1112,10 @@ def mark_notify(d: schemas.Node, configuration):
             d.notify = True
             d.last_notified_timestamp = d.timestamp_index
             d.last_notified_reason = "rewards_down"
+        elif d.reward_state is True and d.former_reward_state is False:
+            d.notify = True
+            d.last_notified_timestamp = d.timestamp_index
+            d.last_notified_reason = "rewards_up"
         elif d.version and d.cluster_version:
             if d.version < d.cluster_version:
                 d.notify = True
