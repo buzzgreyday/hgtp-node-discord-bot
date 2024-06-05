@@ -1097,7 +1097,13 @@ def mark_notify(d: schemas.Node, configuration):
                     d.last_notified_timestamp = d.timestamp_index
                     d.last_notified_reason = "version"
         elif d.disk_space_free and d.disk_space_total:
-            if check_time() and d.last_notified_reason in ("rewards_down", "version", "forked", "uncertain", "connecting", "new association", "new dissociation"):
+            if (
+                    0
+                    <= float((d.disk_space_free) * 100 / float(d.disk_space_total))
+                    <= configuration["general"]["notifications"][
+                "free disk space threshold (percentage)"
+            ]
+            ) and d.last_notified_reason in ("rewards_down", "version", "forked", "uncertain", "connecting", "new association", "new dissociation"):
                 if check_time():
                     d.notify = True
                     d.last_notified_timestamp = d.timestamp_index
