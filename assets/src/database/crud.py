@@ -302,7 +302,7 @@ class CRUD:
                          dag_address_daily_std_dev=dag_address_daily_std_dev,
                          dag_address_monthly_mean=round(monthly_dag_average, 2),
                          dag_price_now=round(price_dagusd, 4),
-                         dag_earnings_price_now_dev=round((usd_address_sum - dag_earnings_price_now), 2),
+                         dag_earnings_price_now_dev=round((dag_earnings_price_now - usd_address_sum), 2),
                          dag_price_now_timestamp=datetime.fromtimestamp(price_timestamp),
                          dag_earnings_price_now=round(dag_earnings_price_now, 2),
                          usd_address_sum=round(usd_address_sum, 2),
