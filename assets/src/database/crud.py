@@ -224,6 +224,7 @@ class CRUD:
         dag_address,
         async_session: async_sessionmaker[AsyncSession],
     ):
+
         async with async_session() as session:
             reward_results = await session.execute(
                 select(RewardStatsModel).where(
@@ -261,6 +262,12 @@ class CRUD:
                 f"{round(daily_dag_estimation_low)} - {round(daily_dag_estimation_high)}"
             )
             monthly_dag_average = dag_address_daily_mean * 30
+            from assets.src.database.database import get_latest_db_price
+            price_timestamp, price_dagusd = await get_latest_db_price()
+            price_dagusd = 0 if price_dagusd is None else price_dagusd
+            price_timestamp = "ERROR!" if price_timestamp is None else price_timestamp
+            if price_dagusd != 0.000000000:
+                dag_earnings_price_now = dag_address_sum * price_dagusd
             if reward_results.dag_address_sum_dev > 0:
                 dag_address_sum_dev = f"+{round(reward_results.dag_address_sum_dev)}"
             else:
@@ -294,6 +301,9 @@ class CRUD:
                          dag_address_daily_mean=round(dag_address_daily_mean, 2),
                          dag_address_daily_std_dev=dag_address_daily_std_dev,
                          dag_address_monthly_mean=round(monthly_dag_average, 2),
+                         dag_price_now=round(price_dagusd, 4),
+                         dag_price_now_timestamp=datetime.fromtimestamp(price_timestamp),
+                         dag_earnings_price_now=round(dag_earnings_price_now, 2),
                          usd_address_sum=round(usd_address_sum, 2),
                          usd_address_daily_sum=round(usd_address_daily_sum, 2),
                          rewards_plot_path=f"rewards_{dag_address}.html",

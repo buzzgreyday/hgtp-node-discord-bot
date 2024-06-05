@@ -225,7 +225,6 @@ async def node_cluster_data(
         )
         node_data = set_connectivity_specific_node_data_values(node_data, module_name)
         node_data = set_association_time(node_data)
-
     return node_data
 
 
@@ -350,7 +349,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
 
     def edge_node_is_up_local_node_is_up():
 
-        def connect_dissociation_or_uncertain():
+        def dissociation_or_uncertain():
             if node_data.state in CONNECT_STATES:
                 node_data.cluster_connectivity = "connecting"
                 return node_data
@@ -372,7 +371,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                     node_data.cluster_connectivity = "association"
                     return node_data
                 else:
-                    connect_dissociation_or_uncertain()
+                    return dissociation_or_uncertain()
 
             elif node_data.former_cluster_connectivity in (
                     "dissociation", "new dissociation", "connecting", "forked"):
@@ -393,7 +392,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                     node_data.cluster_connectivity = "association"
                     return node_data
                 else:
-                    connect_dissociation_or_uncertain()
+                    return dissociation_or_uncertain()
             else:
                 node_data.cluster_connectivity = "association"
                 return node_data
@@ -430,12 +429,11 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
         # If LB is up (None)
         if local_session:
             # If local node is up or not offline
-            edge_node_is_up_local_node_is_up()
-            edge_node_is_up_local_node_session_mismatch()
+            return edge_node_is_up_local_node_is_up() if not None else edge_node_is_up_local_node_session_mismatch()
         else:
             # If node is offline (None), could be false negative connection.
             # Remember, we can still rely on the edge node finding it and assigning the node it's cluster name
-            edge_node_is_up_local_node_is_down(module_name)
+            return edge_node_is_up_local_node_is_down(module_name)
     else:
         # If LB is down (None), could be false negative connection
         if local_session:
@@ -452,7 +450,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                     node_data.cluster_connectivity = "new dissociation"
                     return node_data
             else:
-                edge_node_is_down_local_node_is_down()
+                return edge_node_is_down_local_node_is_down()
 
         else:
             # If node is offline (None), no present data
@@ -461,7 +459,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                 node_data.cluster_connectivity = "association"
                 return node_data
             else:
-                edge_node_is_down_local_node_is_down()
+                return edge_node_is_down_local_node_is_down()
 
 
 def set_association_time(node_data: schemas.Node):

@@ -54,12 +54,15 @@
                 <p class="bg-light mb-1">30-day earnings</p>
                 <p class="fs-6 mb-1 fw-light">{{ dag_address_sum }} $DAG</p>
                 <p class="fs-6 mb-1 fw-light">Cost:  ${{ usd_address_sum }}</p>
-                <p class="fs-6 mb-3 fw-lighter">{{ percent_earning_more }}% of the network was earning more<sup>*</sup></p>
+                <p class="fs-6 mb-1 fw-light">Price:  ${{ dag_earnings_price_now }} (${{ dag_price_now }} per $DAG)</p>
+                <p class="fs-6 mb-3 fw-lighter">The price of $DAG is calculated based on data from {{ dag_price_now_timestamp }}</p>
+
                 
                 <p class="fs-6 mb-1 fw-light">Potential (average): +{{ above_dag_address_deviation_from_mean }} $DAG</p>
                 <p class="fs-6 mb-3 fw-light">Potential (highest): +{{ above_dag_address_deviation_from_highest_earning }} $DAG</p>
                 <p class="fs-6 mb-1 fw-light">Outperformers (low): {{ above_dag_address_std_dev_low }} $DAG<sup>**</sup></p>
-                <p class="fs-6 mb-3 fw-light">Outperformers (high): {{ above_dag_address_std_dev_high }} $DAG<sup>**</sup></p>
+                <p class="fs-6 mb-1 fw-light">Outperformers (high): {{ above_dag_address_std_dev_high }} $DAG<sup>**</sup></p>
+                <p class="fs-6 mb-3 fw-lighter">{{ percent_earning_more }}% of the network was earning more<sup>*</sup></p>
 
 
                 <p class="bg-light mb-1">30-day network earnings</p>
@@ -70,7 +73,7 @@
                 <p class="bg-light mb-1">Daily earnings</p>
                 <p class="fs-6 mb-1 fw-light">Average: {{ dag_address_daily_mean }} $DAG</p>
                 <p class="fs-6 mb-3 fw-lighter">Estimated daily earnings is {{ dag_address_daily_std_dev }} $DAG</p>
-                <p class="m-1 fw-light" style="font-size:0.6em;color:#707374;">(*) Extreme outliers not excluded</p>
+                <p class="m-1 fw-light" style="font-size:0.6em;color:#707374;">(*) Extreme outliers included</p>
                 <p class="m-1 fw-light" style="font-size:0.6em;color:#707374;">(**) The low and high values above is standardized expressions</p>
 
             </div>

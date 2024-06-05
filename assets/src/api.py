@@ -2,8 +2,6 @@ import asyncio
 import traceback
 
 import aiohttp
-import asyncpg.exceptions
-import sqlalchemy.exc
 from aiohttp import client_exceptions
 import logging
 
