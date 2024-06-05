@@ -287,6 +287,11 @@ class CRUD:
             # What those addresses earning more is earning (standard deviation)
             above_dag_address_std_dev_high = above_dag_earnings_mean + above_dag_address_std_dev
             above_dag_address_std_dev_low = above_dag_earnings_mean - above_dag_address_std_dev
+            dag_earnings_price_now_dev = float(dag_earnings_price_now - usd_address_sum)
+            if dag_earnings_price_now_dev > 0:
+                dag_earnings_price_now_dev = f'+{round(dag_earnings_price_now_dev, 2)}'
+            else:
+                dag_earnings_price_now_dev = f'{round(dag_earnings_price_now_dev, 2)}'
 
             content = templates.TemplateResponse(
                     "index.html",
@@ -302,7 +307,7 @@ class CRUD:
                          dag_address_daily_std_dev=dag_address_daily_std_dev,
                          dag_address_monthly_mean=round(monthly_dag_average, 2),
                          dag_price_now=round(price_dagusd, 4),
-                         dag_earnings_price_now_dev=round((dag_earnings_price_now - usd_address_sum), 2),
+                         dag_earnings_price_now_dev=dag_earnings_price_now_dev,
                          dag_price_now_timestamp=datetime.fromtimestamp(price_timestamp),
                          dag_earnings_price_now=round(dag_earnings_price_now, 2),
                          usd_address_sum=round(usd_address_sum, 2),
