@@ -289,9 +289,9 @@ class CRUD:
             above_dag_address_std_dev_low = above_dag_earnings_mean - above_dag_address_std_dev
             dag_earnings_price_now_dev = float(dag_earnings_price_now - usd_address_sum)
             if dag_earnings_price_now_dev > 0:
-                dag_earnings_price_now_dev = f'+{round(dag_earnings_price_now_dev, 2)}'
+                dag_earnings_price_now_dev = f'+{round(dag_earnings_price_now_dev, 2)} USD'
             else:
-                dag_earnings_price_now_dev = f'{round(dag_earnings_price_now_dev, 2)}'
+                dag_earnings_price_now_dev = f'{round(dag_earnings_price_now_dev, 2)} USD'
 
             content = templates.TemplateResponse(
                     "index.html",
