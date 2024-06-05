@@ -349,7 +349,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
 
     def edge_node_is_up_local_node_is_up(node_data):
 
-        def dissociation_or_uncertain():
+        def dissociation_or_uncertain(node_data):
             if node_data.state in CONNECT_STATES:
                 node_data.cluster_connectivity = "connecting"
                 return node_data
@@ -371,7 +371,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                     node_data.cluster_connectivity = "association"
                     return node_data
                 else:
-                    return dissociation_or_uncertain()
+                    return dissociation_or_uncertain(node_data)
 
             elif node_data.former_cluster_connectivity in (
                     "dissociation", "new dissociation", "connecting", "forked"):
@@ -392,10 +392,12 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                     node_data.cluster_connectivity = "association"
                     return node_data
                 else:
-                    return dissociation_or_uncertain()
+                    return dissociation_or_uncertain(node_data)
             else:
                 node_data.cluster_connectivity = "association"
                 return node_data
+        else:
+            return node_data
 
     def edge_node_is_up_local_node_session_mismatch(node_data):
         if local_session < latest_session:
