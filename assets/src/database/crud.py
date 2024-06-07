@@ -65,7 +65,7 @@ class CRUD:
     ):
         """Creates a new user subscription"""
         async with async_session() as session:
-            data.date = datetime.now(timezone.utc)
+            data.date = datetime.now()
             data_dict = data.dict()
             user = UserModel(**data_dict)
             statement = select(UserModel).where(
