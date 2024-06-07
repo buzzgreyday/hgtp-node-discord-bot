@@ -431,8 +431,10 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
         # If LB is up (None)
         if local_session:
             # If local node is up or not offline
-            node_data = edge_node_is_up_local_node_is_up(node_data)
-            node_data = edge_node_is_up_local_node_session_mismatch(node_data)
+            if local_session == latest_session:
+                node_data = edge_node_is_up_local_node_is_up(node_data)
+            else:
+                node_data = edge_node_is_up_local_node_session_mismatch(node_data)
             return node_data
         else:
             # If node is offline (None), could be false negative connection.
