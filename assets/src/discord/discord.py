@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 from typing import List
 
 import logging
@@ -170,8 +171,14 @@ async def send(bot, node_data: schemas.Node, configuration):
             logging.getLogger("app").warning(
                 f"discord.py - Discord message could not be sent to {node_data.name, node_data.ip, node_data.public_port}. The member doesn't allow DMs."
             )
-
-    guild = await bot.fetch_guild(974431346850140201)
+    while True:
+        try:
+            guild = await bot.fetch_guild(974431346850140201)
+        except Exception:
+            f"discord.py - error: {traceback.format_exc()}"
+            await asyncio.sleep(3)
+        else:
+            break
     module_name = [value for value in (node_data.cluster_name, node_data.former_cluster_name, node_data.last_known_cluster_name) if value]
     if module_name:
         module_name = module_name[0]
