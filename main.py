@@ -68,7 +68,14 @@ async def main_loop(version_manager, _configuration):
                                 tasks.append(task)
 
                         for completed_task in asyncio.as_completed(tasks):
-                            data = await completed_task
+                            while True:
+                                try:
+                                    data = await completed_task
+                                except Exception:
+                                    f"main.py - error: {traceback.format_exc()}"
+                                    await asyncio.sleep(3)
+                                else:
+                                    break
                             await data_queue.put(data)
                         while not data_queue.empty():
                             data = await data_queue.get()
