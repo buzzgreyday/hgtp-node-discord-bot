@@ -391,6 +391,9 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                 if node_data.former_state == "ready" and node_data.state == "ready":
                     node_data.cluster_connectivity = "association"
                     return node_data
+                elif node_data.former_state != "ready" and node_data.state == "ready":
+                    node_data.cluster_connectivity = "new association"
+                    return node_data
                 else:
                     return dissociation_or_uncertain(node_data)
             else:
