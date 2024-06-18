@@ -265,8 +265,16 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
             x_axis_type="datetime",
             width=600,
             height=400,
+            background_fill_color="#3d3d3d",
         )
         p.sizing_mode = 'scale_width'
+        # Set the text color for axis labels and title
+        p.xaxis.axis_label_text_color = "#f1f2f2"
+        p.yaxis.axis_label_text_color = "#f1f2f2"
+        p.title.text_color = "#f1f2f2"
+
+        # Set the text color for the legend
+        p.legend.label_text_color = "#f1f2f2"
         ports = destination_df["public_port"].unique()
         palette = Category20c_10
         for i, port in enumerate(ports):
@@ -319,8 +327,16 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
             x_axis_type="datetime",
             width=600,
             height=400,
+            background_fill_color="#3d3d3d",
         )
         p.sizing_mode = ('scale_width')
+        # Set the text color for axis labels and title
+        p.xaxis.axis_label_text_color = "#f1f2f2"
+        p.yaxis.axis_label_text_color = "#f1f2f2"
+        p.title.text_color = "#f1f2f2"
+
+        # Set the text color for the legend
+        p.legend.label_text_color = "#f1f2f2"
         p.line(
             pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
             destination_df["dag_address_daily_sum"],
@@ -429,7 +445,14 @@ async def run():
                     #
                     # The df "snapshot_data" is the rewards used to calc reward statistics and "node_data" is used to
                     # calc CPU statistics
-                    snapshot_data, node_data = await get_data(session, timestamp)
+                    while True:
+                        snapshot_data, node_data = await get_data(session, timestamp)
+                        if not snapshot_data.empty and not node_data.empty:
+                            break
+                        else:
+                            await asyncio.sleep(30)
+
+
 
                     """
                     CREATE DAILY DATA

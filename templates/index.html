@@ -10,14 +10,14 @@
     <style>
 
         body {
-            background-color: #f1f2f2;
+            background-color: #231f20;
         }
         sup {
             font-size: 0.6em;
             color: #707374;
         }
         .bg-primary {
-            background-color: #00b4cd !important;
+            background-color: #007484 !important;
         }
         .container {
             display: flex;
@@ -25,6 +25,7 @@
         .box {
             flex: 1;
             margin: 10px;
+            background-color: #231f20 !important;
         }
     </style>
 </head>
@@ -36,78 +37,78 @@
     </div>
     <div class="row">
         <div class="box">
-            <div class="shadow container-sm rounded-top bg-primary" style="min-width:20em; max-width:80em; background-color: #ffffff;">
-                <div class="h3 mb-0 text-white fw-bold" style="color: #3d3d3d;">Rewards</div>
+            <div class="shadow container-sm rounded-top bg-primary" style="min-width:20em; max-width:80em;">
+                <div class="h3 mb-0 fw-bold" style="color: #f1f2f2;">Rewards</div>
             </div>
-            <div class="shadow container-sm text-black rounded-bottom justify-content-center" style="display:flex; min-width:20em; max-width:80em; background-color: #ffffff;">
+            <div class="shadow container-sm rounded-bottom justify-content-center" style="display:flex; min-width:20em; max-width:80em; background-color: #3d3d3d;">
                 <div>
                     <iframe src="../../static/{{ rewards_plot_path }}" class="d-block mx-auto" id="reward_plot" frameborder="0">Reward plot</iframe>
-                    <p class="m-1 fw-light text-center" style="font-size:0.6em;">The threshold between red/green equals the network median</p>
+                    <p class="m-1 text-center" style="font-size:0.6em; color: #f1f2f2;">The threshold between red/green equals the network median</p>
                 </div>
             </div>
         </div>
         <div class="box">
-            <div class="shadow container-sm rounded-top bg-primary" style="width:100%; min-width:20em; max-width:80em; background-color: #ffffff;">
-                <div class="h3 mb-0 text-white fw-bold" style="width:100%; color: #3d3d3d;">Stats</div>
+            <div class="shadow container-sm rounded-top bg-primary" style="width:100%; min-width:20em; max-width:80em;">
+                <div class="h3 mb-0 fw-bold" style="width:100%; color: #f1f2f2;">Stats</div>
             </div>
-            <div class="shadow container-sm rounded-bottom bg-white text-dark" style="width:100%; min-width:20em; max-width:80em; background-color: #ffffff;">
-                <p class="h5 bg-light mb-1">30-day earnings</p>
-                <p class="fs-6 mb-1">{{ dag_address_sum }} $DAG</p>
-                <p class="fs-6 mb-1 fw-light">Cost: {{ usd_address_sum }} $USD</p>
-                <p class="fs-6 mb-1 fw-light">Price:  {{ dag_earnings_price_now }} $USD (${{ dag_price_now }} per $DAG)</p>
-                <p class="fs-6 mb-1 fw-light">Gain/loss: {{ dag_earnings_price_now_dev }} $USD</p>
-                <p class="mb-3 fw-light" style="font-size:0.6em;color:#707374;">The price of $DAG is calculated based on data from {{ dag_price_now_timestamp }} UTC</p>
+            <div class="shadow container-sm rounded-bottom" style="width:100%; min-width:20em; max-width:80em; background-color: #3d3d3d !important;">
+                <p class="h5 mb-1" style="background-color: #3d3d3d; color: #00b4cd;">30-day earnings</p>
+                <p class="fs-6 mb-1" style="color:#f1f2f2;">{{ dag_address_sum }} $DAG</p>
+                <p class="fs-6 mb-1" style="color:#f1f2f2;">Cost: {{ usd_address_sum }} $USD</p>
+                <p class="fs-6 mb-1" style="color:#f1f2f2;">Price:  {{ dag_earnings_price_now }} $USD (${{ dag_price_now }} per $DAG)</p>
+                <p class="fs-6 mb-1" style="color:#f1f2f2;">Gain/loss: {{ dag_earnings_price_now_dev }} $USD</p>
+                <p class="mb-3" style="font-size: 0.6em; color: #707374;">The price of $DAG is calculated based on data from {{ dag_price_now_timestamp }} UTC</p>
 
                 
-                <p class="fs-6 mb-1 fw-light">Potential (average): +{{ above_dag_address_deviation_from_mean }} $DAG</p>
-                <p class="fs-6 mb-3 fw-light">Potential (highest): +{{ above_dag_address_deviation_from_highest_earning }} $DAG</p>
-                <p class="fs-6 mb-1 fw-light">Outperformers (low): {{ above_dag_address_std_dev_low }} $DAG<sup>**</sup></p>
-                <p class="fs-6 mb-1 fw-light">Outperformers (high): {{ above_dag_address_std_dev_high }} $DAG<sup>**</sup></p>
-                <p class="fs-6 mb-3 fw-light">Outperformers (pct.): {{ percent_earning_more }}%<sup>*</sup></p>
+                <p class="fs-6 mb-1" style="color:#f1f2f2;">Potential (average): +{{ above_dag_address_deviation_from_mean }} $DAG</p>
+                <p class="fs-6 mb-3" style="color:#f1f2f2;">Potential (highest): +{{ above_dag_address_deviation_from_highest_earning }} $DAG</p>
+                <p class="fs-6 mb-1" style="color:#f1f2f2;">Outperformers (low): {{ above_dag_address_std_dev_low }} $DAG<sup>**</sup></p>
+                <p class="fs-6 mb-1" style="color:#f1f2f2;">Outperformers (high): {{ above_dag_address_std_dev_high }} $DAG<sup>**</sup></p>
+                <p class="fs-6 mb-3" style="color:#f1f2f2;">Outperformers (pct.): {{ percent_earning_more }}%<sup>*</sup></p>
 
 
-                <p class="h5 bg-light mb-1">30-day network earnings</p>
-                <p class="fs-6 mb-1 fw-light">Minted: {{ dag_minted_for_validators }} $DAG</p>
-                <p class="fs-6 mb-1 fw-light">Average: {{ dag_median_sum }} $DAG<sup>*</sup></p>
-                <p class="fs-6 mb-3 fw-light">Highest: {{ dag_highest_earner }} $DAG</p>
+                <p class="h5 mb-1" style="background-color: #3d3d3d; color: #00b4cd;">30-day network earnings</p>
+                <p class="fs-6 mb-1" style="color:#f1f2f2;">Minted: {{ dag_minted_for_validators }} $DAG</p>
+                <p class="fs-6 mb-1" style="color:#f1f2f2;">Average: {{ dag_median_sum }} $DAG<sup>*</sup></p>
+                <p class="fs-6 mb-3" style="color:#f1f2f2;">Highest: {{ dag_highest_earner }} $DAG</p>
 
-                <p class="h5 bg-light mb-1">Daily earnings</p>
-                <p class="fs-6 mb-1 fw-light">Average: {{ dag_address_daily_mean }} $DAG</p>
-                <p class="fs-6 mb-3 fw-lighter">Estimated daily earnings is {{ dag_address_daily_std_dev }} $DAG</p>
-                <p class="mb-1 fw-light" style="font-size:0.6em;color:#707374;">(*) Extreme outliers included</p>
-                <p class="mb-1 fw-light" style="font-size:0.6em;color:#707374;">(**) The low and high values above is standardized expressions</p>
+                <p class="h5 mb-1" style="background-color: #3d3d3d; color: #00b4cd;">Daily earnings</p>
+                <p class="fs-6 mb-1" style="color:#f1f2f2;">Average: {{ dag_address_daily_mean }} $DAG</p>
+                <p class="fs-6 mb-3 fw-light" style="color:#f1f2f2;">Estimated daily earnings is {{ dag_address_daily_std_dev }} $DAG</p>
+                <p class="mb-1" style="font-size:0.6em; color: #707374;">(*) Extreme outliers included</p>
+                <p class="mb-1" style="font-size:0.6em; color: #707374;">(**) The low and high values above is standardized expressions</p>
 
             </div>
         </div>
     </div>
     <div class="row">
         <div class="box">
-            <div class="shadow container-sm rounded-top bg-primary" style="min-width:20em; max-width:80em; background-color: #ffffff;">
-                <div class="h5 mb-0 text-white fw-bold" style="width:100%;">CPU</div>
+            <div class="shadow container-sm rounded-top bg-primary" style="min-width:20em; max-width:80em;">
+                <div class="h3 mb-0 fw-bold" style="width:100%; color: #f1f2f2;">CPU</div>
             </div>
-            <div class="shadow container-sm text-black rounded-bottom justify-content-center" style="display:flex; min-width:20em; max-width:80em; background-color: #ffffff;">
+            <div class="shadow container-sm rounded-bottom justify-content-center" style="width:100%; min-width:20em; max-width:80em; background-color: #3d3d3d !important;">
                 <div>
                     <iframe src="../../static/{{ cpu_plot_path }}" class="d-block mx-auto" id="cpu_plot" frameborder="0">CPU plot</iframe>
                 </div>
             </div>
         </div>
         <div class="box">
-            <div class="shadow container-sm rounded-top bg-primary text-white" style="width:100%; min-width:20em; max-width:80em; background-color: #ffffff;">
-                <div class="h3 mb-0 text-white fw-bold" style="width:100%;">Metrics</div>
+            <div class="shadow container-sm rounded-top bg-primary" style="width:100%; min-width:20em; max-width:80em;">
+                <div class="h3 mb-0 fw-bold" style="width:100%; color: #f1f2f2;">Metrics</div>
             </div>
-            <div class="shadow container-sm rounded-bottom bg-white text-black" style="width:100%; min-width:20em; max-width:80em; background-color: #ffffff;">
+            <div class="shadow container-sm rounded-bottom" style="background-color: #3d3d3d; color: #00b4cd;">
                 {% for dict in metric_dicts %}
-                <p class="h5 bg-light">{{ dict.ip }} layer {{ dict.layer }} ({{ dict.public_port }})</p>
-                <p class="fs-6 mb-1 fw-light">Daily CPU load: {{ dict.daily_cpu_load | round(2) }}</p>
-                <p class="fs-6 mb-3 fw-lighter">Ideal CPU load average is below {{ dict.cpu_count }}</p>
+                <p class="h5" style="background-color: #3d3d3d;">{{ dict.ip }} layer {{ dict.layer }} ({{ dict.public_port }})</p>
+                <p class="fs-6 mb-1" style="color:#f1f2f2;">Daily CPU load: {{ dict.daily_cpu_load | round(2) }}</p>
+                <p class="fs-6 mb-3 fw-light" style="color:#f1f2f2;">Ideal CPU load average is below {{ dict.cpu_count }}</p>
 
-                <p class="fs-6 mb-3 fw-light">Disk space: {{ dict.disk_free | round(2) }} free of {{ dict.disk_total | round(2) }} GB</p>
+                <p class="fs-6 mb-3" style="color:#f1f2f2;">Disk space: {{ dict.disk_free | round(2) }} free of {{ dict.disk_total | round(2) }} GB</p>
                 {% endfor %}
             </div>
         </div>
     </div>
     <footer class="text-dark">
-        <p class="m-1 fw-light text-center" style="font-size:0.6em;color:#707374;">v0.0.10, by hgtp_Michael (aka. Buzz Greyday)</p>
+        <p class="m-1 text-center" style="font-size: 0.6em; color: #707374;">v0.0.10, by hgtp_Michael (aka. Buzz Greyday)</p>
     </footer>
     <script>
         var reward_frame = document.getElementById('reward_plot');
