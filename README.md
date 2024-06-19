@@ -1,6 +1,6 @@
 # Hypergraph Discord Node Stutus Bot
 
-![Logo](image-url.jpg)
+![Logo](https://github.com/buzzgreyday/hgtp-node-discord-bot/blob/master/static/logo/banner-color.png)
 
 ## Description
 
