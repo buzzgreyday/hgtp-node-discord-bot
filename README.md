@@ -1,23 +1,12 @@
-# Hypergraph Discord Node Stutus Bot
-
 ![Logo](https://github.com/buzzgreyday/hgtp-node-discord-bot/blob/master/static/logo/banner-color.png)
 
 ## Description
 
-This project aims to make Constellation node operators more productive by making node data and statistics easily accessible and notifying operators in case of node processing anomalies.
-
-## Features
-
-- Free to use
-- Reports node status over Discord DM's
-- Provides useful info and statistics on demand
-- Automatic or on-demand status reporting for subscribers
-
-## Subscribe
+This is a community driven project supported by voluntary donations, the aim of the project is to make Constellation node operators more productive by making node data and statistics easily available. Reports are sent instantaneously in the event of 1) automatically detected anomalies and 2) upon request from the operator.
 
 # Clone project
 
-Instructions on how to install and run your project. 
+Instructions on how to install the Node Robot.
 
 # Prerequisites
 
