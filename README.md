@@ -4,15 +4,15 @@
 
 This is a community driven project supported by voluntary donations, the aim of the project is to make Constellation node operators more productive by making node data and statistics easily available. Reports are sent instantaneously in the event of 1) automatically detected anomalies and 2) upon request from the operator.
 
-# Clone project
+# Clone and run the project
 
 Instructions on how to install the Node Robot.
 
-# Prerequisites
+## Prerequisites
 
 Ubuntu 22.04
 
-# Install
+## Install
 
 ```bash
 # Example command to install
