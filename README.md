@@ -16,7 +16,7 @@ Ubuntu 22.04
 
 ```bash
 # Example command to install
-cd $HOME && git clone <this_project> && mv <this_project> bot
+cd $HOME && git clone hgtp-node-discord-bot && mv hgtp-node-discord-bot bot
 ```
 Create `.env` file in the project folder
 Input your env constants:
