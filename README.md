@@ -1,33 +1,22 @@
-# Hypergraph Discord Node Stutus Bot
-
-![Logo](image-url.jpg)
+![Logo](https://github.com/buzzgreyday/hgtp-node-discord-bot/blob/master/static/logo/banner-color.png)
 
 ## Description
 
-This project aims to make Constellation node operators more productive by making node data and statistics easily accessible and notifying operators in case of node processing anomalies.
+This is a community driven project supported by voluntary donations, the aim of the project is to make Constellation node operators more productive by making node data and statistics easily available. Reports are sent instantaneously in the event of 1) automatically detected anomalies and 2) upon request from the operator.
 
-## Features
+# Clone and run the project
 
-- Free to use
-- Reports node status over Discord DM's
-- Provides useful info and statistics on demand
-- Automatic or on-demand status reporting for subscribers
+Instructions on how to install the Node Robot.
 
-## Subscribe
-
-# Clone project
-
-Instructions on how to install and run your project. 
-
-# Prerequisites
+## Prerequisites
 
 Ubuntu 22.04
 
-# Install
+## Install
 
 ```bash
 # Example command to install
-cd $HOME && git clone <this_project> && mv <this_project> bot
+cd $HOME && git clone hgtp-node-discord-bot && mv hgtp-node-discord-bot bot
 ```
 Create `.env` file in the project folder
 Input your env constants:
