@@ -99,6 +99,11 @@ class Visual:
         p.legend.click_policy = "hide"
         p.legend.label_text_font_size = '8pt'
         p.legend.background_fill_alpha = 0.1
+        # Set the text color for the legend
+        try:
+            p.legend.label_text_color = self.dark_theme_text_color
+        except UserWarning:
+            pass
 
         return p
 
@@ -150,9 +155,6 @@ class Visual:
             p.add_layout(red_box)
 
             p = self.add_legend(p)
-            # Set the text color for the legend
-            p.legend.label_text_color = self.dark_theme_text_color
-
             p = self.add_color(p)
 
             save(p)
