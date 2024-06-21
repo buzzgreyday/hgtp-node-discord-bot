@@ -335,8 +335,6 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
         p.yaxis.axis_label_text_color = "#f1f2f2"
         p.title.text_color = "#f1f2f2"
 
-        # Set the text color for the legend
-        p.legend.label_text_color = "#f1f2f2"
         p.line(
             pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
             destination_df["dag_address_daily_sum"],
@@ -368,6 +366,8 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
         p.legend.click_policy = "hide"
         p.legend.label_text_font_size = '8pt'
         p.legend.background_fill_alpha = 0.1
+        # Set the text color for the legend
+        p.legend.label_text_color = "#f1f2f2"
 
         save(p)
 
