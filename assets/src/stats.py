@@ -75,6 +75,142 @@ class Request:
                     await asyncio.sleep(60)
 
 
+class Visual:
+    def __init__(self, data: pd.DataFrame):
+        self.dark_theme_bg_color = "#3d3d3d"
+        self.dark_theme_text_color = "#f1f2f2"
+        self.df = data
+
+    def add_color(self, p):
+        # Set background fill color to dark
+        p.title.text_color = self.dark_theme_text_color
+        p.background_fill_color = self.dark_theme_bg_color
+        p.border_fill_color = self.dark_theme_bg_color
+        p.outline_line_color = self.dark_theme_bg_color
+        p.xaxis.axis_label_text_color = self.dark_theme_text_color
+        p.yaxis.axis_label_text_color = self.dark_theme_text_color
+        p.xaxis.major_label_text_color = self.dark_theme_text_color
+        p.yaxis.major_label_text_color = self.dark_theme_text_color
+
+        return p
+
+    def add_legend(self, p):
+        p.legend.location = "bottom_right"
+        p.legend.click_policy = "hide"
+        p.legend.label_text_font_size = '8pt'
+        p.legend.background_fill_alpha = 0.1
+
+        return p
+
+    def reward_plot(self):
+        unique_destinations = self.df["destinations"].unique()
+        path = "static"
+        palette = Category20c_10
+        for destination in unique_destinations:
+            logging.getLogger("stats").debug(f"Creating reward visualization for {destination}")
+            output_file(f"{path}/rewards_{destination}.html")
+            destination_df = self.df[self.df["destinations"] == destination]
+            p = figure(
+                title=f"",
+                x_axis_label="Time",
+                y_axis_label="$DAG Earnings",
+                x_axis_type="datetime",
+                width=600,
+                height=400,
+            )
+            p.sizing_mode = ('scale_width')
+
+            p.line(
+                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
+                destination_df["dag_address_daily_sum"],
+                legend_label="Node",
+                color=palette[0],
+                line_width=3,
+            )
+            p.line(
+                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
+                destination_df["daily_overall_median"],
+                legend_label="Network",
+                color="silver",
+                line_dash="dotted",
+                line_width=3,
+            )
+            p.line(
+                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
+                destination_df["dag_address_daily_mean"].median(),
+                line_color=palette[0],
+                line_dash="dashed",
+                legend_label=f"Node avg.",
+            )
+
+            green_box = BoxAnnotation(bottom=self.df["daily_overall_median"].median(), left=0, fill_alpha=0.1,
+                                      fill_color='green')
+            red_box = BoxAnnotation(top=self.df["daily_overall_median"].median(), left=0, fill_alpha=0.1, fill_color='red')
+            p.add_layout(green_box)
+            p.add_layout(red_box)
+
+            p = self.add_legend(p)
+            # Set the text color for the legend
+            p.legend.label_text_color = self.dark_theme_text_color
+
+            p = self.add_color(p)
+
+            save(p)
+
+    def cpu_plot(self):
+        unique_destinations = self.df["destinations"].unique()
+        path = "static"
+        for destination in unique_destinations:
+            logging.getLogger("stats").debug(f"Creating cpu visualization for {destination}")
+            output_file(f"{path}/cpu_{destination}.html")
+            destination_df = self.df[self.df["destinations"] == destination]
+            p = figure(
+                title=f"",
+                x_axis_label="Time",
+                y_axis_label="CPU Load Percentage",
+                x_axis_type="datetime",
+                width=600,
+                height=400,
+            )
+            p.sizing_mode = 'scale_width'
+
+            # Set the text color for the legend (none here)
+            # p.legend.label_text_color = "#f1f2f2"
+            ports = destination_df["public_port"].unique()
+            palette = Category20c_10
+            for i, port in enumerate(ports):
+                color = palette[i]
+                layer_df = destination_df[destination_df["public_port"] == port]
+
+                p.line(
+                    pd.to_datetime(layer_df["timestamp"] * 1000, unit="ms"),
+                    layer_df["daily_cpu_load"] / layer_df["cpu_count"] * 100,
+                    line_width=3,
+                    legend_label=f"{layer_df['ip'].values[0]}:{layer_df['public_port'].values[0]}",
+                    color=color,
+                )
+
+            p.line(
+                pd.to_datetime(self.df["timestamp"] * 1000, unit="ms"),
+                self.df["daily_cpu_load"].median() / self.df["cpu_count"].median() * 100,
+                line_color="grey",
+                line_dash="dashed",
+                legend_label="User avg.",
+                alpha=0.5,
+            )
+            green_box = BoxAnnotation(bottom=0, top=80, left=0, fill_alpha=0.1, fill_color='green')
+            yellow_box = BoxAnnotation(bottom=80, top=100, left=0, fill_alpha=0.1, fill_color='yellow')
+            red_box = BoxAnnotation(bottom=100, left=0, fill_alpha=0.1, fill_color='red')
+            p.add_layout(green_box)
+            p.add_layout(yellow_box)
+            p.add_layout(red_box)
+
+            p = self.add_legend(p)
+            p = self.add_color(p)
+
+            save(p)
+
+
 """PANDAS COLUMNS"""
 
 sliced_columns = [
@@ -111,6 +247,7 @@ final_columns = [
 
 
 """FUNCTIONS"""
+
 
 def sum_usd(
     df: pd.DataFrame, new_column_name: str, address_specific_sum_column
@@ -250,145 +387,6 @@ def create_timeslice_data(
     return sliced_snapshot_df, sliced_node_data_df
 
 
-def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
-    """Creates CPU visualizations. However, we need one per IP"""
-    unique_destinations = df["destinations"].unique()
-    path = "static"
-    for destination in unique_destinations:
-        logging.getLogger("stats").debug(f"Creating cpu visualization for {destination}")
-        output_file(f"{path}/cpu_{destination}.html")
-        destination_df = df[df["destinations"] == destination]
-        p = figure(
-            title=f"",
-            x_axis_label="Time",
-            y_axis_label="CPU Load Percentage",
-            x_axis_type="datetime",
-            width=600,
-            height=400,
-            background_fill_color="#3d3d3d",
-        )
-        p.sizing_mode = 'scale_width'
-        # Set the text color for axis labels and title
-        p.xaxis.axis_label_text_color = "#f1f2f2"
-        p.yaxis.axis_label_text_color = "#f1f2f2"
-        p.title.text_color = "#f1f2f2"
-
-        # Set the text color for the legend (none here)
-        # p.legend.label_text_color = "#f1f2f2"
-        ports = destination_df["public_port"].unique()
-        palette = Category20c_10
-        for i, port in enumerate(ports):
-            color = palette[i]
-            layer_df = destination_df[destination_df["public_port"] == port]
-
-            p.line(
-                pd.to_datetime(layer_df["timestamp"] * 1000, unit="ms"),
-                layer_df["daily_cpu_load"] / layer_df["cpu_count"] * 100,
-                line_width=3,
-                legend_label=f"{layer_df['ip'].values[0]}:{layer_df['public_port'].values[0]}",
-                color=color,
-            )
-
-        p.line(
-            pd.to_datetime(df["timestamp"] * 1000, unit="ms"),
-            df["daily_cpu_load"].median() / df["cpu_count"].median() * 100,
-            line_color="grey",
-            line_dash="dashed",
-            legend_label="User avg.",
-            alpha=0.5,
-        )
-        green_box = BoxAnnotation(bottom=0, top=80, left=0, fill_alpha=0.1, fill_color='green')
-        yellow_box = BoxAnnotation(bottom=80, top=100, left=0, fill_alpha=0.1, fill_color='yellow')
-        red_box = BoxAnnotation(bottom=100, left=0, fill_alpha=0.1, fill_color='red')
-        p.add_layout(green_box)
-        p.add_layout(yellow_box)
-        p.add_layout(red_box)
-        p.legend.location = "bottom_right"
-        p.legend.click_policy = "hide"
-        p.legend.label_text_font_size = '8pt'
-        p.legend.background_fill_alpha = 0.1
-
-        # Set background fill color to dark
-        p.background_fill_color = "#3d3d3d"
-        p.border_fill_color = "#3d3d3d"
-        p.outline_line_color = "#3d3d3d"
-        p.xaxis.axis_label_text_color = "#f1f2f2"
-        p.yaxis.axis_label_text_color = "#f1f2f2"
-        p.xaxis.major_label_text_color = "#f1f2f2"
-        p.yaxis.major_label_text_color = "#f1f2f2"
-
-        save(p)
-
-
-def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
-    """Creates reward visualizations."""
-    unique_destinations = df["destinations"].unique()
-    path = "static"
-    palette = Category20c_10
-    for destination in unique_destinations:
-        logging.getLogger("stats").debug(f"Creating reward visualization for {destination}")
-        output_file(f"{path}/rewards_{destination}.html")
-        destination_df = df[df["destinations"] == destination]
-        p = figure(
-            title=f"",
-            x_axis_label="Time",
-            y_axis_label="$DAG Earnings",
-            x_axis_type="datetime",
-            width=600,
-            height=400,
-        )
-        p.sizing_mode = ('scale_width')
-        # Set the text color for axis labels and title
-        p.xaxis.axis_label_text_color = "#f1f2f2"
-        p.yaxis.axis_label_text_color = "#f1f2f2"
-        p.title.text_color = "#f1f2f2"
-
-        p.line(
-            pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
-            destination_df["dag_address_daily_sum"],
-            legend_label="Node",
-            color=palette[0],
-            line_width=3,
-        )
-        p.line(
-            pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
-            destination_df["daily_overall_median"],
-            legend_label="Network",
-            color="silver",
-            line_dash="dotted",
-            line_width=3,
-        )
-        p.line(
-            pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
-            destination_df["dag_address_daily_mean"].median(),
-            line_color=palette[0],
-            line_dash="dashed",
-            legend_label=f"Node avg.",
-        )
-
-        green_box = BoxAnnotation(bottom=df["daily_overall_median"].median(), left=0, fill_alpha=0.1, fill_color='green')
-        red_box = BoxAnnotation(top=df["daily_overall_median"].median(), left=0, fill_alpha=0.1, fill_color='red')
-        p.add_layout(green_box)
-        p.add_layout(red_box)
-        p.legend.location = "bottom_right"
-        p.legend.click_policy = "hide"
-        p.legend.label_text_font_size = '8pt'
-        p.legend.background_fill_alpha = 0.1
-        # Set the text color for the legend
-        p.legend.label_text_color = "#f1f2f2"
-
-        # Set background fill color to dark
-        p.background_fill_color = "#3d3d3d"
-        p.border_fill_color = "#3d3d3d"
-        p.outline_line_color = "#3d3d3d"
-        p.xaxis.axis_label_text_color = "#f1f2f2"
-        p.yaxis.axis_label_text_color = "#f1f2f2"
-        p.xaxis.major_label_text_color = "#f1f2f2"
-        p.yaxis.major_label_text_color = "#f1f2f2"
-
-        save(p)
-
-
 async def get_data(session, timestamp):
     """
     This function requests the necessary data.
@@ -491,8 +489,8 @@ async def run():
                     sliced_snapshot_df["dag_daily_std_dev"].fillna(0, inplace=True)
 
                     # Create visual representations of the daily data
-                    create_reward_visualizations(sliced_snapshot_df, timestamp)
-                    create_cpu_visualizations(sliced_node_df, timestamp)
+                    Visual(sliced_snapshot_df).reward_plot()
+                    Visual(sliced_node_df).cpu_plot()
 
                     # This might seem like a duplication from the clean-up in "creat_timeslice_data,
                     # but it isn't. After having created the CPU visuals we don't need all daily CPU data per operator,
