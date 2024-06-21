@@ -273,8 +273,8 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
         p.yaxis.axis_label_text_color = "#f1f2f2"
         p.title.text_color = "#f1f2f2"
 
-        # Set the text color for the legend
-        p.legend.label_text_color = "#f1f2f2"
+        # Set the text color for the legend (none here)
+        # p.legend.label_text_color = "#f1f2f2"
         ports = destination_df["public_port"].unique()
         palette = Category20c_10
         for i, port in enumerate(ports):
@@ -308,6 +308,15 @@ def create_cpu_visualizations(df: pd.DataFrame, from_timestamp: int):
         p.legend.label_text_font_size = '8pt'
         p.legend.background_fill_alpha = 0.1
 
+        # Set background fill color to dark
+        p.background_fill_color = "#3d3d3d"
+        p.border_fill_color = "#3d3d3d"
+        p.outline_line_color = "#3d3d3d"
+        p.xaxis.axis_label_text_color = "#f1f2f2"
+        p.yaxis.axis_label_text_color = "#f1f2f2"
+        p.xaxis.major_label_text_color = "#f1f2f2"
+        p.yaxis.major_label_text_color = "#f1f2f2"
+
         save(p)
 
 
@@ -327,7 +336,6 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
             x_axis_type="datetime",
             width=600,
             height=400,
-            background_fill_color="#3d3d3d",
         )
         p.sizing_mode = ('scale_width')
         # Set the text color for axis labels and title
@@ -368,6 +376,15 @@ def create_reward_visualizations(df: pd.DataFrame, from_timestamp: int):
         p.legend.background_fill_alpha = 0.1
         # Set the text color for the legend
         p.legend.label_text_color = "#f1f2f2"
+
+        # Set background fill color to dark
+        p.background_fill_color = "#3d3d3d"
+        p.border_fill_color = "#3d3d3d"
+        p.outline_line_color = "#3d3d3d"
+        p.xaxis.axis_label_text_color = "#f1f2f2"
+        p.yaxis.axis_label_text_color = "#f1f2f2"
+        p.xaxis.major_label_text_color = "#f1f2f2"
+        p.yaxis.major_label_text_color = "#f1f2f2"
 
         save(p)
 
@@ -616,7 +633,7 @@ async def run():
                         except Exception:
                             logging.getLogger("stats").critical(traceback.format_exc())
                     # After saving data, give GIL something to do.
-                    del snapshot_data, metric_data
+                    # del snapshot_data, metric_data
                 else:
                     await asyncio.sleep(0.2)
 
