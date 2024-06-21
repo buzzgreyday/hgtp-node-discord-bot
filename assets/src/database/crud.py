@@ -134,7 +134,7 @@ class CRUD:
             # Create a StatModel instance for each row of data
             session.add(stat_data)
             await session.commit()
-            logging.getLogger("stats").debog(f"crud.py - Stats post: SUCCESS!")
+            logging.getLogger("stats").debug(f"crud.py - Stats post: SUCCESS!")
         return jsonable_encoder(stat_data)
 
     async def update_reward_stats(
