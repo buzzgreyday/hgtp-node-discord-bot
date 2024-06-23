@@ -56,7 +56,6 @@ async def unsubscibe_menu(interaction):
 
     async def on_button_click(interaction):
         """When the button is clicked"""
-        global active_views
 
         try:
             entries = []
@@ -97,6 +96,8 @@ async def unsubscibe_menu(interaction):
             )
 
     async with aiohttp.ClientSession() as session:
+        global active_views
+
         try:
             lst, resp_status = await assets.src.api.Request(
                 session, f"http://127.0.0.1:8000/user/{str(interaction.user)}"
