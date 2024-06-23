@@ -35,6 +35,10 @@ def setup(bot):
     pass
 
 
+# Dictionary to keep track of active views by user ID
+active_views = {}
+
+
 @bot.slash_command(
     name="unsubscribe",
     description="Unsubscribe by IP and Public Port",
@@ -52,73 +56,109 @@ async def unsubscibe_menu(interaction):
 
     async def on_button_click(interaction):
         """When the button is clicked"""
-        entries = []
-        for data in lst:
-            if (
-                (str(interaction.user) == data["name"])
-                and (ip_menu.selected_value == "All")
-                and (port_menu.selected_value in ("All", None))
-            ):
-                append_entries(entries, data)
-            elif (
-                (str(interaction.user) == data["name"])
-                and (ip_menu.selected_value == data["ip"])
-                and (port_menu.selected_value == str(data["public_port"]))
-            ):
-                append_entries(entries, data)
-            elif (
-                (str(interaction.user) == data["name"])
-                and (ip_menu.selected_value == data["ip"])
-                and (port_menu.selected_value in ("All", None))
-            ):
-                append_entries(entries, data)
-            logging.getLogger("app").info(
-                f"main.py - Unubscription request denied for {str(interaction.user)}: {ip_menu.selected_value}:{port_menu.selected_value}"
-            )
-        if entries:
+        global active_views
+
+        try:
+            entries = []
+            for data in lst:
+                if (
+                    (str(interaction.user) == data["name"])
+                    and (ip_menu.selected_value == "All")
+                    and (port_menu.selected_value in ("All", None))
+                ):
+                    append_entries(entries, data)
+                elif (
+                    (str(interaction.user) == data["name"])
+                    and (ip_menu.selected_value == data["ip"])
+                    and (port_menu.selected_value == str(data["public_port"]))
+                ):
+                    append_entries(entries, data)
+                elif (
+                    (str(interaction.user) == data["name"])
+                    and (ip_menu.selected_value == data["ip"])
+                    and (port_menu.selected_value in ("All", None))
+                ):
+                    append_entries(entries, data)
+                logging.getLogger("app").info(
+                    f"main.py - Unubscription request denied for {str(interaction.user)}: {ip_menu.selected_value}:{port_menu.selected_value}"
+                )
+            if entries:
+                await interaction.response.send_message(
+                    content=f"**Unsubscription received**", ephemeral=True
+                )
+                await user.delete_db(entries)
+                # Nothing more to do
+                view.stop()
+                return
+        except Exception as e:
+            logging.error(f"Error during button click handling: {e}")
             await interaction.response.send_message(
-                content=f"**Unsubscription received**", ephemeral=True
+                content="An error occurred while processing the request.", ephemeral=True
             )
-            await user.delete_db(entries)
-            # Nothing more to do
-            view.stop()
-            return
 
     async with aiohttp.ClientSession() as session:
-        lst, resp_status = await assets.src.api.Request(
-            session, f"http://127.0.0.1:8000/user/{str(interaction.user)}"
-        ).db_json()
-        if lst:
-            ips = ["All"]
-            ports = ["All"]
-            for data in lst:
-                ips.append(data["ip"])
-                ports.append(data["public_port"])
+        try:
+            lst, resp_status = await assets.src.api.Request(
+                session, f"http://127.0.0.1:8000/user/{str(interaction.user)}"
+            ).db_json()
+            if lst:
+                ips = ["All"]
+                ports = ["All"]
+                for data in lst:
+                    ips.append(data["ip"])
+                    ports.append(data["public_port"])
 
-            # This is the slash command that sends the message with the SelectMenu
-            # Create a view that contains the SelectMenu
-            view = nextcord.ui.View(timeout=90)
-            ip_menu = SelectMenu("Select the IP you want to unsubscribe", set(ips))
-            port_menu = SelectMenu("Select port", set(ports))
-            button = nextcord.ui.Button(
-                style=nextcord.ButtonStyle.primary, label="Confirm"
-            )
-            button.callback = on_button_click  # Set the callback for the button
-            view.add_item(ip_menu)
-            view.add_item(port_menu)
-            view.add_item(button)
-            # Send the message with the view
+                # Check if there is an existing active view for this user and stop it
+                if interaction.user.id in active_views:
+                    active_views[interaction.user.id].stop()
+                    del active_views[interaction.user.id]
+
+                # This is the slash command that sends the message with the SelectMenu
+                # Create a view that contains the SelectMenu
+                view = nextcord.ui.View(timeout=30)
+
+                # Define a timeout handler
+                async def on_timeout():
+                    logging.warning(f"View timeout for user {interaction.user}")
+                    await interaction.followup.send(
+                        content="The view has timed out, please try again.", ephemeral=True
+                    )
+                    # Remove the view from the active views dictionary
+                    if interaction.user.id in active_views:
+                        del active_views[interaction.user.id]
+
+                view.on_timeout = on_timeout  # Set the timeout handler
+
+                ip_menu = SelectMenu("Select the IP you want to unsubscribe", set(ips))
+                port_menu = SelectMenu("Select port", set(ports))
+                button = nextcord.ui.Button(
+                    style=nextcord.ButtonStyle.primary, label="Confirm"
+                )
+                button.callback = on_button_click  # Set the callback for the button
+                view.add_item(ip_menu)
+                view.add_item(port_menu)
+                view.add_item(button)
+
+                # Store the view in the active views dictionary
+                active_views[interaction.user.id] = view
+
+                # Send the message with the view
+                await interaction.response.send_message(
+                    content="**Unsubscribe by IP(s) and Public Port**",
+                    ephemeral=True,
+                    view=view,
+                )
+            else:
+                await interaction.response.send_message(
+                    content=f"No subscription found", ephemeral=True
+                )
+                # Nothing more to do
+                return
+        except Exception as e:
+            logging.error(f"Error during slash command execution: {e}")
             await interaction.response.send_message(
-                content="**Unsubscribe by IP(s) and Public Port**",
-                ephemeral=True,
-                view=view,
+                content="An error occurred while processing the request.", ephemeral=True
             )
-        else:
-            await interaction.response.send_message(
-                content=f"No subscription found", ephemeral=True
-            )
-            # Nothing more to do
-            return
 
 
 @bot.slash_command(
@@ -127,15 +167,22 @@ async def unsubscibe_menu(interaction):
     guild_ids=[974431346850140201],
     dm_permission=True,
 )
-async def verify(interaction=nextcord.Interaction):
+async def verify(interaction: nextcord.Interaction):
+    global active_views  # Ensure we're using the global active_views dictionary
+
     try:
+        # Check if there is an existing active view for this user and stop it
+        if interaction.user.id in active_views:
+            active_views[interaction.user.id].stop()
+            del active_views[interaction.user.id]
+
         await interaction.user.send(f"Checking Discord server settings...")
     except nextcord.Forbidden:
         logging.getLogger("app").info(
             f"discord.py - Verification of {interaction.user} denied"
         )
-        await interaction.user.send(
-            content=f"{interaction.user.mention}, to gain access you need to navigate to `Privacy Settings` an enable `Direct Messages` from server members. If you experience issues, please contact an admin.",
+        await interaction.response.send_message(
+            content=f"{interaction.user.mention}, to gain access you need to navigate to `Privacy Settings` and enable `Direct Messages` from server members. If you experience issues, please contact an admin.",
             ephemeral=True,
         )
     else:
@@ -143,7 +190,7 @@ async def verify(interaction=nextcord.Interaction):
         role = nextcord.utils.get(guild.roles, name="verified")
         if role:
             await interaction.user.add_roles(role)
-            await interaction.response.send(
+            await interaction.response.send_message(
                 content=f"{interaction.user.mention}, your settings were verified!",
                 ephemeral=True,
             )

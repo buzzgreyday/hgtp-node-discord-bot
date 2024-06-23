@@ -1060,11 +1060,9 @@ def mark_notify(d: schemas.Node, configuration):
         else:
             return False
 
-    if d.last_notified_reason == "rewards":
-        d.last_notified_reason = "rewards_down"
-
     if d.cluster_connectivity in ("new association", "new dissociation"):
         d.notify = True
+        d.last_notified_timestamp = d.timestamp_index
         if d.cluster_connectivity == "new association":
             d.last_notified_reason = "new association"
         else:
@@ -1074,7 +1072,7 @@ def mark_notify(d: schemas.Node, configuration):
         d.last_notified_reason = "connecting"
     elif d.last_notified_timestamp:
         if d.cluster_connectivity in ("forked", "uncertain", "connecting"):
-            if check_time() and d.last_notified_reason in ("disk", "version", "rewards_down", "rewards_up", "new association", "new dissociation"):
+            if check_time() and d.last_notified_reason in ("disk", "version", "rewards_down", "rewards_up", "new association", "new dissociation", "None", None):
                 d.last_notified_timestamp = d.timestamp_index
                 d.notify = True
                 if d.cluster_connectivity == "forked":
@@ -1084,20 +1082,20 @@ def mark_notify(d: schemas.Node, configuration):
                 else:
                     d.last_notified_reason = "uncertain"
         elif d.reward_state is False:
-            if check_time() and d.last_notified_reason in ("disk", "version", "forked", "rewards_up", "uncertain", "connecting", "new association", "new dissociation"):
+            if check_time() and d.last_notified_reason in ("disk", "version", "forked", "rewards_up", "uncertain", "connecting", "new association", "new dissociation", "None", None):
                 # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
                 d.notify = True
                 d.last_notified_timestamp = d.timestamp_index
                 d.last_notified_reason = "rewards_down"
         elif d.reward_state is True and d.former_reward_state is False:
-            if check_time() and d.last_notified_reason in ("disk", "version", "forked", "rewards_down", "uncertain", "connecting", "new association", "new dissociation"):
+            if check_time() and d.last_notified_reason in ("disk", "version", "forked", "rewards_down", "uncertain", "connecting", "new association", "new dissociation", "None", None):
                 # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
                 d.notify = True
                 d.last_notified_timestamp = d.timestamp_index
                 d.last_notified_reason = "rewards_up"
         elif d.version and d.cluster_version:
             if d.version < d.cluster_version:
-                if check_time() and d.last_notified_reason in ("rewards_down", "disk", "forked", "uncertain", "connecting", "new association", "new dissociation"):
+                if check_time() and d.last_notified_reason in ("rewards_down", "disk", "forked", "uncertain", "connecting", "new association", "new dissociation", "None", None):
                     d.notify = True
                     d.last_notified_timestamp = d.timestamp_index
                     d.last_notified_reason = "version"
@@ -1108,7 +1106,7 @@ def mark_notify(d: schemas.Node, configuration):
                     <= configuration["general"]["notifications"][
                 "free disk space threshold (percentage)"
             ]
-            ) and d.last_notified_reason in ("rewards_down", "version", "forked", "uncertain", "connecting", "new association", "new dissociation"):
+            ) and d.last_notified_reason in ("rewards_down", "version", "forked", "uncertain", "connecting", "new association", "new dissociation", "None", None):
                 if check_time():
                     d.notify = True
                     d.last_notified_timestamp = d.timestamp_index
@@ -1142,4 +1140,7 @@ def mark_notify(d: schemas.Node, configuration):
             d.notify = True
             d.last_notified_timestamp = d.timestamp_index
             d.last_notified_reason = "disk"
+        else:
+            d.last_notified_reason = d.last_notified_reason
+            d.last_notified_timestamp = d.last_notified_timestamp
     return d
