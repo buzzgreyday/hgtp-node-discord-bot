@@ -171,6 +171,10 @@ async def send(bot, node_data: schemas.Node, configuration):
             logging.getLogger("app").warning(
                 f"discord.py - Discord message could not be sent to {node_data.name, node_data.ip, node_data.public_port}. The member doesn't allow DMs."
             )
+        except Exception:
+            logging.getLogger("app").error(
+                f"discord.py - Discord message could not be sent to {node_data.name, node_data.ip, node_data.public_port}: {traceback.format_exc()}"
+            )
     while True:
         try:
             guild = await bot.fetch_guild(974431346850140201)
