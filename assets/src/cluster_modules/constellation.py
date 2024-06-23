@@ -725,7 +725,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                         f"```＄DAG Balance```"
                         f"```{round(node_data.wallet_balance / 100000000, 2)}```"
                         f"{field_info}\n"
-                        f"**[Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address})**"
+                        f"`    Links: `**▒[Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address}) ▒[Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
                     )
                 else:
                     return (
@@ -734,7 +734,8 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                         f"```{node_data.wallet_address}```"
                         f"```＄DAG Balance```"
                         f"```{round(node_data.wallet_balance / 100000000, 2)}```"
-                        f"{field_info}"
+                        f"{field_info}\n"
+                        f"`    Links: `**▒[Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
                     )
             else:
                 if node_data.last_known_cluster_name == "mainnet":
@@ -745,7 +746,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                         f"```$DAG Balance```"
                         f"```{round(node_data.wallet_balance / 100000000, 2)}```"
                         f"{field_info}\n"
-                        f"**[Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address})**"
+                        f"`    Links: `**▒[Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address}) ▒[Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
                     )
                 else:
                     return (
@@ -754,7 +755,8 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                         f"```{node_data.wallet_address}```"
                         f"```$DAG Balance```"
                         f"```{round(node_data.wallet_balance / 100000000, 2)}```"
-                        f"{field_info}"
+                        f"{field_info}\n"
+                        f"`    Links: `**▒[Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
                     )
 
         if module_name == "mainnet" and node_data.wallet_balance <= 250000 * 100000000:
@@ -968,13 +970,13 @@ def build_embed(node_data: schemas.Node, module_name) -> nextcord.Embed:
                 url="https://raw.githubusercontent.com/buzzgreyday/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png"
             )
         elif red_color_trigger:
-            embed = nextcord.Embed(title=title, colour=nextcord.Color.brand_red())
+            embed = nextcord.Embed(title=title, colour=nextcord.Color.from_rgb(r=246, g=67, b=54))
             embed.set_thumbnail(
                 url="https://raw.githubusercontent.com/buzzgreyday/hgtp-node-discord-bot/master/assets/src/images/logo-encased-red.png"
             )
 
         else:
-            embed = nextcord.Embed(title=title, colour=nextcord.Color.dark_teal())
+            embed = nextcord.Embed(title=title, colour=nextcord.Color.from_rgb(r=0, g=180, b=205))
             embed.set_thumbnail(
                 url="https://raw.githubusercontent.com/buzzgreyday/hgtp-node-discord-bot/master/assets/src/images/logo-encased-teal.png"
             )
