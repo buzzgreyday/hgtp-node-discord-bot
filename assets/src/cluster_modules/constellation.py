@@ -293,19 +293,23 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
         return session, latest_session
 
     def edge_node_is_down_local_node_is_down(node_data):
-        if node_data.former_cluster_connectivity in ("dissociation", "new dissociation"):
+        if node_data.former_cluster_connectivity in ("association", "new association"):
+            # If node was associated with a cluster
+            node_data.cluster_connectivity = "new dissociation"
+            return node_data
+        elif node_data.former_cluster_connectivity in ("dissociation", "new dissociation"):
             # If node was dissociated from a cluster
             node_data.cluster_connectivity = "dissociation"
             return node_data
 
         elif node_data.former_cluster_connectivity == "connecting":
             # If node was connecting
-            node_data.cluster_connectivity = "connecting"
+            node_data.cluster_connectivity = "new dissociation"
             return node_data
 
         elif node_data.former_cluster_connectivity == "forked":
             # If node had forked
-            node_data.cluster_connectivity = "forked"
+            node_data.cluster_connectivity = "new dissociation"
             return node_data
         else:
             node_data.cluster_connectivity = "uncertain"
@@ -463,12 +467,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
 
         else:
             # If node is offline (None), no present data
-            if node_data.former_cluster_connectivity in ("association", "new association"):
-                # If node was associated with a cluster
-                node_data.cluster_connectivity = "association"
-                return node_data
-            else:
-                return edge_node_is_down_local_node_is_down(node_data)
+            return edge_node_is_down_local_node_is_down(node_data)
 
 
 def set_association_time(node_data: schemas.Node):
@@ -541,7 +540,7 @@ def build_title(node_data: schemas.Node) -> str:
         title_ending = f"UNSTABLE CONNECTION"
     else:
         title_ending = f"REPORT"
-    if cluster_name is not None:
+    if cluster_name not in (None, "None"):
         return f"{cluster_name.title()} L{node_data.layer} ({node_data.ip}): {title_ending}"
     else:
         return f"L{node_data.layer} ({node_data.ip}): {title_ending}"
@@ -724,8 +723,12 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                         f"```{node_data.wallet_address}```"
                         f"```＄DAG Balance```"
                         f"```{round(node_data.wallet_balance / 100000000, 2)}```"
-                        f"{field_info}\n"
-                        f"`    Links: `**▒[Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address}) ▒[Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
+                        f"{field_info}\n\n"
+                        f":globe_with_meridians: **LINKS**\n"
+                        f"> \n"
+                        f"> **[▒ Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address})**\n"
+                        f"> \n"
+                        f"> **[▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
                     )
                 else:
                     return (
@@ -734,8 +737,10 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                         f"```{node_data.wallet_address}```"
                         f"```＄DAG Balance```"
                         f"```{round(node_data.wallet_balance / 100000000, 2)}```"
-                        f"{field_info}\n"
-                        f"`    Links: `**▒[Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
+                        f"{field_info}\n\n"
+                        f":globe_with_meridians: **LINKS**\n"
+                        f"> \n"
+                        f"> **[▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
                     )
             else:
                 if node_data.last_known_cluster_name == "mainnet":
@@ -745,8 +750,12 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                         f"```{node_data.wallet_address}```"
                         f"```$DAG Balance```"
                         f"```{round(node_data.wallet_balance / 100000000, 2)}```"
-                        f"{field_info}\n"
-                        f"`    Links: `**▒[Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address}) ▒[Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
+                        f"{field_info}\n\n"
+                        f":globe_with_meridians: **LINKS**\n"
+                        f"> \n"
+                        f"> **[▒ Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address})**\n"
+                        f"> \n"
+                        f"> **[▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
                     )
                 else:
                     return (
@@ -755,8 +764,10 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                         f"```{node_data.wallet_address}```"
                         f"```$DAG Balance```"
                         f"```{round(node_data.wallet_balance / 100000000, 2)}```"
-                        f"{field_info}\n"
-                        f"`    Links: `**▒[Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
+                        f"{field_info}\n\n"
+                        f":globe_with_meridians: **LINKS**\n"
+                        f"> \n"
+                        f"> **[▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
                     )
 
         if module_name == "mainnet" and node_data.wallet_balance <= 250000 * 100000000:
