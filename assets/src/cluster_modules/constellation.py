@@ -572,7 +572,7 @@ def build_general_node_state(node_data: schemas.Node) -> tuple[str, bool: red_co
     if node_data.state not in ("offline", "waitingfordownload", "downloadinprogress", "readytojoin", None):
         if node_data.cluster_peer_count in (None, 0):
             if node_data.cluster_connectivity in ("new association", "association"):
-                field_symbol = ":green_square:"
+                field_symbol = ":blue_square:"
                 field_info = f"`ⓘ  Node is connected but the load balancer is unstable or the network is undergoing maintenance`"
                 node_state = node_data.state.title()
                 return node_state_field(), False, False
@@ -602,7 +602,7 @@ def build_general_node_state(node_data: schemas.Node) -> tuple[str, bool: red_co
             return node_state_field(), red_color_trigger, False
         else:
             field_info = f"`ⓘ  Connected to {round(float(node_data.node_peer_count * 100 / node_data.cluster_peer_count), 2)}% of the cluster peers`"
-            field_symbol = ":green_square:"
+            field_symbol = ":blue_square:"
             node_state = node_data.state.title()
             return node_state_field(), False, False
     elif node_data.state in ("waitingfordownload", "downloadinprogress", "readytojoin"):
@@ -666,11 +666,11 @@ def build_general_cluster_state(node_data: schemas.Node, module_name) -> tuple[s
             return round(float(0.0), 2)
 
     if node_data.cluster_connectivity == "new association":
-        field_symbol = ":green_square:"
+        field_symbol = ":blue_square:"
         field_info = f"`ⓘ  Association with the cluster was recently established`"
         return general_cluster_state_field(), False, False
     elif node_data.cluster_connectivity == "association":
-        field_symbol = ":green_square:"
+        field_symbol = ":blue_square:"
         field_info = f"`ⓘ  The node is consecutively associated with the cluster`"
         return general_cluster_state_field(), False, False
     elif node_data.cluster_connectivity == "new dissociation":
@@ -684,7 +684,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name) -> tuple[s
         red_color_trigger = True
         return general_cluster_state_field(), red_color_trigger, False
     elif node_data.cluster_connectivity == "connecting":
-        field_symbol = ":green_square:"
+        field_symbol = ":blue_square:"
         field_info = f"`ⓘ  The node is connecting to a cluster`"
         return general_cluster_state_field(),False, False
     elif node_data.cluster_connectivity == "forked":
@@ -789,7 +789,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                 yellow_color_trigger = False
                 return wallet_field(), red_color_trigger, yellow_color_trigger
             elif module_name in ("integrationnet", "testnet"):
-                field_symbol = ":green_square:"
+                field_symbol = ":blue_square:"
                 field_info = (
                     f":red_circle:` The {module_name.title()}-wallet recently stopped receiving ({module_name.title()}) $DAG rewards. "
                     f"However, this might not affect the rewards transferred to your registered mainnet wallet`"
@@ -802,7 +802,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                 None,
         ) and node_data.former_reward_state in (False, None):
             if node_data.layer == 1:
-                field_symbol = ":green_square:"
+                field_symbol = ":blue_square:"
                 field_info = (
                     f"`ⓘ  {module_name.title()} layer one does not currently distribute rewards. "
                     f"Please refer to the layer 0 report`"
@@ -818,7 +818,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                     yellow_color_trigger = False
                     return wallet_field(), red_color_trigger, yellow_color_trigger
                 elif module_name in ("integrationnet", "testnet"):
-                    field_symbol = ":green_square:"
+                    field_symbol = ":blue_square:"
                     field_info = (
                         f":red_circle:` The {module_name.title()}-wallet doesn't receive ({module_name.title()}) $DAG rewards. "
                         f"However, this might not affect the rewards transferred to your registered mainnet wallet`"
@@ -830,13 +830,13 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                 False,
                 None,
         ):
-            field_symbol = ":green_square:"
+            field_symbol = ":blue_square:"
             field_info = f":coin:` The wallet recently started receiving rewards`"
             red_color_trigger = False
             yellow_color_trigger = False
             return wallet_field(), red_color_trigger, yellow_color_trigger
         elif node_data.reward_state is True and node_data.former_reward_state is True:
-            field_symbol = ":green_square:"
+            field_symbol = ":blue_square:"
             field_info = f":coin:` The wallet receives rewards`"
             red_color_trigger = False
             yellow_color_trigger = False
@@ -869,7 +869,7 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
 
     if node_data.version is not None and node_data.cluster_version is not None:
         if node_data.version == node_data.cluster_version:
-            field_symbol = ":green_square:"
+            field_symbol = ":blue_square:"
             if node_data.cluster_version == node_data.latest_version:
                 field_info = "`ⓘ  You are running the latest version of Tessellation`"
             elif node_data.cluster_version < node_data.latest_version:
@@ -897,7 +897,7 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
             return version_field(), red_color_trigger, False
     elif node_data.version is not None and node_data.latest_version is not None:
         if node_data.version > node_data.latest_version:
-            field_symbol = ":green_square:"
+            field_symbol = ":blue_square:"
             if node_data.version == node_data.cluster_version:
                 field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is {node_data.latest_version}`"
             else:
@@ -934,7 +934,7 @@ def build_system_node_load_average(node_data: schemas.Node)  -> tuple[str, bool:
         elif (
                 float(node_data.one_m_system_load_average) / float(node_data.cpu_count) < 1
         ):
-            field_symbol = ":green_square:"
+            field_symbol = ":blue_square:"
             field_info = f'`ⓘ  "CPU load" is ok (should be below "CPU count")`'
             return load_average_field(), red_color_trigger, False
     else:
@@ -965,7 +965,7 @@ def build_system_node_disk_space(node_data: schemas.Node) -> tuple[str, bool: re
             yellow_color_trigger = True
             return disk_space_field(), red_color_trigger, yellow_color_trigger
         else:
-            field_symbol = ":green_square:"
+            field_symbol = ":blue_square:"
             field_info = f"`ⓘ  Free disk space is ok`"
             return disk_space_field(), red_color_trigger, False
 
