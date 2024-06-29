@@ -25,10 +25,13 @@ DB_URL=postgres+asyncpg://<username>:<password>@localhost/<db_name>
 DISCORD_TOKEN=<token_string>
 ```
 ```bash
-# Rename project folder to 'bot'
-# Run the control.sh script to install
-cd bot
-bash control.sh
+```mv ~/hgtp-node-discord-bot ~/bot```
+```cd ~/bot```
+```bash control.sh```
 # Enter the number to install bot on the server
-# After installation create ".psql" containing "SET statement_timeout=60000;" in the "postgres" user home directory
+# After installation
+```nano .psqlrc```
+# Copy and paste the following line in the `postgres` home directory:
+`SET statement_timeout=18000000;`
+# Save and exit
 ```
