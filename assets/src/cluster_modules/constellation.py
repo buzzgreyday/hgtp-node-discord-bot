@@ -573,7 +573,7 @@ def build_general_node_state(node_data: schemas.Node) -> tuple[str, bool: red_co
         if node_data.cluster_peer_count in (None, 0):
             if node_data.cluster_connectivity in ("new association", "association"):
                 field_symbol = ":blue_square:"
-                field_info = f"`ⓘ  Node is connected but the load balancer is unstable or the network is undergoing maintenance`"
+                field_info = f"`⚠  Node is connected but the load balancer is unstable or the network is undergoing maintenance`"
                 node_state = node_data.state.title()
                 return node_state_field(), False, False
             elif node_data.cluster_connectivity == "forked":
@@ -699,7 +699,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name) -> tuple[s
         return general_cluster_state_field(), False, yellow_color_trigger
     elif node_data.cluster_connectivity is None:
         field_symbol = ":yellow_square:"
-        field_info = f"`⚠  Please report to hgtp_michael: connectivity state is None`"
+        field_info = f"`⚠  Please report to Buzz Greyday: connectivity state is None`"
         yellow_color_trigger = True
         return general_cluster_state_field(), False, yellow_color_trigger
     else:
@@ -707,7 +707,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name) -> tuple[s
             f"constellation.py - {node_data.cluster_connectivity.title()} is not a supported node state ({node_data.name}, {node_data.ip}:{node_data.public_port}, L{node_data.layer})"
         )
         field_symbol = ":yellow_square:"
-        field_info = f"`⚠  Please contact hgtp_michael: cluster connectivity is {node_data.cluster_connectivity}`"
+        field_info = f"`⚠  Please contact Buzz Greyday: cluster connectivity is {node_data.cluster_connectivity}`"
         yellow_color_trigger = True
         return general_cluster_state_field(), False, yellow_color_trigger
 
@@ -725,10 +725,10 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                         f"```{round(node_data.wallet_balance / 100000000, 2)}```"
                         f"{field_info}\n\n"
                         f":globe_with_meridians: **LINKS**\n"
-                        f"> \n"
-                        f"> **[▒ Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address})**\n"
-                        f"> \n"
-                        f"> **[▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
+                        f"` ║`\n"
+                        f"` ╠`**[▒ Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address})**\n"
+                        f"` ║`\n"
+                        f"` ╚`**[▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
                     )
                 else:
                     return (
@@ -739,8 +739,8 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                         f"```{round(node_data.wallet_balance / 100000000, 2)}```"
                         f"{field_info}\n\n"
                         f":globe_with_meridians: **LINKS**\n"
-                        f"> \n"
-                        f"> **[▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
+                        f"` ║`\n"
+                        f"` ╚`**[▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
                     )
             else:
                 if node_data.last_known_cluster_name == "mainnet":
@@ -752,10 +752,10 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                         f"```{round(node_data.wallet_balance / 100000000, 2)}```"
                         f"{field_info}\n\n"
                         f":globe_with_meridians: **LINKS**\n"
-                        f"> \n"
-                        f"> **[▒ Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address})**\n"
-                        f"> \n"
-                        f"> **[▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
+                        f"` ║`\n"
+                        f"` ╠`**[▒ Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address})**\n"
+                        f"` ║`\n"
+                        f"` ╚`**[▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
                     )
                 else:
                     return (
@@ -766,8 +766,8 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                         f"```{round(node_data.wallet_balance / 100000000, 2)}```"
                         f"{field_info}\n\n"
                         f":globe_with_meridians: **LINKS**\n"
-                        f"> \n"
-                        f"> **[▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
+                        f"` ║`\n"
+                        f"` ╚`**[▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
                     )
 
         if module_name == "mainnet" and node_data.wallet_balance <= 250000 * 100000000:
