@@ -724,11 +724,8 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                         f"```＄DAG Balance```"
                         f"```{round(node_data.wallet_balance / 100000000, 2)}```"
                         f"{field_info}\n\n"
-                        f":globe_with_meridians: **LINKS**\n"
-                        f"` ║`\n"
-                        f"` ╠`**[▒ Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address})**\n"
-                        f"` ║`\n"
-                        f"` ╚`**[▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
+                        f"**`🔗 LINKS`**\n"
+                        f"**[▒ Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address}) [▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
                     )
                 else:
                     return (
@@ -738,9 +735,8 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                         f"```＄DAG Balance```"
                         f"```{round(node_data.wallet_balance / 100000000, 2)}```"
                         f"{field_info}\n\n"
-                        f":globe_with_meridians: **LINKS**\n"
-                        f"` ║`\n"
-                        f"` ╚`**[▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
+                        f"**`🔗 LINKS`**\n"
+                        f"**[▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
                     )
             else:
                 if node_data.last_known_cluster_name == "mainnet":
@@ -751,11 +747,8 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                         f"```$DAG Balance```"
                         f"```{round(node_data.wallet_balance / 100000000, 2)}```"
                         f"{field_info}\n\n"
-                        f":globe_with_meridians: **LINKS**\n"
-                        f"` ║`\n"
-                        f"` ╠`**[▒ Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address})**\n"
-                        f"` ║`\n"
-                        f"` ╚`**[▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
+                        f"**`🔗 LINKS`**\n"
+                        f"**[▒ Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address}) [▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
                     )
                 else:
                     return (
@@ -765,9 +758,8 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                         f"```$DAG Balance```"
                         f"```{round(node_data.wallet_balance / 100000000, 2)}```"
                         f"{field_info}\n\n"
-                        f":globe_with_meridians: **LINKS**\n"
-                        f"` ║`\n"
-                        f"` ╚`**[▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
+                        f"**`🔗 LINKS`**\n"
+                        f"**[▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
                     )
 
         if module_name == "mainnet" and node_data.wallet_balance <= 250000 * 100000000:
@@ -783,7 +775,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
             if module_name == "mainnet":
                 field_symbol = ":red_square:"
                 field_info = (
-                    f":red_circle:` The wallet recently stopped receiving rewards`"
+                    f"`⚠ The wallet recently stopped receiving rewards`"
                 )
                 red_color_trigger = True
                 yellow_color_trigger = False
@@ -791,7 +783,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
             elif module_name in ("integrationnet", "testnet"):
                 field_symbol = ":blue_square:"
                 field_info = (
-                    f":red_circle:` The {module_name.title()}-wallet recently stopped receiving ({module_name.title()}) $DAG rewards. "
+                    f"`⚠ The {module_name.title()}-wallet recently stopped receiving ({module_name.title()}) $DAG rewards. "
                     f"However, this might not affect the rewards transferred to your registered mainnet wallet`"
                 )
                 red_color_trigger = False
@@ -813,14 +805,14 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
             else:
                 if module_name == "mainnet":
                     field_symbol = ":red_square:"
-                    field_info = f":red_circle:` The wallet doesn't receive rewards`"
+                    field_info = f"`⚠ The wallet doesn't receive rewards`"
                     red_color_trigger = True
                     yellow_color_trigger = False
                     return wallet_field(), red_color_trigger, yellow_color_trigger
                 elif module_name in ("integrationnet", "testnet"):
                     field_symbol = ":blue_square:"
                     field_info = (
-                        f":red_circle:` The {module_name.title()}-wallet doesn't receive ({module_name.title()}) $DAG rewards. "
+                        f"`⚠ The {module_name.title()}-wallet doesn't receive ({module_name.title()}) $DAG rewards. "
                         f"However, this might not affect the rewards transferred to your registered mainnet wallet`"
                     )
                     red_color_trigger = False
@@ -831,13 +823,13 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                 None,
         ):
             field_symbol = ":blue_square:"
-            field_info = f":coin:` The wallet recently started receiving rewards`"
+            field_info = f"`🪙 The wallet recently started receiving rewards`"
             red_color_trigger = False
             yellow_color_trigger = False
             return wallet_field(), red_color_trigger, yellow_color_trigger
         elif node_data.reward_state is True and node_data.former_reward_state is True:
             field_symbol = ":blue_square:"
-            field_info = f":coin:` The wallet receives rewards`"
+            field_info = f"`🪙 The wallet receives rewards`"
             red_color_trigger = False
             yellow_color_trigger = False
             return wallet_field(), red_color_trigger, yellow_color_trigger
