@@ -764,7 +764,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
 
         if module_name == "mainnet" and node_data.wallet_balance <= 250000 * 100000000:
             field_symbol = ":red_square:"
-            field_info = f"`⚠  The wallet doesn't hold sufficient collateral`"
+            field_info = f"`⚠  Doesn't hold sufficient collateral`"
             red_color_trigger = True
             yellow_color_trigger = False
             return wallet_field(), red_color_trigger, yellow_color_trigger
@@ -775,7 +775,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
             if module_name == "mainnet":
                 field_symbol = ":red_square:"
                 field_info = (
-                    f"`⚠ The wallet recently stopped receiving rewards`"
+                    f"`🔴 Recently stopped receiving rewards`"
                 )
                 red_color_trigger = True
                 yellow_color_trigger = False
@@ -783,8 +783,8 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
             elif module_name in ("integrationnet", "testnet"):
                 field_symbol = ":green_square:"
                 field_info = (
-                    f"`⚠ The {module_name.title()}-wallet recently stopped receiving ({module_name.title()}) $DAG rewards. "
-                    f"However, this might not affect the rewards transferred to your registered mainnet wallet`"
+                    f"`🔴 Recently stopped receiving ({module_name.title()}) $DAG. "
+                    f"This should not affect your rewards (Lattice registered Mainnet wallet)`"
                 )
                 red_color_trigger = False
                 yellow_color_trigger = False
@@ -796,8 +796,8 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
             if node_data.layer == 1:
                 field_symbol = ":green_square:"
                 field_info = (
-                    f"`ⓘ  {module_name.title()} layer one does not currently distribute rewards. "
-                    f"Please refer to the layer 0 report`"
+                    f"`ⓘ  L1 doesn't distribute rewards. "
+                    f"Please refer to the L0 report`"
                 )
                 red_color_trigger = False
                 yellow_color_trigger = False
@@ -805,15 +805,15 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
             else:
                 if module_name == "mainnet":
                     field_symbol = ":red_square:"
-                    field_info = f"`⚠ The wallet doesn't receive rewards`"
+                    field_info = f"`🔴 Doesn't receive rewards`"
                     red_color_trigger = True
                     yellow_color_trigger = False
                     return wallet_field(), red_color_trigger, yellow_color_trigger
                 elif module_name in ("integrationnet", "testnet"):
                     field_symbol = ":green_square:"
                     field_info = (
-                        f"`⚠ The {module_name.title()}-wallet doesn't receive ({module_name.title()}) $DAG rewards. "
-                        f"However, this might not affect the rewards transferred to your registered mainnet wallet`"
+                        f"`🔴 Doesn't receive ({module_name.title()}) $DAG. "
+                        f"This should not affect your rewards (Lattice registered Mainnet wallet)`"
                     )
                     red_color_trigger = False
                     yellow_color_trigger = False
@@ -823,13 +823,13 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                 None,
         ):
             field_symbol = ":green_square:"
-            field_info = f"`🪙 The wallet recently started receiving rewards`"
+            field_info = f"`🪙 Recently started receiving rewards`"
             red_color_trigger = False
             yellow_color_trigger = False
             return wallet_field(), red_color_trigger, yellow_color_trigger
         elif node_data.reward_state is True and node_data.former_reward_state is True:
             field_symbol = ":green_square:"
-            field_info = f"`🪙 The wallet receives rewards`"
+            field_info = f"`🪙 Receives rewards`"
             red_color_trigger = False
             yellow_color_trigger = False
             return wallet_field(), red_color_trigger, yellow_color_trigger

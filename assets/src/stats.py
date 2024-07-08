@@ -149,8 +149,8 @@ class Visual:
             )
 
             green_box = BoxAnnotation(bottom=self.df["daily_overall_median"].median(), left=0, fill_alpha=0.1,
-                                      fill_color='green')
-            red_box = BoxAnnotation(top=self.df["daily_overall_median"].median(), left=0, fill_alpha=0.1, fill_color='red')
+                                      fill_color='#00b4cd')
+            red_box = BoxAnnotation(top=self.df["daily_overall_median"].median(), left=0, fill_alpha=0.1, fill_color='#f64336')
             p.add_layout(green_box)
             p.add_layout(red_box)
 
@@ -200,9 +200,9 @@ class Visual:
                 legend_label="User avg.",
                 alpha=0.5,
             )
-            green_box = BoxAnnotation(bottom=0, top=80, left=0, fill_alpha=0.1, fill_color='green')
+            green_box = BoxAnnotation(bottom=0, top=80, left=0, fill_alpha=0.1, fill_color='#00b4cd')
             yellow_box = BoxAnnotation(bottom=80, top=100, left=0, fill_alpha=0.1, fill_color='yellow')
-            red_box = BoxAnnotation(bottom=100, left=0, fill_alpha=0.1, fill_color='red')
+            red_box = BoxAnnotation(bottom=100, left=0, fill_alpha=0.1, fill_color='#f64336')
             p.add_layout(green_box)
             p.add_layout(yellow_box)
             p.add_layout(red_box)
