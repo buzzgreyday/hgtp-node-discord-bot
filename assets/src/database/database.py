@@ -32,7 +32,7 @@ async def post_data(data):
     return await db.post_data(data, session)
 
 
-@app.get("/nodebot/stats/{dag_address}", response_class=HTMLResponse)
+@app.get("/stats/{dag_address}", response_class=HTMLResponse)
 async def get_html_page_stats(dag_address, request: Request):
     """Return a html pages showing node stats"""
     return await db.get_html_page_stats(request, templates, dag_address, session)

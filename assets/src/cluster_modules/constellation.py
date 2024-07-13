@@ -725,7 +725,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                         f"```{round(node_data.wallet_balance / 100000000, 2)}```"
                         f"{field_info}\n\n"
                         f"**`🔗 LINKS`**\n"
-                        f"**[▒ Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address}) [▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
+                        f"**[▒ Dashboard](https://nodebot.app/stats/{node_data.wallet_address}) [▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
                     )
                 else:
                     return (
@@ -748,7 +748,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                         f"```{round(node_data.wallet_balance / 100000000, 2)}```"
                         f"{field_info}\n\n"
                         f"**`🔗 LINKS`**\n"
-                        f"**[▒ Dashboard](http://b1tco.de/nodebot/stats/{node_data.wallet_address}) [▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
+                        f"**[▒ Dashboard](https://nodebot.app/stats/{node_data.wallet_address}) [▒ Explorer](https://{module_name}.dagexplorer.io/address/{node_data.wallet_address})**"
                     )
                 else:
                     return (

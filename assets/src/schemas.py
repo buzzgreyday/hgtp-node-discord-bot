@@ -5,9 +5,7 @@ import traceback
 from typing import List, Optional
 import datetime as dt
 
-import numpy as np
-import pandas as pd
-from pydantic import BaseModel, ValidationError, validator, field_validator
+from pydantic import BaseModel, ValidationError, validator
 
 from assets.src import api
 from assets.src.encode_decode import id_to_dag_address
@@ -312,10 +310,3 @@ class MetricStatsSchema(BaseModel):
     cpu_count: int
     daily_cpu_load: float
 
-    # This is no longer needed as the hash is generated before
-    """@validator("hash_index", pre=True)
-    def auto_generate_hash(cls):
-        key_str = f"{cls.id}-{cls.ip}-{cls.public_port}"
-        hash_index = hashlib.sha256(key_str.encode()).hexdigest()
-        print(f"{key_str}, {hash_index}")
-        return hash_index"""
