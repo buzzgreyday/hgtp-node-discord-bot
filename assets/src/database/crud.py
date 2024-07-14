@@ -294,7 +294,7 @@ class CRUD:
                 dag_earnings_price_now_dev = f'{round(dag_earnings_price_now_dev, 2)}'
 
             content = templates.TemplateResponse(
-                    "index.html",
+                    "stats.html",
                     dict(request=request,
                          dag_address=dag_address,
                          earner_score=earner_score,
@@ -328,6 +328,10 @@ class CRUD:
             )
             if reward_results:
                 return content
+    async def get_html_page_index(self, request, templates, session):
+        content = templates.TemplateResponse(
+            "index.html", dict(request=request))
+        return content
 
 
     async def get_latest_db_price(

@@ -38,6 +38,12 @@ async def get_html_page_stats(dag_address, request: Request):
     return await db.get_html_page_stats(request, templates, dag_address, session)
 
 
+@app.get("/", response_class=HTMLResponse)
+async def get_html_page_index(request: Request):
+    """Return Nodebot html index"""
+    return await db.get_html_page_index(request, templates, session)
+
+
 @app.get("/user/{name}")
 async def get_user(name: str):
     """Returns a list of all user data"""
