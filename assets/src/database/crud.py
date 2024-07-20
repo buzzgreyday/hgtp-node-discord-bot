@@ -328,9 +328,19 @@ class CRUD:
             )
             if reward_results:
                 return content
-    async def get_html_page_index(self, request, templates, session):
+    async def get_html_page_index(self, request, templates):
         content = templates.TemplateResponse(
             "index.html", dict(request=request))
+        return content
+
+    async def get_html_page_statistics(selfself, request, templates):
+        content = templates.TemplateResponse(
+            "pages/statistics.html", dict(request=request))
+        return content
+
+    async def get_html_page_about(selfself, request, templates):
+        content = templates.TemplateResponse(
+            "pages/about.html", dict(request=request))
         return content
 
 

@@ -41,8 +41,19 @@ async def get_html_page_stats(dag_address, request: Request):
 @app.get("/", response_class=HTMLResponse)
 async def get_html_page_index(request: Request):
     """Return Nodebot html index"""
-    return await db.get_html_page_index(request, templates, session)
+    return await db.get_html_page_index(request, templates)
 
+
+@app.get("/pages/statistics", response_class=HTMLResponse)
+async def get_html_page_statistics(request: Request):
+    """Return Nodebot html index"""
+    return await db.get_html_page_statistics(request, templates)
+
+
+@app.get("/pages/about", response_class=HTMLResponse)
+async def get_html_page_statistics(request: Request):
+    """Return Nodebot html index"""
+    return await db.get_html_page_about(request, templates)
 
 @app.get("/user/{name}")
 async def get_user(name: str):

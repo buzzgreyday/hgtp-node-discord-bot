@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nodebot App - Home</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9TI6ENt6MwpzYhPm5U9K/7BztjsVCOsHh3RmA" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <style>
+        body {
+            background-color: #231f20;
+        }
+        sup {
+            font-size: 0.6em;
+            color: #707374;
+        }
+        .bg-primary {
+            background-color: #007484 !important;
+        }
+        .container {
+            display: flex;
+        }
+        .box {
+            flex: 1;
+            background-color: #231f20 !important;
+        }
+        .frame {
+            min-width: 20em;
+            max-width: 80em;
+            background-color: #3d3d3d !important;
+        }
+        .frame-content {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid d-flex flex-column align-items-center">
+        <nav class="navbar navbar-expand-lg navbar-dark w-100" style="max-width: 80em; background-color: #3d3d3d !important">
+          <div class="container">
+            <a class="navbar-brand" href="#home">
+              <img src="../../static/logo/banner-color.png" style="width: 100%; max-width: 15em; min-width: 10em;" alt="logo">
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+              <ul class="navbar-nav mr-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                  <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="/pages/statistics">Statistics</a>
+                </li>
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Resources
+                  </a>
+                  <div class="dropdown-menu">
+                    <a class="dropdown-item" href="#discord">Discord</a>
+                    <a class="dropdown-item" href="#github">Github</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#extra">Something else here</a>
+                  </div>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link active" aria-current="page" href="/pages/about">About</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+        <div class="container d-flex justify-content-between mt-3" style="max-width: 80em;">
+            <div class="box" style="width: 100%;">
+                <div class="shadow container-sm rounded-top bg-primary" style="background-color: #3d3d3d !important;">
+                    <div class="f3 ml-3 mb-0 fw-bold" style="width: 100%; color: #f1f2f2;">Hero</div>
+                </div>
+                <div class="shadow container-sm rounded-bottom justify-content-center frame d-flex">
+                    <div class="frame-content col-md-6">
+                        <h1 style="color: #00b4cd;">STATISTICS</h1>
+                        <p style="color: #f1f2f2;">
+                            The forthcoming statistics section will offer detailed insights into
+                            Nodebot's performance, including the number of nodes monitored, subscriber count,
+                            and alerts issued. Currently, you can enter your $DAG wallet address to access
+                            personalized earnings data. This feature allows you to review your accrued value over
+                            the past 30 days, compare your earnings with other network validators, and estimate
+                            potential future earnings based on these metrics.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-dark mt-3">
+        <p class="m-1 text-center" style="font-size: 0.6em; color: #707374;">v0.0.12 by Buzz Greyday (aka. hgtp_Michael)</p>
+    </footer>
+</body>
+</html>
