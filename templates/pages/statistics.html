@@ -39,7 +39,7 @@
 </head>
 <body>
     <div class="container-fluid d-flex flex-column align-items-center">
-        <nav class="navbar navbar-expand-lg navbar-dark w-100" style="max-width: 80em; background-color: #3d3d3d !important">
+        <nav class="navbar navbar-expand-lg navbar-dark w-100" style="max-width: 80em; background-color: #231f20 !important">
           <div class="container">
             <a class="navbar-brand" href="#home">
               <img src="../../static/logo/banner-color.png" style="width: 100%; max-width: 15em; min-width: 10em;" alt="logo">
@@ -90,8 +90,8 @@
                             potential future earnings based on these metrics.
                         </p>
                         <div class="input-group mb-3">
-                          <input type="text" class="form-control" placeholder="Recipient's username" aria-label="Recipient's username" aria-describedby="button-addon2">
-                          <button class="btn btn-outline-secondary" type="button" id="button-addon2">Button</button>
+                            <input type="text" id="address-input" class="form-control" placeholder="$DAG Address" aria-label="address" aria-describedby="address-continue-button">
+                            <button class="btn btn-outline-secondary" type="button" id="address-continue-button" onclick="goToAddress()">Continue</button>
                         </div>
                     </div>
                 </div>
@@ -102,5 +102,16 @@
     <footer class="text-dark mt-3">
         <p class="m-1 text-center" style="font-size: 0.6em; color: #707374;">v0.0.12 by Buzz Greyday (aka. hgtp_Michael)</p>
     </footer>
+
+    <script>
+      function goToAddress() {
+        var address = document.getElementById('address-input').value;
+        if (address) {
+          window.location.href = '../../stats/' + encodeURIComponent(address);
+        } else {
+          alert('Please enter an address');
+        }
+      }
+    </script>
 </body>
 </html>

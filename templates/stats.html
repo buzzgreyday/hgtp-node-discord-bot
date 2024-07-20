@@ -30,80 +30,112 @@
     </style>
 </head>
 <body>
-    <div class="row">
-        <div class="container-sm" align="center">
-            <img src="../../static/logo/banner-color.png" style="width:100%; max-width:30em; min-width:20em;" alt="logo">
-        </div>
-    </div>
-    <div class="row">
-        <div class="box">
-            <div class="shadow container-sm rounded-top bg-primary" style="min-width:20em; max-width:80em;">
-                <div class="h3 mb-0 fw-bold" style="color: #f1f2f2;">Rewards</div>
+
+    <div class="container-fluid d-flex flex-column align-items-center">
+        <nav class="navbar navbar-expand-lg navbar-dark w-100" style="max-width: 80em; background-color: #231f20 !important">
+              <div class="container">
+                <a class="navbar-brand" href="#home">
+                  <img src="../../static/logo/banner-color.png" style="width: 100%; max-width: 15em; min-width: 10em;" alt="logo">
+                </a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                  <ul class="navbar-nav mr-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                      <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link active" aria-current="page" href="/pages/statistics">Statistics</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                      <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Resources
+                      </a>
+                      <div class="dropdown-menu">
+                        <a class="dropdown-item" href="#discord">Discord</a>
+                        <a class="dropdown-item" href="#github">Github</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#extra">Something else here</a>
+                      </div>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" aria-current="page" href="/pages/about">About</a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </nav>
+        <div class="row">
+            <div class="box">
+                <div class="shadow container-sm rounded-top bg-primary" style="min-width:20em; max-width:80em;">
+                    <div class="h3 mb-0 fw-bold" style="color: #f1f2f2;">Rewards</div>
+                </div>
+                <div class="shadow container-sm rounded-bottom justify-content-center" style="display:flex; min-width:20em; max-width:80em; background-color: #3d3d3d;">
+                    <div>
+                        <iframe src="../../static/{{ rewards_plot_path }}" class="d-block mx-auto" id="reward_plot" frameborder="0">Reward plot</iframe>
+                        <p class="m-1 text-center" style="font-size:0.6em; color: #f1f2f2;">The threshold between red/green equals the network median</p>
+                    </div>
+                </div>
             </div>
-            <div class="shadow container-sm rounded-bottom justify-content-center" style="display:flex; min-width:20em; max-width:80em; background-color: #3d3d3d;">
-                <div>
-                    <iframe src="../../static/{{ rewards_plot_path }}" class="d-block mx-auto" id="reward_plot" frameborder="0">Reward plot</iframe>
-                    <p class="m-1 text-center" style="font-size:0.6em; color: #f1f2f2;">The threshold between red/green equals the network median</p>
+            <div class="box">
+                <div class="shadow container-sm rounded-top bg-primary" style="width:100%; min-width:20em; max-width:80em;">
+                    <div class="h3 mb-0 fw-bold" style="width:100%; color: #f1f2f2;">Stats</div>
+                </div>
+                <div class="shadow container-sm rounded-bottom" style="width:100%; min-width:20em; max-width:80em; background-color: #3d3d3d !important;">
+                    <p class="h5 mb-1" style="background-color: #3d3d3d; color: #00b4cd;">30-day earnings</p>
+                    <p class="fs-6 mb-1" style="color:#f1f2f2;">{{ dag_address_sum }} $DAG</p>
+                    <p class="fs-6 mb-1" style="color:#f1f2f2;">Cost: {{ usd_address_sum }} $USD</p>
+                    <p class="fs-6 mb-1" style="color:#f1f2f2;">Price:  {{ dag_earnings_price_now }} $USD (${{ dag_price_now }} per $DAG)</p>
+                    <p class="fs-6 mb-1" style="color:#f1f2f2;">Gain/loss: {{ dag_earnings_price_now_dev }} $USD</p>
+                    <p class="mb-3" style="font-size: 0.6em; color: #707374;">The price of $DAG is calculated based on data from {{ dag_price_now_timestamp }} UTC</p>
+
+
+                    <p class="fs-6 mb-1" style="color:#f1f2f2;">Potential (average): +{{ above_dag_address_deviation_from_mean }} $DAG</p>
+                    <p class="fs-6 mb-3" style="color:#f1f2f2;">Potential (highest): +{{ above_dag_address_deviation_from_highest_earning }} $DAG</p>
+                    <p class="fs-6 mb-1" style="color:#f1f2f2;">Outperformers (low): {{ above_dag_address_std_dev_low }} $DAG<sup>**</sup></p>
+                    <p class="fs-6 mb-1" style="color:#f1f2f2;">Outperformers (high): {{ above_dag_address_std_dev_high }} $DAG<sup>**</sup></p>
+                    <p class="fs-6 mb-3" style="color:#f1f2f2;">Outperformers (pct.): {{ percent_earning_more }}%<sup>*</sup></p>
+
+
+                    <p class="h5 mb-1" style="background-color: #3d3d3d; color: #00b4cd;">30-day network earnings</p>
+                    <p class="fs-6 mb-1" style="color:#f1f2f2;">Minted: {{ dag_minted_for_validators }} $DAG</p>
+                    <p class="fs-6 mb-1" style="color:#f1f2f2;">Average: {{ dag_median_sum }} $DAG<sup>*</sup></p>
+                    <p class="fs-6 mb-3" style="color:#f1f2f2;">Highest: {{ dag_highest_earner }} $DAG</p>
+
+                    <p class="h5 mb-1" style="background-color: #3d3d3d; color: #00b4cd;">Daily earnings</p>
+                    <p class="fs-6 mb-1" style="color:#f1f2f2;">Average: {{ dag_address_daily_mean }} $DAG</p>
+                    <p class="fs-6 mb-3 fw-light" style="color:#f1f2f2;">Estimated daily earnings is {{ dag_address_daily_std_dev }} $DAG</p>
+                    <p class="mb-1" style="font-size:0.6em; color: #707374;">(*) Extreme outliers included</p>
+                    <p class="mb-1" style="font-size:0.6em; color: #707374;">(**) The low and high values above is standardized expressions</p>
+
                 </div>
             </div>
         </div>
-        <div class="box">
-            <div class="shadow container-sm rounded-top bg-primary" style="width:100%; min-width:20em; max-width:80em;">
-                <div class="h3 mb-0 fw-bold" style="width:100%; color: #f1f2f2;">Stats</div>
-            </div>
-            <div class="shadow container-sm rounded-bottom" style="width:100%; min-width:20em; max-width:80em; background-color: #3d3d3d !important;">
-                <p class="h5 mb-1" style="background-color: #3d3d3d; color: #00b4cd;">30-day earnings</p>
-                <p class="fs-6 mb-1" style="color:#f1f2f2;">{{ dag_address_sum }} $DAG</p>
-                <p class="fs-6 mb-1" style="color:#f1f2f2;">Cost: {{ usd_address_sum }} $USD</p>
-                <p class="fs-6 mb-1" style="color:#f1f2f2;">Price:  {{ dag_earnings_price_now }} $USD (${{ dag_price_now }} per $DAG)</p>
-                <p class="fs-6 mb-1" style="color:#f1f2f2;">Gain/loss: {{ dag_earnings_price_now_dev }} $USD</p>
-                <p class="mb-3" style="font-size: 0.6em; color: #707374;">The price of $DAG is calculated based on data from {{ dag_price_now_timestamp }} UTC</p>
-
-
-                <p class="fs-6 mb-1" style="color:#f1f2f2;">Potential (average): +{{ above_dag_address_deviation_from_mean }} $DAG</p>
-                <p class="fs-6 mb-3" style="color:#f1f2f2;">Potential (highest): +{{ above_dag_address_deviation_from_highest_earning }} $DAG</p>
-                <p class="fs-6 mb-1" style="color:#f1f2f2;">Outperformers (low): {{ above_dag_address_std_dev_low }} $DAG<sup>**</sup></p>
-                <p class="fs-6 mb-1" style="color:#f1f2f2;">Outperformers (high): {{ above_dag_address_std_dev_high }} $DAG<sup>**</sup></p>
-                <p class="fs-6 mb-3" style="color:#f1f2f2;">Outperformers (pct.): {{ percent_earning_more }}%<sup>*</sup></p>
-
-
-                <p class="h5 mb-1" style="background-color: #3d3d3d; color: #00b4cd;">30-day network earnings</p>
-                <p class="fs-6 mb-1" style="color:#f1f2f2;">Minted: {{ dag_minted_for_validators }} $DAG</p>
-                <p class="fs-6 mb-1" style="color:#f1f2f2;">Average: {{ dag_median_sum }} $DAG<sup>*</sup></p>
-                <p class="fs-6 mb-3" style="color:#f1f2f2;">Highest: {{ dag_highest_earner }} $DAG</p>
-
-                <p class="h5 mb-1" style="background-color: #3d3d3d; color: #00b4cd;">Daily earnings</p>
-                <p class="fs-6 mb-1" style="color:#f1f2f2;">Average: {{ dag_address_daily_mean }} $DAG</p>
-                <p class="fs-6 mb-3 fw-light" style="color:#f1f2f2;">Estimated daily earnings is {{ dag_address_daily_std_dev }} $DAG</p>
-                <p class="mb-1" style="font-size:0.6em; color: #707374;">(*) Extreme outliers included</p>
-                <p class="mb-1" style="font-size:0.6em; color: #707374;">(**) The low and high values above is standardized expressions</p>
-
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="box">
-            <div class="shadow container-sm rounded-top bg-primary" style="min-width:20em; max-width:80em;">
-                <div class="h3 mb-0 fw-bold" style="width:100%; color: #f1f2f2;">CPU</div>
-            </div>
-            <div class="shadow container-sm rounded-bottom justify-content-center" style="width:100%; min-width:20em; max-width:80em; background-color: #3d3d3d !important;">
-                <div>
-                    <iframe src="../../static/{{ cpu_plot_path }}" class="d-block mx-auto" id="cpu_plot" frameborder="0">CPU plot</iframe>
+        <div class="row">
+            <div class="box">
+                <div class="shadow container-sm rounded-top bg-primary" style="min-width:20em; max-width:80em;">
+                    <div class="h3 mb-0 fw-bold" style="width:100%; color: #f1f2f2;">CPU</div>
+                </div>
+                <div class="shadow container-sm rounded-bottom justify-content-center" style="width:100%; min-width:20em; max-width:80em; background-color: #3d3d3d !important;">
+                    <div>
+                        <iframe src="../../static/{{ cpu_plot_path }}" class="d-block mx-auto" id="cpu_plot" frameborder="0">CPU plot</iframe>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="box">
-            <div class="shadow container-sm rounded-top bg-primary" style="width:100%; min-width:20em; max-width:80em;">
-                <div class="h3 mb-0 fw-bold" style="width:100%; color: #f1f2f2;">Metrics</div>
-            </div>
-            <div class="shadow container-sm rounded-bottom" style="background-color: #3d3d3d; color: #00b4cd;">
-                {% for dict in metric_dicts %}
-                <p class="h5" style="background-color: #3d3d3d;">{{ dict.ip }} layer {{ dict.layer }} ({{ dict.public_port }})</p>
-                <p class="fs-6 mb-1" style="color:#f1f2f2;">Daily CPU load: {{ dict.daily_cpu_load | round(2) }}</p>
-                <p class="fs-6 mb-3 fw-light" style="color:#f1f2f2;">Ideal CPU load average is below {{ dict.cpu_count }}</p>
+            <div class="box">
+                <div class="shadow container-sm rounded-top bg-primary" style="width:100%; min-width:20em; max-width:80em;">
+                    <div class="h3 mb-0 fw-bold" style="width:100%; color: #f1f2f2;">Metrics</div>
+                </div>
+                <div class="shadow container-sm rounded-bottom" style="background-color: #3d3d3d; color: #00b4cd;">
+                    {% for dict in metric_dicts %}
+                    <p class="h5" style="background-color: #3d3d3d;">{{ dict.ip }} layer {{ dict.layer }} ({{ dict.public_port }})</p>
+                    <p class="fs-6 mb-1" style="color:#f1f2f2;">Daily CPU load: {{ dict.daily_cpu_load | round(2) }}</p>
+                    <p class="fs-6 mb-3 fw-light" style="color:#f1f2f2;">Ideal CPU load average is below {{ dict.cpu_count }}</p>
 
-                <p class="fs-6 mb-3" style="color:#f1f2f2;">Disk space: {{ dict.disk_free | round(2) }} free of {{ dict.disk_total | round(2) }} GB</p>
-                {% endfor %}
+                    <p class="fs-6 mb-3" style="color:#f1f2f2;">Disk space: {{ dict.disk_free | round(2) }} free of {{ dict.disk_total | round(2) }} GB</p>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
