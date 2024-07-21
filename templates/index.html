@@ -28,12 +28,11 @@
             background-color: #231f20 !important;
         }
         .frame {
-            min-width: 20em;
-            max-width: 80em;
+            min-width: 30rem;
             background-color: #3d3d3d !important;
         }
-        .frame-content {
-            padding: 20px;
+        .hidden-info {
+            display: none;
         }
     </style>
 </head>
@@ -74,35 +73,42 @@
           </div>
         </nav>
         <div class="box mr-3 mt-3 mb-3" style="width: 100%;">
-            <div class="shadow container-sm rounded-top bg-primary" style="background-color: #3d3d3d !important;">
-                <div class="f3 ml-3 mb-0 fw-bold" style="width: 100%; color: #f1f2f2;">Hero</div>
+            <div class="shadow container-sm rounded frame d-flex">
+                <div class="col-md-6">
+                    <div class="row">
+                        <div class="container-sm w-25">
+                            <p class="h1 ml-3 pt-3" style="color: #00b4cd;">NODE MONITORING</p>
+                            <p class="h1 ml-3" style="color: #00b4cd;">MADE EASY</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="container-sm w-59">
+                            <p class="h4 ml-3" style="color: #f1f2f2;">Let the Nodebot App assist you in your node operations - it's free!</p>
+                            <p class="f3 ml-3" style="color: #f1f2f2;">The Nodebot App is a work in progress developed by Buzz Greyday and it's 100% community supported.</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <button type="button" class="btn btn-lg ml-3" id="supportButton" style="background-color: #00b4cd;color: #231f20;">Support</button>
+                    </div>
+                </div>
+                <div class="col-md-6 d-none d-md-block">
+                </div>
             </div>
-            <div class="shadow container-sm rounded-bottom justify-content-center frame d-flex">
-                <div class="row">
-                    <div class="frame-content col-md-6">
-                        <p class="h1 ml-3" style="color: #00b4cd;">NODE MONITORING</p>
-                        <p class="h1 ml-3" style="color: #00b4cd;">MADE EASY</p>
-                        <p class="h4 ml-3" style="color: #f1f2f2;">Let the Nodebot App assist you in your node operations - it's free!</p>
-                        <p class="f3 ml-3" style="color: #f1f2f2;">The Nodebot App is a work in progress developed by Buzz Greyday and it's 100% community supported.</p>
-                        <button type="button" class="btn btn-lg ml-3" style="background-color: #00b4cd;color: #231f20;">Support</button>
+        </div>
 
-                    </div>
-                    <div class="frame-content col-md-6 d-flex justify-content-end">
-                        <img src="../../static/images/report_up.png" style="width:50%;" alt="report">
-                        <img src="../../static/images/report_connecting.png" style="width:50%;" alt="report">
-                        <img src="../../static/images/report_down.png" style="width:50%;" alt="report">
-                    </div>
+        <div id="moreInfo" class="hidden-info">
+            <div class="box rounded p-3 m-3" style="width: 100%;color: #f1f2f2;background-color: #00b4cd;">
+                <div class="row">
+                    <img src="../../static/images/support_wallet_qr.jpg" class="" style="height: 6rem;" alt="supportQr">
+                    <p class="">DAG0zJW14beJtZX2BY2KA9gLbpaZ8x6vgX4KVPVX</p>
                 </div>
             </div>
         </div>
         <div class="row">
             <div class="box ml-3 mr-3 mt-3">
-                <div class="shadow container-sm rounded-top bg-primary" style="background-color: #3d3d3d !important;">
-                    <div class="f3 ml-3 mb-0 fw-bold" style="color: #f1f2f2;">Features</div>
-                </div>
-                <div class="shadow container-sm rounded-bottom frame" style="color: #f1f2f2;">
-                    <p class="h4 ml-3" style="color: #00b4cd;">IN-DEPTH REPORTING</p>
-                    <p class="ml-3">
+                <div class="shadow container-sm rounded frame" style="color: #f1f2f2;">
+                    <p class="h4 ml-3 pt-3" style="color: #00b4cd;">IN-DEPTH REPORTING</p>
+                    <p class="f3 ml-3 pb-3">
                         Nodebot reports cover essential metrics to assist operators in maintaining
                         the optimal performance, security, and reliability of their nodes. Operators can efficiently
                         monitor node status, connectivity, rewards, versioning, and resource usage through
@@ -111,36 +117,34 @@
                 </div>
             </div>
             <div class="box mr-3 ml-3 mt-3">
-                <div class="shadow container-sm rounded-top bg-primary"style="background-color: #3d3d3d !important;">
-                    <div class="f3 ml-3 mb-0 fw-bold" style="color: #f1f2f2;">Pro's (UptimeRobot, etc.)</div>
-                </div>
-                <div class="shadow container-sm rounded-bottom frame" style="color: #f1f2f2;">
-                    <p class="h4 ml-3" style="color: #f64336;">MEANINGFUL ALERTS</p>
+                <div class="shadow container-sm rounded frame" style="color: #f1f2f2;">
+                    <p class="h4 ml-3 pt-3" style="color: #f64336;">MEANINGFUL ALERTS</p>
                     <p class="ml-3">Operators use services like UptimeRobot to monitor node connections, but these often lack detailed information. Nodebot provides detailed notifications for:
                     <div class="row">
-                    <div class="col-md-6">
-                        <ul class="list-group">
-                            <li class="list-group-item" style="color: #f1f2f2;background-color: #3d3d3d !important;">Node up, down, or connecting</li>
-                            <li class="list-group-item" style="color: #f1f2f2;background-color: #3d3d3d !important;">New version available</li>
-                        </ul>
-                    </div>
-                    <div class="col-md-6">
-                        <ul class="list-group">
-                            <li class="list-group-item" style="color: #f1f2f2;background-color: #3d3d3d !important;">Missed rewards</li>
-                            <li class="list-group-item" style="color: #f1f2f2;background-color: #3d3d3d !important;">Node forks</li>
-                        </ul>
-                    </div>
-                    <div class="col-md-6">
-                        <ul class="list-group">
-                            <li class="list-group-item" style="color: #f1f2f2;background-color: #3d3d3d !important;">Low resources</li>
-                            <li class="list-group-item" style="color: #f1f2f2;background-color: #3d3d3d !important;">Status update every 6 hours if an issue persists</li>
-                        </ul>
-                    </div>
-                    <div class="col-md-6">
-                        <ul class="list-group">
-                            <li class="list-group-item" style="color: #f1f2f2;background-color: #3d3d3d !important;">Collateral &lt; 250,000 $DAG</li>
-                            <li class="list-group-item" style="color: #f1f2f2;background-color: #3d3d3d !important;">Unstable LB anti-spam feature</li>
-                        </ul>
+                        <div class="col-md-6">
+                            <ul class="list-group">
+                                <li class="list-group-item" style="color: #f1f2f2;background-color: #3d3d3d !important;">Node up, down, or connecting</li>
+                                <li class="list-group-item" style="color: #f1f2f2;background-color: #3d3d3d !important;">New version available</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-group">
+                                <li class="list-group-item" style="color: #f1f2f2;background-color: #3d3d3d !important;">Missed rewards</li>
+                                <li class="list-group-item" style="color: #f1f2f2;background-color: #3d3d3d !important;">Node forks</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-group">
+                                <li class="list-group-item" style="color: #f1f2f2;background-color: #3d3d3d !important;">Low resources</li>
+                                <li class="list-group-item" style="color: #f1f2f2;background-color: #3d3d3d !important;">Status update every 6 hours if an issue persists</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-group">
+                                <li class="list-group-item" style="color: #f1f2f2;background-color: #3d3d3d !important;">Collateral &lt; 250,000 $DAG</li>
+                                <li class="list-group-item" style="color: #f1f2f2;background-color: #3d3d3d !important;">Unstable LB anti-spam feature</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -150,5 +154,16 @@
     <footer class="text-dark mt-3">
         <p class="m-1 text-center" style="font-size: 0.6em; color: #707374;">v0.0.12 by Buzz Greyday (aka. hgtp_Michael)</p>
     </footer>
+
+    <script>
+        document.getElementById('supportButton').addEventListener('click', function() {
+            var info = document.getElementById('moreInfo');
+            if (info.style.display === 'none' || info.style.display === '') {
+                info.style.display = 'block';
+            } else {
+                info.style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>
