@@ -59,10 +59,10 @@
                     Resources
                   </a>
                   <div class="dropdown-menu">
-                    <a class="dropdown-item" href="#discord">Discord</a>
-                    <a class="dropdown-item" href="#github">Github</a>
+                    <a class="dropdown-item" href="https://discord.gg/WHwSdWJED3" target="_blank">Discord</a>
+                    <a class="dropdown-item" href="https://github.com/buzzgreyday/hgtp-node-discord-bot" target="_blank">Github</a>
                     <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="#extra">Something else here</a>
+                    <a class="dropdown-item" href="https://x.com/buzzgreyday" target="_blank">Twitter</a>
                   </div>
                 </li>
                 <li class="nav-item">
@@ -73,46 +73,61 @@
           </div>
         </nav>
         <div class="box mr-3 mt-3 mb-3" style="width: 100%;">
-            <div class="shadow container-sm rounded frame d-flex">
+            <div class="shadow container-sm rounded frame d-flex p-3">
                 <div class="col-md-6">
                     <div class="row">
-                        <div class="container-sm w-25">
-                            <p class="h1 ml-3 pt-3" style="color: #00b4cd;">NODE MONITORING</p>
-                            <p class="h1 ml-3" style="color: #00b4cd;">MADE EASY</p>
+                        <div class="container-sm">
+                            <p class="h1" style="color: #00b4cd;">NODE MONITORING</p>
+                            <p class="h1" style="color: #00b4cd;">MADE EASY</p>
                         </div>
                     </div>
                     <div class="row">
                         <div class="container-sm">
-                            <p class="h4 ml-3" style="color: #f1f2f2;">Let the Nodebot App assist you in your node operations - it's free!</p>
-                            <p class="f3 ml-3" style="color: #f1f2f2;">The Nodebot App is a work in progress developed by Buzz Greyday and it's 100% community supported.</p>
+                            <p class="f3" style="color: #f1f2f2;">Let the Nodebot App assist you in your node operations - it's 100% community supported!</p>
                         </div>
                     </div>
                     <div class="row">
-                        <button type="button" class="btn btn-lg ml-3" id="supportButton" style="background-color: #00b4cd;color: #231f20;">Support</button>
+                        <button type="button" class="btn btn-lg" id="supportButton" style="background-color: #00b4cd;color: #231f20;">Support</button>
                     </div>
                 </div>
-                <div class="col-md-6 d-none d-md-block">
+                <!-- If accessed from a full screen desktop -->
+                <div class="col-md-6 d-none d-md-block ">
+                    <div class="container-sm rounded p-3" style="color: #f1f2f2;">
+                        <img src="../../static/images/report_down.png" style="max-width:30%;" class="img-fluid">
+                        <img src="../../static/images/report_connecting.png" style="max-width:30%;" class="img-fluid">
+                        <img src="../../static/images/report_up.png" style="max-width:30%;" class="img-fluid">
+                    </div>
                 </div>
             </div>
         </div>
-
+        <!-- Show only if button is pressed -->
         <div id="moreInfo" class="hidden-info">
-            <div class="box rounded ml-3" style="width: 100%;color: #f1f2f2;background-color: #00b4cd;">
+            <div class="box rounded p-3" style="width: 100%;color: #f1f2f2;background-color: #00b4cd;">
                 <div class="row">
-                    <div class="container-sm ml-3">
+                    <div class="container-sm p-3">
                         <img src="../../static/images/support_wallet_qr.jpg" class="" style="height: 6rem;" alt="supportQr">
                     </div>
-                    <div class="container-sm ml-3">
+                    <div class="container-sm p-3" style="color: #f1f2f2;">
                         <p class="">DAG0zJW14beJtZX2BY2KA9gLbpaZ8x6vgX4KVPVX</p>
                     </div>
                 </div>
             </div>
         </div>
+        <!-- Could be mobile device -->
+        <div class="row d-block d-md-none">
+          <div class="box ml-3 mr-3 mt-3 mb-3">
+                <div class="shadow container-sm rounded frame p-3  align-items-center justify-content-center d-flex" style="color: #f1f2f2;">
+                    <img src="../../static/images/report_down.png" style="max-width:30%;" class="img-fluid">
+                    <img src="../../static/images/report_connecting.png" style="max-width:30%;" class="img-fluid">
+                    <img src="../../static/images/report_up.png" style="max-width:30%;" class="img-fluid">
+                </div>
+            </div>
+        </div>
         <div class="row">
             <div class="box ml-3 mr-3 mt-3">
-                <div class="shadow container-sm rounded frame" style="color: #f1f2f2;">
-                    <p class="h4 ml-3 pt-3" style="color: #00b4cd;">IN-DEPTH REPORTING</p>
-                    <p class="f3 ml-3 pb-3">
+                <div class="shadow container-sm rounded frame p-3" style="color: #f1f2f2;">
+                    <p class="h4" style="color: #00b4cd;">IN-DEPTH REPORTING</p>
+                    <p class="f3">
                         Nodebot reports cover essential metrics to assist operators in maintaining
                         the optimal performance, security, and reliability of their nodes. Operators can efficiently
                         monitor node status, connectivity, rewards, versioning, and resource usage through
@@ -121,9 +136,9 @@
                 </div>
             </div>
             <div class="box mr-3 ml-3 mt-3">
-                <div class="shadow container-sm rounded frame" style="color: #f1f2f2;">
-                    <p class="h4 ml-3 pt-3" style="color: #f64336;">MEANINGFUL ALERTS</p>
-                    <p class="ml-3">Operators use services like UptimeRobot to monitor node connections, but these often lack detailed information. Nodebot provides detailed notifications for:
+                <div class="shadow container-sm rounded frame p-3" style="color: #f1f2f2;">
+                    <p class="h4" style="color: #f64336;">MEANINGFUL ALERTS</p>
+                    <p class="f-3">Operators use services like UptimeRobot to monitor node connections, but these often lack detailed information. Nodebot provides detailed notifications for:
                     <div class="row">
                         <div class="col-md-6">
                             <ul class="list-group">
