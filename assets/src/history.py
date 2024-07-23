@@ -15,6 +15,7 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
     #
     # This here is the biggest problem it seems
     # The problem seems to be with requesting sqlite3 async from different tasks. It locks or times out.
+    localhost_error_retry = 0
     while True:
         try:
             data, resp_status = await api.Request(
@@ -29,8 +30,10 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
             logging.getLogger("app").warning(
                 f"history.py - localhost error - status {resp_status}: data/node/{node_data.ip}/{node_data.public_port}: {traceback.format_exc()}"
             )
-
-            await asyncio.sleep(1)
+            if localhost_error_retry <= 2:
+                await asyncio.sleep(1)
+            else:
+                break
         else:
             # This section won't do. We need to get the historic data; the first lines won't work we need loop to ensure we get the data, only if it doesn't exist, we can continue.
             if resp_status == 200:
@@ -39,7 +42,10 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
                 logging.getLogger("app").warning(
                     f"history.py - localhost error - status {resp_status}: data/node/{node_data.ip}/{node_data.public_port}: {traceback.format_exc()}"
                 )
-                await asyncio.sleep(1)
+                if localhost_error_retry <= 2:
+                    await asyncio.sleep(1)
+                else:
+                    break
     if data:
         if requester:
             node_data = node_data.model_validate(data)
