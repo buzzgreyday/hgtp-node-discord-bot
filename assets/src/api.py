@@ -161,6 +161,7 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
             if resp_status == 200:
                 return data
             else:
+                # Did the user unsubscribe?
                 logging.getLogger("app").warning(
                     f"api.py - localhost error: http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port} returned status {resp_status}"
                 )

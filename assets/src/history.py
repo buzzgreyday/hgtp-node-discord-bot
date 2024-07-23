@@ -30,6 +30,7 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
             logging.getLogger("app").warning(
                 f"history.py - localhost error - status {resp_status}: data/node/{node_data.ip}/{node_data.public_port} ({localhost_error_retry}/{2}): {traceback.format_exc()}"
             )
+            # Did the user unsubscribe
             if localhost_error_retry <= 2:
                 localhost_error_retry += 1
                 await asyncio.sleep(1)
