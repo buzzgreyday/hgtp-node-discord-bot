@@ -33,5 +33,13 @@ bash control.sh
 nano .psqlrc
 # Copy and paste the following line in the `postgres` home directory:
 `SET statement_timeout=18000000;`
+`SET lock_timeout=18000000;`
+# The rest should be set in postgresql.conf (sudo -u postgres psql -c 'SHOW config_file')
+# The example below is in case you have 6 cores (between 4 and 8 * number_of_cores)
+`SET max_connections=36;`
+# The example below is in case you have 15 GB ram (between 20% and 40% of total ram)
+`SET shared_buffers=5000MB;`
+# The example below is in case you have 15 GB ram (between 1% and 5% of ram)
+`SET work_mem=450MB`
 # Save and exit
 ```

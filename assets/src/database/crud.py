@@ -33,7 +33,7 @@ engine = create_async_engine(
     database_url,
     future=True,
     pool_size=5,
-    max_overflow=10
+    max_overflow=5
     # echo=True
     # poolclass=NullPool,
 )

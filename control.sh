@@ -108,6 +108,7 @@ function update_bot() {
     cd "$HOME/bot" && venv/bin/pip3 install -r "$HOME/bot/requirements.txt"
     venv/bin/pip3 install setuptools
     venv/bin/pip3 install uvicorn
+    sudo systemctl restart postgresql
 
   fi
   main
