@@ -46,11 +46,11 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
                     f"history.py - localhost error - status {resp_status}: data/node/{node_data.ip}/{node_data.public_port} ({localhost_error_retry}/{2}): {traceback.format_exc()}"
                 )
                 # Did the user unsubscribe
-                if resp_status == 500:
+                """if resp_status == 500:
                     user: List = await api.Request(session,f"http://127.0.0.1:8000/user/{node_data.name}").db_json(_configuration)
                     print(user)
-                    await database.delete_user_entry(user)
-                elif localhost_error_retry <= 2:
+                    await database.delete_user_entry(user)"""
+                if localhost_error_retry <= 2:
                     localhost_error_retry += 1
                     await asyncio.sleep(1)
                 else:
