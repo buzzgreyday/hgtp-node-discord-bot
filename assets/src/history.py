@@ -21,7 +21,7 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
             data, resp_status = await api.Request(
                 session,
                 f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}",
-            ).db_json(_configuration)
+            ).db_json(_configuration, timeout=10)
         except (
             asyncio.exceptions.TimeoutError,
             client_exceptions.ClientOSError,

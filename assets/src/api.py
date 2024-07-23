@@ -28,8 +28,8 @@ class Request:
             else:
                 return None, resp.status
 
-    async def db_json(self, configuration=None):
-        async with self.session.get(self.url) as resp:
+    async def db_json(self, timeout=18000, configuration=None):
+        async with self.session.get(self.url, timeout=timeout) as resp:
             await asyncio.sleep(0)
             if resp.status == 200:
                 data = await resp.json()
@@ -150,7 +150,7 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
             aiohttp.client_exceptions.ClientPayloadError,
         ):
             logging.getLogger("app").warning(
-                f"api.py - localhost error: http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port}\n\t{traceback.format_exc()}"
+                f"api.py - localhost error: http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port} ({retry/2})\n\t{traceback.format_exc()}"
             )
             if retry <= 2:
                 retry += 1
@@ -163,7 +163,7 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
             else:
                 # Did the user unsubscribe?
                 logging.getLogger("app").warning(
-                    f"api.py - localhost error: http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port} returned status {resp_status}"
+                    f"api.py - localhost error: http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port} returned status {resp_status} ({retry/2})"
                 )
                 if retry <= 2:
                     retry += 1
