@@ -61,20 +61,21 @@ def locate_node(node_data: schemas.Node, cluster_data: schemas.Cluster):
     """THIS IS THE REASON A CLUSTER CAN COME OUT AS NONE!!! This function loops through all cluster data supported by the bot and returns the relevant cluster data"""
     found = False
     former_cluster_data = None
-    for val in (node_data.former_cluster_name, node_data.last_known_cluster_name):
-        if val is not None:
-            former_cluster_name = val
-            break
-        else:
-            former_cluster_name = None
-    if cluster_data.layer == node_data.layer:
-        if locate_node_binary(node_data, cluster_data.peer_data):
-            found = True
-            return found, cluster_data
-        elif former_cluster_name == cluster_data.name:
-            former_cluster_data = cluster_data
-        else:
-            former_cluster_data = None
+    if node_data is not None:
+        for val in (node_data.former_cluster_name, node_data.last_known_cluster_name):
+            if val is not None:
+                former_cluster_name = val
+                break
+            else:
+                former_cluster_name = None
+        if cluster_data.layer == node_data.layer:
+            if locate_node_binary(node_data, cluster_data.peer_data):
+                found = True
+                return found, cluster_data
+            elif former_cluster_name == cluster_data.name:
+                former_cluster_data = cluster_data
+            else:
+                former_cluster_data = None
     return found, former_cluster_data
     # Changed this
 
