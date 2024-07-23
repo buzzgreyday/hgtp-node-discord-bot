@@ -16,6 +16,7 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
     # This here is the biggest problem it seems
     # The problem seems to be with requesting sqlite3 async from different tasks. It locks or times out.
     localhost_error_retry = 0
+    data = None
     while True:
         try:
             data, resp_status = await api.Request(
