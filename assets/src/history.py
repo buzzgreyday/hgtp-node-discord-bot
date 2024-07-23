@@ -28,7 +28,7 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
             client_exceptions.ServerDisconnectedError,
         ):
             logging.getLogger("app").warning(
-                f"history.py - localhost error - status {resp_status}: data/node/{node_data.ip}/{node_data.public_port}: {traceback.format_exc()}"
+                f"history.py - localhost error - status {resp_status}: data/node/{node_data.ip}/{node_data.public_port} ({localhost_error_retry}/{2}): {traceback.format_exc()}"
             )
             if localhost_error_retry <= 2:
                 await asyncio.sleep(1)
@@ -40,7 +40,7 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
                 break
             else:
                 logging.getLogger("app").warning(
-                    f"history.py - localhost error - status {resp_status}: data/node/{node_data.ip}/{node_data.public_port}: {traceback.format_exc()}"
+                    f"history.py - localhost error - status {resp_status}: data/node/{node_data.ip}/{node_data.public_port} ({localhost_error_retry}/{2}): {traceback.format_exc()}"
                 )
                 if localhost_error_retry <= 2:
                     await asyncio.sleep(1)
