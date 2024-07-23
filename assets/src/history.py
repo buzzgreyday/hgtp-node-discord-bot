@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import traceback
 from typing import List
 
 from aiohttp import client_exceptions
@@ -26,7 +27,7 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
             client_exceptions.ServerDisconnectedError,
         ):
             logging.getLogger("app").warning(
-                f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} timeout/disconnect"
+                f"history.py - localhost error - status {resp_status}: data/node/{node_data.ip}/{node_data.public_port}: {traceback.format_exc()}"
             )
 
             await asyncio.sleep(1)
@@ -36,7 +37,7 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
                 break
             else:
                 logging.getLogger("app").warning(
-                    f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} returned status {resp_status}"
+                    f"history.py - localhost error - status {resp_status}: data/node/{node_data.ip}/{node_data.public_port}: {traceback.format_exc()}"
                 )
                 await asyncio.sleep(1)
     if data:
