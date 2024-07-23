@@ -28,8 +28,8 @@ class Request:
             else:
                 return None, resp.status
 
-    async def db_json(self, timeout=18000, configuration=None):
-        async with self.session.get(self.url, timeout=timeout) as resp:
+    async def db_json(self, configuration=None):
+        async with self.session.get(self.url) as resp:
             await asyncio.sleep(0)
             if resp.status == 200:
                 data = await resp.json()
