@@ -136,6 +136,7 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
     """Locate every subscription where ID is id_
     return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])
     """
+    retry = 0
     while True:
         try:
             data, resp_status = await Request(
@@ -151,7 +152,11 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
             logging.getLogger("app").warning(
                 f"api.py - localhost error: http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port}\n\t{traceback.format_exc()}"
             )
-            await asyncio.sleep(1)
+            if retry <= 2:
+                retry += 1
+                await asyncio.sleep(1)
+            else:
+                break
         else:
             if resp_status == 200:
                 return data
@@ -159,4 +164,8 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
                 logging.getLogger("app").warning(
                     f"api.py - localhost error: http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port} returned status {resp_status}"
                 )
-                await asyncio.sleep(6)
+                if retry <= 2:
+                    retry += 1
+                    await asyncio.sleep(1)
+                else:
+                    break
