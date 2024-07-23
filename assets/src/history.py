@@ -31,6 +31,7 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
                 f"history.py - localhost error - status {resp_status}: data/node/{node_data.ip}/{node_data.public_port} ({localhost_error_retry}/{2}): {traceback.format_exc()}"
             )
             if localhost_error_retry <= 2:
+                localhost_error_retry += 1
                 await asyncio.sleep(1)
             else:
                 break
@@ -43,6 +44,7 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
                     f"history.py - localhost error - status {resp_status}: data/node/{node_data.ip}/{node_data.public_port} ({localhost_error_retry}/{2}): {traceback.format_exc()}"
                 )
                 if localhost_error_retry <= 2:
+                    localhost_error_retry += 1
                     await asyncio.sleep(1)
                 else:
                     break
