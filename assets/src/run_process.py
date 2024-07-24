@@ -37,24 +37,26 @@ async def automatic_check(
     await bot.wait_until_ready()
 
     for cached_subscriber in cache:
-        cluster_found = False
-        subscriber = await api.locate_node(session, _configuration, None, cached_subscriber["id"], cached_subscriber["ip"], cached_subscriber["public_port"])
-        print(subscriber)
-        subscriber = pd.DataFrame(subscriber)
-        node_data = await node_status_check(
-                session,
-                subscriber,
-                cluster_data,
-                version_manager,
-                _configuration,
-            )
-        if node_data.last_known_cluster_name == cluster_name:
-            cluster_found = True
-            data.append(node_data)
-            cached_subscriber["cluster_name"] = cluster_name
+        if not cached_subscriber["located"]:
+            cluster_found = False
+            subscriber = await api.locate_node(session, _configuration, None, cached_subscriber["id"], cached_subscriber["ip"], cached_subscriber["public_port"])
+            print(subscriber)
+            subscriber = pd.DataFrame(subscriber)
+            node_data = await node_status_check(
+                    session,
+                    subscriber,
+                    cluster_data,
+                    version_manager,
+                    _configuration,
+                )
+            if node_data.last_known_cluster_name == cluster_name:
+                cluster_found = True
+                data.append(node_data)
+                cached_subscriber["cluster_name"] = cluster_name
+                cached_subscriber["located"] = True
 
-        if not cluster_found:
-            cached_subscriber["cluster_name"] = None
+            if not cluster_found:
+                cached_subscriber["cluster_name"] = None
 
     data = await determine_module.notify(data, _configuration)
 

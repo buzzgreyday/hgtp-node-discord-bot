@@ -70,6 +70,8 @@ async def main_loop(version_manager, _configuration):
                 subscriber_found = False
                 if cache:
                     for cached_subscriber in cache:
+                        # This will skip lookup if already located in a cluster. This needs reset every check.
+                        cached_subscriber["located"] = False
                         if subscriber[0] == cached_subscriber["id"] and subscriber[1] == cached_subscriber["ip"] and subscriber[2] == cached_subscriber["public_port"]:
                             subscriber_found = True
                             break
@@ -82,7 +84,8 @@ async def main_loop(version_manager, _configuration):
                             "public_port": subscriber[2],
                             "layer": layer,
                             # Choose the most likely subscription by default, if new subscription or first run
-                            "cluster_name": f"{clusters[0]["cluster_name"]}"
+                            "cluster_name": f"{clusters[0]["cluster_name"]}",
+                            "located": False
                         }
                     )
         for cached_subscriber in cache:
@@ -90,13 +93,6 @@ async def main_loop(version_manager, _configuration):
                 cluster["number_of_subs"] = 0
                 if cached_subscriber["cluster_name"] == cluster["cluster_name"] and cached_subscriber["layer"] == cluster["layer"]:
                     cluster["number_of_subs"] += 1
-        clusters_new = sorted(clusters, key=lambda i: i["number_of_subs"])
-        clusters = clusters_new
-
-        del clusters_new
-
-        # If cache is found, then reorder/check hierarchy, while taking note of how many IPs in respective clusters
-        print(cache, clusters)
 
         return cache, clusters
 
