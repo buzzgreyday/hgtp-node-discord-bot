@@ -38,7 +38,8 @@ async def automatic_check(
 
     for cached_subscriber in cache:
         cluster_found = False
-        subscriber = api.locate_node(session, _configuration, None, cached_subscriber["id"], cached_subscriber["ip"], cached_subscriber["public_port"])
+        subscriber = await api.locate_node(session, _configuration, None, cached_subscriber["id"], cached_subscriber["ip"], cached_subscriber["public_port"])
+        print(subscriber)
         subscriber = pd.DataFrame(subscriber)
         node_data = await node_status_check(
                 session,

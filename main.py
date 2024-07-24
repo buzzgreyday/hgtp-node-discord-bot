@@ -53,59 +53,49 @@ async def main_loop(version_manager, _configuration):
 
     async def cache_and_clusters(session, cache, clusters) -> Tuple[List[Dict], List[Dict]]:
 
-        subscribers = []
-
         if not clusters:
             # Since we need the clusters below, if they're not existing, create them
             for cluster_name, layers in _configuration["modules"].items():
                 for layer in layers:
-                    clusters.append({"cluster_name": cluster_name, "cluster_layer": layer, "number_of_subs": 0})
+                    clusters.append({"cluster_name": cluster_name, "layer": layer, "number_of_subs": 0})
+        print(clusters)
 
         """Get subscribers to check with cache"""
-        for layer in range(1,2):
+        for layer in range(0,1):
             # We need subscriber data to determine if new subscriptions have been made (or first run), add these to cache
             layer_subscriptions = await api.get_user_ids(session, layer, None, _configuration)
             # Returns a list of tuples containing (ID, IP, PORT)
-            subscribers.extend((layer, layer_subscriptions))
 
-        for subscriber in subscribers:
-            subscriber_found = False
-            if cache:
-                for cached_subscriber in cache:
-                    if subscriber[0] == cached_subscriber["id"] and subscriber[1] == cached_subscriber["ip"] and subscriber[2] == cached_subscriber["public_port"]:
-                        subscriber_found = True
-                        break
+            for subscriber in layer_subscriptions:
+                subscriber_found = False
+                if cache:
+                    for cached_subscriber in cache:
+                        if subscriber[0] == cached_subscriber["id"] and subscriber[1] == cached_subscriber["ip"] and subscriber[2] == cached_subscriber["public_port"]:
+                            subscriber_found = True
+                            break
 
-            if not subscriber_found:
-                cache.append(
-                    {
-                        "id": subscriber[1][0],
-                        "ip": subscriber[1][1],
-                        "public_port": subscriber[1][2],
-                        "layer": subscriber[0],
-                        # Choose the most likely subscription by default, if new subscription or first run
-                        "cluster_name": f"{clusters[0]["cluster_name"]}"
-                    }
-                )
+                if not subscriber_found:
+                    cache.append(
+                        {
+                            "id": subscriber[0],
+                            "ip": subscriber[1],
+                            "public_port": subscriber[2],
+                            "layer": layer,
+                            # Choose the most likely subscription by default, if new subscription or first run
+                            "cluster_name": f"{clusters[0]["cluster_name"]}"
+                        }
+                    )
+        for cached_subscriber in cache:
+            for cluster in clusters:
+                cluster["number_of_subs"] = 0
+                if cached_subscriber["cluster_name"] == cluster["cluster_name"] and cached_subscriber["layer"] == cluster["layer"]:
+                    cluster["number_of_subs"] += 1
+        clusters_new = sorted(clusters, key=lambda i: i["number_of_subs"])
+        clusters = clusters_new
 
-            for cached_subscriber in cache:
-                for cluster in clusters:
-                    cluster["number_of_subs"] = 0
-                    if cached_subscriber["cluster_name"] == cluster["cluster_name"] and cached_subscriber["layer"] == cluster["layer"]:
-                        cluster["number_of_subs"] += 1
-            clusters_new = sorted(clusters, key=lambda i: i["number_of_subs"])
-            clusters = clusters_new
-            def sort_key(cache):
-                print(clusters.index(cache["cluster_name"]))
-                return clusters.index(cache["cluster_name"])
-
-            cache_new = sorted(cache, key=sort_key)
-            cache = cache_new
-            del clusters_new, cache_new
-
+        del clusters_new
 
         # If cache is found, then reorder/check hierarchy, while taking note of how many IPs in respective clusters
-
         print(cache, clusters)
 
         return cache, clusters
@@ -117,24 +107,24 @@ async def main_loop(version_manager, _configuration):
                 tasks = []
 
                 current_time = datetime.now(timezone.utc).time().strftime("%H:%M:%S")
-                if current_time in times:
-                    cache, clusters = await cache_and_clusters(session, cache, clusters)
-                    for cluster in clusters:
-                        tasks.append(run_process.automatic_check(
-                            session,
-                            cache,
-                            cluster["cluster_name"],
-                            cluster["cluster_layer"],
-                            version_manager,
-                            _configuration,
-                        )
-                        )
-                    data, cache = await asyncio.gather(*tasks)
-                    print(data)
-                    await history.write(data)
+                # if current_time in times:
+                cache, clusters = await cache_and_clusters(session, cache, clusters)
+                for cluster in clusters:
+                    tasks.append(run_process.automatic_check(
+                        session,
+                        cache,
+                        cluster["cluster_name"],
+                        cluster["layer"],
+                        version_manager,
+                        _configuration,
+                    )
+                    )
+                data, cache = await asyncio.gather(*tasks)
+                print(data)
+                await history.write(data)
 
-                else:
-                    await asyncio.sleep(0.2)
+                #else:
+                await asyncio.sleep(0.2)
 
             except Exception as e:
                 logging.getLogger("app").error(
