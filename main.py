@@ -6,6 +6,7 @@ import threading
 import time
 import traceback
 from datetime import datetime, timezone
+from typing import List
 
 import aiohttp
 import yaml
@@ -46,6 +47,33 @@ def start_stats_coroutine(_configuration):
 async def main_loop(version_manager, _configuration):
     times = preliminaries.generate_runtimes(_configuration)
     logging.getLogger("app").info(f"main.py - runtime schedule:\n\t{times}")
+
+    cache = {}
+    clusters = []
+
+    async def check_cache_and_prioritize_clusters(clusters, cache):
+        if not clusters:
+            for cluster_name, layers in _configuration["modules"].items():
+                for layer in layers:
+                    clusters.append({"cluster_name": cluster_name, "cluster_layer": layer, "number_of_subs": 0})
+
+        print(clusters)
+
+        # If cache is found, then reorder/check hierarchy, while taking note of how many IPs in respective clusters
+        if cache:
+            for cached_subscriber in cache:
+                for cluster in clusters:
+                    cluster["number_of_subs"] = 0
+                    if cached_subscriber["cluster_name"] == cluster["cluster_name"] and cached_subscriber["layer"] == cluster["cluster_layer"]:
+                        cluster["number_of_subs"] += 1
+            clusters_new = sorted(clusters, key=lambda i: i["number_of_subs"])
+            clusters = clusters_new
+            del clusters_new
+
+        print(clusters)
+
+        return clusters
+
 
     while True:
         async with asyncio.Semaphore(8):

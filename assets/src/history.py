@@ -24,7 +24,7 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
                 session,
                 f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}",
             ).db_json(_configuration)
-            resp_status = 500
+            # resp_status = 500
         except (
             asyncio.exceptions.TimeoutError,
             client_exceptions.ClientOSError,
@@ -56,14 +56,12 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
                         user, resp_status = await api.Request(session, f"http://127.0.0.1:8000/user/{node_data.name}").db_json(
                             _configuration)
                         for sub in user:
-                            print(sub)
                             if sub["name"] == node_data.name and sub["ip"] == node_data.ip and sub["public_port"] == node_data.public_port:
-                                print(sub)
                                 user = UserModel(**dict(sub))
-                                print(user)
-                                exit(0)
-                        exit(0)
-                        # await database.delete_user_entry(user)
+                                logging.getLogger("app").warning(
+                                    f"history.py - {sub} might need removal from list since status 500 was caused"
+                                )
+                                # await database.delete_user_entry(user)
                     break
     if data:
         if requester:
