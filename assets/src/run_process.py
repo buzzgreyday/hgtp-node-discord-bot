@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import List
+from typing import List, Tuple
 
 import pandas as pd
 
@@ -16,29 +16,45 @@ from assets.src import (
 )
 from assets.src.discord import discord
 from assets.src.discord.services import bot
+from assets.src.user import node_status_check
 
 
 async def automatic_check(
-        session, cluster_name, layer, version_manager, _configuration
-) -> List:
+        session, cache, cluster_name, layer, version_manager, _configuration
+) -> Tuple:
     logger = logging.getLogger("app")
     logger.debug(
         f"run_process.py - Automatic {cluster_name, layer} check initiated"
     )
 
     dt_start, timer_start = dt.timing()
+    data = []
 
     cluster_data = await preliminaries.supported_clusters(
         session, cluster_name, layer, _configuration
     )
 
-    ids = await api.get_user_ids(session, layer, None, _configuration)
-
     await bot.wait_until_ready()
 
-    data = await user.process_node_data_per_user(
-        session, cluster_name, ids, cluster_data, version_manager, _configuration
-    )
+    for cached_subscriber in cache:
+        cluster_found = False
+        subscriber = api.locate_node(session, _configuration, None, cached_subscriber["id"], cached_subscriber["ip"], cached_subscriber["public_port"])
+        subscriber = pd.DataFrame(subscriber)
+        node_data = await node_status_check(
+                session,
+                subscriber,
+                cluster_data,
+                version_manager,
+                _configuration,
+            )
+        if node_data.last_known_cluster_name == cluster_name:
+            cluster_found = True
+            data.append(node_data)
+            cached_subscriber["cluster_name"] = cluster_name
+
+        if not cluster_found:
+            cached_subscriber["cluster_name"] = None
+
     data = await determine_module.notify(data, _configuration)
 
     logger.debug(
@@ -52,7 +68,7 @@ async def automatic_check(
         f"{round(timer_stop - timer_start, 2)} seconds"
     )
 
-    return data
+    return data, cache
 
 
 async def request_check(session, process_msg, layer, requester, _configuration):

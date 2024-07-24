@@ -6,13 +6,13 @@ import threading
 import time
 import traceback
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Tuple, Dict
 
 import aiohttp
 import yaml
 from aiohttp import ClientConnectorError
 
-from assets.src import preliminaries, run_process, history, rewards, stats
+from assets.src import preliminaries, run_process, history, rewards, stats, api
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
 
@@ -48,72 +48,104 @@ async def main_loop(version_manager, _configuration):
     times = preliminaries.generate_runtimes(_configuration)
     logging.getLogger("app").info(f"main.py - runtime schedule:\n\t{times}")
 
-    cache = {}
-    clusters = []
+    cache = list()
+    clusters = list()
 
-    async def check_cache_and_prioritize_clusters(clusters, cache):
+    async def cache_and_clusters(session, cache, clusters) -> Tuple[List[Dict], List[Dict]]:
+
+        subscribers = []
+
         if not clusters:
+            # Since we need the clusters below, if they're not existing, create them
             for cluster_name, layers in _configuration["modules"].items():
                 for layer in layers:
                     clusters.append({"cluster_name": cluster_name, "cluster_layer": layer, "number_of_subs": 0})
 
-        print(clusters)
+        """Get subscribers to check with cache"""
+        for layer in range(1,2):
+            # We need subscriber data to determine if new subscriptions have been made (or first run), add these to cache
+            layer_subscriptions = await api.get_user_ids(session, layer, None, _configuration)
+            # Returns a list of tuples containing (ID, IP, PORT)
+            subscribers.extend((layer, layer_subscriptions))
 
-        # If cache is found, then reorder/check hierarchy, while taking note of how many IPs in respective clusters
-        if cache:
+        for subscriber in subscribers:
+            subscriber_found = False
+            if cache:
+                for cached_subscriber in cache:
+                    if subscriber[0] == cached_subscriber["id"] and subscriber[1] == cached_subscriber["ip"] and subscriber[2] == cached_subscriber["public_port"]:
+                        subscriber_found = True
+                        break
+
+            if not subscriber_found:
+                cache.append(
+                    {
+                        "id": subscriber[1][0],
+                        "ip": subscriber[1][1],
+                        "public_port": subscriber[1][2],
+                        "layer": subscriber[0],
+                        # Choose the most likely subscription by default, if new subscription or first run
+                        "cluster_name": f"{clusters[0]["cluster_name"]}"
+                    }
+                )
+
             for cached_subscriber in cache:
                 for cluster in clusters:
                     cluster["number_of_subs"] = 0
-                    if cached_subscriber["cluster_name"] == cluster["cluster_name"] and cached_subscriber["layer"] == cluster["cluster_layer"]:
+                    if cached_subscriber["cluster_name"] == cluster["cluster_name"] and cached_subscriber["layer"] == cluster["layer"]:
                         cluster["number_of_subs"] += 1
             clusters_new = sorted(clusters, key=lambda i: i["number_of_subs"])
             clusters = clusters_new
-            del clusters_new
+            def sort_key(cache):
+                print(clusters.index(cache["cluster_name"]))
+                return clusters.index(cache["cluster_name"])
 
-        print(clusters)
+            cache_new = sorted(cache, key=sort_key)
+            cache = cache_new
+            del clusters_new, cache_new
 
-        return clusters
+
+        # If cache is found, then reorder/check hierarchy, while taking note of how many IPs in respective clusters
+
+        print(cache, clusters)
+
+        return cache, clusters
 
 
     while True:
-        async with asyncio.Semaphore(8):
-            async with aiohttp.ClientSession() as session:
-                try:
-                    data_queue = asyncio.Queue()
-                    tasks = []
+        async with aiohttp.ClientSession() as session:
+            try:
+                tasks = []
 
-                    current_time = datetime.now(timezone.utc).time().strftime("%H:%M:%S")
-                    if current_time in times:
-                        for cluster_name, layers in _configuration["modules"].items():
-                            for layer in layers:
-                                task = run_process.automatic_check(
-                                    session,
-                                    cluster_name,
-                                    layer,
-                                    version_manager,
-                                    _configuration,
-                                )
-                                tasks.append(task)
-
-                        for completed_task in asyncio.as_completed(tasks):
-                            data = await completed_task
-                            await data_queue.put(data)
-                        while not data_queue.empty():
-                            data = await data_queue.get()
-                            await history.write(data)
-                    else:
-                        await asyncio.sleep(0.2)
-
-                except Exception as e:
-                    logging.getLogger("app").error(
-                        f"main.py - error: {traceback.format_exc()}"
-                    )
-                    try:
-                        await discord.messages.send_traceback(bot, traceback.format_exc())
-                    except Exception:
-                        logging.getLogger("app").error(
-                            f"main.py - Could not send traceback via Discord"
+                current_time = datetime.now(timezone.utc).time().strftime("%H:%M:%S")
+                if current_time in times:
+                    cache, clusters = await cache_and_clusters(session, cache, clusters)
+                    for cluster in clusters:
+                        tasks.append(run_process.automatic_check(
+                            session,
+                            cache,
+                            cluster["cluster_name"],
+                            cluster["cluster_layer"],
+                            version_manager,
+                            _configuration,
                         )
+                        )
+                    data, cache = await asyncio.gather(*tasks)
+                    print(data)
+                    await history.write(data)
+
+                else:
+                    await asyncio.sleep(0.2)
+
+            except Exception as e:
+                logging.getLogger("app").error(
+                    f"main.py - error: {traceback.format_exc()}"
+                )
+                try:
+                    await discord.messages.send_traceback(bot, traceback.format_exc())
+                except Exception:
+                    logging.getLogger("app").error(
+                        f"main.py - Could not send traceback via Discord"
+                    )
 
 
 def run_uvicorn_process():

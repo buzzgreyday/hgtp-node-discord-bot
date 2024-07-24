@@ -3,6 +3,7 @@ import logging
 import traceback
 from datetime import datetime, timezone
 import os
+from typing import List
 
 from dotenv import load_dotenv
 from assets.src.database.models import (
@@ -548,7 +549,7 @@ class CRUD:
 
     async def get_user_ids(
         self, layer: int, async_session: async_sessionmaker[AsyncSession]
-    ):
+    ) -> List:
         """INSTEAD RETURN A TUPLE CONTAINING ID, IP, PORT!!!! Returns a list of all user IDs currently subscribed"""
         list_of_tuples = []
         async with async_session() as session:

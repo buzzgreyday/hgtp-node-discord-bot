@@ -1,5 +1,6 @@
 import asyncio
 import traceback
+from typing import List, Tuple
 
 import aiohttp
 from aiohttp import client_exceptions
@@ -98,7 +99,7 @@ async def safe_request(session, request_url: str, configuration: dict):
             return None, status_code
 
 
-async def get_user_ids(session, layer, requester, _configuration):
+async def get_user_ids(session, layer, requester, _configuration) -> List:
     """RETURNS A LIST/SET OF TUPLES CONTAINING ID, IP, PORT (PER LAYER)"""
     while True:
         try:

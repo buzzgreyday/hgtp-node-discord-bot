@@ -1,3 +1,5 @@
+from typing import List
+
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
@@ -62,7 +64,7 @@ async def get_user(name: str):
 
 
 @app.get("/user/ids/layer/{layer}")
-async def get_user_ids(layer: int):
+async def get_user_ids(layer: int) -> List:
     """INSTEAD RETURN A TUPLE CONTAINING ID, IP, PORT!!!! Returns a list of all user IDs currently subscribed"""
     return await db.get_user_ids(layer, session)
 
