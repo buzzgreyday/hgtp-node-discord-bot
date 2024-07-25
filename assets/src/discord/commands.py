@@ -5,7 +5,7 @@ import aiohttp
 import yaml
 
 import assets.src.database.database
-from assets.src import user, run_process
+from assets.src import user, check
 from assets.src.database import models
 from assets.src.discord import discord
 from assets.src.discord.services import bot
@@ -217,7 +217,7 @@ async def r(ctx):
                     for layer in (0, 1):
                         fut.append(
                             asyncio.create_task(
-                                run_process.request_check(
+                                check.request(
                                     session,
                                     process_msg,
                                     layer,

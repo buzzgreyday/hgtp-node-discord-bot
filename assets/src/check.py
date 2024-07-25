@@ -19,7 +19,7 @@ from assets.src.discord.services import bot
 from assets.src.user import node_status_check
 
 
-async def automatic_check(session, cached_subscriber, cluster_data, cluster_name, layer, version_manager, _configuration):
+async def automatic(session, cached_subscriber, cluster_data, cluster_name, layer, version_manager, _configuration):
     logger = logging.getLogger("app")
 
     data = []
@@ -54,7 +54,7 @@ async def automatic_check(session, cached_subscriber, cluster_data, cluster_name
     return data, cached_subscriber
 
 
-async def request_check(session, process_msg, layer, requester, _configuration):
+async def request(session, process_msg, layer, requester, _configuration):
     process_msg = await discord.update_request_process_msg(process_msg, 1, None)
     ids = await api.get_user_ids(session, layer, requester, _configuration)
     await bot.wait_until_ready()

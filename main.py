@@ -13,7 +13,7 @@ import aiohttp
 import yaml
 from aiohttp import ClientConnectorError
 
-from assets.src import preliminaries, run_process, history, rewards, stats, api, dt
+from assets.src import preliminaries, check, history, rewards, stats, api, dt
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
 
@@ -116,7 +116,7 @@ async def main_loop(version_manager, _configuration):
                 return False
 
             def create_tasks():
-                task = asyncio.create_task(run_process.automatic_check(
+                task = asyncio.create_task(check.automatic(
                     session,
                     cached_subscriber,
                     cluster_data,
