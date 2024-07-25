@@ -115,6 +115,19 @@ async def main_loop(version_manager, _configuration):
                         pass
                 return False
 
+            def create_tasks():
+                task = asyncio.create_task(run_process.automatic_check(
+                    session,
+                    cached_subscriber,
+                    cluster_data,
+                    cluster["cluster_name"],
+                    cluster["layer"],
+                    version_manager,
+                    _configuration
+                ))
+
+                return task
+
             if is_uvicorn_running():
                 await bot.wait_until_ready()
                 try:
@@ -131,19 +144,14 @@ async def main_loop(version_manager, _configuration):
                                     session, cluster["cluster_name"], cluster["layer"], _configuration
                                 )
                                 print(cluster["cluster_name"])
-
+                                no_cluster_subscribers = []
                                 for i, cached_subscriber in enumerate(cache):
                                     if cached_subscriber["located"] in (None, 'None', False, 'False', '', [], {}, ()):
-                                        task = asyncio.create_task(run_process.automatic_check(
-                                            session,
-                                            cached_subscriber,
-                                            cluster_data,
-                                            cluster["cluster_name"],
-                                            cluster["layer"],
-                                            version_manager,
-                                            _configuration
-                                        ))
-                                        tasks.append((i, task))
+                                        if cached_subscriber["cluster_name"] in (None, 'None', False, 'False', '', [], {}, ()):
+                                            # We need to run these last
+                                            no_cluster_subscribers.append(cached_subscriber)
+                                        else:
+                                            tasks.append(create_tasks())
 
                                 # Wait for all tasks to complete
                                 results = await asyncio.gather(*[task for _, task in tasks])
