@@ -115,19 +115,6 @@ async def main_loop(version_manager, _configuration):
                         pass
                 return False
 
-            def create_tasks():
-                task = asyncio.create_task(check.automatic(
-                    session,
-                    cached_subscriber,
-                    cluster_data,
-                    cluster["cluster_name"],
-                    cluster["layer"],
-                    version_manager,
-                    _configuration
-                ))
-
-                return task
-
             if is_uvicorn_running():
                 await bot.wait_until_ready()
                 try:
@@ -151,7 +138,16 @@ async def main_loop(version_manager, _configuration):
                                             # We need to run these last
                                             no_cluster_subscribers.append(cached_subscriber)
                                         else:
-                                            tasks.append(create_tasks())
+                                            task = asyncio.create_task(check.automatic(
+                                                session,
+                                                cached_subscriber,
+                                                cluster_data,
+                                                cluster["cluster_name"],
+                                                cluster["layer"],
+                                                version_manager,
+                                                _configuration
+                                            ))
+                                            tasks.append((i, task))
 
                                 # Wait for all tasks to complete
                                 results = await asyncio.gather(*[task for _, task in tasks])
