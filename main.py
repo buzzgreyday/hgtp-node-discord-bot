@@ -7,6 +7,7 @@ import time
 import traceback
 from datetime import datetime, timezone
 from typing import List, Tuple, Dict
+import psutil
 
 import aiohttp
 import yaml
@@ -58,7 +59,7 @@ async def main_loop(version_manager, _configuration):
             for cluster_name, layers in _configuration["modules"].items():
                 for layer in layers:
                     clusters.append({"cluster_name": cluster_name, "layer": layer, "number_of_subs": 0})
-        print(clusters)
+            clusters.append({"cluster_name": None, "layer": 0, "number_of_subs": 0})
 
         """Get subscribers to check with cache"""
         for layer in range(0,1):
@@ -89,49 +90,66 @@ async def main_loop(version_manager, _configuration):
                         }
                     )
         for cached_subscriber in cache:
-            for cluster in clusters:
-                cluster["number_of_subs"] = 0
-                if cached_subscriber["cluster_name"] == cluster["cluster_name"] and cached_subscriber["layer"] == cluster["layer"]:
-                    cluster["number_of_subs"] += 1
+            if cached_subscriber["cluster_name"]:
+                for cluster in clusters:
+                    cluster["number_of_subs"] = 0
+                    if cached_subscriber["cluster_name"] == cluster["cluster_name"] and cached_subscriber["layer"] == cluster["layer"]:
+                        cluster["number_of_subs"] += 1
+                        break
 
-        return cache, clusters
+        sorted_clusters = sorted(clusters, key=lambda k: k["number_of_subs"])
+        priority_dict = {item['cluster_name']: int(item['number_of_subs']) for item in sorted_clusters}
+        sorted_cache = sorted(cache, key=lambda x: priority_dict[x['cluster_name']], reverse=True)
+        print(sorted_cache, sorted_clusters)
+        return sorted_cache, sorted_clusters
 
 
     while True:
         async with aiohttp.ClientSession() as session:
-            try:
-                tasks = []
+            def is_uvicorn_running():
+                for process in psutil.process_iter(['pid', 'name']):
+                    try:
+                        if 'uvicorn' in process.name():
+                            return True
+                    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                        pass
+                return False
 
-                current_time = datetime.now(timezone.utc).time().strftime("%H:%M:%S")
-                # if current_time in times:
-                cache, clusters = await cache_and_clusters(session, cache, clusters)
-                for cluster in clusters:
-                    tasks.append(run_process.automatic_check(
-                        session,
-                        cache,
-                        cluster["cluster_name"],
-                        cluster["layer"],
-                        version_manager,
-                        _configuration,
-                    )
-                    )
-                data, cache = await asyncio.gather(*tasks)
-                print(data)
-                await history.write(data)
-
-                #else:
-                await asyncio.sleep(0.2)
-
-            except Exception as e:
-                logging.getLogger("app").error(
-                    f"main.py - error: {traceback.format_exc()}"
-                )
+            if is_uvicorn_running():
+                await bot.wait_until_ready()
                 try:
-                    await discord.messages.send_traceback(bot, traceback.format_exc())
-                except Exception:
+                    tasks = []
+
+                    current_time = datetime.now(timezone.utc).time().strftime("%H:%M:%S")
+                    if current_time in times:
+                        cache, clusters = await cache_and_clusters(session, cache, clusters)
+                        for cluster in clusters:
+                            if cluster["cluster_name"]:
+                                tasks.append(run_process.automatic_check(
+                                    session,
+                                    cache,
+                                    cluster["cluster_name"],
+                                    cluster["layer"],
+                                    version_manager,
+                                    _configuration,
+                                )
+                                )
+                        data, cache = await asyncio.gather(*tasks)
+                        await history.write(data)
+
+                    else:
+                        await asyncio.sleep(0.2)
+
+                except Exception as e:
                     logging.getLogger("app").error(
-                        f"main.py - Could not send traceback via Discord"
+                        f"main.py - error: {traceback.format_exc()}"
                     )
+                    try:
+                        await discord.messages.send_traceback(bot, traceback.format_exc())
+                    except Exception:
+                        logging.getLogger("app").error(
+                            f"main.py - Could not send traceback via Discord"
+                        )
 
 
 def run_uvicorn_process():

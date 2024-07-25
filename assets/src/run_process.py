@@ -26,21 +26,19 @@ async def automatic_check(
     logger.debug(
         f"run_process.py - Automatic {cluster_name, layer} check initiated"
     )
+    data = []
 
     dt_start, timer_start = dt.timing()
-    data = []
+
 
     cluster_data = await preliminaries.supported_clusters(
         session, cluster_name, layer, _configuration
     )
 
-    await bot.wait_until_ready()
-
     for cached_subscriber in cache:
         if not cached_subscriber["located"]:
             cluster_found = False
             subscriber = await api.locate_node(session, _configuration, None, cached_subscriber["id"], cached_subscriber["ip"], cached_subscriber["public_port"])
-            print(subscriber)
             subscriber = pd.DataFrame(subscriber)
             node_data = await node_status_check(
                     session,
@@ -58,18 +56,18 @@ async def automatic_check(
             if not cluster_found:
                 cached_subscriber["cluster_name"] = None
 
-    data = await determine_module.notify(data, _configuration)
+        data = await determine_module.notify(data, _configuration)
 
-    logger.debug(
-        f"run_process.py - Handling {len(data), cluster_name} L{layer} nodes"
-    )
-    await discord.send_notification(bot, data, _configuration)
+        logger.debug(
+            f"run_process.py - Handling {len(data), cluster_name} L{layer} nodes"
+        )
+        # await discord.send_notification(bot, data, _configuration)
 
-    dt_stop, timer_stop = dt.timing()
-    logger.info(
-        f"main.py - Automatic L{layer} check {cluster_name} completed in completed in "
-        f"{round(timer_stop - timer_start, 2)} seconds"
-    )
+        dt_stop, timer_stop = dt.timing()
+        logger.info(
+            f"main.py - Automatic L{layer} check {cluster_name} completed in completed in "
+            f"{round(timer_stop - timer_start, 2)} seconds"
+        )
 
     return data, cache
 
