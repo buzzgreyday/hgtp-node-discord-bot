@@ -13,7 +13,7 @@ import aiohttp
 import yaml
 from aiohttp import ClientConnectorError
 
-from assets.src import preliminaries, run_process, history, rewards, stats, api
+from assets.src import preliminaries, run_process, history, rewards, stats, api, dt
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
 
@@ -60,9 +60,10 @@ async def main_loop(version_manager, _configuration):
                 for layer in layers:
                     clusters.append({"cluster_name": cluster_name, "layer": layer, "number_of_subs": 0})
             clusters.append({"cluster_name": None, "layer": 0, "number_of_subs": 0})
+            clusters.append({"cluster_name": None, "layer": 1, "number_of_subs": 0})
 
         """Get subscribers to check with cache"""
-        for layer in range(0,1):
+        for layer in [0, 1]:
             # We need subscriber data to determine if new subscriptions have been made (or first run), add these to cache
             layer_subscriptions = await api.get_user_ids(session, layer, None, _configuration)
             # Returns a list of tuples containing (ID, IP, PORT)
@@ -92,12 +93,11 @@ async def main_loop(version_manager, _configuration):
         for cached_subscriber in cache:
             if cached_subscriber["cluster_name"]:
                 for cluster in clusters:
-                    cluster["number_of_subs"] = 0
                     if cached_subscriber["cluster_name"] == cluster["cluster_name"] and cached_subscriber["layer"] == cluster["layer"]:
+                        print(cached_subscriber["layer"], cluster["layer"])
                         cluster["number_of_subs"] += 1
-                        break
 
-        sorted_clusters = sorted(clusters, key=lambda k: k["number_of_subs"])
+        sorted_clusters = sorted(clusters, key=lambda k: k["number_of_subs"], reverse=True)
         priority_dict = {item['cluster_name']: int(item['number_of_subs']) for item in sorted_clusters}
         sorted_cache = sorted(cache, key=lambda x: priority_dict[x['cluster_name']], reverse=True)
         print(sorted_cache, sorted_clusters)
@@ -122,20 +122,47 @@ async def main_loop(version_manager, _configuration):
 
                     current_time = datetime.now(timezone.utc).time().strftime("%H:%M:%S")
                     if current_time in times:
+                        dt_start, timer_start = dt.timing()
                         cache, clusters = await cache_and_clusters(session, cache, clusters)
                         for cluster in clusters:
-                            if cluster["cluster_name"]:
-                                tasks.append(run_process.automatic_check(
-                                    session,
-                                    cache,
-                                    cluster["cluster_name"],
-                                    cluster["layer"],
-                                    version_manager,
-                                    _configuration,
+                            if cluster["cluster_name"] not in (None, 'None', False, 'False', '', [], {}, ()):
+                                # Ned a check for if cluster is down, skip check
+                                cluster_data = await preliminaries.supported_clusters(
+                                    session, cluster["cluster_name"], cluster["layer"], _configuration
                                 )
+                                print(cluster["cluster_name"])
+
+                                for i, cached_subscriber in enumerate(cache):
+                                    if cached_subscriber["located"] in (None, 'None', False, 'False', '', [], {}, ()):
+                                        task = asyncio.create_task(run_process.automatic_check(
+                                            session,
+                                            cached_subscriber,
+                                            cluster_data,
+                                            cluster["cluster_name"],
+                                            cluster["layer"],
+                                            version_manager,
+                                            _configuration
+                                        ))
+                                        tasks.append((i, task))
+
+                                # Wait for all tasks to complete
+                                results = await asyncio.gather(*[task for _, task in tasks])
+
+                                # Handle the results
+                                for (i, _), (data, updated_cache) in zip(tasks, results):
+                                    await history.write(data)
+                                    cache[i] = updated_cache  # Replace the old cache entry with the updated one
+
+                                # Clear to make ready for next check
+                                tasks.clear()
+
+                                # Log the completion time
+                                dt_stop, timer_stop = dt.timing()
+                                print(
+                                    f"main.py - L{cluster["layer"]} {cluster["cluster_name"]}- Automatic check completed in completed in "
+                                    f"{round(timer_stop - timer_start, 2)} seconds"
                                 )
-                        data, cache = await asyncio.gather(*tasks)
-                        await history.write(data)
+
 
                     else:
                         await asyncio.sleep(0.2)

@@ -19,57 +19,39 @@ from assets.src.discord.services import bot
 from assets.src.user import node_status_check
 
 
-async def automatic_check(
-        session, cache, cluster_name, layer, version_manager, _configuration
-) -> Tuple:
+async def automatic_check(session, cached_subscriber, cluster_data, cluster_name, layer, version_manager, _configuration):
     logger = logging.getLogger("app")
-    logger.debug(
-        f"run_process.py - Automatic {cluster_name, layer} check initiated"
-    )
+
     data = []
 
-    dt_start, timer_start = dt.timing()
-
-
-    cluster_data = await preliminaries.supported_clusters(
-        session, cluster_name, layer, _configuration
+    cluster_found = False
+    subscriber = await api.locate_node(session, _configuration, None, cached_subscriber["id"],
+                                       cached_subscriber["ip"], cached_subscriber["public_port"])
+    subscriber = pd.DataFrame(subscriber)
+    node_data = await node_status_check(
+        session,
+        subscriber,
+        cluster_data,
+        version_manager,
+        _configuration,
     )
+    if node_data.last_known_cluster_name == cluster_name:
+        cluster_found = True
+        data.append(node_data)
+        cached_subscriber["cluster_name"] = cluster_name
+        cached_subscriber["located"] = True
 
-    for cached_subscriber in cache:
-        if not cached_subscriber["located"]:
-            cluster_found = False
-            subscriber = await api.locate_node(session, _configuration, None, cached_subscriber["id"], cached_subscriber["ip"], cached_subscriber["public_port"])
-            subscriber = pd.DataFrame(subscriber)
-            node_data = await node_status_check(
-                    session,
-                    subscriber,
-                    cluster_data,
-                    version_manager,
-                    _configuration,
-                )
-            if node_data.last_known_cluster_name == cluster_name:
-                cluster_found = True
-                data.append(node_data)
-                cached_subscriber["cluster_name"] = cluster_name
-                cached_subscriber["located"] = True
+    if not cluster_found:
+        cached_subscriber["cluster_name"] = None
 
-            if not cluster_found:
-                cached_subscriber["cluster_name"] = None
+    data = await determine_module.notify(data, _configuration)
 
-        data = await determine_module.notify(data, _configuration)
+    logger.debug(
+        f"run_process.py - Handling {len(data), cluster_name} L{layer} nodes"
+    )
+    # await discord.send_notification(bot, data, _configuration)
 
-        logger.debug(
-            f"run_process.py - Handling {len(data), cluster_name} L{layer} nodes"
-        )
-        # await discord.send_notification(bot, data, _configuration)
-
-        dt_stop, timer_stop = dt.timing()
-        logger.info(
-            f"main.py - Automatic L{layer} check {cluster_name} completed in completed in "
-            f"{round(timer_stop - timer_start, 2)} seconds"
-        )
-
-    return data, cache
+    return data, cached_subscriber
 
 
 async def request_check(session, process_msg, layer, requester, _configuration):
