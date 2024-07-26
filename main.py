@@ -136,7 +136,7 @@ async def main_loop(version_manager, _configuration):
                                 print("Checking:", cluster["cluster_name"], cluster["layer"])
                                 for i, cached_subscriber in enumerate(cache):
                                     if cached_subscriber["located"] in (None, 'None', False, 'False', '', [], {}, ()):
-                                        if cached_subscriber["cluster_name"] in (None, 'None', False, 'False', '', [], {}, ()):
+                                        if cached_subscriber["cluster_name"] in (None, 'None', False, 'False', '', [], {}, ()) and cached_subscriber not in no_cluster_subscribers:
                                             # We need to run these last
                                             no_cluster_subscribers.append(cached_subscriber)
                                         else:
@@ -165,8 +165,16 @@ async def main_loop(version_manager, _configuration):
                                 # Clear to make ready for next check
                                 tasks.clear()
 
-                                # These should be checked last
-                                no_cluster_subscribers = list(set(no_cluster_subscribers))
+                                # These should be checked last: probably make sure these are not new subscribers
+                                # (new subscribers are 'integrationnet' by default now, could be "new" or something)
+                                # and then check once daily, until removal
+                                tuple_of_tuples = [tuple(sorted(d.items())) for d in no_cluster_subscribers]
+
+                                # Create a set to remove duplicates
+                                unique_tuples = set(tuple_of_tuples)
+
+                                # Convert tuples back to dictionaries
+                                no_cluster_subscribers = [dict(t) for t in unique_tuples]
 
                                 # Log the completion time
                                 dt_stop, timer_stop = dt.timing()
