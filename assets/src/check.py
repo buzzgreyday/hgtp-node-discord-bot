@@ -37,8 +37,6 @@ async def automatic(session, cached_subscriber, cluster_data, cluster_name, laye
         data.append(node_data)
         cached_subscriber["cluster_name"] = cluster_name
         cached_subscriber["located"] = True
-    else:
-        print(f"No historic cluster associated, last alert {node_data.last_notified_timestamp}:", cached_subscriber)
 
     if not cluster_found:
         cached_subscriber["cluster_name"] = None
