@@ -130,7 +130,7 @@ async def main_loop(version_manager, _configuration):
                                 cluster_data = await preliminaries.supported_clusters(
                                     session, cluster["cluster_name"], cluster["layer"], _configuration
                                 )
-                                print("Checking:", cluster["cluster_name"])
+                                print("Checking:", cluster["cluster_name"], cluster["layer"])
                                 no_cluster_subscribers = []
                                 for i, cached_subscriber in enumerate(cache):
                                     if cached_subscriber["located"] in (None, 'None', False, 'False', '', [], {}, ()):
@@ -172,6 +172,7 @@ async def main_loop(version_manager, _configuration):
                                     f"main.py - L{cluster["layer"]} {cluster["cluster_name"]}- Automatic check completed in completed in "
                                     f"{round(timer_stop - timer_start, 2)} seconds"
                                 )
+                        print("Check these separately:", no_cluster_subscribers)
 
 
                     else:
