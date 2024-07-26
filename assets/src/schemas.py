@@ -124,13 +124,14 @@ class Cluster(BaseModel):
 class User(NodeBase):
     """This class can create a user object which can be subscribed using different methods and transformations"""
 
-    date: dt.datetime = dt.datetime.utcnow()
+    date: dt.datetime = dt.datetime.now()
     index: Optional[int]
     discord: Optional[str | int | None] = None
     mail: Optional[str | None] = None
     phone: Optional[str | None] = None
     wallet: str
     alias: Optional[str | None] = None
+    removal_date: Optional[dt.datetime] = None
 
     # VALIDATE ID VALUE, CREATE CUSTOM EXCEPTION!
 

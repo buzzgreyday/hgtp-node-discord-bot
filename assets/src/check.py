@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 import pandas as pd
@@ -21,7 +22,6 @@ async def automatic(session, cached_subscriber, cluster_data, cluster_name, laye
 
     data = []
 
-    cluster_found = False
     subscriber = await api.locate_node(session, _configuration, None, cached_subscriber["id"],
                                        cached_subscriber["ip"], cached_subscriber["public_port"])
     subscriber = pd.DataFrame(subscriber)
@@ -33,13 +33,14 @@ async def automatic(session, cached_subscriber, cluster_data, cluster_name, laye
         _configuration,
     )
     if node_data.last_known_cluster_name == cluster_name:
-        cluster_found = True
         data.append(node_data)
         cached_subscriber["cluster_name"] = cluster_name
         cached_subscriber["located"] = True
 
     if not node_data.last_known_cluster_name:
         cached_subscriber["cluster_name"] = None
+        if cached_subscriber["removal_date"] in (None, 'None'):
+            cached_subscriber["removal_date"] = datetime.datetime.now() + datetime.timedelta(days=30)
         print("No last known cluster:", cached_subscriber)
 
     data = await determine_module.notify(data, _configuration)
