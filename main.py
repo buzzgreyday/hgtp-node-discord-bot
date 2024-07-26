@@ -100,6 +100,7 @@ async def main_loop(version_manager, _configuration):
         sorted_clusters = sorted(clusters, key=lambda k: k["number_of_subs"], reverse=True)
         priority_dict = {item['cluster_name']: int(item['number_of_subs']) for item in sorted_clusters}
         sorted_cache = sorted(cache, key=lambda x: priority_dict[x['cluster_name']], reverse=True)
+        print(sorted_clusters)
         return sorted_cache, sorted_clusters
 
 

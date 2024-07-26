@@ -38,8 +38,9 @@ async def automatic(session, cached_subscriber, cluster_data, cluster_name, laye
         cached_subscriber["cluster_name"] = cluster_name
         cached_subscriber["located"] = True
 
-    if not cluster_found:
+    if not node_data.last_known_cluster_name:
         cached_subscriber["cluster_name"] = None
+        print("No last known cluster:", cached_subscriber)
 
     data = await determine_module.notify(data, _configuration)
 
