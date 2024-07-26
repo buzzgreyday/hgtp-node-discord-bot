@@ -93,14 +93,13 @@ async def main_loop(version_manager, _configuration):
         for cached_subscriber in cache:
             if cached_subscriber["cluster_name"]:
                 for cluster in clusters:
+                    cluster["number_of_subs"] = 0
                     if cached_subscriber["cluster_name"] == cluster["cluster_name"] and cached_subscriber["layer"] == cluster["layer"]:
-                        print(cached_subscriber["layer"], cluster["layer"])
                         cluster["number_of_subs"] += 1
 
         sorted_clusters = sorted(clusters, key=lambda k: k["number_of_subs"], reverse=True)
         priority_dict = {item['cluster_name']: int(item['number_of_subs']) for item in sorted_clusters}
         sorted_cache = sorted(cache, key=lambda x: priority_dict[x['cluster_name']], reverse=True)
-        print(sorted_cache, sorted_clusters)
         return sorted_cache, sorted_clusters
 
 
@@ -122,15 +121,16 @@ async def main_loop(version_manager, _configuration):
 
                     current_time = datetime.now(timezone.utc).time().strftime("%H:%M:%S")
                     if current_time in times:
-                        dt_start, timer_start = dt.timing()
+
                         cache, clusters = await cache_and_clusters(session, cache, clusters)
                         for cluster in clusters:
+                            dt_start, timer_start = dt.timing()
                             if cluster["cluster_name"] not in (None, 'None', False, 'False', '', [], {}, ()):
                                 # Ned a check for if cluster is down, skip check
                                 cluster_data = await preliminaries.supported_clusters(
                                     session, cluster["cluster_name"], cluster["layer"], _configuration
                                 )
-                                print(cluster["cluster_name"])
+                                print("Checking:", cluster["cluster_name"])
                                 no_cluster_subscribers = []
                                 for i, cached_subscriber in enumerate(cache):
                                     if cached_subscriber["located"] in (None, 'None', False, 'False', '', [], {}, ()):
@@ -148,6 +148,9 @@ async def main_loop(version_manager, _configuration):
                                                 _configuration
                                             ))
                                             tasks.append((i, task))
+                                    else:
+                                        # The specific node is already located
+                                        pass
 
                                 # Wait for all tasks to complete
                                 results = await asyncio.gather(*[task for _, task in tasks])
@@ -159,6 +162,9 @@ async def main_loop(version_manager, _configuration):
 
                                 # Clear to make ready for next check
                                 tasks.clear()
+
+                                # These should be checked last
+                                no_cluster_subscribers = []
 
                                 # Log the completion time
                                 dt_stop, timer_stop = dt.timing()
