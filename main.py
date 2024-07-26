@@ -90,10 +90,11 @@ async def main_loop(version_manager, _configuration):
                             "located": False
                         }
                     )
-        for cached_subscriber in cache:
-            if cached_subscriber["cluster_name"]:
-                for cluster in clusters:
-                    cluster["number_of_subs"] = 0
+
+        for cluster in clusters:
+            cluster["number_of_subs"] = 0
+            for cached_subscriber in cache:
+                if cached_subscriber["cluster_name"]:
                     if cached_subscriber["cluster_name"] == cluster["cluster_name"] and cached_subscriber["layer"] == cluster["layer"]:
                         cluster["number_of_subs"] += 1
 
