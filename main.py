@@ -125,6 +125,7 @@ async def main_loop(version_manager, _configuration):
                     if current_time in times:
 
                         cache, clusters = await cache_and_clusters(session, cache, clusters)
+                        no_cluster_subscribers = []
                         for cluster in clusters:
                             dt_start, timer_start = dt.timing()
                             if cluster["cluster_name"] not in (None, 'None', False, 'False', '', [], {}, ()):
@@ -133,7 +134,6 @@ async def main_loop(version_manager, _configuration):
                                     session, cluster["cluster_name"], cluster["layer"], _configuration
                                 )
                                 print("Checking:", cluster["cluster_name"], cluster["layer"])
-                                no_cluster_subscribers = []
                                 for i, cached_subscriber in enumerate(cache):
                                     if cached_subscriber["located"] in (None, 'None', False, 'False', '', [], {}, ()):
                                         if cached_subscriber["cluster_name"] in (None, 'None', False, 'False', '', [], {}, ()):
@@ -166,7 +166,7 @@ async def main_loop(version_manager, _configuration):
                                 tasks.clear()
 
                                 # These should be checked last
-                                no_cluster_subscribers = []
+                                no_cluster_subscribers = list(set(no_cluster_subscribers))
 
                                 # Log the completion time
                                 dt_stop, timer_stop = dt.timing()
