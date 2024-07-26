@@ -3,4 +3,4 @@ from datetime import datetime
 
 
 def timing():
-    return datetime.utcnow(), time.perf_counter()
+    return datetime.now(), time.perf_counter()
