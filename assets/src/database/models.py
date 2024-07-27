@@ -25,6 +25,7 @@ class UserModel(SQLBase):
     phone: Mapped[Optional[str]] = mapped_column(nullable=True)
     date: Mapped[datetime.datetime]
     alias: Mapped[Optional[str]] = mapped_column(nullable=True)
+    removal_datetime: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
 
 
 class NodeModel(SQLBase):

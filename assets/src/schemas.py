@@ -131,7 +131,7 @@ class User(NodeBase):
     phone: Optional[str | None] = None
     wallet: str
     alias: Optional[str | None] = None
-    removal_date: Optional[dt.datetime] = None
+    removal_datetime: Optional[dt.datetime] = None
 
     # VALIDATE ID VALUE, CREATE CUSTOM EXCEPTION!
 

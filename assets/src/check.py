@@ -36,12 +36,12 @@ async def automatic(session, cached_subscriber, cluster_data, cluster_name, laye
         data.append(node_data)
         cached_subscriber["cluster_name"] = cluster_name
         cached_subscriber["located"] = True
-        cached_subscriber["removal_date"] = None
+        cached_subscriber["removal_datetime"] = None
 
     if not node_data.last_known_cluster_name:
         cached_subscriber["cluster_name"] = None
-        if cached_subscriber["removal_date"] in (None, 'None'):
-            cached_subscriber["removal_date"] = datetime.datetime.now() + datetime.timedelta(days=30)
+        if cached_subscriber["removal_datetime"] in (None, 'None'):
+            cached_subscriber["removal_datetime"] = datetime.datetime.now() + datetime.timedelta(days=30)
         print("No last known cluster:", cached_subscriber)
 
     data = await determine_module.notify(data, _configuration)
