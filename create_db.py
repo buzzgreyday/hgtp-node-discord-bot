@@ -21,11 +21,21 @@ async def create_db():
             sqlalchemy.text(
                 """
                 ALTER TABLE users
+                ADD COLUMN removal_datetime TIMESTAMP;
+                """
+            )
+        )
+
+        await conn.execute(
+            sqlalchemy.text(
+                """
+                ALTER TABLE users
                 ADD COLUMN cluster TIMESTAMP;
                 """
             )
         )
-        print("Column added successfully!")
+
+        print("Columns added successfully!")
 
         # Create all tables
         await conn.run_sync(metadata.create_all)
