@@ -51,7 +51,7 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
         # Since we need the clusters below, if they're not existing, create them
         for cluster_name, layers in _configuration["modules"].items():
             for layer in layers:
-                clusters.append({"cluster_name": cluster_name, "layer": layer, "number_of_subs": 0, "marked_for_removal": 0})
+                clusters.append({"cluster_name": cluster_name, "layer": layer, "number_of_subs": 0})
         clusters.append({"cluster_name": None, "layer": 0, "number_of_subs": 0})
         clusters.append({"cluster_name": None, "layer": 1, "number_of_subs": 0})
 
@@ -148,9 +148,6 @@ async def main_loop(version_manager, _configuration):
                             print("Checking:", cluster["cluster_name"], cluster["layer"])
                             for i, cached_subscriber in enumerate(cache):
                                 if cached_subscriber["located"] in (None, 'None', False, 'False', '', [], {}, ()):
-                                    if cached_subscriber["cluster_name"] == "testnet" and cluster["layer"] == 1:
-                                        print(cached_subscriber)
-                                        print(cluster)
                                     if cached_subscriber["cluster_name"] in (None, 'None', False, 'False', '', [], {}, ()):
                                         # We need to run these last
                                         no_cluster_subscribers.append(cached_subscriber)
