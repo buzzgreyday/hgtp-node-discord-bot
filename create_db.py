@@ -21,7 +21,7 @@ async def create_db():
             sqlalchemy.text(
                 """
                 ALTER TABLE users
-                ADD COLUMN removal_datetime TIMESTAMP;
+                ADD COLUMN cluster TIMESTAMP;
                 """
             )
         )
@@ -51,7 +51,6 @@ def main():
                 "8000",
             ]
         )
-        time.sleep(6)
         pid = uvi_process.pid
         asyncio.run(create_db())
         os.kill(pid, signal.SIGTERM)
