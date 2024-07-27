@@ -59,7 +59,7 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
     for layer in [0, 1]:
         # We need subscriber data to determine if new subscriptions have been made (or first run), add these to cache
         layer_subscriptions = await api.get_user_ids(session, layer, None, _configuration)
-        # Returns a list of tuples containing (ID, IP, PORT)
+        # Returns a list of tuples containing (ID, IP, PORT, REMOVAL_DATETIME)
 
         for subscriber in layer_subscriptions:
             subscriber_found = False
@@ -78,8 +78,7 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
                         "ip": subscriber[1],
                         "public_port": subscriber[2],
                         "layer": layer,
-                        # This should be "new" if subscriber is new
-                        "cluster_name": f"{clusters[0]["cluster_name"]}",
+                        "cluster_name": "new",
                         "located": False,
                         "removal_datetime": subscriber[3]
                     }

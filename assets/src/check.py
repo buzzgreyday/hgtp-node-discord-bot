@@ -39,6 +39,8 @@ async def automatic(session, cached_subscriber, cluster_data, cluster_name, laye
         cached_subscriber["removal_datetime"] = None
 
     if not node_data.last_known_cluster_name:
+        if cached_subscriber["cluster_name"] == "new":
+            cached_subscriber["removal_datetime"] = datetime.datetime.now() + datetime.timedelta(days=1)
         cached_subscriber["cluster_name"] = None
         if cached_subscriber["removal_datetime"] in (None, 'None'):
             cached_subscriber["removal_datetime"] = datetime.datetime.now() + datetime.timedelta(days=30)
