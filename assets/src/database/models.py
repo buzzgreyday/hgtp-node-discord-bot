@@ -19,6 +19,7 @@ class UserModel(SQLBase):
     id: Mapped[str] = mapped_column(index=True)
     ip: Mapped[str]
     public_port: Mapped[int]
+    cluster: Mapped[Optional[str]] = mapped_column(nullable=True)
     layer: Mapped[int]
     discord: Mapped[Optional[str]] = mapped_column(nullable=True)
     mail: Mapped[Optional[str]] = mapped_column(nullable=True)

@@ -132,6 +132,7 @@ class User(NodeBase):
     wallet: str
     alias: Optional[str | None] = None
     removal_datetime: Optional[dt.datetime | None] = None
+    cluster: Optional[str | None] = None
 
     # VALIDATE ID VALUE, CREATE CUSTOM EXCEPTION!
 
