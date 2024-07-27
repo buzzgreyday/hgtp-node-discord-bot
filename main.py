@@ -81,7 +81,7 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
                         # Choose the most likely subscription by default, if new subscription or first run
                         "cluster_name": f"{clusters[0]["cluster_name"]}",
                         "located": False,
-                        "removal_date": None
+                        "removal_date": subscriber[3]
                     }
                 )
 

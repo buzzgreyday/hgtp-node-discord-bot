@@ -557,7 +557,7 @@ class CRUD:
             results = await session.execute(statement)
             ids = results.scalars().all()
             for values in ids:
-                list_of_tuples.append((values.id, values.ip, values.public_port))
+                list_of_tuples.append((values.id, values.ip, values.public_port, values.removal_datetime))
         return list_of_tuples
 
     async def get_nodes(
