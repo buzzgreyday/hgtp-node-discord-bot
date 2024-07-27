@@ -25,7 +25,7 @@ async def create_db():
                 """
             )
         )
-
+        # Temporary
         await conn.execute(
             sqlalchemy.text(
                 """
