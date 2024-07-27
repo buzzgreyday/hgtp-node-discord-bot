@@ -51,7 +51,7 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
         # Since we need the clusters below, if they're not existing, create them
         for cluster_name, layers in _configuration["modules"].items():
             for layer in layers:
-                clusters.append({"cluster_name": cluster_name, "layer": layer, "number_of_subs": 0})
+                clusters.append({"cluster_name": cluster_name, "layer": layer, "number_of_subs": 0, "marked_for_removal": 0})
         clusters.append({"cluster_name": None, "layer": 0, "number_of_subs": 0})
         clusters.append({"cluster_name": None, "layer": 1, "number_of_subs": 0})
 
@@ -78,7 +78,7 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
                         "ip": subscriber[1],
                         "public_port": subscriber[2],
                         "layer": layer,
-                        "cluster_name": "new",
+                        "cluster_name": "mainnet",
                         "located": False,
                         "removal_datetime": subscriber[3]
                     }
@@ -120,68 +120,61 @@ async def main_loop(version_manager, _configuration):
                 await bot.wait_until_ready()
                 try:
                     tasks = []
-
-                    current_time = datetime.now(timezone.utc).time().strftime("%H:%M:%S")
-                    if current_time in times:
-
-                        cache, clusters = await cache_and_clusters(session, cache, clusters, _configuration)
-                        no_cluster_subscribers = []
-                        for cluster in clusters:
-                            dt_start, timer_start = dt.timing()
-                            if cluster["cluster_name"] not in (None, 'None', False, 'False', '', [], {}, ()):
-                                # Ned a check for if cluster is down, skip check
-                                cluster_data = await preliminaries.supported_clusters(
-                                    session, cluster["cluster_name"], cluster["layer"], _configuration
-                                )
-                                print("Checking:", cluster["cluster_name"], cluster["layer"])
-                                for i, cached_subscriber in enumerate(cache):
-                                    if cached_subscriber["located"] in (None, 'None', False, 'False', '', [], {}, ()):
-                                        if cached_subscriber["cluster_name"] in (None, 'None', False, 'False', '', [], {}, ()):
-                                            # We need to run these last
-                                            no_cluster_subscribers.append(cached_subscriber)
-                                        else:
-                                            task = asyncio.create_task(check.automatic(
-                                                session,
-                                                cached_subscriber,
-                                                cluster_data,
-                                                cluster["cluster_name"],
-                                                cluster["layer"],
-                                                version_manager,
-                                                _configuration
-                                            ))
-                                            tasks.append((i, task))
+                    cache, clusters = await cache_and_clusters(session, cache, clusters, _configuration)
+                    no_cluster_subscribers = []
+                    for cluster in clusters:
+                        dt_start, timer_start = dt.timing()
+                        if cluster["cluster_name"] not in (None, 'None', False, 'False', '', [], {}, ()):
+                            # Ned a check for if cluster is down, skip check
+                            cluster_data = await preliminaries.supported_clusters(
+                                session, cluster["cluster_name"], cluster["layer"], _configuration
+                            )
+                            print("Checking:", cluster["cluster_name"], cluster["layer"])
+                            for i, cached_subscriber in enumerate(cache):
+                                if cached_subscriber["located"] in (None, 'None', False, 'False', '', [], {}, ()):
+                                    if cached_subscriber["cluster_name"] in (None, 'None', False, 'False', '', [], {}, ()):
+                                        # We need to run these last
+                                        no_cluster_subscribers.append(cached_subscriber)
                                     else:
-                                        # The specific node is already located
-                                        pass
+                                        task = asyncio.create_task(check.automatic(
+                                            session,
+                                            cached_subscriber,
+                                            cluster_data,
+                                            cluster["cluster_name"],
+                                            cluster["layer"],
+                                            version_manager,
+                                            _configuration
+                                        ))
+                                        tasks.append((i, task))
 
-                                # Wait for all tasks to complete
-                                results = await asyncio.gather(*[task for _, task in tasks])
+                            # Wait for all tasks to complete
+                            results = await asyncio.gather(*[task for _, task in tasks])
 
-                                # Handle the results
-                                for (i, _), (data, updated_cache) in zip(tasks, results):
-                                    await history.write(data)
-                                    cache[i] = updated_cache  # Replace the old cache entry with the updated one
+                            # Handle the results
+                            for (i, _), (data, updated_cache) in zip(tasks, results):
+                                await history.write(data)
+                                cache[i] = updated_cache  # Replace the old cache entry with the updated one
 
-                                # Clear to make ready for next check
-                                tasks.clear()
+                            # Clear to make ready for next check
+                            tasks.clear()
 
-                                # These should be checked last: probably make sure these are not new subscribers
-                                # (new subscribers are 'integrationnet' by default now, could be "new" or something)
-                                # and then check once daily, until removal
-                                tuple_of_tuples = [tuple(sorted(d.items())) for d in no_cluster_subscribers]
+                            # These should be checked last: probably make sure these are not new subscribers
+                            # (new subscribers are 'integrationnet' by default now, could be "new" or something)
+                            # and then check once daily, until removal
+                            tuple_of_tuples = [tuple(sorted(d.items())) for d in no_cluster_subscribers]
 
-                                # Create a set to remove duplicates
-                                unique_tuples = set(tuple_of_tuples)
+                            # Create a set to remove duplicates
+                            unique_tuples = set(tuple_of_tuples)
 
-                                # Convert tuples back to dictionaries
-                                no_cluster_subscribers = [dict(t) for t in unique_tuples]
+                            # Convert tuples back to dictionaries
+                            no_cluster_subscribers = [dict(t) for t in unique_tuples]
 
-                                # Log the completion time
-                                dt_stop, timer_stop = dt.timing()
-                                print(
-                                    f"main.py - L{cluster["layer"]} {cluster["cluster_name"]}- Automatic check completed in completed in "
-                                    f"{round(timer_stop - timer_start, 2)} seconds"
-                                )
+                            # Log the completion time
+                            dt_stop, timer_stop = dt.timing()
+                            print(
+                                f"main.py - L{cluster["layer"]} {cluster["cluster_name"]}- Automatic check completed in completed in "
+                                f"{round(timer_stop - timer_start, 2)} seconds"
+                            )
                         print("Check these separately:", no_cluster_subscribers)
 
 
