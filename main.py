@@ -98,6 +98,16 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
     return sorted_cache, sorted_clusters
 
 
+def is_uvicorn_running():
+    for process in psutil.process_iter(['pid', 'name']):
+        try:
+            if 'uvicorn' in process.name():
+                return True
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+    return False
+
+
 async def main_loop(version_manager, _configuration):
     times = preliminaries.generate_runtimes(_configuration)
     logging.getLogger("app").info(f"main.py - runtime schedule:\n\t{times}")
@@ -107,14 +117,6 @@ async def main_loop(version_manager, _configuration):
 
     while True:
         async with aiohttp.ClientSession() as session:
-            def is_uvicorn_running():
-                for process in psutil.process_iter(['pid', 'name']):
-                    try:
-                        if 'uvicorn' in process.name():
-                            return True
-                    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                        pass
-                return False
 
             if is_uvicorn_running():
                 await bot.wait_until_ready()
@@ -175,11 +177,6 @@ async def main_loop(version_manager, _configuration):
                                 f"main.py - L{cluster["layer"]} {cluster["cluster_name"]}- Automatic check completed in completed in "
                                 f"{round(timer_stop - timer_start, 2)} seconds"
                             )
-                        print("Check these separately:", no_cluster_subscribers)
-
-
-                    else:
-                        await asyncio.sleep(0.2)
 
                 except Exception as e:
                     logging.getLogger("app").error(
@@ -192,7 +189,13 @@ async def main_loop(version_manager, _configuration):
                             f"main.py - Could not send traceback via Discord"
                         )
 
-
+            else:
+                # If uvicorn isn't running
+                logging.getLogger("app").error(
+                    f"main.py - Uvicorn isn't running"
+                )
+        # After checks, give GIL something to do
+        await asyncio.sleep(3)
 def run_uvicorn_process():
     subprocess.run(
         [
