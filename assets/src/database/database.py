@@ -1,5 +1,7 @@
+import logging
 from typing import List
 
+import sqlalchemy.exc
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
@@ -84,7 +86,10 @@ async def get_node(ip: str, public_port: int):
 @app.get("/user/ids/contact/{contact}/layer/{layer}")
 async def get_contact_node_id(contact, layer):
     """INSTEAD RETURN A TUPLE CONTAINING ID, IP, PORT!!!! Return user by contact"""
-    return await db.get_contact_node_id(contact, layer, session)
+    try:
+        return await db.get_contact_node_id(contact, layer, session)
+    except sqlalchemy.exc.SQLAlchemyError as e:
+        logging.getLogger("app").error(f"database.py - Database Operation Failed:\n\tDetails: {e}")
 
 
 @app.get("/data/node/{ip}/{public_port}")

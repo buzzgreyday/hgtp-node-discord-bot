@@ -78,10 +78,10 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
                         "ip": subscriber[1],
                         "public_port": subscriber[2],
                         "layer": layer,
-                        # Choose the most likely subscription by default, if new subscription or first run
+                        # This should be "new" if subscriber is new
                         "cluster_name": f"{clusters[0]["cluster_name"]}",
                         "located": False,
-                        "removal_date": subscriber[3]
+                        "removal_datetime": subscriber[3]
                     }
                 )
 

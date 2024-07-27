@@ -2,6 +2,9 @@ import asyncio
 import os
 import signal
 import subprocess
+import time
+import traceback
+import sqlalchemy
 
 from assets.src.database.models import SQLBase
 from assets.src.database.crud import engine
@@ -13,10 +16,16 @@ async def create_db():
         metadata = SQLBase.metadata
         await conn.run_sync(metadata.reflect)
 
-        # Check if the table exists
-        if "reward_stats" in metadata.tables:
-            # Drop the existing table
-            await conn.run_sync(metadata.tables["reward_stats"].drop)
+        # Temporary
+        await conn.execute(
+            sqlalchemy.text(
+                """
+                ALTER TABLE users
+                ADD COLUMN removal_datetime TIMESTAMP;
+                """
+            )
+        )
+        print("Column added successfully!")
 
         # Create all tables
         await conn.run_sync(metadata.create_all)
@@ -30,6 +39,7 @@ print("starting process...")
 
 
 def main():
+    pid = None
     try:
         uvi_process = subprocess.Popen(
             [
@@ -41,10 +51,14 @@ def main():
                 "8000",
             ]
         )
+        time.sleep(6)
         pid = uvi_process.pid
         asyncio.run(create_db())
         os.kill(pid, signal.SIGTERM)
     except Exception:
+        print(traceback.format_exc())
+        if pid:
+            os.kill(pid, signal.SIGTERM)
         exit(1)
     else:
         exit(0)

@@ -126,9 +126,11 @@ async def get_user_ids(session, layer, requester, _configuration) -> List:
         else:
             if resp_status == 200:
                 return data
+            if resp_status == 500:
+                await asyncio.sleep(3)
             else:
                 logging.getLogger("app").warning(
-                    f"api.py - localhost error: http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer} return status {resp_status}"
+                    f"api.py - status {resp_status}"
                 )
                 await asyncio.sleep(3)
 
