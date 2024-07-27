@@ -32,6 +32,7 @@ async def automatic(session, cached_subscriber, cluster_data, cluster_name, laye
         version_manager,
         _configuration,
     )
+    # We might need to add a last_located time to database
     if node_data.last_known_cluster_name == cluster_name and node_data.layer == layer:
         data.append(node_data)
         cached_subscriber["cluster_name"] = cluster_name
