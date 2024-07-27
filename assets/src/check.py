@@ -32,13 +32,13 @@ async def automatic(session, cached_subscriber, cluster_data, cluster_name, laye
         version_manager,
         _configuration,
     )
-    if node_data.last_known_cluster_name == cluster_name:
+    if node_data.last_known_cluster_name == cluster_name and node_data.layer == layer:
         data.append(node_data)
         cached_subscriber["cluster_name"] = cluster_name
         cached_subscriber["located"] = True
         cached_subscriber["removal_datetime"] = None
 
-    if not node_data.last_known_cluster_name:
+    if not node_data.last_known_cluster_name and node_data.layer == layer:
         cached_subscriber["cluster_name"] = None
         if cached_subscriber["removal_datetime"] in (None, 'None'):
             cached_subscriber["removal_datetime"] = datetime.datetime.now() + datetime.timedelta(days=30)

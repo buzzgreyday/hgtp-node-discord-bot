@@ -135,7 +135,7 @@ async def main_loop(version_manager, _configuration):
                     for cluster in clusters:
                         dt_start, timer_start = dt.timing()
                         if cluster["cluster_name"] not in (None, 'None', False, 'False', '', [], {}, ()):
-                            # Ned a check for if cluster is down, skip check
+                            # Need a check for if cluster is down, skip check
                             try:
                                 cluster_data = await preliminaries.supported_clusters(
                                     session, cluster["cluster_name"], cluster["layer"], _configuration
@@ -177,6 +177,7 @@ async def main_loop(version_manager, _configuration):
                             # Handle the results
                             for (i, _), (data, updated_cache) in zip(tasks, results):
                                 await history.write(data)
+                                print(updated_cache)
                                 cache[i] = updated_cache  # Replace the old cache entry with the updated one
 
                             # Clear to make ready for next check
