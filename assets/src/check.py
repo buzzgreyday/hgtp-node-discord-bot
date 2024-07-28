@@ -49,7 +49,7 @@ async def automatic(session, cached_subscriber, cluster_data, cluster_name, laye
     logger.debug(
         f"run_process.py - Handling {len(data), cluster_name} L{layer} nodes"
     )
-    # await discord.send_notification(bot, data, _configuration)
+    await discord.send_notification(bot, data, _configuration)
 
     return data, cached_subscriber
 

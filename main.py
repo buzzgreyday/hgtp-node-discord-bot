@@ -56,7 +56,7 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
         clusters.append({"cluster_name": None, "layer": 1, "number_of_subs": 0})
 
     # Get subscribers to check with cache: this should follow same logic as above
-    for layer in [0, 1]:
+    for layer in (0, 1):
         # We need subscriber data to determine if new subscriptions have been made (or first run), add these to cache
         layer_subscriptions = await api.get_user_ids(session, layer, None, _configuration)
         # Returns a list of tuples containing (ID, IP, PORT, REMOVAL_DATETIME, CLUSTER)
@@ -256,7 +256,7 @@ def main():
 
     version_manager = preliminaries.VersionManager(_configuration)
 
-    # bot.load_extension("assets.src.discord.commands")
+    bot.load_extension("assets.src.discord.commands")
     bot.load_extension("assets.src.discord.events")
 
     bot.loop.create_task(main_loop(version_manager, _configuration))
