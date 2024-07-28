@@ -30,7 +30,7 @@ async def create_db():
             sqlalchemy.text(
                 """
                 ALTER TABLE users
-                ADD COLUMN cluster TIMESTAMP;
+                ADD COLUMN cluster VARCHAR;
                 """
             )
         )
