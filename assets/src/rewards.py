@@ -91,7 +91,7 @@ async def process_ordinal_data(session, url, ordinal, ordinal_data, configuratio
         try:
             db_price_data, status_code = await Request(
                 session, f"http://127.0.0.1:8000/price/{ordinal_data['timestamp']}"
-            ).db_json(configuration)
+            ).db_json()
         except (
             asyncio.exceptions.TimeoutError,
             aiohttp.client_exceptions.ClientConnectorError,

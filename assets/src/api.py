@@ -29,8 +29,8 @@ class Request:
             else:
                 return None, resp.status
 
-    async def db_json(self, configuration=None):
-        async with self.session.get(self.url) as resp:
+    async def db_json(self, timeout=18000):
+        async with self.session.get(self.url, timeout=aiohttp.ClientTimeout(total=timeout)) as resp:
             await asyncio.sleep(0)
             if resp.status == 200:
                 data = await resp.json()
@@ -106,12 +106,12 @@ async def get_user_ids(session, layer, requester, _configuration) -> List:
             if requester is None:
                 data, resp_status = await Request(
                     session, f"http://127.0.0.1:8000/user/ids/layer/{layer}"
-                ).db_json(_configuration)
+                ).db_json(timeout=6)
             else:
                 data, resp_status = await Request(
                     session,
                     f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}",
-                ).db_json(_configuration)
+                ).db_json(timeout=6)
         except (
             asyncio.exceptions.TimeoutError,
             aiohttp.client_exceptions.ClientConnectorError,
@@ -144,7 +144,7 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
         try:
             data, resp_status = await Request(
                 session, f"http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port}"
-            ).db_json(_configuration)
+            ).db_json(timeout=6)
         except (
             asyncio.exceptions.TimeoutError,
             aiohttp.client_exceptions.ClientConnectorError,

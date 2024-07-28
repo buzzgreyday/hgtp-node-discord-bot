@@ -23,7 +23,7 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
             data, resp_status = await api.Request(
                 session,
                 f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}",
-            ).db_json(_configuration)
+            ).db_json(timeout=6)
             # resp_status = 500
         except (
             asyncio.exceptions.TimeoutError,
@@ -54,7 +54,7 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
                     # Did the user unsubscribe
                     if resp_status == 500:
                         user, resp_status = await api.Request(session, f"http://127.0.0.1:8000/user/{node_data.name}").db_json(
-                            _configuration)
+                            timeout=6)
                         for sub in user:
                             if sub["name"] == node_data.name and sub["ip"] == node_data.ip and sub["public_port"] == node_data.public_port:
                                 user = UserModel(**dict(sub))
