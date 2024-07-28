@@ -94,7 +94,6 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
     sorted_clusters = sorted(clusters, key=lambda k: k["number_of_subs"], reverse=True)
     priority_dict = {item['cluster_name']: int(item['number_of_subs']) for item in sorted_clusters}
     sorted_cache = sorted(cache, key=lambda x: priority_dict[x['cluster_name']], reverse=True)
-    print(sorted_clusters)
     return sorted_cache, sorted_clusters
 
 
@@ -145,7 +144,6 @@ async def main_loop(version_manager, _configuration):
                                     f"main.py - Unknown error - Get cluster data failed for {[cluster["cluster_name"], cluster["layer"]]}: {traceback.format_exc()}"
                                 )
                                 continue
-                            print("Checking:", cluster["cluster_name"], cluster["layer"])
                             for i, cached_subscriber in enumerate(cache):
                                 if cached_subscriber["located"] in (None, 'None', False, 'False', '', [], {}, ()):
                                     if cached_subscriber["cluster_name"] in (None, 'None', False, 'False', '', [], {}, ()):
@@ -178,7 +176,6 @@ async def main_loop(version_manager, _configuration):
                             for (i, _), (data, updated_cache) in zip(tasks, results):
                                 await history.write(data)
                                 await update_user(updated_cache)
-                                print(updated_cache)
                                 cache[i] = updated_cache  # Replace the old cache entry with the updated one
 
                             # Clear to make ready for next check
@@ -197,7 +194,7 @@ async def main_loop(version_manager, _configuration):
 
                             # Log the completion time
                             dt_stop, timer_stop = dt.timing()
-                            print(
+                            logging.getLogger("app").warning(
                                 f"main.py - L{cluster["layer"]} {cluster["cluster_name"]} - Automatic check completed in completed in "
                                 f"{round(timer_stop - timer_start, 2)} seconds"
                             )
