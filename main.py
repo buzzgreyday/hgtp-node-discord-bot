@@ -61,9 +61,9 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
         layer_subscriptions = await api.get_user_ids(session, layer, None, _configuration)
         # Returns a list of tuples containing (ID, IP, PORT, REMOVAL_DATETIME, CLUSTER)
 
-        if cache:
-            for subscriber in layer_subscriptions:
-                subscriber_found = False
+        for subscriber in layer_subscriptions:
+            subscriber_found = False
+            if cache:
                 for cached_subscriber in cache:
                     # This will skip lookup if already located in a cluster. This needs reset every check.
                     cached_subscriber["located"] = False
@@ -71,27 +71,14 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
                         subscriber_found = True
                         break
 
-                if not subscriber_found:
-                    cache.append(
-                        {
-                            "id": subscriber[0],
-                            "ip": subscriber[1],
-                            "public_port": subscriber[2],
-                            "layer": layer,
-                            "cluster_name": "mainnet",
-                            "located": False,
-                            "removal_datetime": subscriber[3]
-                        }
-                    )
-        else:
-            for subscriber in layer_subscriptions:
+            if not subscriber_found:
                 cache.append(
                     {
                         "id": subscriber[0],
                         "ip": subscriber[1],
                         "public_port": subscriber[2],
                         "layer": layer,
-                        "cluster_name": subscriber[4],
+                        "cluster_name": "mainnet",
                         "located": False,
                         "removal_datetime": subscriber[3]
                     }

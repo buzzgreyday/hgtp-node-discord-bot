@@ -168,12 +168,12 @@ class CRUD:
                     .where(and_(UserModel.ip == cached_subscriber["ip"],
                                 UserModel.public_port == cached_subscriber["public_port"],
                                 UserModel.id == cached_subscriber["id"], UserModel.layer == cached_subscriber["layer"]))
-                    .values(cluster=cached_subscriber["cluster"], removal_datetime=cached_subscriber["removal_datetime"])
+                    .values(cluster=cached_subscriber["cluster_name"], removal_datetime=cached_subscriber["removal_datetime"])
                 )
                 await session.commit()
-                logging.getLogger("stats").debug(f"crud.py - User cache update: SUCCESS!")
+                logging.getLogger("app").debug(f"crud.py - User cache update: SUCCESS!")
             except Exception:
-                logging.getLogger("stats").error(f"crud.py - User cache update: FAIL!\n{traceback.format_exc()}")
+                logging.getLogger("app").error(f"crud.py - User cache update: FAIL!\n{traceback.format_exc()}")
 
     async def post_metric_stats(
             self, data: MetricStatsSchema, async_session: async_sessionmaker[AsyncSession]
@@ -569,14 +569,14 @@ class CRUD:
     async def get_user_ids(
             self, layer: int, async_session: async_sessionmaker[AsyncSession]
     ) -> List:
-        """INSTEAD RETURN A TUPLE CONTAINING ID, IP, PORT!!!! Returns a list of all user IDs currently subscribed"""
+        """INSTEAD RETURN A TUPLE CONTAINING ID, IP, PORT, REMOVAL_DATETIME, CLUSTER!!!! Returns a list of all user IDs currently subscribed"""
         list_of_tuples = []
         async with async_session() as session:
             statement = select(UserModel).where(UserModel.layer == layer)
             results = await session.execute(statement)
             ids = results.scalars().all()
             for values in ids:
-                list_of_tuples.append((values.id, values.ip, values.public_port, values.removal_datetim, values.clustere))
+                list_of_tuples.append((values.id, values.ip, values.public_port, values.removal_datetime, values.cluster))
         return list_of_tuples
 
     async def get_nodes(
