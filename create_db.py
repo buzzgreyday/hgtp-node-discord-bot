@@ -2,7 +2,6 @@ import asyncio
 import os
 import signal
 import subprocess
-import time
 import traceback
 import sqlalchemy
 
