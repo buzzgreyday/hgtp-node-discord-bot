@@ -3,7 +3,7 @@ import logging
 import traceback
 from datetime import datetime, timezone
 import os
-from typing import List
+from typing import List, Dict
 
 from dotenv import load_dotenv
 from assets.src.database.models import (
@@ -21,11 +21,10 @@ from assets.src.schemas import (
 )
 from assets.src.schemas import Node as NodeSchema
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
-from sqlalchemy import select, delete, update, desc
+from sqlalchemy import select, delete, update, desc, and_
 from fastapi.encoders import jsonable_encoder
 
 load_dotenv()
-
 
 database_url = os.getenv("DB_URL")
 
@@ -64,7 +63,7 @@ batch_processor = DatabaseBatchProcessor(batch_size=100)
 
 class CRUD:
     async def post_user(
-        self, data: UserSchema, async_session: async_sessionmaker[AsyncSession]
+            self, data: UserSchema, async_session: async_sessionmaker[AsyncSession]
     ):
         """Creates a new user subscription"""
         async with async_session() as session:
@@ -90,7 +89,7 @@ class CRUD:
         return jsonable_encoder(data_dict)
 
     async def post_data(
-        self, data: NodeSchema, async_session: async_sessionmaker[AsyncSession]
+            self, data: NodeSchema, async_session: async_sessionmaker[AsyncSession]
     ):
         """Inserts node data from automatic check into database file"""
         async with async_session() as session:
@@ -107,14 +106,14 @@ class CRUD:
         return jsonable_encoder(data_dict)
 
     async def post_ordinal(
-        self, data: OrdinalSchema, async_session: async_sessionmaker[AsyncSession]
+            self, data: OrdinalSchema, async_session: async_sessionmaker[AsyncSession]
     ):
         """Inserts node data from automatic check into database file"""
         await batch_processor.add_to_batch(OrdinalModel(**data.__dict__), async_session)
         return jsonable_encoder(data)
 
     async def post_prices(
-        self, data: PriceSchema, async_session: async_sessionmaker[AsyncSession]
+            self, data: PriceSchema, async_session: async_sessionmaker[AsyncSession]
     ):
         """Inserts node data from automatic check into database file"""
         async with async_session() as session:
@@ -129,7 +128,7 @@ class CRUD:
         return jsonable_encoder(data)
 
     async def post_reward_stats(
-        self, data: RewardStatsSchema, async_session: async_sessionmaker[AsyncSession]
+            self, data: RewardStatsSchema, async_session: async_sessionmaker[AsyncSession]
     ):
         """Post statistical data row by row"""
         async with async_session() as session:
@@ -141,7 +140,7 @@ class CRUD:
         return jsonable_encoder(stat_data)
 
     async def update_reward_stats(
-        self, data: RewardStatsSchema, async_session: async_sessionmaker[AsyncSession]
+            self, data: RewardStatsSchema, async_session: async_sessionmaker[AsyncSession]
     ):
         """Update statistical data"""
 
@@ -157,8 +156,27 @@ class CRUD:
             except Exception as e:
                 logging.getLogger("stats").error(f"crud.py - Reward stats update: FAIL!\n{traceback.format_exc()}")
 
+    async def update_user(
+            self, cached_subscriber: Dict, async_session: async_sessionmaker[AsyncSession]
+    ):
+        """Update user data based on cache"""
+
+        async with async_session() as session:
+            try:
+                await session.execute(
+                    update(UserModel)
+                    .where(and_(UserModel.ip == cached_subscriber["ip"],
+                                UserModel.public_port == cached_subscriber["public_port"],
+                                UserModel.id == cached_subscriber["id"], UserModel.layer == cached_subscriber["layer"]))
+                    .values(cluster=cached_subscriber["cluster"], removal_datetime=cached_subscriber["removal_datetime"])
+                )
+                await session.commit()
+                logging.getLogger("stats").debug(f"crud.py - User cache update: SUCCESS!")
+            except Exception:
+                logging.getLogger("stats").error(f"crud.py - User cache update: FAIL!\n{traceback.format_exc()}")
+
     async def post_metric_stats(
-        self, data: MetricStatsSchema, async_session: async_sessionmaker[AsyncSession]
+            self, data: MetricStatsSchema, async_session: async_sessionmaker[AsyncSession]
     ):
         """Post statistical data row by row"""
         async with async_session() as session:
@@ -170,7 +188,7 @@ class CRUD:
         return jsonable_encoder(metric_data)
 
     async def update_metric_stats(
-        self, data: MetricStatsSchema, async_session: async_sessionmaker[AsyncSession]
+            self, data: MetricStatsSchema, async_session: async_sessionmaker[AsyncSession]
     ):
         """Update statistical data based on hash_index"""
 
@@ -187,7 +205,7 @@ class CRUD:
                 logging.getLogger("stats").error(f"crud.py - Metric stats update: FAIL!\n{traceback.format_exc()}")
 
     async def delete_user_entry(
-        self, data: UserModel, async_session: async_sessionmaker[AsyncSession]
+            self, data: UserModel, async_session: async_sessionmaker[AsyncSession]
     ):
         """Delete the user subscription based on name, ip, port"""
 
@@ -207,7 +225,7 @@ class CRUD:
             pass
 
     async def delete_db_ordinal(
-        self, ordinal, async_session: async_sessionmaker[AsyncSession]
+            self, ordinal, async_session: async_sessionmaker[AsyncSession]
     ):
         """Delete the user subscription based on name, ip, port"""
 
@@ -221,11 +239,11 @@ class CRUD:
             return
 
     async def get_html_page_stats(
-        self,
-        request,
-        templates,
-        dag_address,
-        async_session: async_sessionmaker[AsyncSession],
+            self,
+            request,
+            templates,
+            dag_address,
+            async_session: async_sessionmaker[AsyncSession],
     ):
 
         async with async_session() as session:
@@ -256,10 +274,10 @@ class CRUD:
             usd_address_sum = reward_results.usd_address_sum
             usd_address_daily_sum = reward_results.usd_address_daily_sum
             daily_dag_estimation_low = (
-                reward_results.dag_address_daily_mean - reward_results.dag_daily_std_dev
+                    reward_results.dag_address_daily_mean - reward_results.dag_daily_std_dev
             )
             daily_dag_estimation_high = (
-                reward_results.dag_address_daily_mean + reward_results.dag_daily_std_dev
+                    reward_results.dag_address_daily_mean + reward_results.dag_daily_std_dev
             )
             dag_address_daily_std_dev = (
                 f"{round(daily_dag_estimation_low)} - {round(daily_dag_estimation_high)}"
@@ -297,40 +315,42 @@ class CRUD:
                 dag_earnings_price_now_dev = f'{round(dag_earnings_price_now_dev, 2)}'
 
             content = templates.TemplateResponse(
-                    "stats.html",
-                    dict(request=request,
-                         dag_address=dag_address,
-                         earner_score=earner_score,
-                         count=count,
-                         percent_earning_more=round(percent_earning_more, 2),
-                         dag_address_sum=round(dag_address_sum, 2),
-                         dag_address_sum_dev=dag_address_sum_dev,
-                         dag_median_sum=round(dag_median_sum, 2),
-                         dag_address_daily_mean=round(dag_address_daily_mean, 2),
-                         dag_address_daily_std_dev=dag_address_daily_std_dev,
-                         dag_address_monthly_mean=round(monthly_dag_average, 2),
-                         dag_price_now=round(price_dagusd, 4),
-                         dag_earnings_price_now_dev=dag_earnings_price_now_dev,
-                         dag_price_now_timestamp=datetime.fromtimestamp(price_timestamp),
-                         dag_earnings_price_now=round(dag_earnings_price_now, 2),
-                         usd_address_sum=round(usd_address_sum, 2),
-                         usd_address_daily_sum=round(usd_address_daily_sum, 2),
-                         rewards_plot_path=f"rewards_{dag_address}.html",
-                         cpu_plot_path=f"cpu_{dag_address}.html",
+                "stats.html",
+                dict(request=request,
+                     dag_address=dag_address,
+                     earner_score=earner_score,
+                     count=count,
+                     percent_earning_more=round(percent_earning_more, 2),
+                     dag_address_sum=round(dag_address_sum, 2),
+                     dag_address_sum_dev=dag_address_sum_dev,
+                     dag_median_sum=round(dag_median_sum, 2),
+                     dag_address_daily_mean=round(dag_address_daily_mean, 2),
+                     dag_address_daily_std_dev=dag_address_daily_std_dev,
+                     dag_address_monthly_mean=round(monthly_dag_average, 2),
+                     dag_price_now=round(price_dagusd, 4),
+                     dag_earnings_price_now_dev=dag_earnings_price_now_dev,
+                     dag_price_now_timestamp=datetime.fromtimestamp(price_timestamp),
+                     dag_earnings_price_now=round(dag_earnings_price_now, 2),
+                     usd_address_sum=round(usd_address_sum, 2),
+                     usd_address_daily_sum=round(usd_address_daily_sum, 2),
+                     rewards_plot_path=f"rewards_{dag_address}.html",
+                     cpu_plot_path=f"cpu_{dag_address}.html",
 
-                         dag_minted_for_validators=round(dag_minted_for_validators, 2),
-                         dag_highest_earner=round(dag_highest_earning, 2),
-                         above_dag_earnings_mean=round(above_dag_earnings_mean, 2),
-                         above_dag_address_deviation_from_mean=round(above_dag_address_deviation_from_mean, 2),
-                         above_dag_address_deviation_from_highest_earning=round(above_dag_address_deviation_from_highest_earning, 2),
-                         above_dag_address_std_dev_high=round(above_dag_address_std_dev_high, 2),
-                         above_dag_address_std_dev_low=round(above_dag_address_std_dev_low, 2),
-                         percent_of_nonoutlier_validator_pool=round(percent_of_nonoutlier_validator_pool, 2),
+                     dag_minted_for_validators=round(dag_minted_for_validators, 2),
+                     dag_highest_earner=round(dag_highest_earning, 2),
+                     above_dag_earnings_mean=round(above_dag_earnings_mean, 2),
+                     above_dag_address_deviation_from_mean=round(above_dag_address_deviation_from_mean, 2),
+                     above_dag_address_deviation_from_highest_earning=round(
+                         above_dag_address_deviation_from_highest_earning, 2),
+                     above_dag_address_std_dev_high=round(above_dag_address_std_dev_high, 2),
+                     above_dag_address_std_dev_low=round(above_dag_address_std_dev_low, 2),
+                     percent_of_nonoutlier_validator_pool=round(percent_of_nonoutlier_validator_pool, 2),
 
-                         metric_dicts=metric_dicts)
+                     metric_dicts=metric_dicts)
             )
             if reward_results:
                 return content
+
     async def get_html_page_index(self, request, templates):
         content = templates.TemplateResponse(
             "index.html", dict(request=request))
@@ -346,9 +366,8 @@ class CRUD:
             "pages/about.html", dict(request=request))
         return content
 
-
     async def get_latest_db_price(
-        self, async_session: async_sessionmaker[AsyncSession]
+            self, async_session: async_sessionmaker[AsyncSession]
     ):
         """Get the latest ordinal data existing in the database"""
         async with async_session() as session:
@@ -369,7 +388,7 @@ class CRUD:
             return
 
     async def get_timestamp_db_price(
-        self, ordinal_timestamp: int, async_session: async_sessionmaker[AsyncSession]
+            self, ordinal_timestamp: int, async_session: async_sessionmaker[AsyncSession]
     ):
         """Get the latest ordinal data existing in the database"""
         async with async_session() as session:
@@ -393,7 +412,7 @@ class CRUD:
             return
 
     async def get_latest_db_ordinal(
-        self, async_session: async_sessionmaker[AsyncSession]
+            self, async_session: async_sessionmaker[AsyncSession]
     ):
         """Get the latest ordinal data existing in the database"""
         async with async_session() as session:
@@ -415,7 +434,7 @@ class CRUD:
             return
 
     async def get_ordinals_data_from_timestamp(
-        self, timestamp: int, async_session: async_sessionmaker[AsyncSession]
+            self, timestamp: int, async_session: async_sessionmaker[AsyncSession]
     ):
         async with async_session() as session:
             batch_size = 200000
@@ -464,7 +483,7 @@ class CRUD:
         return data
 
     async def get_historic_node_data_from_timestamp(
-        self, timestamp: int, async_session: async_sessionmaker[AsyncSession]
+            self, timestamp: int, async_session: async_sessionmaker[AsyncSession]
     ):
         """
         Get timeslice data from the node database.
@@ -548,7 +567,7 @@ class CRUD:
         return results.scalars().all()
 
     async def get_user_ids(
-        self, layer: int, async_session: async_sessionmaker[AsyncSession]
+            self, layer: int, async_session: async_sessionmaker[AsyncSession]
     ) -> List:
         """INSTEAD RETURN A TUPLE CONTAINING ID, IP, PORT!!!! Returns a list of all user IDs currently subscribed"""
         list_of_tuples = []
@@ -557,15 +576,15 @@ class CRUD:
             results = await session.execute(statement)
             ids = results.scalars().all()
             for values in ids:
-                list_of_tuples.append((values.id, values.ip, values.public_port, values.removal_datetime))
+                list_of_tuples.append((values.id, values.ip, values.public_port, values.removal_datetim, values.clustere))
         return list_of_tuples
 
     async def get_nodes(
-        self,
-        id_: str,
-        ip: str,
-        port: int,
-        async_session: async_sessionmaker[AsyncSession],
+            self,
+            id_: str,
+            ip: str,
+            port: int,
+            async_session: async_sessionmaker[AsyncSession],
     ):
         """Return user by ID"""
         async with async_session() as session:
@@ -578,7 +597,7 @@ class CRUD:
         return results.scalars().all()
 
     async def get_node(
-        self, ip: str, public_port: int, async_session: async_sessionmaker[AsyncSession]
+            self, ip: str, public_port: int, async_session: async_sessionmaker[AsyncSession]
     ):
         """Return user by IP and port"""
         async with async_session() as session:
@@ -590,7 +609,7 @@ class CRUD:
         return {"node": node}
 
     async def get_contact_node_id(
-        self, contact: str, layer: int, async_session: async_sessionmaker[AsyncSession]
+            self, contact: str, layer: int, async_session: async_sessionmaker[AsyncSession]
     ):
         """INSTEAD RETURN A TUPLE CONTAINING ID, IP, PORT!!!! Return user by contact"""
         list_of_tuples = []
@@ -609,7 +628,7 @@ class CRUD:
         return list_of_tuples
 
     async def get_node_data(
-        self, ip: str, public_port: int, async_session: async_sessionmaker[AsyncSession]
+            self, ip: str, public_port: int, async_session: async_sessionmaker[AsyncSession]
     ):
         """Return latest node data fetched via automatic check by IP and port"""
         async with async_session() as session:

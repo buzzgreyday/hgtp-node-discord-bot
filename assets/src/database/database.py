@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Dict
 
 import sqlalchemy.exc
 from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -126,6 +126,12 @@ async def post_reward_stats(data: RewardStatsSchema):
 async def update_reward_stats(data: RewardStatsSchema):
     """insert statistical data into database"""
     return await db.update_reward_stats(data, session)
+
+
+@app.put("/user/update")
+async def update_user(cached_subscriber: Dict):
+    """insert statistical data into database"""
+    return await db.update_user(cached_subscriber, session)
 
 
 @app.put("/metric-stat/create")

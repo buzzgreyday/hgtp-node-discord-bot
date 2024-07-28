@@ -5,7 +5,6 @@ import sys
 import threading
 import time
 import traceback
-from datetime import datetime, timezone
 from typing import List, Tuple, Dict
 import psutil
 
@@ -14,6 +13,7 @@ import yaml
 from aiohttp import ClientConnectorError
 
 from assets.src import preliminaries, check, history, rewards, stats, api, dt
+from assets.src.database.database import update_user
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
 
@@ -177,6 +177,7 @@ async def main_loop(version_manager, _configuration):
                             # Handle the results
                             for (i, _), (data, updated_cache) in zip(tasks, results):
                                 await history.write(data)
+                                await update_user(updated_cache)
                                 print(updated_cache)
                                 cache[i] = updated_cache  # Replace the old cache entry with the updated one
 
