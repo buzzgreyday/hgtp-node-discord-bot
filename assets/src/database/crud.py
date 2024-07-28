@@ -164,16 +164,12 @@ class CRUD:
 
         async with async_session() as session:
             try:
-                if cached_subscriber["removal_datetime"]:
-                    removal_datetime = pd.to_datetime(cached_subscriber["removal_datetime"])
-                else:
-                    removal_datetime = None
                 await session.execute(
                     update(UserModel)
                     .where(and_(UserModel.ip == cached_subscriber["ip"],
                                 UserModel.public_port == cached_subscriber["public_port"],
                                 UserModel.id == cached_subscriber["id"], UserModel.layer == cached_subscriber["layer"]))
-                    .values(cluster=cached_subscriber["cluster_name"], removal_datetime=removal_datetime)
+                    .values(cluster=cached_subscriber["cluster_name"], removal_datetime=cached_subscriber["removal_datetime"])
                 )
                 await session.commit()
                 logging.getLogger("app").debug(f"crud.py - User cache update: SUCCESS!")
