@@ -33,9 +33,10 @@ database_url = os.getenv("DB_URL")
 engine = create_async_engine(
     database_url,
     future=True,
-    # pool_size=20,
-    # max_overflow=0
-    # echo=True
+    pool_size=20,
+    max_overflow=30,
+    pool_timeout=60
+    # echo=True,
     # poolclass=NullPool,
 )
 
