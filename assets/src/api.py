@@ -1,6 +1,6 @@
 import asyncio
 import traceback
-from typing import List, Tuple
+from typing import List
 
 import aiohttp
 from aiohttp import client_exceptions
@@ -82,8 +82,10 @@ async def safe_request(session, request_url: str, configuration: dict):
             aiohttp.client_exceptions.ServerDisconnectedError,
             aiohttp.client_exceptions.ClientPayloadError,
         ):
-            logging.getLogger("app").warning(
-                f"api.py - {request_url} returned \"{status_code}\" ({retry_count}/{configuration['general']['request retry (count)']})"
+            logging.getLogger("app").info(
+                f"api.py - safe request to {request_url}\n"
+                f"Status: \"{status_code}\"\n"
+                f"Retry: {retry_count}/{configuration['general']['request retry (count)']}"
             )
             if retry_count >= configuration["general"]["request retry (count)"]:
                 return None, status_code
@@ -93,21 +95,26 @@ async def safe_request(session, request_url: str, configuration: dict):
             )
 
         except (aiohttp.client_exceptions.InvalidURL,) as e:
-            logging.getLogger("app").warning(
-                f"api.py - {request_url} returned \"{status_code}\" ({retry_count}/{configuration['general']['request retry (count)']})"
+            logging.getLogger("app").error(
+                f"api.py - safe request to {request_url}"
+                f"Status: \"{status_code}\" "
+                f"Retry: {retry_count}/{configuration['general']['request retry (count)']}"
             )
             return None, status_code
 
 
 async def get_user_ids(session, layer, requester, _configuration) -> List:
     """RETURNS A LIST/SET OF TUPLES CONTAINING ID, IP, PORT (PER LAYER)"""
+    type = None
     while True:
         try:
             if requester is None:
+                type = f"automatic check, l{layer}"
                 data, resp_status = await Request(
                     session, f"http://127.0.0.1:8000/user/ids/layer/{layer}"
                 ).db_json(timeout=6)
             else:
+                type = f"request report ({requester}, l{layer})"
                 data, resp_status = await Request(
                     session,
                     f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}",
@@ -120,7 +127,9 @@ async def get_user_ids(session, layer, requester, _configuration) -> List:
             aiohttp.client_exceptions.ClientPayloadError,
         ):
             logging.getLogger("app").error(
-                f"api.py - localhost error:\n\t{traceback.format_exc()}"
+                f"api.py - get_user_ids from localhost\n"
+                f"Type: {type}"
+                f"Error: {traceback.format_exc()}"
             )
             await asyncio.sleep(1)
         else:
@@ -130,7 +139,8 @@ async def get_user_ids(session, layer, requester, _configuration) -> List:
                 await asyncio.sleep(3)
             else:
                 logging.getLogger("app").warning(
-                    f"api.py - status {resp_status}"
+                    f"api.py - get_user_ids\n"
+                    f"Status: {resp_status}"
                 )
                 await asyncio.sleep(3)
 
@@ -153,7 +163,9 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
             aiohttp.client_exceptions.ClientPayloadError,
         ):
             logging.getLogger("app").warning(
-                f"api.py - localhost error: http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port} ({retry/2})\n\t{traceback.format_exc()}"
+                f"api.py - locate_node\n "
+                f"Retry: {retry/2}\n"
+                f"Warning: {traceback.format_exc()}"
             )
             if retry <= 2:
                 retry += 1
@@ -166,7 +178,9 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
             else:
                 # Did the user unsubscribe?
                 logging.getLogger("app").warning(
-                    f"api.py - localhost error: http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port} returned status {resp_status} ({retry}/{2})"
+                    f"api.py - locate_node\n"
+                    f"Retry: {retry}/{2}\n"
+                    f"Status: {resp_status}"
                 )
                 if retry <= 2:
                     retry += 1

@@ -24,34 +24,41 @@ async def automatic(session, cached_subscriber, cluster_data, cluster_name, laye
 
     subscriber = await api.locate_node(session, _configuration, None, cached_subscriber["id"],
                                        cached_subscriber["ip"], cached_subscriber["public_port"])
-    subscriber = pd.DataFrame(subscriber)
-    node_data = await node_status_check(
-        session,
-        subscriber,
-        cluster_data,
-        version_manager,
-        _configuration,
-    )
-    # We might need to add a last_located time to database
-    if node_data.last_known_cluster_name == cluster_name and node_data.layer == layer:
-        data.append(node_data)
-        cached_subscriber["cluster_name"] = cluster_name
-        cached_subscriber["located"] = True
-        cached_subscriber["removal_datetime"] = None
+    if subscriber:
+        subscriber = pd.DataFrame(subscriber)
+        node_data = await node_status_check(
+            session,
+            subscriber,
+            cluster_data,
+            version_manager,
+            _configuration,
+        )
+        # We might need to add a last_located time to database
+        if node_data.last_known_cluster_name == cluster_name and node_data.layer == layer:
+            data.append(node_data)
+            cached_subscriber["cluster_name"] = cluster_name
+            cached_subscriber["located"] = True
+            cached_subscriber["removal_datetime"] = None
 
-    if not node_data.last_known_cluster_name and node_data.layer == layer:
-        cached_subscriber["cluster_name"] = None
-        if cached_subscriber["removal_datetime"] in (None, 'None'):
-            cached_subscriber["removal_datetime"] = datetime.datetime.now() + datetime.timedelta(days=30)
+        if not node_data.last_known_cluster_name and node_data.layer == layer:
+            cached_subscriber["cluster_name"] = None
+            if cached_subscriber["removal_datetime"] in (None, 'None'):
+                cached_subscriber["removal_datetime"] = datetime.datetime.now() + datetime.timedelta(days=30)
 
-    data = await determine_module.notify(data, _configuration)
+        data = await determine_module.notify(data, _configuration)
 
-    logger.debug(
-        f"run_process.py - Handling {len(data), cluster_name} L{layer} nodes"
-    )
-    await discord.send_notification(bot, data, _configuration)
+        logger.debug(
+            f"run_process.py - Handling {len(data), cluster_name} L{layer} nodes"
+        )
+        await discord.send_notification(bot, data, _configuration)
 
-    return data, cached_subscriber
+        return data, cached_subscriber
+    else:
+        logger.warning(
+            f"check.py - error - Subscriber is empty.\n"
+            f"Subscriber: {cached_subscriber}"
+        )
+        return None, cached_subscriber
 
 
 async def request(session, process_msg, layer, requester, _configuration):

@@ -174,9 +174,10 @@ async def main_loop(version_manager, _configuration):
 
                             # Handle the results
                             for (i, _), (data, updated_cache) in zip(tasks, results):
-                                await history.write(data)
-                                await update_user(updated_cache)
-                                cache[i] = updated_cache  # Replace the old cache entry with the updated one
+                                if data:
+                                    await history.write(data)
+                                    await update_user(updated_cache)
+                                    cache[i] = updated_cache  # Replace the old cache entry with the updated one
 
                             # Clear to make ready for next check
                             tasks.clear()
