@@ -94,7 +94,9 @@ async def get_module_data(session, node_data: schemas.Node, configuration):
 
     elif not last_known_cluster:
         logging.getLogger("app").warning(
-            f"cluster.py - No module found while processing: {node_data.name}, {node_data.ip}, {node_data.public_port}, {node_data.layer}.\n"
-            f"\t Historic connections: [{node_data.cluster_name, node_data.former_cluster_name, node_data.last_known_cluster_name}]"
+            f"cluster.py - get_module_data\n"
+            f"Layer: {node_data.layer}\n"
+            f"Warning: No module found, no historic associations\n"
+            f"Subscriber: {node_data.name} ({node_data.ip}, {node_data.public_port})\n"
         )
     return node_data
