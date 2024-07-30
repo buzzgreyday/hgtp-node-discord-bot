@@ -195,26 +195,30 @@ async def main_loop(version_manager, _configuration):
 
                             # Log the completion time
                             dt_stop, timer_stop = dt.timing()
-                            logging.getLogger("app").warning(
-                                f"main.py - L{cluster["layer"]} {cluster["cluster_name"]} - Automatic check completed in completed in "
-                                f"{round(timer_stop - timer_start, 2)} seconds"
+                            logging.getLogger("app").info(
+                                f"main.py - main_loop\n"
+                                f"Cluster: {cluster["cluster_name"]} l{cluster["layer"]}\n"
+                                f"Automatic check: {round(timer_stop - timer_start, 2)} seconds"
                             )
 
                 except Exception as e:
                     logging.getLogger("app").error(
-                        f"main.py - error: {traceback.format_exc()}"
+                        f"main.py - main_loop\n"
+                        f"Error: {traceback.format_exc()}"
                     )
                     try:
                         await discord.messages.send_traceback(bot, traceback.format_exc())
                     except Exception:
                         logging.getLogger("app").error(
-                            f"main.py - Could not send traceback via Discord"
+                            f"main.py - main_loop\n"
+                            f"Error: Could not send traceback via Discord"
                         )
 
             else:
                 # If uvicorn isn't running
                 logging.getLogger("app").error(
-                    f"main.py - Uvicorn isn't running"
+                    f"main.py - main_loop\n"
+                    f"Error: Uvicorn isn't running"
                 )
         # After checks, give GIL something to do
         await asyncio.sleep(3)
