@@ -84,7 +84,7 @@ async def safe_request(session, request_url: str, configuration: dict):
         ):
             logging.getLogger("app").debug(
                 f"api.py - safe request to {request_url}\n"
-                f"Status: \"{status_code}\"\n"
+                f"Status: {status_code}\n"
                 f"Retry: {retry_count}/{configuration['general']['request retry (count)']}"
             )
             if retry_count >= configuration["general"]["request retry (count)"]:
@@ -95,9 +95,9 @@ async def safe_request(session, request_url: str, configuration: dict):
             )
 
         except (aiohttp.client_exceptions.InvalidURL,) as e:
-            logging.getLogger("app").error(
-                f"api.py - safe request to {request_url}"
-                f"Status: \"{status_code}\" "
+            logging.getLogger("app").debug(
+                f"api.py - safe request to {request_url}\n"
+                f"Status: {status_code}\n"
                 f"Retry: {retry_count}/{configuration['general']['request retry (count)']}"
             )
             return None, status_code
@@ -126,9 +126,9 @@ async def get_user_ids(session, layer, requester, _configuration) -> List:
             aiohttp.client_exceptions.ServerDisconnectedError,
             aiohttp.client_exceptions.ClientPayloadError,
         ):
-            logging.getLogger("app").error(
+            logging.getLogger("app").debug(
                 f"api.py - get_user_ids from localhost\n"
-                f"Type: {type}"
+                f"Type: {type}\n"
                 f"Error: {traceback.format_exc()}"
             )
             await asyncio.sleep(1)
@@ -177,9 +177,10 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
                 return data
             else:
                 # Did the user unsubscribe?
-                logging.getLogger("app").warning(
+                logging.getLogger("app").debug(
                     f"api.py - locate_node\n"
                     f"Retry: {retry}/{2}\n"
+                    f"Note: Did the user unsubscribe?"
                     f"Status: {resp_status}"
                 )
                 if retry <= 2:
