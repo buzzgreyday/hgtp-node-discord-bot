@@ -82,7 +82,7 @@ async def safe_request(session, request_url: str, configuration: dict):
             aiohttp.client_exceptions.ServerDisconnectedError,
             aiohttp.client_exceptions.ClientPayloadError,
         ):
-            logging.getLogger("app").info(
+            logging.getLogger("app").debug(
                 f"api.py - safe request to {request_url}\n"
                 f"Status: \"{status_code}\"\n"
                 f"Retry: {retry_count}/{configuration['general']['request retry (count)']}"

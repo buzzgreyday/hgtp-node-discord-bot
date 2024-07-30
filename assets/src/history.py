@@ -7,7 +7,6 @@ from aiohttp import client_exceptions
 
 from assets.src import schemas, api, database
 from assets.src.database import database
-from assets.src.database.models import UserModel
 
 
 async def node_data(session, requester, node_data: schemas.Node, _configuration):
@@ -30,8 +29,10 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
             client_exceptions.ClientOSError,
             client_exceptions.ServerDisconnectedError,
         ):
-            logging.getLogger("app").warning(
-                f"history.py - localhost error: data/node/{node_data.ip}/{node_data.public_port} ({localhost_error_retry}/{2}): {traceback.format_exc()}"
+            logging.getLogger("app").debug(
+                f"history.py - node_data\n"
+                f"Retry: {localhost_error_retry}/{2}\n"
+                f"Warning: data/node/{node_data.ip}/{node_data.public_port} ({localhost_error_retry}/{2}): {traceback.format_exc()}"
             )
 
             if localhost_error_retry <= 2:
@@ -44,24 +45,16 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
             if resp_status == 200:
                 break
             else:
-                logging.getLogger("app").warning(
-                    f"history.py - localhost error - status {resp_status}: data/node/{node_data.ip}/{node_data.public_port} ({localhost_error_retry}/{2}): {traceback.format_exc()}"
+                logging.getLogger("app").debug(
+                    f"history.py - node_data\n"
+                    f"Retry: {localhost_error_retry}/{2}\n"
+                    f"Status {resp_status}"
                 )
                 if localhost_error_retry <= 2:
                     localhost_error_retry += 1
                     await asyncio.sleep(1)
                 else:
                     # Did the user unsubscribe
-                    if resp_status == 500:
-                        user, resp_status = await api.Request(session, f"http://127.0.0.1:8000/user/{node_data.name}").db_json(
-                            timeout=6)
-                        for sub in user:
-                            if sub["name"] == node_data.name and sub["ip"] == node_data.ip and sub["public_port"] == node_data.public_port:
-                                user = UserModel(**dict(sub))
-                                logging.getLogger("app").warning(
-                                    f"history.py - {sub} might need removal from list since status 500 was caused"
-                                )
-                                # await database.delete_user_entry(user)
                     break
     if data:
         if requester:
