@@ -111,11 +111,9 @@ def is_uvicorn_running():
 
 
 async def main_loop(version_manager, _configuration):
-    times = preliminaries.generate_runtimes(_configuration)
-    logging.getLogger("app").info(f"main.py - runtime schedule:\n\t{times}")
 
-    cache = list()
-    clusters = list()
+    cache = []
+    clusters = []
 
     while True:
         async with semaphore:
