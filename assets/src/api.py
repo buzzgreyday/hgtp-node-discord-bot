@@ -168,10 +168,17 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
                 f"Warning: {traceback.format_exc()}"
             )
             if retry <= 2:
-                retry += 1
-                await asyncio.sleep(1)
-            else:
-                break
+                # Did the user unsubscribe?
+                logging.getLogger("app").debug(
+                    f"api.py - locate_node\n"
+                    f"Retry: {retry}/{2}\n"
+                    f"Note: Did the user unsubscribe?"
+                )
+                if retry <= 2:
+                    retry += 1
+                    await asyncio.sleep(1)
+                else:
+                    break
         else:
             if resp_status == 200:
                 return data
