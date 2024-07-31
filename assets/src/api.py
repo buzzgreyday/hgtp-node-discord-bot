@@ -112,13 +112,13 @@ async def get_user_ids(session, layer, requester, _configuration) -> List:
                 type = f"automatic check, l{layer}"
                 data, resp_status = await Request(
                     session, f"http://127.0.0.1:8000/user/ids/layer/{layer}"
-                ).db_json(timeout=6)
+                ).db_json(timeout=30)
             else:
                 type = f"request report ({requester}, l{layer})"
                 data, resp_status = await Request(
                     session,
                     f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}",
-                ).db_json(timeout=6)
+                ).db_json(timeout=30)
         except (
             asyncio.exceptions.TimeoutError,
             aiohttp.client_exceptions.ClientConnectorError,
@@ -154,7 +154,7 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
         try:
             data, resp_status = await Request(
                 session, f"http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port}"
-            ).db_json(timeout=6)
+            ).db_json(timeout=30)
         except (
             asyncio.exceptions.TimeoutError,
             aiohttp.client_exceptions.ClientConnectorError,
