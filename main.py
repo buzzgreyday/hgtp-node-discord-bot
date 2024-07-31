@@ -139,6 +139,10 @@ async def main_loop(version_manager, _configuration):
                                 cluster_data = await preliminaries.supported_clusters(
                                     session, cluster["cluster_name"], cluster["layer"], _configuration
                                 )
+                                if not cluster_data:
+                                    logging.getLogger("app").error(
+                                    f"main.py - Unknown error - Get cluster data failed for {[cluster["cluster_name"], cluster["layer"]]}: {traceback.format_exc()}"
+                                )
                             except Exception:
                                 logging.getLogger("app").error(
                                     f"main.py - Unknown error - Get cluster data failed for {[cluster["cluster_name"], cluster["layer"]]}: {traceback.format_exc()}"
@@ -220,6 +224,7 @@ async def main_loop(version_manager, _configuration):
                     f"main.py - main_loop\n"
                     f"Error: Uvicorn isn't running"
                 )
+            await session.close()
         # After checks, give GIL something to do
         await asyncio.sleep(3)
 def run_uvicorn_process():
@@ -261,7 +266,7 @@ def main():
 
     version_manager = preliminaries.VersionManager(_configuration)
 
-    bot.load_extension("assets.src.discord.commands")
+    # bot.load_extension("assets.src.discord.commands")
     bot.load_extension("assets.src.discord.events")
 
     bot.loop.create_task(main_loop(version_manager, _configuration))

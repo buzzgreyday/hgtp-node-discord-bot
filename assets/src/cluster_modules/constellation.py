@@ -42,12 +42,12 @@ async def request_cluster_data(
     cluster_resp, status_code = await api.safe_request(
         session,
         f"{url}/{configuration['modules'][name][layer]['info']['cluster']}",
-        configuration,
+        configuration
     )
     node_resp, status_code = await api.safe_request(
         session,
         f"{url}/{configuration['modules'][name][layer]['info']['node']}",
-        configuration,
+        configuration
     )
     latest_ordinal, latest_timestamp, addresses = await locate_rewarded_addresses(
         session, layer, name, configuration
@@ -62,9 +62,7 @@ async def request_cluster_data(
             latest_ordinal=latest_ordinal,
             latest_timestamp=latest_timestamp,
             recently_rewarded=addresses,
-            peer_data=sorted(cluster_resp, key=lambda d: d["id"])
-            if cluster_resp is not None
-            else [],
+            peer_data=sorted(cluster_resp, key=lambda d: d["id"]) if cluster_resp else [],
         )
     else:
         cluster_data = schemas.Cluster(
@@ -80,9 +78,7 @@ async def request_cluster_data(
             latest_ordinal=latest_ordinal,
             latest_timestamp=latest_timestamp,
             recently_rewarded=addresses,
-            peer_data=sorted(cluster_resp, key=lambda d: d["id"])
-            if cluster_resp is not None
-            else [],
+            peer_data=sorted(cluster_resp, key=lambda d: d["id"]) if cluster_resp else [],
         )
     # await config.update_config_with_latest_values(cluster_data, configuration)
     return cluster_data
