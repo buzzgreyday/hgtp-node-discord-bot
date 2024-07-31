@@ -164,14 +164,14 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
         ):
             logging.getLogger("app").warning(
                 f"api.py - locate_node\n "
-                f"Retry: {retry/2}\n"
+                f"Retry: {retry}/2\n"
                 f"Warning: {traceback.format_exc()}"
             )
             if retry <= 2:
                 # Did the user unsubscribe?
                 logging.getLogger("app").debug(
                     f"api.py - locate_node\n"
-                    f"Retry: {retry}/{2}\n"
+                    f"Retry: {retry}/2\n"
                     f"Note: Did the user unsubscribe?"
                 )
                 if retry <= 2:
@@ -186,7 +186,7 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
                 # Did the user unsubscribe?
                 logging.getLogger("app").debug(
                     f"api.py - locate_node\n"
-                    f"Retry: {retry}/{2}\n"
+                    f"Retry: {retry}/2\n"
                     f"Note: Did the user unsubscribe?"
                     f"Status: {resp_status}"
                 )
