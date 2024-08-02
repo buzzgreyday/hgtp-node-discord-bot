@@ -96,23 +96,23 @@
                         <p class="h5 ml-3" style="background-color: #3d3d3d; color: #00b4cd;">30D Node Earnings Overview</p>
                         <div class="d-flex justify-content-between ml-3 mb-2">
                             <span>Node Earnings:</span>
-                            <span>{{ dag_address_sum }} $DAG</span>
+                            <span>{{ dag_address_sum }} DAG</span>
                         </div>
                         <div class="d-flex justify-content-between ml-3 mb-2">
                             <span>Cost:</span>
-                            <span>{{ usd_address_sum }} $USD</span>
+                            <span>{{ usd_address_sum }} USD</span>
                         </div>
                         <div class="d-flex justify-content-between ml-3 mb-2">
                             <span>Price:</span>
-                            <span>{{ dag_earnings_price_now }} $USD</span>
+                            <span>{{ dag_earnings_price_now }} USD</span>
                         </div>
                         <div class="d-flex justify-content-between ml-3 mb-2">
                             <span></span>
-                            <span>${{ dag_price_now }} per $DAG</span>
+                            <span>${{ dag_price_now }}/DAG</span>
                         </div>
                         <div class="d-flex justify-content-between ml-3 mb-2">
                             <span>Gain/Loss:</span>
-                            <span>{{ dag_earnings_price_now_dev }} $USD</span>
+                            <span>{{ dag_earnings_price_now_dev }} USD</span>
                         </div>
                         <p class="ml-3 mb-1" style="font-size: 0.6em; color: #707374;">The price of $DAG is calculated based on data from {{ dag_price_now_timestamp }} UTC</p>
                     </div>
@@ -139,19 +139,19 @@
                         </div>
                         <div class="d-flex justify-content-between ml-3 mb-2">
                             <span>Outperformers (low)<sup>**</sup>:</span>
-                            <span>{{ above_dag_address_std_dev_low }} $DAG</span>
+                            <span>{{ above_dag_address_std_dev_low }} DAG</span>
                         </div>
                         <div class="d-flex justify-content-between ml-3 mb-2">
                             <span>Outperformers (high)<sup>**</sup>:</span>
-                            <span>{{ above_dag_address_std_dev_high }} $DAG</span>
+                            <span>{{ above_dag_address_std_dev_high }} DAG</span>
                         </div>
                         <div class="d-flex justify-content-between ml-3 mb-2">
                             <span>Avg. Potential:</span>
-                            <span>+{{ above_dag_address_deviation_from_mean }} $DAG</span>
+                            <span>+{{ above_dag_address_deviation_from_mean }} DAG</span>
                         </div>
                         <div class="d-flex justify-content-between ml-3 mb-2">
                             <span>High Potential:</span>
-                            <span>+{{ above_dag_address_deviation_from_highest_earning }} $DAG</span>
+                            <span>+{{ above_dag_address_deviation_from_highest_earning }} DAG</span>
                         </div>
                     </div>
 
@@ -160,15 +160,15 @@
                         <p class="h5 ml-3" style="background-color: #3d3d3d; color: #00b4cd;">30D Network Earnings</p>
                         <div class="d-flex justify-content-between ml-3 mb-2">
                             <span>Minted:</span>
-                            <span>{{ dag_minted_for_validators }} $DAG</span>
+                            <span>{{ dag_minted_for_validators }} DAG</span>
                         </div>
                         <div class="d-flex justify-content-between ml-3 mb-2">
                             <span>Average<sup>*</sup>:</span>
-                            <span>{{ dag_median_sum }} $DAG</span>
+                            <span>{{ dag_median_sum }} DAG</span>
                         </div>
                         <div class="d-flex justify-content-between ml-3 mb-2">
                             <span>Highest:</span>
-                            <span>{{ dag_highest_earner }} $DAG</span>
+                            <span>{{ dag_highest_earner }} DAG</span>
                         </div>
                     </div>
 
@@ -177,11 +177,11 @@
                         <p class="h5 ml-3" style="background-color: #3d3d3d; color: #00b4cd;">1D Node Earnings</p>
                         <div class="d-flex justify-content-between ml-3 mb-2">
                             <span>Average:</span>
-                            <span>{{ dag_address_daily_mean }} $DAG</span>
+                            <span>{{ dag_address_daily_mean }} DAG</span>
                         </div>
                         <div class="d-flex justify-content-between ml-3 mb-2">
                             <span>Est. Daily Earnings Variability:</span>
-                            <span>{{ dag_address_daily_std_dev }} $DAG</span>
+                            <span>{{ dag_address_daily_std_dev }} DAG</span>
                         </div>
                         <p class="ml-3 mb-1" style="font-size:0.6em; color: #707374;">(*) Extreme outliers included</p>
                         <p class="ml-3 mb-1" style="font-size:0.6em; color: #707374;">(**) The low and high values are standardized expressions</p>
