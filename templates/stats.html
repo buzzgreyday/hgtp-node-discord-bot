@@ -73,6 +73,7 @@
         </nav>
         <div class="row d-flex">
             <div class="box ml-3 mr-3 mt-3 mb-3">
+                <!-- Rewards Section -->
                 <div class="shadow container-sm rounded-top bg-primary" style="min-width:20em; max-width:80em;">
                     <div class="h3 ml-3 mb-0 fw-bold" style="color: #f1f2f2;">Rewards</div>
                 </div>
@@ -83,52 +84,111 @@
                     </div>
                 </div>
             </div>
+
             <div class="box ml-3 mr-3 mt-3 mb-3">
+                <!-- Stats Section -->
                 <div class="shadow container-sm rounded-top bg-primary" style="min-width:20em; max-width:80em;">
                     <div class="h3 ml-3 mb-0 fw-bold" style="color: #f1f2f2;">Stats</div>
                 </div>
                 <div class="shadow container-sm rounded-bottom frame" style="color: #f1f2f2;">
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <ul class="list-group">
-                                <li class="list-group-item" style="color: #f1f2f2;background-color: #3d3d3d !important;">
-                                    <p class="h5 mb-1" style="background-color: #3d3d3d; color: #00b4cd;">30-day earnings</p>
-                                    <p class="fs-6 mb-1" style="color:#f1f2f2;">{{ dag_address_sum }} $DAG</p>
-                                    <p class="fs-6 mb-1" style="color:#f1f2f2;">Cost: {{ usd_address_sum }} $USD</p>
-                                    <p class="fs-6 mb-1" style="color:#f1f2f2;">Price:  {{ dag_earnings_price_now }} $USD (${{ dag_price_now }} per $DAG)</p>
-                                    <p class="fs-6 mb-1" style="color:#f1f2f2;">Gain/loss: {{ dag_earnings_price_now_dev }} $USD</p>
-                                    <p class="mb-3" style="font-size: 0.6em; color: #707374;">The price of $DAG is calculated based on data from {{ dag_price_now_timestamp }} UTC</p>
-                                    <p></p>
-                                    <p class="fs-6 mb-1" style="color:#f1f2f2;">Potential (average): +{{ above_dag_address_deviation_from_mean }} $DAG</p>
-                                    <p class="fs-6 mb-3" style="color:#f1f2f2;">Potential (highest): +{{ above_dag_address_deviation_from_highest_earning }} $DAG</p>
-                                    <p class="fs-6 mb-1" style="color:#f1f2f2;">Outperformers (low): {{ above_dag_address_std_dev_low }} $DAG<sup>**</sup></p>
-                                    <p class="fs-6 mb-1" style="color:#f1f2f2;">Outperformers (high): {{ above_dag_address_std_dev_high }} $DAG<sup>**</sup></p>
-                                    <p class="fs-6 mb-3" style="color:#f1f2f2;">Outperformers (pct.): {{ percent_earning_more }}%<sup>*</sup></p>
-                                </li>
-                                <li class="list-group-item" style="color: #f1f2f2;background-color: #3d3d3d !important;">
-                                    <p class="h5 mb-1" style="background-color: #3d3d3d; color: #00b4cd;">30-day network earnings</p>
-                                    <p class="fs-6 mb-1" style="color:#f1f2f2;">Minted: {{ dag_minted_for_validators }} $DAG</p>
-                                    <p class="fs-6 mb-1" style="color:#f1f2f2;">Average: {{ dag_median_sum }} $DAG<sup>*</sup></p>
-                                    <p class="fs-6 mb-3" style="color:#f1f2f2;">Highest: {{ dag_highest_earner }} $DAG</p>
-                                </li>
-                            </ul>
+                    <!-- 30D Node Earnings Overview -->
+                    <div class="mb-3">
+                        <p class="h5 ml-3" style="background-color: #3d3d3d; color: #00b4cd;">30D Node Earnings Overview</p>
+                        <div class="d-flex justify-content-between ml-3 mb-2">
+                            <span>Node Earnings:</span>
+                            <span>{{ dag_address_sum }} $DAG</span>
                         </div>
-
-                        <div class="col-md-6">
-                            <ul class="list-group">
-                                <li class="list-group-item" style="color: #f1f2f2;background-color: #3d3d3d !important;">
-                                    <p class="h5 mb-1" style="background-color: #3d3d3d; color: #00b4cd;">Daily earnings</p>
-                                    <p class="fs-6 mb-1" style="color:#f1f2f2;">Average: {{ dag_address_daily_mean }} $DAG</p>
-                                    <p class="fs-6 mb-3 fw-light" style="color:#f1f2f2;">Estimated daily earnings is {{ dag_address_daily_std_dev }} $DAG</p>
-                                    <p class="mb-1" style="font-size:0.6em; color: #707374;">(*) Extreme outliers included</p>
-                                    <p class="mb-1" style="font-size:0.6em; color: #707374;">(**) The low and high values above is standardized expressions</p>
-                                </li>
-                            </ul>
+                        <div class="d-flex justify-content-between ml-3 mb-2">
+                            <span>Cost:</span>
+                            <span>{{ usd_address_sum }} $USD</span>
                         </div>
+                        <div class="d-flex justify-content-between ml-3 mb-2">
+                            <span>Price:</span>
+                            <span>{{ dag_earnings_price_now }} $USD</span>
+                        </div>
+                        <div class="d-flex justify-content-between ml-3 mb-2">
+                            <span></span>
+                            <span>${{ dag_price_now }} per $DAG</span>
+                        </div>
+                        <div class="d-flex justify-content-between ml-3 mb-2">
+                            <span>Gain/Loss:</span>
+                            <span>{{ dag_earnings_price_now_dev }} $USD</span>
+                        </div>
+                        <p class="ml-3 mb-1" style="font-size: 0.6em; color: #707374;">The price of $DAG is calculated based on data from {{ dag_price_now_timestamp }} UTC</p>
+                    </div>
+
+                    <!-- 30D Node Yield Metrics -->
+                    <div class="mb-3">
+                        <p class="h5 ml-3" style="background-color: #3d3d3d; color: #00b4cd;">30D Node Yield Metrics</p>
+                        <div class="d-flex justify-content-between ml-3 mb-2">
+                            <span>Monthly Percentage Yield:</span>
+                            <span>{{ calculated_mpy }}%</span>
+                        </div>
+                        <div class="d-flex justify-content-between ml-3 mb-2">
+                            <span>Est. Annual Percentage Yield:</span>
+                            <span>{{ estimated_apy }}%</span>
+                        </div>
+                    </div>
+
+                    <!-- 30D Node Earnings Metrics -->
+                    <div class="mb-3">
+                        <p class="h5 ml-3" style="background-color: #3d3d3d; color: #00b4cd;">30D Node Earnings Metrics</p>
+                        <div class="d-flex justify-content-between ml-3 mb-2">
+                            <span>Outperformers<sup>*</sup>:</span>
+                            <span>{{ percent_earning_more }}%</span>
+                        </div>
+                        <div class="d-flex justify-content-between ml-3 mb-2">
+                            <span>Outperformers (low)<sup>**</sup>:</span>
+                            <span>{{ above_dag_address_std_dev_low }} $DAG</span>
+                        </div>
+                        <div class="d-flex justify-content-between ml-3 mb-2">
+                            <span>Outperformers (high)<sup>**</sup>:</span>
+                            <span>{{ above_dag_address_std_dev_high }} $DAG</span>
+                        </div>
+                        <div class="d-flex justify-content-between ml-3 mb-2">
+                            <span>Avg. Potential:</span>
+                            <span>+{{ above_dag_address_deviation_from_mean }} $DAG</span>
+                        </div>
+                        <div class="d-flex justify-content-between ml-3 mb-2">
+                            <span>High Potential:</span>
+                            <span>+{{ above_dag_address_deviation_from_highest_earning }} $DAG</span>
+                        </div>
+                    </div>
+
+                    <!-- 30D Network Earnings -->
+                    <div class="mb-3">
+                        <p class="h5 ml-3" style="background-color: #3d3d3d; color: #00b4cd;">30D Network Earnings</p>
+                        <div class="d-flex justify-content-between ml-3 mb-2">
+                            <span>Minted:</span>
+                            <span>{{ dag_minted_for_validators }} $DAG</span>
+                        </div>
+                        <div class="d-flex justify-content-between ml-3 mb-2">
+                            <span>Average<sup>*</sup>:</span>
+                            <span>{{ dag_median_sum }} $DAG</span>
+                        </div>
+                        <div class="d-flex justify-content-between ml-3 mb-2">
+                            <span>Highest:</span>
+                            <span>{{ dag_highest_earner }} $DAG</span>
+                        </div>
+                    </div>
+
+                    <!-- 1D Node Earnings -->
+                    <div class="mb-3">
+                        <p class="h5 ml-3" style="background-color: #3d3d3d; color: #00b4cd;">1D Node Earnings</p>
+                        <div class="d-flex justify-content-between ml-3 mb-2">
+                            <span>Average:</span>
+                            <span>{{ dag_address_daily_mean }} $DAG</span>
+                        </div>
+                        <div class="d-flex justify-content-between ml-3 mb-2">
+                            <span>Est. Daily Earnings Variability:</span>
+                            <span>{{ dag_address_daily_std_dev }} $DAG</span>
+                        </div>
+                        <p class="ml-3 mb-1" style="font-size:0.6em; color: #707374;">(*) Extreme outliers included</p>
+                        <p class="ml-3 mb-1" style="font-size:0.6em; color: #707374;">(**) The low and high values are standardized expressions</p>
                     </div>
                 </div>
             </div>
+
         </div>
         <div class="row d-flex">
             <div class="box ml-3 mr-3 mt-3 mb-3">
@@ -145,13 +205,27 @@
                 <div class="shadow container-sm rounded-top bg-primary" style="min-width:20em; max-width:80em;">
                     <div class="h3 ml-3 mb-0 fw-bold" style="color: #f1f2f2;">Metrics</div>
                 </div>
-                <div class="shadow container-sm rounded-bottom" style="background-color: #3d3d3d; color: #00b4cd;">
+                <div class="shadow container-sm rounded-bottom" style="background-color: #3d3d3d; color: #f1f2f2;">
                     {% for dict in metric_dicts %}
-                    <p class="h5 ml-3" style="background-color: #3d3d3d;">{{ dict.ip }} layer {{ dict.layer }} ({{ dict.public_port }})</p>
-                    <p class="fs-6 ml-3 mb-1" style="color:#f1f2f2;">Daily CPU load: {{ dict.daily_cpu_load | round(2) }}</p>
-                    <p class="fs-6 ml-3 mb-3 fw-light" style="color:#f1f2f2;">Ideal CPU load average is below {{ dict.cpu_count }}</p>
+                    <div class="mb-3">
+                        <p class="h5 ml-3" style="background-color: #3d3d3d; color: #00b4cd;">{{ dict.ip }} layer {{ dict.layer }} ({{ dict.public_port }})</p>
 
-                    <p class="fs-6 ml-3 mb-3" style="color:#f1f2f2;">Disk space: {{ dict.disk_free | round(2) }} free of {{ dict.disk_total | round(2) }} GB</p>
+                        <!-- CPU Load -->
+                        <div class="d-flex justify-content-between ml-3 mb-2">
+                            <span>Daily CPU load:</span>
+                            <span>{{ dict.daily_cpu_load | round(2) }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between ml-3 mb-3">
+                            <span>Ideal CPU load average:</span>
+                            <span>Below {{ dict.cpu_count }}</span>
+                        </div>
+
+                        <!-- Disk Space -->
+                        <div class="d-flex justify-content-between ml-3 mb-3">
+                            <span>Disk space:</span>
+                            <span>{{ dict.disk_free | round(2) }} GB free of {{ dict.disk_total | round(2) }} GB</span>
+                        </div>
+                    </div>
                     {% endfor %}
                 </div>
             </div>

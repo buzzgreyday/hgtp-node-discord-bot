@@ -337,7 +337,10 @@ class CRUD:
                      above_dag_address_std_dev_high=round(above_dag_address_std_dev_high, 2),
                      above_dag_address_std_dev_low=round(above_dag_address_std_dev_low, 2),
 
-                     metric_dicts=metric_dicts)
+                     metric_dicts=metric_dicts,
+                     calculated_mpy=round(calculated_mpy_percentage, 2),
+                     estimated_apy=round(estimated_apy_percentage, 2)
+                     )
             )
             if reward_results:
                 return content
