@@ -250,6 +250,21 @@ class CRUD:
             dag_address,
             async_session: async_sessionmaker[AsyncSession],
     ):
+        from assets.src.database.database import get_latest_db_price
+
+        def calculate_yield():
+            principal = 250000
+
+            # MPY Calculation
+            monthly_interest_rate = reward_results.dag_address_sum / principal
+            calculated_mpy_percentage = monthly_interest_rate * 100
+
+            # APY Calculation
+            estimated_apy = (1 + monthly_interest_rate) ** 12 - 1
+
+            # Convert APY to percentage
+            estimated_apy_percentage = estimated_apy * 100
+            return calculated_mpy_percentage, estimated_apy_percentage
 
         async with async_session() as session:
             reward_results = await session.execute(
@@ -264,43 +279,21 @@ class CRUD:
             )
             reward_results = reward_results.scalar_one_or_none()
             metric_results = metric_results.fetchall()
-            logging.getLogger("stats").critical(traceback.format_exc())
+
             metric_dicts = []
             for node_metrics in metric_results:
                 metric_dicts.append(node_metrics[0].__dict__)
             metric_dicts = sorted(metric_dicts, key=lambda d: d["layer"])
-            dag_address = reward_results.destinations
-            earner_score = reward_results.earner_score
-            count = reward_results.count
-            percent_earning_more = reward_results.percent_earning_more
-            dag_address_sum = reward_results.dag_address_sum
-            dag_median_sum = reward_results.dag_median_sum
-            dag_address_daily_mean = reward_results.dag_address_daily_mean
-            usd_address_sum = reward_results.usd_address_sum
-            usd_address_daily_sum = reward_results.usd_address_daily_sum
-            daily_dag_estimation_low = (
-                    reward_results.dag_address_daily_mean - reward_results.dag_daily_std_dev
-            )
-            daily_dag_estimation_high = (
-                    reward_results.dag_address_daily_mean + reward_results.dag_daily_std_dev
-            )
-            dag_address_daily_std_dev = (
-                f"{round(daily_dag_estimation_low)} - {round(daily_dag_estimation_high)}"
-            )
-            monthly_dag_average = dag_address_daily_mean * 30
-            from assets.src.database.database import get_latest_db_price
+
             price_timestamp, price_dagusd = await get_latest_db_price()
             price_dagusd = 0 if price_dagusd is None else price_dagusd
             price_timestamp = "ERROR!" if price_timestamp is None else price_timestamp
             if price_dagusd != 0.000000000:
-                dag_earnings_price_now = dag_address_sum * price_dagusd
-            if reward_results.dag_address_sum_dev > 0:
-                dag_address_sum_dev = f"+{round(reward_results.dag_address_sum_dev)}"
-            else:
-                dag_address_sum_dev = round(reward_results.dag_address_sum_dev)
+                dag_earnings_price_now = reward_results.dag_address_sum * price_dagusd
+            # MPY and APY
+            calculated_mpy_percentage, estimated_apy_percentage = calculate_yield()
             # Sum of all $DAG minted, minus very high earning wallets (Stardust Collective wallet, etc.)
             dag_minted_for_validators = reward_results.nonoutlier_dag_addresses_minted_sum
-            percent_of_nonoutlier_validator_pool = (reward_results.dag_address_sum / dag_minted_for_validators) * 100
             # Highest earning address, minus very high earning wallets (Stardust Collective wallet, etc.)
             dag_highest_earning = reward_results.above_dag_address_earner_highest
             # What addresses earning more are earning on average
@@ -313,7 +306,7 @@ class CRUD:
             # What those addresses earning more is earning (standard deviation)
             above_dag_address_std_dev_high = above_dag_earnings_mean + above_dag_address_std_dev
             above_dag_address_std_dev_low = above_dag_earnings_mean - above_dag_address_std_dev
-            dag_earnings_price_now_dev = float(dag_earnings_price_now - usd_address_sum)
+            dag_earnings_price_now_dev = float(dag_earnings_price_now - reward_results.usd_address_sum)
             if dag_earnings_price_now_dev > 0:
                 dag_earnings_price_now_dev = f'+{round(dag_earnings_price_now_dev, 2)}'
             else:
@@ -322,34 +315,27 @@ class CRUD:
             content = templates.TemplateResponse(
                 "stats.html",
                 dict(request=request,
-                     dag_address=dag_address,
-                     earner_score=earner_score,
-                     count=count,
-                     percent_earning_more=round(percent_earning_more, 2),
-                     dag_address_sum=round(dag_address_sum, 2),
-                     dag_address_sum_dev=dag_address_sum_dev,
-                     dag_median_sum=round(dag_median_sum, 2),
-                     dag_address_daily_mean=round(dag_address_daily_mean, 2),
-                     dag_address_daily_std_dev=dag_address_daily_std_dev,
-                     dag_address_monthly_mean=round(monthly_dag_average, 2),
+                     dag_address=reward_results.destinations,
+                     percent_earning_more=round(reward_results.percent_earning_more, 2),
+                     dag_address_sum=round(reward_results.dag_address_sum, 2),
+                     dag_median_sum=round(reward_results.dag_median_sum, 2),
+                     dag_address_daily_mean=round(reward_results.dag_address_daily_mean, 2),
                      dag_price_now=round(price_dagusd, 4),
                      dag_earnings_price_now_dev=dag_earnings_price_now_dev,
                      dag_price_now_timestamp=datetime.fromtimestamp(price_timestamp),
                      dag_earnings_price_now=round(dag_earnings_price_now, 2),
-                     usd_address_sum=round(usd_address_sum, 2),
-                     usd_address_daily_sum=round(usd_address_daily_sum, 2),
+                     usd_address_sum=round(reward_results.usd_address_sum, 2),
+                     usd_address_daily_sum=round(reward_results.usd_address_daily_sum, 2),
                      rewards_plot_path=f"rewards_{dag_address}.html",
                      cpu_plot_path=f"cpu_{dag_address}.html",
 
                      dag_minted_for_validators=round(dag_minted_for_validators, 2),
                      dag_highest_earner=round(dag_highest_earning, 2),
-                     above_dag_earnings_mean=round(above_dag_earnings_mean, 2),
                      above_dag_address_deviation_from_mean=round(above_dag_address_deviation_from_mean, 2),
                      above_dag_address_deviation_from_highest_earning=round(
                          above_dag_address_deviation_from_highest_earning, 2),
                      above_dag_address_std_dev_high=round(above_dag_address_std_dev_high, 2),
                      above_dag_address_std_dev_low=round(above_dag_address_std_dev_low, 2),
-                     percent_of_nonoutlier_validator_pool=round(percent_of_nonoutlier_validator_pool, 2),
 
                      metric_dicts=metric_dicts)
             )
@@ -581,7 +567,8 @@ class CRUD:
             results = await session.execute(statement)
             ids = results.scalars().all()
             for values in ids:
-                list_of_tuples.append((values.id, values.ip, values.public_port, values.removal_datetime, values.cluster))
+                list_of_tuples.append(
+                    (values.id, values.ip, values.public_port, values.removal_datetime, values.cluster))
         return list_of_tuples
 
     async def get_nodes(
