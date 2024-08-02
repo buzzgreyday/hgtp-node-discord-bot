@@ -240,7 +240,7 @@ def run_uvicorn_process():
             "--port",
             "8000",
             "--log-config",
-            "assets/data/logs/bot/uvicorn.ini",
+            "assets/data/logs/uvicorn.ini",
         ]
     )
 

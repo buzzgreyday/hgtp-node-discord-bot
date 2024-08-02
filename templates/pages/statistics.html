@@ -50,7 +50,7 @@
                   <a class="nav-link" href="/">Home</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link active" aria-current="page" href="/pages/statistics">Statistics</a>
+                  <a class="nav-link active" aria-current="page" href="/pages/statistics">Statistics and Metrics</a>
                 </li>
                 <li class="nav-item dropdown">
                   <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -74,19 +74,33 @@
             <div class="box ml-3 mr-3 mt-3 mb-3">
                 <div class="shadow container-sm rounded justify-content-center frame d-flex">
                     <div class="frame-content col-md-6">
-                        <p class="h1 pt-3" style="color: #00b4cd;">STATISTICS (Work In Progress)</p>
-                        <p style="color: #f1f2f2;">
-                            The forthcoming statistics section will offer detailed insights into
-                            Nodebot's performance, including the number of nodes monitored, subscriber count,
-                            and alerts issued. Currently, you can enter your $DAG wallet address to access
-                            personalized earnings data. This feature allows you to review your accrued value over
-                            the past 30 days, compare your earnings with other network validators, and estimate
-                            potential future earnings based on these metrics.
-                        </p>
-                        <div class="input-group mb-3">
+                        <p class="h1 pt-3 pb-3" style="color: #00b4cd;">STATISTICS AND METRICS</p>
+                        <div class="input-group mb-3 pb-3">
                             <input type="text" id="address-input" class="form-control" placeholder="$DAG Address" aria-label="address" aria-describedby="address-continue-button">
-                            <button class="btn btn-outline-secondary" type="button" id="address-continue-button" onclick="goToAddress()">Continue</button>
+                            <button class="btn btn-outline-secondary" type="button" id="address-continue-button" onclick="goToAddress()">Search</button>
                         </div>
+                        <p style="color: #f1f2f2;">
+                            The forthcoming statistics and metrics section will offer detailed insights into Nodebot's
+                            performance, including the number of nodes monitored, subscriber count, check duration and
+                            alerts issued. Currently, subscribed Mainnet validators can enter your $DAG wallet address
+                            to access personalized earnings data. This feature allows subscribed operators to review
+                            accrued value over the past 30 days, compare your earnings with other network validators,
+                            and estimate potential future earnings based on these metrics.</p>
+                        <p style="color: #f1f2f2;">
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row d-flex">
+            <div class="box ml-3 mr-3 mt-3 mb-3">
+                <div class="shadow container-sm rounded-top bg-primary" style="min-width:20em; max-width:80em;">
+                    <div class="h3 ml-3 mb-0 fw-bold" style="color: #f1f2f2;">NODEBOT STATISTICS AND METRICS</div>
+                </div>
+                <div class="shadow container-sm rounded-bottom frame" style="color: #f1f2f2;">
+                    <div>
+                        <iframe src="../../static/{{ rewards_plot_path }}" class="d-block mx-auto" id="reward_plot" frameborder="0">Subscriber growth</iframe>
+                        <p class="m-1 text-center" style="font-size:0.6em; color: #f1f2f2;"></p>
                     </div>
                 </div>
             </div>
