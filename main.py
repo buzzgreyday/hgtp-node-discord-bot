@@ -226,7 +226,6 @@ async def main_loop(version_manager, _configuration):
                         f"main.py - main_loop\n"
                         f"Error: Uvicorn isn't running"
                     )
-                await session.close()
 
         # After checks, give GIL something to do
         await asyncio.sleep(3)
