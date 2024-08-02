@@ -133,7 +133,7 @@
         <div class="row d-flex">
             <div class="box ml-3 mr-3 mt-3 mb-3">
                 <div class="shadow container-sm rounded-top bg-primary" style="min-width:20em; max-width:80em;">
-                    <div class="h3 mb-0 fw-bold" style="width:100%; color: #f1f2f2;">CPU</div>
+                    <div class="h3 ml-3 mb-0 fw-bold" style="width:100%; color: #f1f2f2;">CPU</div>
                 </div>
                 <div class="shadow container-sm rounded-bottom justify-content-center" style="min-width:20em;max-width:80em;background-color: #3d3d3d !important;">
                     <div>
@@ -143,15 +143,15 @@
             </div>
             <div class="box ml-3 mr-3 mt-3 mb-3">
                 <div class="shadow container-sm rounded-top bg-primary" style="min-width:20em; max-width:80em;">
-                    <div class="h3 mb-0 fw-bold" style="color: #f1f2f2;">Metrics</div>
+                    <div class="h3 ml-3 mb-0 fw-bold" style="color: #f1f2f2;">Metrics</div>
                 </div>
                 <div class="shadow container-sm rounded-bottom" style="background-color: #3d3d3d; color: #00b4cd;">
                     {% for dict in metric_dicts %}
-                    <p class="h5" style="background-color: #3d3d3d;">{{ dict.ip }} layer {{ dict.layer }} ({{ dict.public_port }})</p>
-                    <p class="fs-6 mb-1" style="color:#f1f2f2;">Daily CPU load: {{ dict.daily_cpu_load | round(2) }}</p>
-                    <p class="fs-6 mb-3 fw-light" style="color:#f1f2f2;">Ideal CPU load average is below {{ dict.cpu_count }}</p>
+                    <p class="h5 ml-3" style="background-color: #3d3d3d;">{{ dict.ip }} layer {{ dict.layer }} ({{ dict.public_port }})</p>
+                    <p class="fs-6 ml-3 mb-1" style="color:#f1f2f2;">Daily CPU load: {{ dict.daily_cpu_load | round(2) }}</p>
+                    <p class="fs-6 ml-3 mb-3 fw-light" style="color:#f1f2f2;">Ideal CPU load average is below {{ dict.cpu_count }}</p>
 
-                    <p class="fs-6 mb-3" style="color:#f1f2f2;">Disk space: {{ dict.disk_free | round(2) }} free of {{ dict.disk_total | round(2) }} GB</p>
+                    <p class="fs-6 ml-3 mb-3" style="color:#f1f2f2;">Disk space: {{ dict.disk_free | round(2) }} free of {{ dict.disk_total | round(2) }} GB</p>
                     {% endfor %}
                 </div>
             </div>
