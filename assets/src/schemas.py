@@ -311,4 +311,3 @@ class MetricStatsSchema(BaseModel):
     disk_total: float
     cpu_count: int
     daily_cpu_load: float
-

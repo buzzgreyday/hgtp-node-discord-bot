@@ -1,5 +1,6 @@
 import datetime
 import logging
+from typing import Tuple, List
 
 import pandas as pd
 
@@ -15,7 +16,6 @@ from assets.src import (
 from assets.src.discord import discord
 from assets.src.discord.services import bot
 from assets.src.user import node_status_check
-
 
 async def automatic(session, cached_subscriber, cluster_data, cluster_name, layer, version_manager, _configuration):
     logger = logging.getLogger("app")
@@ -91,7 +91,7 @@ async def request(session, process_msg, layer, requester, _configuration):
                 wallet_address=subscriber.wallet.values[0],
                 latest_version=version_manager.get_version(),
                 notify=True,
-                timestamp_index=dt.datetime.utcnow(),
+                timestamp_index=dt.datetime.now(datetime.UTC),
             )
 
             process_msg = await discord.update_request_process_msg(process_msg, 2, None)

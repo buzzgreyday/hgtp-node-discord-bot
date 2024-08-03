@@ -51,11 +51,11 @@ async def get_html_page_index(request: Request):
 @app.get("/pages/statistics", response_class=HTMLResponse)
 async def get_html_page_statistics(request: Request):
     """Return Nodebot html index"""
-    return await db.get_html_page_statistics(request, templates)
+    return await db.get_html_page_statistics(request, templates, session)
 
 
 @app.get("/pages/about", response_class=HTMLResponse)
-async def get_html_page_statistics(request: Request):
+async def get_html_page_about(request: Request):
     """Return Nodebot html index"""
     return await db.get_html_page_about(request, templates)
 

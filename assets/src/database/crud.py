@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import os
 from typing import List, Dict
 
+import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
 from assets.src.database.models import (
@@ -20,9 +21,10 @@ from assets.src.schemas import (
     OrdinalSchema,
     RewardStatsSchema, MetricStatsSchema,
 )
+
 from assets.src.schemas import Node as NodeSchema
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
-from sqlalchemy import select, delete, update, desc, and_
+from sqlalchemy import select, delete, update, desc, and_, func
 from fastapi.encoders import jsonable_encoder
 
 load_dotenv()
@@ -350,10 +352,71 @@ class CRUD:
             "index.html", dict(request=request))
         return content
 
-    async def get_html_page_statistics(selfself, request, templates):
-        content = templates.TemplateResponse(
-            "pages/statistics.html", dict(request=request))
-        return content
+    async def get_html_page_statistics(self, request, templates, async_session: async_sessionmaker[AsyncSession]):
+        try:
+            user_data = []
+            integrationnet_node_count_l0 = 0
+            testnet_node_count_l0 = 0
+            mainnet_node_count_l0 = 0
+            integrationnet_node_count_l1 = 0
+            testnet_node_count_l1 = 0
+            mainnet_node_count_l1 = 0
+
+            async with async_session() as session:
+
+                # Query to fetch all rows
+                result = await session.execute(select(UserModel))
+                all_rows = result.scalars().all()
+            for node in all_rows:
+                node_dict = node.__dict__
+                if node_dict["cluster"] == "integrationnet":
+                    if node_dict["layer"] == 0:
+                        integrationnet_node_count_l0 += 1
+                    else:
+                        integrationnet_node_count_l1 += 1
+                elif node_dict["cluster"] == "mainnet":
+                    if node_dict["layer"] == 0:
+                        mainnet_node_count_l0 += 1
+                    else:
+                        mainnet_node_count_l1 += 1
+                elif node_dict["cluster"] == "testnet":
+                    if node_dict["layer"] == 0:
+                        testnet_node_count_l0 += 1
+                    else:
+                        testnet_node_count_l1 += 1
+                user_data.append(node_dict)
+
+            mainnet_durations_l0 = None
+            mainnet_durations_l1 = None
+            integrationnet_durations_l0 = None
+            integrationnet_durations_l1 = None
+            testnet_durations_l0 = None
+            testnet_durations_l1 = None
+
+            mainnet_durations_l0 = np.average(mainnet_durations_l0) if mainnet_durations_l0 else "Forthcoming"
+            mainnet_durations_l1 = np.average(mainnet_durations_l1) if mainnet_durations_l1 else "Forthcoming"
+            integrationnet_durations_l0 = np.average(integrationnet_durations_l0) if integrationnet_durations_l0 else "Forthcoming"
+            integrationnet_durations_l1 = np.average(integrationnet_durations_l1) if integrationnet_durations_l1 else "Forthcoming"
+            testnet_durations_l0 = np.average(testnet_durations_l0) if testnet_durations_l0 else "Forthcoming"
+            testnet_durations_l1 = np.average(testnet_durations_l1) if testnet_durations_l1 else "Forthcoming"
+            content = templates.TemplateResponse(
+                "pages/statistics.html", dict(request=request,
+                                              node_count_sum=len(user_data),
+                                              mainnet_node_count_l0=mainnet_node_count_l0,
+                                              mainnet_node_count_l1=mainnet_node_count_l1,
+                                              integrationnet_node_count_l0=integrationnet_node_count_l0,
+                                              integrationnet_node_count_l1=integrationnet_node_count_l1,
+                                              testnet_node_count_l0=testnet_node_count_l0,
+                                              testnet_node_count_l1=testnet_node_count_l1,
+                                              mainnet_durations_l0=mainnet_durations_l0,
+                                              mainnet_durations_l1=mainnet_durations_l1,
+                                              integrationnet_durations_l0=integrationnet_durations_l0,
+                                              integrationnet_durations_l1=integrationnet_durations_l1,
+                                              testnet_durations_l0=testnet_durations_l0,
+                                              testnet_durations_l1=testnet_durations_l1))
+            return content
+        except Exception:
+            print(traceback.format_exc())
 
     async def get_html_page_about(selfself, request, templates):
         content = templates.TemplateResponse(
@@ -638,3 +701,4 @@ class CRUD:
             )
             results = await session.execute(statement)
         return results.scalar_one_or_none()
+

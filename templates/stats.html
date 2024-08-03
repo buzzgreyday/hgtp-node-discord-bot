@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Nodebot App - Statistics</title>
+    <title>Nodebot App - Statistics and Metrics</title>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -212,18 +212,14 @@
 
                         <!-- CPU Load -->
                         <div class="d-flex justify-content-between ml-3 mb-2">
-                            <span>Daily CPU load:</span>
-                            <span>{{ dict.daily_cpu_load | round(2) }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between ml-3 mb-3">
-                            <span>Ideal CPU load average:</span>
-                            <span>Below {{ dict.cpu_count }}</span>
+                            <span>Daily CPU Load:</span>
+                            <span>{{ dict.daily_cpu_load | round(2) }} / {{ dict.cpu_count }}</span>
                         </div>
 
                         <!-- Disk Space -->
                         <div class="d-flex justify-content-between ml-3 mb-3">
-                            <span>Disk space:</span>
-                            <span>{{ dict.disk_free | round(2) }} GB free of {{ dict.disk_total | round(2) }} GB</span>
+                            <span>Free Disk Space:</span>
+                            <span>{{ dict.disk_free | round(2) }} of {{ dict.disk_total | round(2) }} GB</span>
                         </div>
                     </div>
                     {% endfor %}
@@ -232,7 +228,7 @@
         </div>
     </div>
     <footer class="text-dark">
-        <p class="m-1 text-center" style="font-size: 0.6em; color: #707374;">v0.0.13 by Buzz Greyday (aka. hgtp_Michael)</p>
+        <p class="m-1 text-center" style="font-size: 0.6em; color: #707374;">v0.0.14 by Buzz Greyday (aka. hgtp_Michael)</p>
     </footer>
     <script>
         var reward_frame = document.getElementById('reward_plot');
