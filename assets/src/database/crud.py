@@ -322,6 +322,7 @@ class CRUD:
                      dag_address_sum=round(reward_results.dag_address_sum, 2),
                      dag_median_sum=round(reward_results.dag_median_sum, 2),
                      dag_address_daily_mean=round(reward_results.dag_address_daily_mean, 2),
+                     dag_address_daily_std_dev=round(reward_results.dag_address_daily_sum_dev, 2),
                      dag_price_now=round(price_dagusd, 4),
                      dag_earnings_price_now_dev=dag_earnings_price_now_dev,
                      dag_price_now_timestamp=datetime.fromtimestamp(price_timestamp),
@@ -355,12 +356,16 @@ class CRUD:
     async def get_html_page_statistics(self, request, templates, async_session: async_sessionmaker[AsyncSession]):
         try:
             user_data = []
+            unique_subscribers_l0 = []
+            unique_subscribers_l1 = []
             integrationnet_node_count_l0 = 0
             testnet_node_count_l0 = 0
             mainnet_node_count_l0 = 0
             integrationnet_node_count_l1 = 0
             testnet_node_count_l1 = 0
             mainnet_node_count_l1 = 0
+            marked_removable_node_count_l0 = 0
+            marked_removable_node_count_l1 = 0
 
             async with async_session() as session:
 
@@ -384,7 +389,22 @@ class CRUD:
                         testnet_node_count_l0 += 1
                     else:
                         testnet_node_count_l1 += 1
+                elif node_dict["removal_datetime"]:
+                    if node_dict["layer"] == 0:
+                        marked_removable_node_count_l0 += 1
+                    else:
+                        marked_removable_node_count_l1 += 1
+                if node_dict["layer"] == 0:
+                    unique_subscribers_l0.append(node_dict["name"])
+                else:
+                    unique_subscribers_l1.append(node_dict["name"])
                 user_data.append(node_dict)
+
+            active_subscribed_nodes_count = mainnet_node_count_l0 + mainnet_node_count_l1 + testnet_node_count_l0 + testnet_node_count_l1 + integrationnet_node_count_l0 + integrationnet_node_count_l1
+            inactive_subscribed_nodes_count = marked_removable_node_count_l0 + marked_removable_node_count_l1
+            unique_subscribers_l0_count = len(list(set(unique_subscribers_l0)))
+            unique_subscribers_l1_count = len(list(set(unique_subscribers_l1)))
+            unique_subscribers_count_total = unique_subscribers_l0_count + unique_subscribers_l1_count
 
             mainnet_durations_l0 = None
             mainnet_durations_l1 = None
@@ -408,12 +428,15 @@ class CRUD:
                                               integrationnet_node_count_l1=integrationnet_node_count_l1,
                                               testnet_node_count_l0=testnet_node_count_l0,
                                               testnet_node_count_l1=testnet_node_count_l1,
+                                              active_subscribed_nodes_count=active_subscribed_nodes_count,
+                                              inactive_subscribed_nodes_count=inactive_subscribed_nodes_count,
                                               mainnet_durations_l0=mainnet_durations_l0,
                                               mainnet_durations_l1=mainnet_durations_l1,
                                               integrationnet_durations_l0=integrationnet_durations_l0,
                                               integrationnet_durations_l1=integrationnet_durations_l1,
                                               testnet_durations_l0=testnet_durations_l0,
-                                              testnet_durations_l1=testnet_durations_l1))
+                                              testnet_durations_l1=testnet_durations_l1,
+                                              unique_subscribers_count_total=unique_subscribers_count_total))
             return content
         except Exception:
             print(traceback.format_exc())
