@@ -252,6 +252,8 @@ async def main_loop(version_manager, _configuration):
 
         # After checks, give GIL something to do
         await asyncio.sleep(3)
+
+
 def run_uvicorn_process():
     subprocess.run(
         [
@@ -265,6 +267,7 @@ def run_uvicorn_process():
             "assets/data/logs/uvicorn.ini",
         ]
     )
+
 
 def configure_logging():
     log_configs = [
