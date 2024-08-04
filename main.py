@@ -72,20 +72,39 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
                     cached_subscriber["located"] = False
                     if subscriber[0] == cached_subscriber["id"] and subscriber[1] == cached_subscriber["ip"] and subscriber[2] == cached_subscriber["public_port"]:
                         subscriber_found = True
+                        if cached_subscriber["cluster_name"] in (None, 'None', False, 'False', '', [], {}, ()) and cached_subscriber["new_subscriber"] is True:
+                            pass
+                        else:
+                            cached_subscriber["new_subscriber"] = False
                         break
 
-            if not subscriber_found:
+                if not subscriber_found:
+                    cache.append(
+                        {
+                            "id": subscriber[0],
+                            "ip": subscriber[1],
+                            "public_port": subscriber[2],
+                            "layer": layer,
+                            "cluster_name": "mainnet",
+                            "located": False,
+                            "new_subscriber": True,
+                            "removal_datetime": subscriber[3]
+                        }
+                    )
+            else:
                 cache.append(
-                    {
-                        "id": subscriber[0],
-                        "ip": subscriber[1],
-                        "public_port": subscriber[2],
-                        "layer": layer,
-                        "cluster_name": "mainnet",
-                        "located": False,
-                        "removal_datetime": subscriber[3]
-                    }
-                )
+                        {
+                            "id": subscriber[0],
+                            "ip": subscriber[1],
+                            "public_port": subscriber[2],
+                            "layer": layer,
+                            "cluster_name": "mainnet",
+                            "located": False,
+                            "new_subscriber": False,
+                            "removal_datetime": subscriber[3]
+                        }
+                    )
+
 
     for cluster in clusters:
         cluster["number_of_subs"] = 0
@@ -152,7 +171,7 @@ async def main_loop(version_manager, _configuration):
                                     continue
                                 for i, cached_subscriber in enumerate(cache):
                                     if cached_subscriber["located"] in (None, 'None', False, 'False', '', [], {}, ()):
-                                        if cached_subscriber["cluster_name"] in (None, 'None', False, 'False', '', [], {}, ()):
+                                        if cached_subscriber["cluster_name"] in (None, 'None', False, 'False', '', [], {}, ()) and cached_subscriber["new_subscriber"] is False:
                                             # We need to run these last
                                             no_cluster_subscribers.append(cached_subscriber)
                                         else:
