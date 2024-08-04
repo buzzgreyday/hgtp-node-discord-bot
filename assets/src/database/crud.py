@@ -404,7 +404,7 @@ class CRUD:
             inactive_subscribed_nodes_count = marked_removable_node_count_l0 + marked_removable_node_count_l1
             unique_subscribers_l0_count = len(list(set(unique_subscribers_l0)))
             unique_subscribers_l1_count = len(list(set(unique_subscribers_l1)))
-            unique_subscribers_count_total = unique_subscribers_l0_count + unique_subscribers_l1_count
+            unique_subscribers_count_total = len(list(set(unique_subscribers_l0 + unique_subscribers_l1)))
 
             mainnet_durations_l0 = None
             mainnet_durations_l1 = None

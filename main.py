@@ -269,10 +269,10 @@ def main():
 
     version_manager = preliminaries.VersionManager(_configuration)
 
-    bot.load_extension("assets.src.discord.commands")
-    bot.load_extension("assets.src.discord.events")
+    # bot.load_extension("assets.src.discord.commands")
+    # bot.load_extension("assets.src.discord.events")
 
-    bot.loop.create_task(main_loop(version_manager, _configuration))
+    # bot.loop.create_task(main_loop(version_manager, _configuration))
 
     # Create a thread for running uvicorn
     uvicorn_thread = threading.Thread(target=run_uvicorn_process)
