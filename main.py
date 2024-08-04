@@ -63,47 +63,54 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
         # We need subscriber data to determine if new subscriptions have been made (or first run), add these to cache
         layer_subscriptions = await api.get_user_ids(session, layer, None, _configuration)
         # Returns a list of tuples containing (ID, IP, PORT, REMOVAL_DATETIME, CLUSTER)
-
-        for subscriber in layer_subscriptions:
+        if cache:
+            first_run = False
+        else:
+            first_run = True
+        for i, subscriber in enumerate(layer_subscriptions):
             subscriber_found = False
-            if cache:
-                for cached_subscriber in cache:
+
+            for cached_subscriber in cache:
+                if first_run:
                     # This will skip lookup if already located in a cluster. This needs reset every check.
                     cached_subscriber["located"] = False
                     if subscriber[0] == cached_subscriber["id"] and subscriber[1] == cached_subscriber["ip"] and subscriber[2] == cached_subscriber["public_port"]:
                         subscriber_found = True
                         if cached_subscriber["cluster_name"] in (None, 'None', False, 'False', '', [], {}, ()) and cached_subscriber["new_subscriber"] is True:
-                            pass
+                            print("Known new subscriber")
                         else:
                             cached_subscriber["new_subscriber"] = False
                         break
 
-                if not subscriber_found:
+                    if not subscriber_found:
+                        print("New subscriber")
+                        cache.append(
+                            {
+                                "id": subscriber[0],
+                                "ip": subscriber[1],
+                                "public_port": subscriber[2],
+                                "layer": layer,
+                                "cluster_name": "mainnet",
+                                "located": False,
+                                "new_subscriber": True,
+                                "removal_datetime": subscriber[3]
+                            }
+                        )
+
+                else:
+                    print("First run")
                     cache.append(
-                        {
-                            "id": subscriber[0],
-                            "ip": subscriber[1],
-                            "public_port": subscriber[2],
-                            "layer": layer,
-                            "cluster_name": "mainnet",
-                            "located": False,
-                            "new_subscriber": True,
-                            "removal_datetime": subscriber[3]
-                        }
-                    )
-            else:
-                cache.append(
-                        {
-                            "id": subscriber[0],
-                            "ip": subscriber[1],
-                            "public_port": subscriber[2],
-                            "layer": layer,
-                            "cluster_name": "mainnet",
-                            "located": False,
-                            "new_subscriber": False,
-                            "removal_datetime": subscriber[3]
-                        }
-                    )
+                            {
+                                "id": subscriber[0],
+                                "ip": subscriber[1],
+                                "public_port": subscriber[2],
+                                "layer": layer,
+                                "cluster_name": "mainnet",
+                                "located": False,
+                                "new_subscriber": False,
+                                "removal_datetime": subscriber[3]
+                            }
+                        )
 
 
     for cluster in clusters:
@@ -288,10 +295,10 @@ def main():
 
     version_manager = preliminaries.VersionManager(_configuration)
 
-    # bot.load_extension("assets.src.discord.commands")
-    # bot.load_extension("assets.src.discord.events")
+    bot.load_extension("assets.src.discord.commands")
+    bot.load_extension("assets.src.discord.events")
 
-    # bot.loop.create_task(main_loop(version_manager, _configuration))
+    bot.loop.create_task(main_loop(version_manager, _configuration))
 
     # Create a thread for running uvicorn
     uvicorn_thread = threading.Thread(target=run_uvicorn_process)
