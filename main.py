@@ -76,7 +76,11 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
                     if subscriber[0] == cached_subscriber["id"] and subscriber[1] == cached_subscriber["ip"] and subscriber[2] == cached_subscriber["public_port"]:
                         subscriber_found = True
                         if cached_subscriber["cluster_name"] in (None, 'None', False, 'False', '', [], {}, ()) and cached_subscriber["new_subscriber"] is True:
-                            pass
+                            logging.getLogger("app").info(
+                                f"main.py - Found new subscriber in cache\n"
+                                f"Subscriber: ip {cached_subscriber["ip"]}, layer {cached_subscriber["public_port"]}\n"
+                                f"Details: Unidentified cluster name"
+                            )
                         else:
                             cached_subscriber["new_subscriber"] = False
                         break
@@ -93,6 +97,11 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
                             "new_subscriber": True,
                             "removal_datetime": subscriber[3]
                         }
+                    )
+                    logging.getLogger("app").info(
+                        f"main.py - Found new subscriber in cache\n"
+                        f"Subscriber: ip {subscriber[1]}, layer {subscriber[2]}\n"
+                        f"Details: New subscriber added to cache"
                     )
 
             else:
