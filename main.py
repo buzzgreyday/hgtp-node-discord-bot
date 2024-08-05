@@ -92,7 +92,7 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
                             "ip": subscriber[1],
                             "public_port": subscriber[2],
                             "layer": layer,
-                            "cluster_name": "mainnet",
+                            "cluster_name": None,
                             "located": False,
                             "new_subscriber": True,
                             "removal_datetime": subscriber[3]
