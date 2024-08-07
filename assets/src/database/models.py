@@ -7,7 +7,7 @@ import datetime
 class SQLBase(DeclarativeBase):
     pass
 
-
+# Does not need "old data" table
 class UserModel(SQLBase):
     """SQL Base for user subscription data"""
 
@@ -29,6 +29,7 @@ class UserModel(SQLBase):
     removal_datetime: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
 
 
+# Does need "old data" table
 class NodeModel(SQLBase):
     """SQL Base for automatic check node data"""
 
@@ -95,6 +96,13 @@ class NodeModel(SQLBase):
     cluster_check_ordinal: Mapped[Optional[str]] = mapped_column(nullable=True)
 
 
+class OldNodeModel(NodeModel):
+    """SQL Base for automatic check node data (older than 30d)"""
+
+    __tablename__ = "old_data"
+
+
+# Does need "old data" model
 class OrdinalModel(SQLBase):
     """SQL Base for reward and ordinal data"""
 
@@ -113,6 +121,13 @@ class OrdinalModel(SQLBase):
     timestamp: Mapped[int] = mapped_column(index=True)
 
 
+class OldOrdinalData(OrdinalModel):
+    """SQL Base for old reward and ordinal data"""
+
+    __tablename__ = "old_ordinal"
+
+
+# Does need old data model
 class PriceModel(SQLBase):
     """The base for the Coingecko prices"""
 
@@ -124,6 +139,13 @@ class PriceModel(SQLBase):
     usd: Mapped[float]
 
 
+class OldPriceModel(PriceModel):
+    """The base for the old Coingecko prices"""
+
+    __tablename__ = "old_price"
+
+
+# Does not need old data model
 class RewardStatsModel(SQLBase):
     """SQL Base for statistical data"""
 

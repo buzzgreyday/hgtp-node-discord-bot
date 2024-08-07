@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import traceback
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import os
 from typing import List, Dict
 
@@ -13,7 +13,7 @@ from assets.src.database.models import (
     NodeModel,
     OrdinalModel,
     PriceModel,
-    RewardStatsModel, MetricStatsModel,
+    RewardStatsModel, MetricStatsModel, OldNodeModel,
 )
 from assets.src.schemas import (
     User as UserSchema,
@@ -24,7 +24,7 @@ from assets.src.schemas import (
 
 from assets.src.schemas import Node as NodeSchema
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
-from sqlalchemy import select, delete, update, desc, and_, func
+from sqlalchemy import select, delete, update, desc, and_, text
 from fastapi.encoders import jsonable_encoder
 
 load_dotenv()
@@ -223,13 +223,35 @@ class CRUD:
             await session.execute(statement)
             await session.commit()
 
-    async def delete_old_entries(self, async_session: async_sessionmaker[AsyncSession]):
+    async def migrate_old_data(self, async_session: async_sessionmaker[AsyncSession]):
         """
-        Placeholder for automatic deletion of database entries older than x.
+        Placeholder for automatic migration of database entries older than x.
         Beware: just passes entries without functionality
         """
+        # Execute queries
         async with async_session() as session:
-            pass
+            batch_size = 200000
+            offset = 0
+            # Define the cutoff date
+            cutoff_date = datetime.now() - timedelta(days=30)
+
+            # Query for old data
+            while True:
+                results = await session.execute(select(NodeModel).filter(NodeModel.timestamp_index < cutoff_date).offset(offset).limit(batch_size))
+                batch_results = results.fetchall()
+                if not batch_results:
+                    logging.getLogger("stats").debug("All node_data batches processed")
+                    break  # No more data
+
+                # Batch processing
+                for data in batch_results:
+                    await batch_processor.add_to_batch(OldNodeModel(**data.__dict__), async_session)
+
+                offset += batch_size
+
+            # Optionally, delete the old data from the source table
+            await session.execute(delete(NodeModel).filter(NodeModel.timestamp_index < cutoff_date))
+            await session.commit()
 
     async def delete_db_ordinal(
             self, ordinal, async_session: async_sessionmaker[AsyncSession]
