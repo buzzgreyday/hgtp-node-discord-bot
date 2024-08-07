@@ -16,6 +16,7 @@ from assets.src import preliminaries, check, history, rewards, stats, api, dt
 from assets.src.database.database import update_user
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
+from assets.src.database.database import migrate_old_data
 
 MAX_CONCURRENT_REQUESTS = 15
 semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
@@ -145,7 +146,8 @@ async def main_loop(version_manager, _configuration):
 
     cache = []
     clusters = []
-
+    await migrate_old_data()
+    exit(0)
     while True:
         async with semaphore:
             async with aiohttp.ClientSession() as session:

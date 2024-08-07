@@ -26,6 +26,7 @@ from assets.src.schemas import Node as NodeSchema
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
 from sqlalchemy import select, delete, update, desc, and_, text
 from fastapi.encoders import jsonable_encoder
+from sqlalchemy.exc import IntegrityError
 
 load_dotenv()
 
@@ -56,7 +57,7 @@ class DatabaseBatchProcessor:
                 await session.commit()
             self.batch_data = []
 
-    async def add_to_batch(self, data, async_session: async_sessionmaker[AsyncSession]):
+    async def add_to_batch(self, data: NodeModel | OldNodeModel, async_session: async_sessionmaker[AsyncSession]):
         self.batch_data.append(data)
         if len(self.batch_data) >= self.batch_size:
             await self.process_batch(async_session)
@@ -229,26 +230,38 @@ class CRUD:
         Beware: just passes entries without functionality
         """
         # Execute queries
-        async with async_session() as session:
-            batch_size = 200000
-            offset = 0
-            # Define the cutoff date
-            cutoff_date = datetime.now() - timedelta(days=30)
+        batch_size = 10000
+        offset = 0
+        seen_ids = set()
+        # Define the cutoff date
+        cutoff_date = datetime.now() - timedelta(days=30)
 
-            # Query for old data
-            while True:
+        # Query for old data
+        while True:
+            async with async_session() as session:
                 results = await session.execute(select(NodeModel).filter(NodeModel.timestamp_index < cutoff_date).offset(offset).limit(batch_size))
-                batch_results = results.fetchall()
-                if not batch_results:
-                    logging.getLogger("stats").debug("All node_data batches processed")
-                    break  # No more data
+                batch_results = results.scalars().all()
 
-                # Batch processing
-                for data in batch_results:
-                    await batch_processor.add_to_batch(OldNodeModel(**data.__dict__), async_session)
+            if not batch_results:
+                print(f"No more batches")
+                logging.getLogger("app").debug("All node_data batches processed")
+                break  # No more data
 
-                offset += batch_size
+            print(f"Processing batches from {offset}")
+            # Batch processing
+            for data in batch_results:
+                data = NodeSchema(**data.__dict__)
+                try:
+                    if data.index not in seen_ids:
+                        seen_ids.add(data.index)
+                        await batch_processor.add_to_batch(OldNodeModel(**data.__dict__), async_session)
+                except IntegrityError:
+                    print(traceback.format_exc())
+                    exit(1)
 
+            offset += batch_size
+            await asyncio.sleep(3)
+        async with async_session() as session:
             # Optionally, delete the old data from the source table
             await session.execute(delete(NodeModel).filter(NodeModel.timestamp_index < cutoff_date))
             await session.commit()
