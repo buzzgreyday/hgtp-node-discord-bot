@@ -52,10 +52,15 @@ class DatabaseBatchProcessor:
     async def process_batch(self, async_session: async_sessionmaker[AsyncSession]):
         if self.batch_data:
             async with async_session() as session:
-                for data in self.batch_data:
-                    session.add(data)
-                await session.commit()
-            self.batch_data = []
+                try:
+                    for data in self.batch_data:
+                        session.add(data)
+                    await session.commit()
+                except Exception as e:
+                    await session.rollback()
+                    raise e
+                finally:
+                    self.batch_data = []
 
     async def add_to_batch(self, data: NodeModel | OldNodeModel, async_session: async_sessionmaker[AsyncSession]):
         self.batch_data.append(data)
@@ -63,7 +68,7 @@ class DatabaseBatchProcessor:
             await self.process_batch(async_session)
 
 
-batch_processor = DatabaseBatchProcessor(batch_size=100)
+
 
 
 class CRUD:
@@ -114,6 +119,7 @@ class CRUD:
             self, data: OrdinalSchema, async_session: async_sessionmaker[AsyncSession]
     ):
         """Inserts node data from automatic check into database file"""
+        batch_processor = DatabaseBatchProcessor(batch_size=100)
         await batch_processor.add_to_batch(OrdinalModel(**data.__dict__), async_session)
         return jsonable_encoder(data)
 
@@ -229,10 +235,10 @@ class CRUD:
         Placeholder for automatic migration of database entries older than x.
         Beware: just passes entries without functionality
         """
+        batch_processor = DatabaseBatchProcessor(10000)
         # Execute queries
         batch_size = 10000
         offset = 0
-        seen_ids = set()
         # Define the cutoff date
         cutoff_date = datetime.now() - timedelta(days=30)
 
@@ -240,7 +246,8 @@ class CRUD:
         while True:
             async with async_session() as session:
                 results = await session.execute(select(NodeModel).filter(NodeModel.timestamp_index < cutoff_date).offset(offset).limit(batch_size))
-                batch_results = results.scalars().all()
+                await session.close()
+            batch_results = results.scalars().all()
 
             if not batch_results:
                 print(f"No more batches")
@@ -252,15 +259,14 @@ class CRUD:
             for data in batch_results:
                 data = NodeSchema(**data.__dict__)
                 try:
-                    if data.index not in seen_ids:
-                        seen_ids.add(data.index)
-                        await batch_processor.add_to_batch(OldNodeModel(**data.__dict__), async_session)
+                    await batch_processor.add_to_batch(OldNodeModel(**data.__dict__), async_session)
                 except IntegrityError:
-                    print(traceback.format_exc())
-                    exit(1)
+                    print("Integrity Error:", data.index)
 
+            batch_results = None
             offset += batch_size
             await asyncio.sleep(3)
+
         async with async_session() as session:
             # Optionally, delete the old data from the source table
             await session.execute(delete(NodeModel).filter(NodeModel.timestamp_index < cutoff_date))
