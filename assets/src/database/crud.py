@@ -1,10 +1,11 @@
 import asyncio
 import logging
 import traceback
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, UTC
 import os
 from typing import List, Dict
 
+import asyncpg
 import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
@@ -230,47 +231,69 @@ class CRUD:
             await session.execute(statement)
             await session.commit()
 
+    async def _get_data_ids(self, async_session, batch_size=10000, offset=None, cutoff_date=datetime.now() - timedelta(days=30)):
+        try:
+            async with async_session() as session:
+                results = await session.execute(
+                    select(NodeModel).filter(NodeModel.timestamp_index < cutoff_date).offset(offset).limit(batch_size))
+            return results.scalars().all()
+        except Exception:
+            print(traceback.format_exc())
+            return None
+
+    async def _migrate_data_ids(self, batch_results, processed_ids, async_session, batch_processor=None):
+        # Batch processing
+        for data in batch_results:
+            data = NodeSchema(**data.__dict__)
+            try:
+                await batch_processor.add_to_batch(OldNodeModel(**data.__dict__), async_session)
+            except IntegrityError:
+                print("Integrity Error:", data.index)
+            finally:
+                processed_ids.add(data.index)
+                return processed_ids
+
+    async def _delete_data_ids(self, processed_ids, async_session):
+        # Deleting old data after processing current batch
+        try:
+            print("Deleting old data from the current batch")
+            async with async_session() as session:
+                if processed_ids:
+                    await session.execute(
+                        delete(NodeModel).filter(NodeModel.index.in_(processed_ids))
+                    )
+                    await session.commit()
+        except Exception:
+            print(f"Something happened during deletion")
+            print(traceback.format_exc())
+
     async def migrate_old_data(self, async_session: async_sessionmaker[AsyncSession]):
         """
         Placeholder for automatic migration of database entries older than x.
         Beware: just passes entries without functionality
         """
-        batch_processor = DatabaseBatchProcessor(10000)
-        # Execute queries
         batch_size = 10000
+        batch_processor = DatabaseBatchProcessor(batch_size)
         offset = 0
-        # Define the cutoff date
-        cutoff_date = datetime.now() - timedelta(days=30)
+
+        processed_ids = set()
 
         # Query for old data
         while True:
-            async with async_session() as session:
-                results = await session.execute(select(NodeModel).filter(NodeModel.timestamp_index < cutoff_date).offset(offset).limit(batch_size))
-                await session.close()
-            batch_results = results.scalars().all()
+            batch_results = await self._get_data_ids(async_session, batch_size=batch_size, offset=offset)
 
             if not batch_results:
                 print(f"No more batches")
                 logging.getLogger("app").debug("All node_data batches processed")
                 break  # No more data
 
-            print(f"Processing batches from {offset}")
-            # Batch processing
-            for data in batch_results:
-                data = NodeSchema(**data.__dict__)
-                try:
-                    await batch_processor.add_to_batch(OldNodeModel(**data.__dict__), async_session)
-                except IntegrityError:
-                    print("Integrity Error:", data.index)
+            processed_ids = await self._migrate_data_ids(batch_results, processed_ids, async_session, batch_processor=batch_processor)
+            await self._delete_data_ids(processed_ids, async_session)
 
-            batch_results = None
+            batch_results.clear()
+            processed_ids.clear()
             offset += batch_size
             await asyncio.sleep(3)
-
-        async with async_session() as session:
-            # Optionally, delete the old data from the source table
-            await session.execute(delete(NodeModel).filter(NodeModel.timestamp_index < cutoff_date))
-            await session.commit()
 
     async def delete_db_ordinal(
             self, ordinal, async_session: async_sessionmaker[AsyncSession]
