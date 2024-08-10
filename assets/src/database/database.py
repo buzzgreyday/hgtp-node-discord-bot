@@ -35,9 +35,15 @@ async def post_data(data):
     """Inserts node data from automatic check into database file"""
     return await db.post_data(data, session)
 
-@app.post("/data/migrate")
+
+@app.post("/data/migrate_data")
 async def migrate_old_data():
     return await db.migrate_old_data(session)
+
+
+@app.post("/data/migrate_ordinals")
+async def migrate_old_ordinals():
+    return await db.migrate_old_ordinals(session)
 
 
 @app.get("/stats/{dag_address}", response_class=HTMLResponse)
