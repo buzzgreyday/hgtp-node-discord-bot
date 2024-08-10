@@ -181,10 +181,22 @@ class OrdinalModel(SQLBase):
     timestamp: Mapped[int] = mapped_column(index=True)
 
 
-class OldOrdinalData(OrdinalModel):
+class OldOrdinalModel(SQLBase):
     """SQL Base for old reward and ordinal data"""
 
-    pass
+    __tablename__ = "old_ordinal"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    destination: Mapped[str] = mapped_column(index=True)
+    amount: Mapped[float]
+    usd: Mapped[float]
+    hash: Mapped[str]
+    ordinal: Mapped[int]
+    height: Mapped[int]
+    subHeight: Mapped[int]
+    lastSnapshotHash: Mapped[str]
+    blocks: Mapped[List[str | None]] = []
+    timestamp: Mapped[int] = mapped_column(index=True)
 
 # Does need old data model
 class PriceModel(SQLBase):

@@ -13,7 +13,7 @@ from assets.src.database.models import (
     NodeModel,
     OrdinalModel,
     PriceModel,
-    RewardStatsModel, MetricStatsModel, OldNodeModel,
+    RewardStatsModel, MetricStatsModel, OldNodeModel, OldOrdinalModel
 )
 from assets.src.schemas import (
     User as UserSchema,
@@ -236,7 +236,7 @@ class CRUD:
                 results = await session.execute(
                     select(NodeModel).filter(NodeModel.timestamp_index < cutoff_date).offset(offset).limit(batch_size))
                 results = results.scalars().all()
-            print(f"Got {len(results)} entries")
+            print(f"Got {len(results)} data entries")
             return results
         except Exception:
             print("Something happened during the data request!")
@@ -253,7 +253,7 @@ class CRUD:
                 print("Integrity Error:", data.index)
             finally:
                 processed_ids.add(data.index)
-        print(f"Migrated {len(batch_results)} entries")
+        print(f"Migrated {len(batch_results)} node_data entries")
         return processed_ids
 
     async def _delete_data_ids(self, processed_ids, async_session):
@@ -267,7 +267,7 @@ class CRUD:
                     )
                     await session.commit()
         except Exception:
-            print(f"Something happened during deletion")
+            print(f"Something happened during node_data deletion")
             print(traceback.format_exc())
 
     async def migrate_old_data(self, async_session: async_sessionmaker[AsyncSession]):
@@ -286,7 +286,7 @@ class CRUD:
             batch_results = await self._get_data_ids(async_session, batch_size=batch_size, offset=offset)
 
             if not batch_results:
-                print(f"No more batches")
+                print(f"No more data batches")
                 logging.getLogger("app").debug("All node_data batches processed")
                 break  # No more data
 
@@ -297,6 +297,65 @@ class CRUD:
             processed_ids.clear()
             offset += batch_size
             await asyncio.sleep(3)
+
+    async def _get_ordinals_ids(self, async_session, batch_size=10000, offset=None, cutoff_date=datetime.now() - timedelta(days=30)):
+        try:
+            async with async_session() as session:
+                results = await session.execute(
+                    select(OrdinalModel).filter(OrdinalModel.timestamp < cutoff_date).offset(offset).limit(batch_size))
+                results = results.scalars().all()
+            print(f"Got ordinal {len(results)} entries")
+            return results
+        except Exception:
+            print("Something happened during the ordinal request!")
+            print(traceback.format_exc())
+            return None
+
+    async def _migrate_ordinal_ids(self, batch_results, processed_ids, async_session, batch_processor=None):
+        # Batch processing
+        for ordinal in batch_results:
+            ordinal = OrdinalSchema(**ordinal.__dict__)
+            try:
+                await batch_processor.add_to_batch(OldOrdinalModel(**ordinal.__dict__), async_session)
+            except IntegrityError:
+                print("Integrity Error:", ordinal.id)
+            finally:
+                processed_ids.add(ordinal.id)
+        print(f"Migrated {len(batch_results)} ordinal entries")
+        return processed_ids
+
+    async def _delete_ordinal_ids(self, processed_ids: set, async_session: async_sessionmaker[AsyncSession]):
+        # Deleting old data after processing current batch
+        try:
+            print("Deleting old ordinals from the current batch")
+            async with async_session() as session:
+                if processed_ids:
+                    await session.execute(
+                        delete(OrdinalModel).filter(OrdinalModel.id.in_(processed_ids))
+                    )
+                    await session.commit()
+        except Exception:
+            print(f"Something happened during ordinal deletion")
+            print(traceback.format_exc())
+
+    async def migrate_old_ordinals(self, async_session: async_sessionmaker[AsyncSession]):
+        batch_size = 100000
+        batch_processor = DatabaseBatchProcessor(batch_size)
+        offset = 0
+
+        processed_ids = set()
+
+        # Query for old data
+        while True:
+            batch_results = await self._get_ordinals_ids(async_session, batch_size=batch_size, offset=offset)
+            if not batch_results:
+                print(f"No more ordinal batches")
+                logging.getLogger("app").debug("All ordinal batches processed")
+                break  # No more data
+
+            processed_ids = await self._migrate_ordinal_ids(batch_results, processed_ids, async_session, batch_processor=batch_processor)
+            await self._delete_ordinal_ids(processed_ids, async_session)
+
 
     async def delete_db_ordinal(
             self, ordinal, async_session: async_sessionmaker[AsyncSession]
