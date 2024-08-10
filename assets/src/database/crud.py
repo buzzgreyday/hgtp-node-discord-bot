@@ -212,9 +212,16 @@ class CRUD:
                     .values(**data.__dict__)
                 )
                 await session.commit()
-                logging.getLogger("stats").debug(f"crud.py - Metric stats update: SUCCESS!")
-            except Exception:
-                logging.getLogger("stats").error(f"crud.py - Metric stats update: FAIL!\n{traceback.format_exc()}")
+                logging.getLogger("stats").debug(
+                    f"Message: Metric stats update successful\n"
+                    f"Module: assets/src/database/crud.py\n"
+                )
+            except Exception as e:
+                logging.getLogger("stats").error(
+                    f"Message: Metric stats update failed\n"
+                    f"Module: assets/src/database/crud.py\n"
+                    f"Type: {e}\n"
+                    f"Details: {traceback.format_exc()}\n")
 
     async def delete_user_entry(
             self, data: UserModel, async_session: async_sessionmaker[AsyncSession]
@@ -242,9 +249,11 @@ class CRUD:
             try:
                 await batch_processor.add_to_batch(OldNodeModel(**data.__dict__), async_session)
             except IntegrityError as e:
-                logging.getLogger("db_optimization").error(f"Node data already present in the old_data table:\n"
-                                                           f"Type: {e}"
-                                                           f"Details: {traceback.format_exc()}")
+                logging.getLogger("db_optimization").error(
+                    f"Message: Node data already present in the old_data table\n"
+                    f"Module: assets/src/database/crud.py\n"
+                    f"Type: {e}\n"
+                    f"Details: {traceback.format_exc()}")
             finally:
                 processed_ids.add(data.index)
         return processed_ids
@@ -259,8 +268,9 @@ class CRUD:
                     )
                     await session.commit()
         except Exception as e:
-            logging.getLogger("db_optimization").error(f"Something happened during node data deletion:\n"
-                                                       f"Type: {e}"
+            logging.getLogger("db_optimization").error(f"Message: Something happened during node data deletion.\n"
+                                                       f"Module: assets/src/database/crud.py\n"
+                                                       f"Type: {e}\n"
                                                        f"Details: {traceback.format_exc()}")
 
     async def migrate_old_data(self, async_session: async_sessionmaker[AsyncSession]):
@@ -298,9 +308,11 @@ class CRUD:
                 results = results.scalars().all()
             return results
         except Exception as e:
-            logging.getLogger("db_optimization").error(f"Something happened during ordinals request:\n"
-                                                       f"Type: {e}"
-                                                       f"Details: {traceback.format_exc()}")
+            logging.getLogger("db_optimization").error(
+                f"Message: Something happened during ordinals request\n"
+                f"Module: assets/src/database/crud.py\n"
+                f"Type: {e}\n"
+                f"Details: {traceback.format_exc()}")
 
     async def _migrate_ordinal_ids(self, batch_results, processed_ids, async_session, batch_processor=None):
         # Batch processing
@@ -311,13 +323,16 @@ class CRUD:
                 ordinal = OrdinalSchema(**ordinal_dict)
                 await batch_processor.add_to_batch(OldOrdinalModel(**ordinal.__dict__), async_session)
             except IntegrityError as e:
-                logging.getLogger("db_optimization").error(f"Ordinal index {ordinal_dict["id"]} already present in the old_ordinals table:\n"
-                                                           f"Type: {e}"
-                                                           f"Details: {traceback.format_exc()}")
+                logging.getLogger("db_optimization").error(
+                    f"Message: Ordinal index {ordinal_dict["id"]} already present in the old_ordinals table\n"     
+                    f"Module: assets/src/database/crud.py\n"
+                    f"Type: {e}\n"
+                    f"Details: {traceback.format_exc()}")
             except pydantic.ValidationError as e:
                 logging.getLogger("db_optimization").error(
-                    f"Validation for index {ordinal_dict["id"]} failed:\n"
-                    f"Type: {e}"
+                    f"Message: Validation for index {ordinal_dict["id"]} failed\n"
+                    f"Module: assets/src/database/crud.py\n"
+                    f"Type: {e}\n"
                     f"Details: {traceback.format_exc()}")
             finally:
                 processed_ids.add(ordinal_dict["id"])
@@ -333,8 +348,9 @@ class CRUD:
                     )
                     await session.commit()
         except Exception as e:
-            logging.getLogger("db_optimization").error(f"Something happened during node data deletion:\n"
-                                                       f"Type: {e}"
+            logging.getLogger("db_optimization").error(f"Message: Something happened during node data deletion\n"
+                                                       f"Module: assets/src/database/crud.py\n"
+                                                       f"Type: {e}\n"
                                                        f"Details: {traceback.format_exc()}")
 
     async def migrate_old_ordinals(self, async_session: async_sessionmaker[AsyncSession]):
