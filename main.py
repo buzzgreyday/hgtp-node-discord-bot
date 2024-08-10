@@ -286,7 +286,8 @@ def configure_logging():
         ("app", "assets/data/logs/app.log", logging.INFO),
         ("rewards", "assets/data/logs/rewards.log", logging.INFO),
         ("nextcord", "assets/data/logs/nextcord.log", logging.CRITICAL),
-        ("stats", "assets/data/logs/stats.log", logging.DEBUG)
+        ("stats", "assets/data/logs/stats.log", logging.DEBUG),
+        ("db_optimization", "assets/data/logs/db_optimization.log", logging.INFO)
     ]
 
     for name, file, level in log_configs:

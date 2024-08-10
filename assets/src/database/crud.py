@@ -69,9 +69,6 @@ class DatabaseBatchProcessor:
             await self.process_batch(async_session)
 
 
-
-
-
 class CRUD:
     async def post_user(
             self, data: UserSchema, async_session: async_sessionmaker[AsyncSession]
@@ -232,17 +229,11 @@ class CRUD:
             await session.commit()
 
     async def _get_data_ids(self, async_session, batch_size=10000, offset=None, cutoff_date=datetime.now() - timedelta(days=30)):
-        try:
-            async with async_session() as session:
-                results = await session.execute(
-                    select(NodeModel).filter(NodeModel.timestamp_index < cutoff_date).offset(offset).limit(batch_size))
-                results = results.scalars().all()
-            print(f"Got {len(results)} data entries")
-            return results
-        except Exception:
-            print("Something happened during the data request!")
-            print(traceback.format_exc())
-            return None
+        async with async_session() as session:
+            results = await session.execute(
+                select(NodeModel).filter(NodeModel.timestamp_index < cutoff_date).offset(offset).limit(batch_size))
+            results = results.scalars().all()
+        return results
 
     async def _migrate_data_ids(self, batch_results, processed_ids, async_session, batch_processor=None):
         # Batch processing
@@ -250,26 +241,27 @@ class CRUD:
             data = NodeSchema(**data.__dict__)
             try:
                 await batch_processor.add_to_batch(OldNodeModel(**data.__dict__), async_session)
-            except IntegrityError:
-                print("Integrity Error:", data.index)
+            except IntegrityError as e:
+                logging.getLogger("db_optimization").error(f"Node data already present in the old_data table:\n"
+                                                           f"Type: {e}"
+                                                           f"Details: {traceback.format_exc()}")
             finally:
                 processed_ids.add(data.index)
-        print(f"Migrated {len(batch_results)} node_data entries")
         return processed_ids
 
     async def _delete_data_ids(self, processed_ids, async_session):
         # Deleting old data after processing current batch
         try:
-            print("Deleting old data from the current batch")
             async with async_session() as session:
                 if processed_ids:
                     await session.execute(
                         delete(NodeModel).filter(NodeModel.index.in_(processed_ids))
                     )
                     await session.commit()
-        except Exception:
-            print(f"Something happened during node_data deletion")
-            print(traceback.format_exc())
+        except Exception as e:
+            logging.getLogger("db_optimization").error(f"Something happened during node data deletion:\n"
+                                                       f"Type: {e}"
+                                                       f"Details: {traceback.format_exc()}")
 
     async def migrate_old_data(self, async_session: async_sessionmaker[AsyncSession]):
         """
@@ -287,8 +279,7 @@ class CRUD:
             batch_results = await self._get_data_ids(async_session, batch_size=batch_size, offset=offset)
 
             if not batch_results:
-                print(f"No more data batches")
-                logging.getLogger("app").debug("All node_data batches processed")
+                logging.getLogger("db_optimization").info(f"No more node data to migrate")
                 break  # No more data
 
             processed_ids = await self._migrate_data_ids(batch_results, processed_ids, async_session, batch_processor=batch_processor)
@@ -305,12 +296,11 @@ class CRUD:
                 results = await session.execute(
                     select(OrdinalModel).filter(OrdinalModel.timestamp < int(datetime.timestamp(cutoff_date))).offset(offset).limit(batch_size))
                 results = results.scalars().all()
-            print(f"Got ordinal {len(results)} entries")
             return results
-        except Exception:
-            print("Something happened during the ordinal request!")
-            print(traceback.format_exc())
-            return None
+        except Exception as e:
+            logging.getLogger("db_optimization").error(f"Something happened during ordinals request:\n"
+                                                       f"Type: {e}"
+                                                       f"Details: {traceback.format_exc()}")
 
     async def _migrate_ordinal_ids(self, batch_results, processed_ids, async_session, batch_processor=None):
         # Batch processing
@@ -320,30 +310,32 @@ class CRUD:
             try:
                 ordinal = OrdinalSchema(**ordinal_dict)
                 await batch_processor.add_to_batch(OldOrdinalModel(**ordinal.__dict__), async_session)
-            except IntegrityError:
-                print("Integrity Error:", ordinal_dict["id"])
-                exit(1)
+            except IntegrityError as e:
+                logging.getLogger("db_optimization").error(f"Ordinal index {ordinal_dict["id"]} already present in the old_ordinals table:\n"
+                                                           f"Type: {e}"
+                                                           f"Details: {traceback.format_exc()}")
             except pydantic.ValidationError as e:
-                print(f"Validation error: {e}")
-                exit(1)
+                logging.getLogger("db_optimization").error(
+                    f"Validation for index {ordinal_dict["id"]} failed:\n"
+                    f"Type: {e}"
+                    f"Details: {traceback.format_exc()}")
             finally:
                 processed_ids.add(ordinal_dict["id"])
-        print(f"Migrated {len(batch_results)} ordinal entries")
         return processed_ids
 
     async def _delete_ordinal_ids(self, processed_ids: set, async_session: async_sessionmaker[AsyncSession]):
         # Deleting old data after processing current batch
         try:
-            print("Deleting old ordinals from the current batch")
             async with async_session() as session:
                 if processed_ids:
                     await session.execute(
                         delete(OrdinalModel).filter(OrdinalModel.id.in_(processed_ids))
                     )
                     await session.commit()
-        except Exception:
-            print(f"Something happened during ordinal deletion")
-            print(traceback.format_exc())
+        except Exception as e:
+            logging.getLogger("db_optimization").error(f"Something happened during node data deletion:\n"
+                                                       f"Type: {e}"
+                                                       f"Details: {traceback.format_exc()}")
 
     async def migrate_old_ordinals(self, async_session: async_sessionmaker[AsyncSession]):
         batch_size = 10000
@@ -356,8 +348,7 @@ class CRUD:
         while True:
             batch_results = await self._get_ordinals_ids(async_session, batch_size=batch_size, offset=offset)
             if not batch_results:
-                print(f"No more ordinal batches")
-                logging.getLogger("app").debug("All ordinal batches processed")
+                logging.getLogger("db_optimization").info(f"No more ordinals to migrate")
                 break  # No more data
 
             processed_ids = await self._migrate_ordinal_ids(batch_results, processed_ids, async_session, batch_processor=batch_processor)

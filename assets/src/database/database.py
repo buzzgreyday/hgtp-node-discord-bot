@@ -12,8 +12,8 @@ from assets.src.database.crud import CRUD, engine
 from assets.src.schemas import OrdinalSchema, PriceSchema, RewardStatsSchema, MetricStatsSchema
 
 app = FastAPI(
-    title="Hypergraph Node Status Bot",
-    description="This is a the Node Bot",
+    title="The Nodebot",
+    description="Created by Buzz Greyday aka hgtp_Michael",
     docs_url="/nodebot/swagger",
 )
 
@@ -21,6 +21,7 @@ templates = Jinja2Templates(directory="templates")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 session = async_sessionmaker(bind=engine, expire_on_commit=False)
+
 db = CRUD()
 
 
