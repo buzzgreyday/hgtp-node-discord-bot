@@ -1,11 +1,10 @@
 import asyncio
 import logging
 import traceback
-from datetime import datetime, timezone, timedelta, UTC
+from datetime import datetime, timedelta
 import os
 from typing import List, Dict
 
-import asyncpg
 import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
@@ -25,7 +24,7 @@ from assets.src.schemas import (
 
 from assets.src.schemas import Node as NodeSchema
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
-from sqlalchemy import select, delete, update, desc, and_, text
+from sqlalchemy import select, delete, update, desc, and_
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.exc import IntegrityError
 
@@ -63,7 +62,7 @@ class DatabaseBatchProcessor:
                 finally:
                     self.batch_data = []
 
-    async def add_to_batch(self, data: NodeModel | OldNodeModel, async_session: async_sessionmaker[AsyncSession]):
+    async def add_to_batch(self, data: NodeModel | OldNodeModel | OrdinalModel, async_session: async_sessionmaker[AsyncSession]):
         self.batch_data.append(data)
         if len(self.batch_data) >= self.batch_size:
             await self.process_batch(async_session)
@@ -236,8 +235,9 @@ class CRUD:
             async with async_session() as session:
                 results = await session.execute(
                     select(NodeModel).filter(NodeModel.timestamp_index < cutoff_date).offset(offset).limit(batch_size))
+                results = results.scalars().all()
             print(f"Got {len(results)} entries")
-            return results.scalars().all()
+            return results
         except Exception:
             print("Something happened during the data request!")
             print(traceback.format_exc())
@@ -474,12 +474,12 @@ class CRUD:
             unique_subscribers_l1_count = len(list(set(unique_subscribers_l1)))
             unique_subscribers_count_total = len(list(set(unique_subscribers_l0 + unique_subscribers_l1)))
 
-            mainnet_durations_l0 = None
-            mainnet_durations_l1 = None
-            integrationnet_durations_l0 = None
-            integrationnet_durations_l1 = None
-            testnet_durations_l0 = None
-            testnet_durations_l1 = None
+            mainnet_durations_l0 = []
+            mainnet_durations_l1 = []
+            integrationnet_durations_l0 = []
+            integrationnet_durations_l1 = []
+            testnet_durations_l0 = []
+            testnet_durations_l1 = []
 
             mainnet_durations_l0 = np.average(mainnet_durations_l0) if mainnet_durations_l0 else "Forthcoming"
             mainnet_durations_l1 = np.average(mainnet_durations_l1) if mainnet_durations_l1 else "Forthcoming"
