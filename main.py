@@ -13,7 +13,7 @@ import yaml
 from aiohttp import ClientConnectorError
 
 from assets.src import preliminaries, check, history, rewards, stats, api, dt
-from assets.src.database.database import update_user
+from assets.src.database.database import update_user, migrate_old_ordinals
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
 from assets.src.database.database import migrate_old_data
@@ -146,6 +146,7 @@ async def main_loop(version_manager, _configuration):
 
     cache = []
     clusters = []
+    await migrate_old_ordinals()
     await migrate_old_data()
     exit(0)
     while True:
