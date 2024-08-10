@@ -236,8 +236,10 @@ class CRUD:
             async with async_session() as session:
                 results = await session.execute(
                     select(NodeModel).filter(NodeModel.timestamp_index < cutoff_date).offset(offset).limit(batch_size))
+            print(f"Got {len(results)} entries")
             return results.scalars().all()
         except Exception:
+            print("Something happened during the data request!")
             print(traceback.format_exc())
             return None
 
@@ -251,7 +253,8 @@ class CRUD:
                 print("Integrity Error:", data.index)
             finally:
                 processed_ids.add(data.index)
-                return processed_ids
+        print(f"Migrated {len(batch_results)} entries")
+        return processed_ids
 
     async def _delete_data_ids(self, processed_ids, async_session):
         # Deleting old data after processing current batch
@@ -309,6 +312,41 @@ class CRUD:
             )
             return
 
+    def _calculate_html_stats_yield(self, reward_results):
+        principal = 250000
+
+        # MPY Calculation
+        monthly_interest_rate = reward_results.dag_address_sum / principal
+        calculated_mpy_percentage = monthly_interest_rate * 100
+
+        # APY Calculation
+        estimated_apy = (1 + monthly_interest_rate) ** 12 - 1
+
+        # Convert APY to percentage
+        estimated_apy_percentage = estimated_apy * 100
+        return calculated_mpy_percentage, estimated_apy_percentage
+
+    async def _get_html_stats_rewards_and_metrics(self, dag_address, session):
+        reward_results = await session.execute(
+            select(RewardStatsModel).where(
+                RewardStatsModel.destinations == dag_address
+            )
+        )
+        metric_results = await session.execute(
+            select(MetricStatsModel).where(
+                MetricStatsModel.destinations == dag_address
+            )
+        )
+
+        return reward_results.scalar_one_or_none(), metric_results.fetchall()
+
+    async def _get_html_stats_price_values(self):
+        from assets.src.database.database import get_latest_db_price
+        price_timestamp, price_dagusd = await get_latest_db_price()
+        price_dagusd = 0 if price_dagusd is None else price_dagusd
+        price_timestamp = "ERROR!" if price_timestamp is None else price_timestamp
+        return price_timestamp, price_dagusd
+
     async def get_html_page_stats(
             self,
             request,
@@ -316,62 +354,25 @@ class CRUD:
             dag_address,
             async_session: async_sessionmaker[AsyncSession],
     ):
-        from assets.src.database.database import get_latest_db_price
-
-        def calculate_yield():
-            principal = 250000
-
-            # MPY Calculation
-            monthly_interest_rate = reward_results.dag_address_sum / principal
-            calculated_mpy_percentage = monthly_interest_rate * 100
-
-            # APY Calculation
-            estimated_apy = (1 + monthly_interest_rate) ** 12 - 1
-
-            # Convert APY to percentage
-            estimated_apy_percentage = estimated_apy * 100
-            return calculated_mpy_percentage, estimated_apy_percentage
 
         async with async_session() as session:
-            reward_results = await session.execute(
-                select(RewardStatsModel).where(
-                    RewardStatsModel.destinations == dag_address
-                )
-            )
-            metric_results = await session.execute(
-                select(MetricStatsModel).where(
-                    MetricStatsModel.destinations == dag_address
-                )
-            )
-            reward_results = reward_results.scalar_one_or_none()
-            metric_results = metric_results.fetchall()
+            reward_results, metric_results = await self._get_html_stats_rewards_and_metrics(dag_address, session)
 
             metric_dicts = []
             for node_metrics in metric_results:
                 metric_dicts.append(node_metrics[0].__dict__)
             metric_dicts = sorted(metric_dicts, key=lambda d: d["layer"])
 
-            price_timestamp, price_dagusd = await get_latest_db_price()
-            price_dagusd = 0 if price_dagusd is None else price_dagusd
-            price_timestamp = "ERROR!" if price_timestamp is None else price_timestamp
+            price_timestamp, price_dagusd = await self._get_html_stats_price_values()
+
             if price_dagusd != 0.000000000:
                 dag_earnings_price_now = reward_results.dag_address_sum * price_dagusd
             # MPY and APY
-            calculated_mpy_percentage, estimated_apy_percentage = calculate_yield()
-            # Sum of all $DAG minted, minus very high earning wallets (Stardust Collective wallet, etc.)
-            dag_minted_for_validators = reward_results.nonoutlier_dag_addresses_minted_sum
-            # Highest earning address, minus very high earning wallets (Stardust Collective wallet, etc.)
-            dag_highest_earning = reward_results.above_dag_address_earner_highest
-            # What addresses earning more are earning on average
-            above_dag_earnings_mean = reward_results.above_dag_addresses_earnings_mean
-            # What the address is missing out on (average)
-            above_dag_address_deviation_from_mean = reward_results.above_dag_address_earnings_deviation_from_mean
-            # What the address is missing out on (compared to highest earning address)
-            above_dag_address_deviation_from_highest_earning = reward_results.above_dag_address_earnings_from_highest
-            above_dag_address_std_dev = reward_results.above_dag_address_earnings_std_dev
+            calculated_mpy_percentage, estimated_apy_percentage = self._calculate_html_stats_yield(reward_results)
+
             # What those addresses earning more is earning (standard deviation)
-            above_dag_address_std_dev_high = above_dag_earnings_mean + above_dag_address_std_dev
-            above_dag_address_std_dev_low = above_dag_earnings_mean - above_dag_address_std_dev
+            above_dag_address_std_dev_high = reward_results.above_dag_addresses_earnings_mean + reward_results.above_dag_address_earnings_std_dev
+            above_dag_address_std_dev_low = reward_results.above_dag_addresses_earnings_mean - reward_results.above_dag_address_earnings_std_dev
             dag_earnings_price_now_dev = float(dag_earnings_price_now - reward_results.usd_address_sum)
             if dag_earnings_price_now_dev > 0:
                 dag_earnings_price_now_dev = f'+{round(dag_earnings_price_now_dev, 2)}'
@@ -395,15 +396,18 @@ class CRUD:
                      usd_address_daily_sum=round(reward_results.usd_address_daily_sum, 2),
                      rewards_plot_path=f"rewards_{dag_address}.html",
                      cpu_plot_path=f"cpu_{dag_address}.html",
-
-                     dag_minted_for_validators=round(dag_minted_for_validators, 2),
-                     dag_highest_earner=round(dag_highest_earning, 2),
-                     above_dag_address_deviation_from_mean=round(above_dag_address_deviation_from_mean, 2),
+                     # Sum of all $DAG minted, minus very high earning wallets (Stardust Collective wallet, etc.)
+                     dag_minted_for_validators=round(reward_results.nonoutlier_dag_addresses_minted_sum, 2),
+                     # Highest earning address, minus very high earning wallets (Stardust Collective wallet, etc.)
+                     dag_highest_earner=round(reward_results.above_dag_address_earner_highest, 2),
+                     # What the address is missing out on (average)
+                     above_dag_address_deviation_from_mean=round(
+                         reward_results.above_dag_address_earnings_deviation_from_mean, 2),
+                     # What the address is missing out on (compared to the highest earning address)
                      above_dag_address_deviation_from_highest_earning=round(
-                         above_dag_address_deviation_from_highest_earning, 2),
+                         reward_results.above_dag_address_earnings_from_highest, 2),
                      above_dag_address_std_dev_high=round(above_dag_address_std_dev_high, 2),
                      above_dag_address_std_dev_low=round(above_dag_address_std_dev_low, 2),
-
                      metric_dicts=metric_dicts,
                      calculated_mpy=round(calculated_mpy_percentage, 2),
                      estimated_apy=round(estimated_apy_percentage, 2)
