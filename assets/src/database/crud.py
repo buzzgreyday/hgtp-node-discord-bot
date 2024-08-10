@@ -7,6 +7,7 @@ from typing import List, Dict
 
 import numpy as np
 import pandas as pd
+import pydantic
 from dotenv import load_dotenv
 from assets.src.database.models import (
     UserModel,
@@ -302,7 +303,7 @@ class CRUD:
         try:
             async with async_session() as session:
                 results = await session.execute(
-                    select(OrdinalModel).filter(OrdinalModel.timestamp < cutoff_date).offset(offset).limit(batch_size))
+                    select(OrdinalModel).filter(OrdinalModel.timestamp < int(datetime.timestamp(cutoff_date))).offset(offset).limit(batch_size))
                 results = results.scalars().all()
             print(f"Got ordinal {len(results)} entries")
             return results
@@ -314,13 +315,19 @@ class CRUD:
     async def _migrate_ordinal_ids(self, batch_results, processed_ids, async_session, batch_processor=None):
         # Batch processing
         for ordinal in batch_results:
-            ordinal = OrdinalSchema(**ordinal.__dict__)
+            ordinal_dict = {key: value for key, value in ordinal.__dict__.items() if key != "_sa_instance_state"}
+            ordinal_dict["blocks"] = []
             try:
+                ordinal = OrdinalSchema(**ordinal_dict)
                 await batch_processor.add_to_batch(OldOrdinalModel(**ordinal.__dict__), async_session)
             except IntegrityError:
-                print("Integrity Error:", ordinal.id)
+                print("Integrity Error:", ordinal_dict["id"])
+                exit(1)
+            except pydantic.ValidationError as e:
+                print(f"Validation error: {e}")
+                exit(1)
             finally:
-                processed_ids.add(ordinal.id)
+                processed_ids.add(ordinal_dict["id"])
         print(f"Migrated {len(batch_results)} ordinal entries")
         return processed_ids
 
@@ -339,7 +346,7 @@ class CRUD:
             print(traceback.format_exc())
 
     async def migrate_old_ordinals(self, async_session: async_sessionmaker[AsyncSession]):
-        batch_size = 100000
+        batch_size = 10000
         batch_processor = DatabaseBatchProcessor(batch_size)
         offset = 0
 
@@ -356,6 +363,10 @@ class CRUD:
             processed_ids = await self._migrate_ordinal_ids(batch_results, processed_ids, async_session, batch_processor=batch_processor)
             await self._delete_ordinal_ids(processed_ids, async_session)
 
+            batch_results.clear()
+            processed_ids.clear()
+            offset += batch_size
+            await asyncio.sleep(3)
 
     async def delete_db_ordinal(
             self, ordinal, async_session: async_sessionmaker[AsyncSession]
