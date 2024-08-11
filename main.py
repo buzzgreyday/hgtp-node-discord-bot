@@ -13,7 +13,7 @@ import yaml
 from aiohttp import ClientConnectorError
 
 from assets.src import preliminaries, check, history, rewards, stats, api, dt
-from assets.src.database.database import update_user, migrate_old_ordinals
+from assets.src.database.database import update_user, migrate_old_ordinals, optimize
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
 from assets.src.database.database import migrate_old_data
@@ -47,6 +47,10 @@ def start_rewards_coroutine(_configuration):
 
 def start_stats_coroutine(_configuration):
     asyncio.run_coroutine_threadsafe(stats.run(), bot.loop)
+
+
+def start_database_optimization_coroutine(_configuration):
+    asyncio.run_coroutine_threadsafe(optimize(_configuration), bot.loop)
 
 
 async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[List[Dict], List[Dict]]:
@@ -146,9 +150,6 @@ async def main_loop(version_manager, _configuration):
 
     cache = []
     clusters = []
-    await migrate_old_ordinals()
-    await migrate_old_data()
-    exit(0)
     while True:
         async with semaphore:
             async with aiohttp.ClientSession() as session:
@@ -322,10 +323,12 @@ def main():
     stats_thread = threading.Thread(
         target=start_stats_coroutine, args=(_configuration,)
     )
+    db_optimization_thread = threading.Thread(target=start_database_optimization_coroutine, args=(_configuration,))
     get_tessellation_version_thread.start()
     uvicorn_thread.start()
     rewards_thread.start()
     stats_thread.start()
+    db_optimization_thread.start()
 
     while True:
         try:

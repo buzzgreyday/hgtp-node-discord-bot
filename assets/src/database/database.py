@@ -1,3 +1,5 @@
+import asyncio
+import datetime
 import logging
 from typing import List, Dict
 
@@ -24,6 +26,30 @@ session = async_sessionmaker(bind=engine, expire_on_commit=False)
 
 db = CRUD()
 
+
+async def optimize(configuration, node_data_migration_complete=False, ordinal_data_migration_complete=False):
+    while True:
+        if int(datetime.datetime.now().strftime("%d")) == configuration["general"]["migrate node data (day of month)"] and not node_data_migration_complete:
+            print(f"Day is right for node data optimization")
+            logging.getLogger("db_optimization").info(
+                f"Module: assets/src/database/database.py\n"
+                f"Message: The day is {configuration["general"]["migrate node data (day of month)"]} - initiating node data optimization")
+            await migrate_old_data
+            node_data_migration_complete = True
+        if int(datetime.datetime.now().strftime("%d")) == configuration["general"]["migrate ordinal data (day of month)"] and not ordinal_data_migration_complete:
+            print(f"Day is right for node data optimization")
+            logging.getLogger("db_optimization").info(
+                f"Module: assets/src/database/database.py\n"
+                f"Message: The day is {configuration["general"]["migrate ordinal data (day of month)"]} - initiating ordinal data optimization")
+            await migrate_old_ordinals
+            ordinal_data_migration_complete = True
+        if int(datetime.datetime.now().strftime("%d")) != configuration["general"]["migrate node data (day of month)"]:
+            print(f"Day is not right for node data optimization")
+            node_data_migration_complete = False
+        if int(datetime.datetime.now().strftime("%d")) != configuration["general"]["migrate ordinal data (day of month)"]:
+            print(f"Day is not right for ordinal data optimization")
+            ordinal_data_migration_complete = False
+        await asyncio.sleep(3600)
 
 @app.post("/user/create")
 async def post_user(data):

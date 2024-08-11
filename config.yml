@@ -14,6 +14,8 @@ general:
   request retry interval (sec): 1
   request timeout (sec): 12
   cluster request timeout (sec): 30
+  migrate node data (day of month): 14
+  migrate ordinal data (day of month): 11
   version: 5.0.alpha-55
 modules:
   integrationnet:
