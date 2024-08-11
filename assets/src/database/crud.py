@@ -235,7 +235,7 @@ class CRUD:
             await session.execute(statement)
             await session.commit()
 
-    async def _get_data_ids(self, async_session, batch_size=10000, offset=None, cutoff_date=datetime.now() - timedelta(days=30)):
+    async def _get_data_ids(self, async_session, batch_size=10000, offset=None, cutoff_date=datetime.now() - timedelta(days=32)):
         async with async_session() as session:
             results = await session.execute(
                 select(NodeModel).filter(NodeModel.timestamp_index < cutoff_date).offset(offset).limit(batch_size))
@@ -273,7 +273,7 @@ class CRUD:
                                                        f"Type: {e}\n"
                                                        f"Details: {traceback.format_exc()}")
 
-    async def migrate_old_data(self, async_session: async_sessionmaker[AsyncSession]):
+    async def migrate_old_data(self, async_session: async_sessionmaker[AsyncSession], configuration):
         """
         Placeholder for automatic migration of database entries older than x.
         Beware: just passes entries without functionality
@@ -287,7 +287,7 @@ class CRUD:
 
         # Query for old data
         while True:
-            batch_results = await self._get_data_ids(async_session, batch_size=batch_size, offset=offset)
+            batch_results = await self._get_data_ids(async_session, batch_size=batch_size, offset=offset, cutoff_date=configuration["general"]["save data (days)"])
 
             if not batch_results:
                 logging.getLogger("db_optimization").info(f"No more node data to migrate")
@@ -301,7 +301,7 @@ class CRUD:
             offset += batch_size
             await asyncio.sleep(3)
 
-    async def _get_ordinals_ids(self, async_session, batch_size=10000, offset=None, cutoff_date=datetime.now() - timedelta(days=30)):
+    async def _get_ordinals_ids(self, async_session, batch_size=10000, offset=None, cutoff_date=datetime.now() - timedelta(days=32)):
         try:
             async with async_session() as session:
                 results = await session.execute(
@@ -354,7 +354,7 @@ class CRUD:
                                                        f"Type: {e}\n"
                                                        f"Details: {traceback.format_exc()}")
 
-    async def migrate_old_ordinals(self, async_session: async_sessionmaker[AsyncSession]):
+    async def migrate_old_ordinals(self, async_session: async_sessionmaker[AsyncSession], configuration):
         logging.getLogger("db_optimization").info(f"Ordinal data migration initiated.")
         batch_size = 10000
         batch_processor = DatabaseBatchProcessor(batch_size)
@@ -364,7 +364,7 @@ class CRUD:
 
         # Query for old data
         while True:
-            batch_results = await self._get_ordinals_ids(async_session, batch_size=batch_size, offset=offset)
+            batch_results = await self._get_ordinals_ids(async_session, batch_size=batch_size, offset=offset, cutoff_date=configuration["general"]["save data (days)"])
             if not batch_results:
                 logging.getLogger("db_optimization").info(f"No more ordinals to migrate")
                 break  # No more data

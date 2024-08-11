@@ -34,14 +34,14 @@ async def optimize(configuration, node_data_migration_complete=False, ordinal_da
             logging.getLogger("db_optimization").info(
                 f"Module: assets/src/database/database.py\n"
                 f"Message: The day is {configuration["general"]["migrate node data (day of month)"]} - initiating node data optimization")
-            await migrate_old_data
+            await migrate_old_data(configuration)
             node_data_migration_complete = True
         if int(datetime.datetime.now().strftime("%d")) == configuration["general"]["migrate ordinal data (day of month)"] and not ordinal_data_migration_complete:
             print(f"Day is right for node data optimization")
             logging.getLogger("db_optimization").info(
                 f"Module: assets/src/database/database.py\n"
                 f"Message: The day is {configuration["general"]["migrate ordinal data (day of month)"]} - initiating ordinal data optimization")
-            await migrate_old_ordinals
+            await migrate_old_ordinals(configuration)
             ordinal_data_migration_complete = True
         if int(datetime.datetime.now().strftime("%d")) != configuration["general"]["migrate node data (day of month)"]:
             print(f"Day is not right for node data optimization")
@@ -64,13 +64,13 @@ async def post_data(data):
 
 
 @app.post("/data/migrate_data")
-async def migrate_old_data():
-    return await db.migrate_old_data(session)
+async def migrate_old_data(configuration):
+    return await db.migrate_old_data(session, configuration)
 
 
 @app.post("/data/migrate_ordinals")
-async def migrate_old_ordinals():
-    return await db.migrate_old_ordinals(session)
+async def migrate_old_ordinals(configuration):
+    return await db.migrate_old_ordinals(session, configuration)
 
 
 @app.get("/stats/{dag_address}", response_class=HTMLResponse)
