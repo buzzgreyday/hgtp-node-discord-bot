@@ -14,11 +14,11 @@ class Request:
         self.url = url
         self.session = session
 
-    async def json(self, configuration: dict):
+    async def json(self, timeout: int = 12):
         async with self.session.get(
             self.url,
             timeout=aiohttp.ClientTimeout(
-                total=configuration["general"]["request timeout (sec)"]
+                total=timeout
             ),
         ) as resp:
             await asyncio.sleep(0)
@@ -53,7 +53,7 @@ class Request:
                 return None, resp.status
 
 
-async def safe_request(session, request_url: str, configuration: dict):
+async def safe_request(session, request_url: str, configuration: dict, cluster=False):
     retry_count = 0
     status_code = None
     while True:
@@ -63,9 +63,14 @@ async def safe_request(session, request_url: str, configuration: dict):
                     configuration
                 )
             else:
-                data, status_code = await Request(session, request_url).json(
-                    configuration
-                )
+                if cluster:
+                    data, status_code = await Request(session, request_url).json(
+                        int(configuration["general"]["cluster request timeout (sec)"])
+                    )
+                else:
+                    data, status_code = await Request(session, request_url).json(
+                        int(configuration["general"]["request timeout (sec)"])
+                    )
             if retry_count >= configuration["general"]["request retry (count)"]:
                 return None, status_code
             elif data is not None:

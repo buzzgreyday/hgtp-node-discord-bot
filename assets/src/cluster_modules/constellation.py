@@ -42,7 +42,7 @@ async def request_cluster_data(
     cluster_resp, status_code = await api.safe_request(
         session,
         f"{url}/{configuration['modules'][name][layer]['info']['cluster']}",
-        configuration
+        configuration, cluster=True
     )
     node_resp, status_code = await api.safe_request(
         session,

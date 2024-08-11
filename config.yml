@@ -13,6 +13,7 @@ general:
   request retry (count): 3
   request retry interval (sec): 1
   request timeout (sec): 12
+  cluster request timeout (sec): 30
   version: 5.0.alpha-55
 modules:
   integrationnet:
