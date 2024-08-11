@@ -53,24 +53,28 @@ class Request:
                 return None, resp.status
 
 
+async def _conditional_safe_requests(session, request_url: str, cluster: bool, configuration: dict):
+    if "metrics" in request_url.split("/"):
+        return await Request(session, request_url).text(
+            configuration
+        )
+    else:
+        if cluster:
+            return await Request(session, request_url).json(
+                int(configuration["general"]["cluster request timeout (sec)"])
+            )
+        else:
+            return await Request(session, request_url).json(
+                int(configuration["general"]["request timeout (sec)"])
+            )
+
+
 async def safe_request(session, request_url: str, configuration: dict, cluster=False):
     retry_count = 0
     status_code = None
     while True:
         try:
-            if "metrics" in request_url.split("/"):
-                data, status_code = await Request(session, request_url).text(
-                    configuration
-                )
-            else:
-                if cluster:
-                    data, status_code = await Request(session, request_url).json(
-                        int(configuration["general"]["cluster request timeout (sec)"])
-                    )
-                else:
-                    data, status_code = await Request(session, request_url).json(
-                        int(configuration["general"]["request timeout (sec)"])
-                    )
+            data, status_code = await _conditional_safe_requests(session, request_url, cluster, configuration)
             if retry_count >= configuration["general"]["request retry (count)"]:
                 return None, status_code
             elif data is not None:
