@@ -278,6 +278,7 @@ class CRUD:
         Placeholder for automatic migration of database entries older than x.
         Beware: just passes entries without functionality
         """
+        logging.getLogger("db_optimization").info(f"Node data migration initiated.")
         batch_size = 10000
         batch_processor = DatabaseBatchProcessor(batch_size)
         offset = 0
@@ -354,6 +355,7 @@ class CRUD:
                                                        f"Details: {traceback.format_exc()}")
 
     async def migrate_old_ordinals(self, async_session: async_sessionmaker[AsyncSession]):
+        logging.getLogger("db_optimization").info(f"Ordinal data migration initiated.")
         batch_size = 10000
         batch_processor = DatabaseBatchProcessor(batch_size)
         offset = 0
