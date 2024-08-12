@@ -1,6 +1,6 @@
 import datetime
 import logging
-from typing import Tuple, List
+import os
 
 import pandas as pd
 
@@ -16,6 +16,8 @@ from assets.src import (
 from assets.src.discord import discord
 from assets.src.discord.services import bot
 from assets.src.user import node_status_check
+
+dev_env = os.getenv("NODEBOT_DEV_ENV")
 
 async def automatic(session, cached_subscriber, cluster_data, cluster_name, layer, version_manager, _configuration):
     logger = logging.getLogger("app")
@@ -62,7 +64,8 @@ async def automatic(session, cached_subscriber, cluster_data, cluster_name, laye
 
 
 async def request(session, process_msg, layer, requester, _configuration):
-    process_msg = await discord.update_request_process_msg(process_msg, 1, None)
+    if not dev_env:
+        process_msg = await discord.update_request_process_msg(process_msg, 1, None)
     ids = await api.get_user_ids(session, layer, requester, _configuration)
     await bot.wait_until_ready()
 
@@ -94,12 +97,16 @@ async def request(session, process_msg, layer, requester, _configuration):
                 timestamp_index=dt.datetime.now(datetime.UTC),
             )
 
-            process_msg = await discord.update_request_process_msg(process_msg, 2, None)
+            if not dev_env:
+                process_msg = await discord.update_request_process_msg(process_msg, 2, None)
             node_data = await history.node_data(session, requester, node_data, _configuration)
-            process_msg = await discord.update_request_process_msg(
-                process_msg, 3, f"{node_data.cluster_name} layer {node_data.layer}"
-            )
+            if not dev_env:
+                process_msg = await discord.update_request_process_msg(
+                    process_msg, 3, f"{node_data.cluster_name} layer {node_data.layer}"
+                )
             node_data = await cluster.get_module_data(session, node_data, _configuration)
-            process_msg = await discord.update_request_process_msg(process_msg, 5, None)
+            if not dev_env:
+                process_msg = await discord.update_request_process_msg(process_msg, 5, None)
             await discord.send(bot, node_data, _configuration)
-            await discord.update_request_process_msg(process_msg, 6, None)
+            if not dev_env:
+                await discord.update_request_process_msg(process_msg, 6, None)

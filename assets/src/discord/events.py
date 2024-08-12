@@ -1,4 +1,5 @@
 import logging
+import os
 
 from assets.src import exception
 from assets.src.discord import discord
@@ -6,6 +7,7 @@ from assets.src.discord.services import bot
 
 import nextcord
 
+dev_env = os.getenv("NODEBOT_DEV_ENV")
 
 def setup(bot):
     pass
@@ -17,8 +19,10 @@ async def on_message(message):
         return
     ctx = await bot.get_context(message)
     if ctx.valid:
-        logging.getLogger("app").info(
-            f"events.py - Command received from {ctx.message.author} in {ctx.message.channel}"
+        logging.getLogger("commands").info(
+            f"Module: assets/src/discord/events.py\n"
+            f"Message: \"{ctx.message.content}\" - {ctx.message.author}"
+            f"Channel: {ctx.message.channel}"
         )
         await bot.process_commands(message)
     else:
@@ -29,23 +33,36 @@ async def on_message(message):
             1134396471639277648,
         ):
             # IGNORE INTERPRETING MESSAGES IN THESE CHANNELS AS COMMANDS
-            logging.getLogger("app").info(
-                f"events.py - Received a command in a non-command channel"
+            logging.getLogger("commands").info(
+                f"Module: assets/src/discord/events.py\n"
+                f"Message: \"{ctx.message.content}\""
+                f"Channel: Non-command"
             )
         elif ctx.message.channel.id == 1136386732628115636:
-            logging.getLogger("app").info(
-                f"events.py - Received a message in the verify channel"
-            )
-            await discord.delete_message(ctx)
+            if not dev_env:
+                logging.getLogger("commands").info(
+                    f"Module: assets/src/discord/events.py\n"
+                    f"Message: \"{ctx.message.content}\" - {ctx.message.author}"
+                    f"Channel: Verify"
+                )
+                await discord.delete_message(ctx)
+            else:
+                pass
         else:
-            logging.getLogger("app").info(
-                f"events.py - Received an unknown command from {ctx.message.author} in {ctx.message.channel}"
-            )
-            await message.add_reaction("\U0000274C")
-            if not isinstance(ctx.message.channel, nextcord.DMChannel):
-                await message.delete(delay=3)
-            embed = await exception.command_error(ctx, bot)
-            await ctx.message.author.send(embed=embed)
+            if not dev_env:
+                logging.getLogger("commands").info(
+                    f"Module: assets/src/discord/events.py\n"
+                    f"Message: \"{ctx.message.content}\" - {ctx.message.author}"
+                    f"Channel: {ctx.message.channel}"
+                )
+                await message.add_reaction("\U0000274C")
+                if not isinstance(ctx.message.channel, nextcord.DMChannel):
+                    await message.delete(delay=3)
+                embed = await exception.command_error(ctx, bot)
+
+                await ctx.message.author.send(embed=embed)
+            else:
+                pass
 
 
 @bot.event

@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import traceback
 
 import aiohttp
 import yaml
@@ -14,7 +15,6 @@ from assets.src.schemas import User
 import nextcord
 from nextcord import SelectOption
 from nextcord.ui import Select
-
 
 class SelectMenu(Select):
     def __init__(self, msg, values):
@@ -42,7 +42,6 @@ active_views = {}
 @bot.slash_command(
     name="unsubscribe",
     description="Unsubscribe by IP and Public Port",
-    guild_ids=[974431346850140201],
     dm_permission=True,
 )
 async def unsubscibe_menu(interaction):
@@ -50,8 +49,9 @@ async def unsubscibe_menu(interaction):
 
     def append_entries(entries, data):
         entries.append(models.UserModel(**data))
-        logging.getLogger("app").info(
-            f"main.py - Unubscription request accepted for {str(interaction.user)}: {ip_menu.selected_value}:{port_menu.selected_value}"
+        logging.getLogger("commands").info(
+            f"Message: Unubscription request accepted for {str(interaction.user)}: {ip_menu.selected_value}:{port_menu.selected_value}\n"
+            f"Module: assets/src/discord/commands.py"
         )
 
     async def on_button_click(interaction):
@@ -78,10 +78,15 @@ async def unsubscibe_menu(interaction):
                     and (port_menu.selected_value in ("All", None))
                 ):
                     append_entries(entries, data)
-                logging.getLogger("app").info(
-                    f"main.py - Unubscription request denied for {str(interaction.user)}: {ip_menu.selected_value}:{port_menu.selected_value}"
+                logging.getLogger("commands").info(
+                    f"Message: Unsubscription denied for {str(interaction.user)} ({ip_menu.selected_value}:{port_menu.selected_value})\n"
+                    f"Module: assets/src/discord/commands.py"
                 )
             if entries:
+                logging.getLogger("commands").info(
+                    f"Message: Unsubscription received from {str(interaction.user)} ({ip_menu.selected_value}:{port_menu.selected_value})\n"
+                    f"Module: assets/src/discord/commands.py"
+                )
                 await interaction.response.send_message(
                     content=f"**Unsubscription received**", ephemeral=True
                 )
@@ -90,7 +95,12 @@ async def unsubscibe_menu(interaction):
                 view.stop()
                 return
         except Exception as e:
-            logging.error(f"Error during button click handling: {e}")
+            logging.getLogger("commands").error(
+                f"error: {e}"
+                f"Message: An error occured during unsubscription of {str(interaction.user)} ({ip_menu.selected_value}:{port_menu.selected_value})\n"
+                f"Module: assets/src/discord/commands.py\n"
+                f"Details: {traceback.format_exc()}"
+            )
             await interaction.response.send_message(
                 content="An error occurred while processing the request.", ephemeral=True
             )
@@ -156,7 +166,12 @@ async def unsubscibe_menu(interaction):
                 # Nothing more to do
                 return
         except Exception as e:
-            logging.error(f"Error during slash command execution: {e}")
+            logging.getLogger("commands").error(
+                f"Error: {e}\n"
+                f"Message: Unsubscription denied for {str(interaction.user)} ({ip_menu.selected_value}:{port_menu.selected_value})\n"
+                f"Module: assets/src/discord/commands.py\n"
+                f"Details: {traceback.format_exc()}"
+            )
             await interaction.response.send_message(
                 content="An error occurred while processing the request.", ephemeral=True
             )
@@ -166,39 +181,47 @@ async def unsubscibe_menu(interaction):
     name="verify",
     description="Verify your server settings to gain access",
     guild_ids=[974431346850140201],
-    dm_permission=True,
 )
 async def verify(interaction: nextcord.Interaction):
-    global active_views  # Ensure we're using the global active_views dictionary
-
     try:
-        # Check if there is an existing active view for this user and stop it
-        if interaction.user.id in active_views:
-            active_views[interaction.user.id].stop()
-            del active_views[interaction.user.id]
+        global active_views  # Ensure we're using the global active_views dictionary
 
-        await interaction.user.send(f"Checking Discord server settings...")
-    except nextcord.Forbidden:
-        logging.getLogger("app").info(
-            f"discord.py - Verification of {interaction.user} denied"
-        )
-        await interaction.response.send_message(
-            content=f"{interaction.user.mention}, to gain access you need to navigate to `Privacy Settings` and enable `Direct Messages` from server members. If you experience issues, please contact an admin.",
-            ephemeral=True,
-        )
-    else:
-        guild = await bot.fetch_guild(974431346850140201)
-        role = nextcord.utils.get(guild.roles, name="verified")
-        if role:
-            await interaction.user.add_roles(role)
+        try:
+            # Check if there is an existing active view for this user and stop it
+            if interaction.user.id in active_views:
+                active_views[interaction.user.id].stop()
+                del active_views[interaction.user.id]
+
+            await interaction.user.send(f"Checking Discord server settings...")
+        except nextcord.Forbidden:
+            logging.getLogger("commands").info(
+                f"Message: Verfication of {str(interaction.user)} denied\n"
+                f"Module: assets/src/discord/commands.py"
+            )
             await interaction.response.send_message(
-                content=f"{interaction.user.mention}, your settings were verified!",
+                content=f"{interaction.user.mention}, to gain access you need to navigate to `Privacy Settings` and enable `Direct Messages` from server members. If you experience issues, please contact an admin.",
                 ephemeral=True,
             )
-            await interaction.user.send(
-                content=f"{interaction.user.mention}, your settings were verified!"
-            )
-    return
+        else:
+            guild = await bot.fetch_guild(974431346850140201)
+            role = nextcord.utils.get(guild.roles, name="verified")
+            if role:
+                await interaction.user.add_roles(role)
+                await interaction.response.send_message(
+                    content=f"{interaction.user.mention}, your settings were verified!",
+                    ephemeral=True,
+                )
+                await interaction.user.send(
+                    content=f"{interaction.user.mention}, your settings were verified!"
+                )
+        return
+    except Exception as e:
+        logging.getLogger("commands").error(
+            f"Error: {e}\n"
+            f"Message: SOmething went wrong during verfication of {str(interaction.user)}\n"
+            f"Module: assets/src/discord/commands.py\n"
+            f"Details: {traceback.format_exc()}"
+        )
 
 
 @bot.command()

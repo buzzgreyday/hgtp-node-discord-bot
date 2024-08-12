@@ -6,10 +6,13 @@ from typing import List
 import logging
 
 from aiofiles import os
+from os import getenv
 import nextcord
 
 from assets.src import schemas, determine_module
 from assets.src.discord import defaults, messages
+
+dev_env = getenv("NODEBOT_DEV_ENV")
 
 
 async def send_subscription_process_msg(ctx):
@@ -75,11 +78,14 @@ async def update_subscription_process_msg(process_msg, process_num, foo):
 
 
 async def send_request_process_msg(ctx):
-    try:
-        msg = await messages.request(ctx)
-        return msg
-    except nextcord.Forbidden:
-        return None
+    if not dev_env:
+        try:
+            msg = await messages.request(ctx)
+            return msg
+        except nextcord.Forbidden:
+            return None
+    else:
+        return "dev_env"
 
 
 async def return_guild_member_role(bot, ctx):
@@ -100,53 +106,33 @@ async def update_request_process_msg(process_msg, process_num, foo):
     elif process_msg is not None:
         if process_num == 1:
             return await process_msg.edit(
-                "**`✓ 1. Add report request to queue`**\n"
-                "**`➭ 2. Process data`**\n"
-                "`  *  Current node data`\n"
-                f"`  *  Process aggregated data`\n"
-                "`  3. Report`\n"
-                "`  *  Build and send report(s)`\n"
+                "**`REPORT REQUEST: PROCESSING`**\n"
+                "**`▓▓▓▓▓▒▒▒▒░░░░░░░░░░░░░░░░░░░░░`**\n"
             )
         elif process_num == 2:
             return await process_msg.edit(
-                "**`✓ 1. Add report request to queue`**\n"
-                "**`➭ 2. Process data`**\n"
-                "`  >  Current node data`\n"
-                f"`  *  Process aggregated data`\n"
-                "`  3. Report`\n"
-                "`  *  Build and send report(s)`\n"
+                "**`REPORT REQUEST: PROCESSING`**\n"
+                "**`▓▓▓▓▓▓▓▓▓▒▒▒▒▒░░░░░░░░░░░░░░░░`**\n"
             )
         elif process_num == 3:
             return await process_msg.edit(
-                "**`✓ 1. Add report request to queue`**\n"
-                "**`➭ 2. Process data`**\n"
-                "**`  ✓  Current node data`**\n"
-                f"`  >  Process aggregated data`\n"
-                "`  3. Report`\n"
-                "`  *  Build and send report(s)`\n"
+                "**`REPORT REQUEST: PROCESSING`**\n"
+                "**`▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒░░░░░░░░░`**\n"
             )
         elif process_num == 4:
             return await process_msg.edit(
-                "**`✓ 1. Add report request to queue`**\n"
-                "**`➭ 2. Process data`**\n"
-                "**`  ✓  Current node data`**\n"
-                f"`  >  Processing {foo.title()} data`\n"
-                "`  3. Report`\n"
-                "`  *  Build and send report(s)`\n"
+                "**`REPORT REQUEST: PROCESSING`**\n"
+                "**`▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒░░░░░`**\n"
             )
         elif process_num == 5:
             return await process_msg.edit(
-                "**`✓ 1. Add report request to queue`**\n"
-                "**`✓ 2. Process data`**\n"
-                "**`➭ 3. Report`**\n"
-                "`  >  Build and send report(s)`\n"
+                "**`REPORT REQUEST: BUILDING`**\n"
+                "**`▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒`**\n"
             )
         elif process_num == 6:
             return await process_msg.edit(
-                "**`✓ 1. Add report request to queue`**\n"
-                "**`✓ 2. Process data`**\n"
-                "**`➭ 3. Report`**\n"
-                "**`  ✓  Build and send report(s)`**\n"
+                "**`REPORT REQUEST: SENT`**\n"
+                "**`▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓`**\n"
             )
 
 
@@ -158,26 +144,34 @@ async def send(bot, node_data: schemas.Node, configuration):
     async def finalize(embed):
         try:
             await bot.wait_until_ready()
-            # member = await guild.fetch_member(int(node_data.discord))
-            member = await guild.fetch_member(794353079825727500)
-            embed.set_footer(
-                text=f"Data: {node_data.timestamp_index.now(datetime.UTC).strftime('%d-%m-%Y %H:%M')} UTC\n"
-                     f"Build: {configuration['general']['version']}",
-                icon_url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images"
-                         "/logo-encased-color.png",
-            )
+            if not dev_env:
+                member = await guild.fetch_member(int(node_data.discord))
+                embed.set_footer(
+                    text=f"Data: {node_data.timestamp_index.now(datetime.UTC).strftime('%d-%m-%Y %H:%M')} UTC\n"
+                         f"Build: {configuration['general']['version']}",
+                    icon_url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images"
+                             "/logo-encased-color.png",
+                )
+            else:
+                member = await guild.fetch_member(794353079825727500)
+                embed.set_footer(
+                    text=f"Data: {node_data.timestamp_index.now(datetime.UTC).strftime('%d-%m-%Y %H:%M')} UTC\n"
+                         f"Build: {configuration['general']['version']} Development",
+                    icon_url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images"
+                             "/logo-encased-color.png",
+                )
             await member.send(embed=embed)
-            logging.getLogger("app").info(
+            logging.getLogger("nextcord").info(
                 f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):"
                 f"\n\t{node_data}"
             )
         except nextcord.Forbidden:
-            logging.getLogger("app").warning(
+            logging.getLogger("nextcord").warning(
                 f"discord.py - Discord message could not be sent to "
                 f"{node_data.name, node_data.ip, node_data.public_port}. The member doesn't allow DMs."
             )
         except Exception:
-            logging.getLogger("app").error(
+            logging.getLogger("nextcord").error(
                 f"discord.py - Discord message could not be sent to "
                 f"{node_data.name, node_data.ip, node_data.public_port}: {traceback.format_exc()}"
             )
@@ -185,7 +179,7 @@ async def send(bot, node_data: schemas.Node, configuration):
         try:
             guild = await bot.fetch_guild(974431346850140201)
         except Exception:
-            f"discord.py - error: {traceback.format_exc()}"
+            logging.getLogger("nextcord").error(f"discord.py - error: {traceback.format_exc()}")
             await asyncio.sleep(3)
         else:
             break
@@ -198,7 +192,7 @@ async def send(bot, node_data: schemas.Node, configuration):
         if await os.path.exists(
                 f"{configuration['file settings']['locations']['cluster modules']}/{module_name}.py"
         ):
-            logging.getLogger("app").info(
+            logging.getLogger("nextcord").info(
                 f"discord.py - Choosing {module_name} module embed type for "
                 f"{node_data.name} ({node_data.ip}, L{node_data.layer})"
             )
@@ -206,7 +200,7 @@ async def send(bot, node_data: schemas.Node, configuration):
             embed = module.build_embed(node_data, module_name)
             await finalize(embed)
     else:
-        logging.getLogger("app").info(
+        logging.getLogger("nextcord").info(
             f"discord.py - Choosing default embed type for {node_data.name} ({node_data.ip}, L{node_data.layer})"
         )
         embed = defaults.build_embed(node_data)

@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import subprocess
 import sys
 import threading
@@ -16,9 +17,10 @@ from assets.src import preliminaries, check, history, rewards, stats, api, dt
 from assets.src.database.database import update_user, migrate_old_ordinals, optimize
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
-from assets.src.database.database import migrate_old_data
 
-MAX_CONCURRENT_REQUESTS = 15
+dev_env = os.getenv("NODEBOT_DEV_ENV")
+
+MAX_CONCURRENT_REQUESTS = 10
 semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
 
 
@@ -288,7 +290,8 @@ def configure_logging():
         ("rewards", "assets/data/logs/rewards.log", logging.INFO),
         ("nextcord", "assets/data/logs/nextcord.log", logging.CRITICAL),
         ("stats", "assets/data/logs/stats.log", logging.DEBUG),
-        ("db_optimization", "assets/data/logs/db_optimization.log", logging.INFO)
+        ("db_optimization", "assets/data/logs/db_optimization.log", logging.INFO),
+        ("commands", "assets/data/logs/commands.log", logging.INFO)
     ]
 
     for name, file, level in log_configs:
@@ -302,13 +305,14 @@ def configure_logging():
 
 
 def main():
+
     _configuration = load_configuration()
 
     configure_logging()
 
     version_manager = preliminaries.VersionManager(_configuration)
 
-    # bot.load_extension("assets.src.discord.commands")
+    bot.load_extension("assets.src.discord.commands")
     bot.load_extension("assets.src.discord.events")
 
     bot.loop.create_task(main_loop(version_manager, _configuration))
@@ -338,4 +342,6 @@ def main():
 
 
 if __name__ == "__main__":
+    if dev_env:
+        print("Message: Dev environment enabled!")
     main()

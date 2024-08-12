@@ -287,7 +287,7 @@ class CRUD:
 
         # Query for old data
         while True:
-            batch_results = await self._get_data_ids(async_session, batch_size=batch_size, offset=offset, cutoff_date=configuration["general"]["save data (days)"])
+            batch_results = await self._get_data_ids(async_session, batch_size=batch_size, offset=offset, cutoff_date=datetime.now() - timedelta(days=int(configuration["general"]["save data (days)"])))
 
             if not batch_results:
                 logging.getLogger("db_optimization").info(f"No more node data to migrate")
@@ -364,7 +364,7 @@ class CRUD:
 
         # Query for old data
         while True:
-            batch_results = await self._get_ordinals_ids(async_session, batch_size=batch_size, offset=offset, cutoff_date=configuration["general"]["save data (days)"])
+            batch_results = await self._get_ordinals_ids(async_session, batch_size=batch_size, offset=offset, cutoff_date=datetime.now() - timedelta(days=int(configuration["general"]["save data (days)"])))
             if not batch_results:
                 logging.getLogger("db_optimization").info(f"No more ordinals to migrate")
                 break  # No more data

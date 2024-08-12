@@ -48,10 +48,9 @@ async def deny_verified(ctx):
 
 async def request(ctx):
     msg = await ctx.message.author.send(
-        "**`✓ 1. Add report request to queue`**\n"
-        "**`➭ 2. Process data`**\n"
-        "`  3. Report`"
-    )
+            "**`REPORT REQUEST: ADDED TO QUEUE`**\n"
+            "**`▒▒▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░`**\n"
+            )
     return msg
 
 
