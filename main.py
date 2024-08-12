@@ -14,7 +14,7 @@ import yaml
 from aiohttp import ClientConnectorError
 
 from assets.src import preliminaries, check, history, rewards, stats, api, dt
-from assets.src.database.database import update_user, migrate_old_ordinals, optimize
+from assets.src.database.database import update_user, optimize
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
 
