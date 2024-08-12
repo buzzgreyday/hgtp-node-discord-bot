@@ -21,7 +21,7 @@ async def on_message(message):
     if ctx.valid:
         logging.getLogger("commands").info(
             f"Module: assets/src/discord/events.py\n"
-            f"Message: \"{ctx.message.content}\" - {ctx.message.author}"
+            f"Message: \"{ctx.message.content}\" - {ctx.message.author}\n"
             f"Channel: {ctx.message.channel}"
         )
         await bot.process_commands(message)
@@ -35,14 +35,14 @@ async def on_message(message):
             # IGNORE INTERPRETING MESSAGES IN THESE CHANNELS AS COMMANDS
             logging.getLogger("commands").info(
                 f"Module: assets/src/discord/events.py\n"
-                f"Message: \"{ctx.message.content}\""
+                f"Message: \"{ctx.message.content}\"\n"
                 f"Channel: Non-command"
             )
         elif ctx.message.channel.id == 1136386732628115636:
             if not dev_env:
                 logging.getLogger("commands").info(
                     f"Module: assets/src/discord/events.py\n"
-                    f"Message: \"{ctx.message.content}\" - {ctx.message.author}"
+                    f"Message: \"{ctx.message.content}\" - {ctx.message.author}\n"
                     f"Channel: Verify"
                 )
                 await discord.delete_message(ctx)
@@ -52,7 +52,7 @@ async def on_message(message):
             if not dev_env:
                 logging.getLogger("commands").info(
                     f"Module: assets/src/discord/events.py\n"
-                    f"Message: \"{ctx.message.content}\" - {ctx.message.author}"
+                    f"Message: \"{ctx.message.content}\" - {ctx.message.author}\n"
                     f"Channel: {ctx.message.channel}"
                 )
                 await message.add_reaction("\U0000274C")
