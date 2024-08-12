@@ -218,7 +218,7 @@ async def verify(interaction: nextcord.Interaction):
     except Exception as e:
         logging.getLogger("commands").error(
             f"Error: {e}\n"
-            f"Message: SOmething went wrong during verfication of {str(interaction.user)}\n"
+            f"Message: Something went wrong during verfication of {str(interaction.user)}\n"
             f"Module: assets/src/discord/commands.py\n"
             f"Details: {traceback.format_exc()}"
         )
@@ -229,7 +229,7 @@ async def r(ctx):
     async with aiohttp.ClientSession() as session:
         with open("config.yml", "r") as file:
             _configuration = yaml.safe_load(file)
-            process_msg = await discord.send_request_process_msg(ctx)
+            process_msg = await discord.send_request_process_msg(bot, ctx)
             if process_msg:
                 requester = await discord.get_requester(ctx)
                 if not isinstance(ctx.channel, nextcord.DMChannel):

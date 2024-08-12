@@ -64,14 +64,13 @@ async def automatic(session, cached_subscriber, cluster_data, cluster_name, laye
 
 
 async def request(session, process_msg, layer, requester, _configuration):
-    if not dev_env:
-        process_msg = await discord.update_request_process_msg(process_msg, 1, None)
+    process_msg = await discord.update_request_process_msg(process_msg, 1)
     ids = await api.get_user_ids(session, layer, requester, _configuration)
     await bot.wait_until_ready()
 
     if ids:
         version_manager = preliminaries.VersionManager(_configuration)
-
+        process_msg = await discord.update_request_process_msg(process_msg, 2)
         for lst in ids:
             id_, ip, port = lst[:3]
 
@@ -97,16 +96,12 @@ async def request(session, process_msg, layer, requester, _configuration):
                 timestamp_index=dt.datetime.now(datetime.UTC),
             )
 
-            if not dev_env:
-                process_msg = await discord.update_request_process_msg(process_msg, 2, None)
+            process_msg = await discord.update_request_process_msg(process_msg, 3)
             node_data = await history.node_data(session, requester, node_data, _configuration)
-            if not dev_env:
-                process_msg = await discord.update_request_process_msg(
-                    process_msg, 3, f"{node_data.cluster_name} layer {node_data.layer}"
-                )
+            process_msg = await discord.update_request_process_msg(
+                process_msg, 4
+            )
             node_data = await cluster.get_module_data(session, node_data, _configuration)
-            if not dev_env:
-                process_msg = await discord.update_request_process_msg(process_msg, 5, None)
+            process_msg = await discord.update_request_process_msg(process_msg, 5)
             await discord.send(bot, node_data, _configuration)
-            if not dev_env:
-                await discord.update_request_process_msg(process_msg, 6, None)
+            await discord.update_request_process_msg(process_msg, 6)

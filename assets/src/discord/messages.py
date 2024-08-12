@@ -1,6 +1,8 @@
 import random
+import os
 
 greeting = ["Hi", "Hallo", "Greetings", "Hey"]
+dev_env = os.getenv("NODEBOT_DEV_ENV")
 TIMEOUT = 60
 
 # ROLES HANDLING
@@ -46,12 +48,21 @@ async def deny_verified(ctx):
 # REQUEST HANDLING
 
 
-async def request(ctx):
-    msg = await ctx.message.author.send(
-            "**`REPORT REQUEST: ADDED TO QUEUE`**\n"
-            "**`▒▒▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░`**\n"
-            )
-    return msg
+async def request(bot, ctx):
+    if not dev_env:
+        msg = await ctx.message.author.send(
+                "### **`REPORT REQUEST: ADDED TO QUEUE`**\n"
+                "### **`▓▓▓░░░░░`**\n"
+                )
+        return msg
+    else:
+        guild = await bot.fetch_guild(974431346850140201)
+        member = await guild.fetch_member(794353079825727500)
+        msg = await member.send(
+                "### **`REPORT REQUEST: ADDED TO QUEUE`**\n"
+                "### **`▓▓▓░░░░░`**\n"
+        )
+        return msg
 
 
 async def subscriber_role_deny_request(process_msg):
