@@ -77,14 +77,6 @@ async def update_subscription_process_msg(process_msg, process_num, foo):
             )
 
 
-async def send_request_process_msg(bot, ctx):
-    try:
-        msg = await messages.request(bot, ctx)
-        return msg
-    except nextcord.Forbidden:
-        return None
-
-
 async def return_guild_member_role(bot, ctx):
     guild = await bot.fetch_guild(974431346850140201)
     member = await guild.fetch_member(ctx.author.id)
@@ -95,42 +87,6 @@ async def return_guild_member_role(bot, ctx):
 async def delete_message(ctx, sleep=2):
     await asyncio.sleep(sleep)
     await ctx.message.delete()
-
-
-async def update_request_process_msg(process_msg, process_num):
-    if process_msg is None:
-        return None
-    elif process_msg is not None:
-        if process_num == 1:
-            return await process_msg.edit(
-                "### **`REPORT REQUEST: PROCESSING`**\n"
-                "### **`▓▓░░░░░░`**\n"
-            )
-        elif process_num == 2:
-            return await process_msg.edit(
-                "### **`REPORT REQUEST: PROCESSING`**\n"
-                "### **`▓▓▓░░░░░`**\n"
-            )
-        elif process_num == 3:
-            return await process_msg.edit(
-                "### **`REPORT REQUEST: PROCESSING`**\n"
-                "### **`▓▓▓▓░░░░`**\n"
-            )
-        elif process_num == 4:
-            return await process_msg.edit(
-                "### **`REPORT REQUEST: PROCESSING`**\n"
-                "### **`▓▓▓▓▓▓░░`**\n"
-            )
-        elif process_num == 5:
-            return await process_msg.edit(
-                "### **`REPORT REQUEST: BUILDING`**\n"
-                "### **`▓▓▓▓▓▓▓░`**\n"
-            )
-        elif process_num == 6:
-            return await process_msg.edit(
-                "### **`REPORT REQUEST: SENT`**\n"
-                "### **`▓▓▓▓▓▓▓▓`**\n"
-            )
 
 
 async def get_requester(ctx):

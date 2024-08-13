@@ -1,9 +1,40 @@
 import random
 import os
 
+import nextcord
+
 greeting = ["Hi", "Hallo", "Greetings", "Hey"]
 dev_env = os.getenv("NODEBOT_DEV_ENV")
 TIMEOUT = 60
+
+
+class ProgressBar:
+
+    def __init__(self, bar_size, num_processes, title=None, text=None):
+
+        self.title = title if title else None
+        self.text = text if text else None
+        self.process = 1
+        self.bar_size = bar_size
+        self.num_processes = num_processes
+        self.completed = "▓" * self.process
+        self.remaining = "░" * (self.bar_size - self.process)
+        self.bar = f"{self.completed}{self.remaining}"
+
+    def draw_bar(self, process: int):
+        process = round(process / self.num_processes * self.bar_size)
+        self.completed = "▓" * process
+        self.remaining = "░" * (self.bar_size - process)
+        self.bar = f"{self.completed}{self.remaining}"
+        if self.title and self.text:
+            return f"{self.title}", f"{self.text}", f"{self.bar}"
+        elif self.title and not self.text:
+            return f"{self.title}", f"{self.bar}"
+        elif not self.title and self.text:
+            return f"{self.text}", f"{self.bar}"
+        else:
+            return f"{self.bar}"
+
 
 # ROLES HANDLING
 
@@ -46,23 +77,52 @@ async def deny_verified(ctx):
 
 
 # REQUEST HANDLING
+async def send_request_process_msg(bot, ctx):
+    try:
+        if not dev_env:
+            msg = await ctx.message.author.send(
+                "### **`REPORT REQUEST: ADDED TO QUEUE`**\n"
+            )
+            return msg
+        else:
+            guild = await bot.fetch_guild(974431346850140201)
+            member = await guild.fetch_member(794353079825727500)
+            msg = await member.send(
+                "### **`REPORT REQUEST: ADDED TO QUEUE`**\n"
+            )
+            return msg
+    except nextcord.Forbidden:
+        return None
 
 
-async def request(bot, ctx):
-    if not dev_env:
-        msg = await ctx.message.author.send(
-                "### **`REPORT REQUEST: ADDED TO QUEUE`**\n"
-                "### **`▓▓▓░░░░░`**\n"
-                )
-        return msg
-    else:
-        guild = await bot.fetch_guild(974431346850140201)
-        member = await guild.fetch_member(794353079825727500)
-        msg = await member.send(
-                "### **`REPORT REQUEST: ADDED TO QUEUE`**\n"
-                "### **`▓▓▓░░░░░`**\n"
-        )
-        return msg
+async def update_request_process_msg(process_msg, process_num):
+    if process_msg is None:
+        return None
+    elif process_msg is not None:
+        if process_num == 1:
+            return await process_msg.edit(
+                "### **`REPORT REQUEST: FETCH USER`**\n"
+            )
+        elif process_num == 2:
+            return await process_msg.edit(
+                "### **`REPORT REQUEST: PROCESSING`**\n"
+            )
+        elif process_num == 3:
+            return await process_msg.edit(
+                "### **`REPORT REQUEST: PROCESSING`**\n"
+            )
+        elif process_num == 4:
+            return await process_msg.edit(
+                "### **`REPORT REQUEST: PROCESSING`**\n"
+            )
+        elif process_num == 5:
+            return await process_msg.edit(
+                "### **`REPORT REQUEST: BUILDING`**\n"
+            )
+        elif process_num == 6:
+            return await process_msg.edit(
+                "### **`REPORT REQUEST: SENT`**\n"
+            )
 
 
 async def subscriber_role_deny_request(process_msg):

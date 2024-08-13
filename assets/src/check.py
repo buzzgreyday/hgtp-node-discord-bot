@@ -13,7 +13,7 @@ from assets.src import (
     schemas,
     cluster,
 )
-from assets.src.discord import discord
+from assets.src.discord import discord, messages
 from assets.src.discord.services import bot
 from assets.src.user import node_status_check
 
@@ -64,13 +64,13 @@ async def automatic(session, cached_subscriber, cluster_data, cluster_name, laye
 
 
 async def request(session, process_msg, layer, requester, _configuration):
-    process_msg = await discord.update_request_process_msg(process_msg, 1)
+    process_msg = await messages.update_request_process_msg(process_msg, 1)
     ids = await api.get_user_ids(session, layer, requester, _configuration)
     await bot.wait_until_ready()
 
     if ids:
         version_manager = preliminaries.VersionManager(_configuration)
-        process_msg = await discord.update_request_process_msg(process_msg, 2)
+        process_msg = await messages.update_request_process_msg(process_msg, 2)
         for lst in ids:
             id_, ip, port = lst[:3]
 
@@ -96,12 +96,12 @@ async def request(session, process_msg, layer, requester, _configuration):
                 timestamp_index=dt.datetime.now(datetime.UTC),
             )
 
-            process_msg = await discord.update_request_process_msg(process_msg, 3)
+            process_msg = await messages.update_request_process_msg(process_msg, 3)
             node_data = await history.node_data(session, requester, node_data, _configuration)
-            process_msg = await discord.update_request_process_msg(
+            process_msg = await messages.update_request_process_msg(
                 process_msg, 4
             )
             node_data = await cluster.get_module_data(session, node_data, _configuration)
-            process_msg = await discord.update_request_process_msg(process_msg, 5)
+            process_msg = await messages.update_request_process_msg(process_msg, 5)
             await discord.send(bot, node_data, _configuration)
-            await discord.update_request_process_msg(process_msg, 6)
+            await messages.update_request_process_msg(process_msg, 6)
