@@ -12,3 +12,4 @@ requests>=2.31.0
 bokeh>=3.4.1
 scipy>=1.13.0
 psutil>=6.0.0
+numpy>=1.26.4
