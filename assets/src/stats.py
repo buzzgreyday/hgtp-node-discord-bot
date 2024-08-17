@@ -616,15 +616,13 @@ async def run():
                         try:
                             # Post data if no data exists
                             await post_reward_stats(reward_data)
-                            exit(0)
                         except sqlalchemy.exc.IntegrityError:
                             # Update data, if data already exists
                             await update_reward_stats(reward_data)
-                            exit(0)
                         except Exception:
                             logging.getLogger("stats").critical(traceback.format_exc())
 
-
+                    exit(0)
                     # Upload metrics (CPU) data to database. Since every wallet can be associated with multiple node
                     # instances and different server specifications, we'll create a hash to properly update the
                     # database.
