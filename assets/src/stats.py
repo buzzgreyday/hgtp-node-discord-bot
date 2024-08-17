@@ -411,7 +411,6 @@ async def get_data(session, timestamp):
             await asyncio.sleep(3)
         else:
             break
-    await asyncio.sleep(6)
 
     while True:
         try:
@@ -464,6 +463,8 @@ async def run():
                     # calc CPU statistics
                     while True:
                         snapshot_data, node_data = await get_data(session, timestamp)
+                        print(snapshot_data)
+                        exit(0)
                         if not snapshot_data.empty and not node_data.empty:
                             break
                         else:

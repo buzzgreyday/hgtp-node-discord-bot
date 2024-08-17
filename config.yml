@@ -15,7 +15,7 @@ general:
   request timeout (sec): 12
   cluster request timeout (sec): 30
   migrate node data (day of month): 13
-  migrate ordinal data (day of month): 15
+  migrate ordinal data (day of month): 16
   save data (days): 32
   version: 5.0.alpha-56
 modules:

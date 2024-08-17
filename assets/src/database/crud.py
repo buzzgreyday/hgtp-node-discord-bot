@@ -1,4 +1,5 @@
 import asyncio
+import gc
 import logging
 import traceback
 from datetime import datetime, timedelta
@@ -283,10 +284,9 @@ class CRUD:
         batch_processor = DatabaseBatchProcessor(batch_size)
         offset = 0
 
-        processed_ids = set()
-
         # Query for old data
         while True:
+            processed_ids = set()
             batch_results = await self._get_data_ids(async_session, batch_size=batch_size, offset=offset, cutoff_date=datetime.now() - timedelta(days=int(configuration["general"]["save data (days)"])))
 
             if not batch_results:
@@ -296,10 +296,11 @@ class CRUD:
             processed_ids = await self._migrate_data_ids(batch_results, processed_ids, async_session, batch_processor=batch_processor)
             await self._delete_data_ids(processed_ids, async_session)
 
-            batch_results.clear()
-            processed_ids.clear()
+            del batch_results
+            del processed_ids
             offset += batch_size
-            await asyncio.sleep(3)
+            await asyncio.sleep(0.2)
+            gc.collect()
 
     async def _get_ordinals_ids(self, async_session, batch_size=10000, offset=None, cutoff_date=datetime.now() - timedelta(days=32)):
         try:
@@ -360,10 +361,9 @@ class CRUD:
         batch_processor = DatabaseBatchProcessor(batch_size)
         offset = 0
 
-        processed_ids = set()
-
         # Query for old data
         while True:
+            processed_ids = set()
             batch_results = await self._get_ordinals_ids(async_session, batch_size=batch_size, offset=offset, cutoff_date=datetime.now() - timedelta(days=int(configuration["general"]["save data (days)"])))
             if not batch_results:
                 logging.getLogger("db_optimization").info(f"No more ordinals to migrate")
@@ -372,10 +372,11 @@ class CRUD:
             processed_ids = await self._migrate_ordinal_ids(batch_results, processed_ids, async_session, batch_processor=batch_processor)
             await self._delete_ordinal_ids(processed_ids, async_session)
 
-            batch_results.clear()
-            processed_ids.clear()
+            del batch_results
+            del processed_ids
             offset += batch_size
-            await asyncio.sleep(3)
+            await asyncio.sleep(0.2)
+            gc.collect()
 
     async def delete_db_ordinal(
             self, ordinal, async_session: async_sessionmaker[AsyncSession]
@@ -664,7 +665,7 @@ class CRUD:
             self, timestamp: int, async_session: async_sessionmaker[AsyncSession]
     ):
         async with async_session() as session:
-            batch_size = 200000
+            batch_size = 10000
             offset = 0
             data = {
                 "timestamp": [],
@@ -704,8 +705,11 @@ class CRUD:
                     data["dag"].append(row.amount)
                     data["usd_per_token"].append(row.usd)
 
+                del results
+                del batch_results
                 offset += batch_size
-                # await asyncio.sleep(3)
+                await asyncio.sleep(0.2)
+                gc.collect()
 
         return data
 
@@ -717,7 +721,7 @@ class CRUD:
         """
         one_gigabyte = 1073741824
         async with async_session() as session:
-            batch_size = 200000
+            batch_size = 10000
             offset = 0
             data = {
                 "timestamp": [],
@@ -779,8 +783,11 @@ class CRUD:
                             data["disk_free"].append(0.0)
                             data["disk_total"].append(0.0)
 
+                del results
+                del batch_results
                 offset += batch_size
-                # await asyncio.sleep(3)
+                await asyncio.sleep(0.2)
+                gc.collect()
 
         return data
 
