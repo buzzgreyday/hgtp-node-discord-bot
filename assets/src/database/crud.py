@@ -157,6 +157,7 @@ class CRUD:
 
         async with async_session() as session:
             try:
+                print(data)
                 await session.execute(
                     update(RewardStatsModel)
                     .where(RewardStatsModel.destinations == data.destinations)

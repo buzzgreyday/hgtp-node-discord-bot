@@ -305,17 +305,11 @@ def configure_logging():
 
 
 def main():
-
     _configuration = load_configuration()
 
     configure_logging()
 
     version_manager = preliminaries.VersionManager(_configuration)
-
-    # bot.load_extension("assets.src.discord.commands")
-    bot.load_extension("assets.src.discord.events")
-
-    bot.loop.create_task(main_loop(version_manager, _configuration))
 
     # Create a thread for running uvicorn
     uvicorn_thread = threading.Thread(target=run_uvicorn_process)
@@ -335,10 +329,15 @@ def main():
     db_optimization_thread.start()
 
     while True:
+        bot.load_extension("assets.src.discord.commands")
+        bot.load_extension("assets.src.discord.events")
+
+        bot.loop.create_task(main_loop(version_manager, _configuration))
         try:
             bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))
         except ClientConnectorError:
-            time.sleep(6)
+            bot.close()
+            time.sleep(3)
 
 
 if __name__ == "__main__":

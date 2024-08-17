@@ -514,6 +514,7 @@ async def run():
                         keep="last",
                         ignore_index=True,
                     )
+
                     # Calculate the USD value of the daily earnings per node wallet
                     sliced_snapshot_df = sum_usd(
                         sliced_snapshot_df, "usd_address_daily_sum", "dag_address_daily_sum"
@@ -608,15 +609,18 @@ async def run():
                         try:
                             d = row.to_dict()
                             reward_data = RewardStatsSchema(**d)
+                            print(reward_data)
                         except Exception:
                             logging.getLogger("stats").critical(traceback.format_exc())
 
                         try:
                             # Post data if no data exists
                             await post_reward_stats(reward_data)
+                            exit(0)
                         except sqlalchemy.exc.IntegrityError:
                             # Update data, if data already exists
                             await update_reward_stats(reward_data)
+                            exit(0)
                         except Exception:
                             logging.getLogger("stats").critical(traceback.format_exc())
 
