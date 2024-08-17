@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import os
 from typing import List, Dict
 
+import aiohttp.client_exceptions
 import numpy as np
 import pandas as pd
 import pydantic
@@ -299,7 +300,7 @@ class CRUD:
             del batch_results
             del processed_ids
             offset += batch_size
-            await asyncio.sleep(0.2)
+            await asyncio.sleep(1)
             gc.collect()
 
     async def _get_ordinals_ids(self, async_session, batch_size=10000, offset=None, cutoff_date=datetime.now() - timedelta(days=32)):
@@ -375,7 +376,7 @@ class CRUD:
             del batch_results
             del processed_ids
             offset += batch_size
-            await asyncio.sleep(0.2)
+            await asyncio.sleep(1)
             gc.collect()
 
     async def delete_db_ordinal(
@@ -587,7 +588,7 @@ class CRUD:
                                               unique_subscribers_count_total=unique_subscribers_count_total))
             return content
         except Exception:
-            print(traceback.format_exc())
+            logging.getLogger("others").error(traceback.format_exc())
 
     async def get_html_page_about(selfself, request, templates):
         content = templates.TemplateResponse(
@@ -665,7 +666,7 @@ class CRUD:
             self, timestamp: int, async_session: async_sessionmaker[AsyncSession]
     ):
         async with async_session() as session:
-            batch_size = 100000
+            batch_size = 10000
             offset = 0
             data = {
                 "timestamp": [],
@@ -687,7 +688,6 @@ class CRUD:
                     logging.getLogger("stats").debug(f"Get ordinals from timestamp: {timestamp}, offset: {offset}")
                     results = await session.execute(statement)
                     batch_results = results.scalars().all()
-                    print(batch_results)
                 except Exception:
                     logging.getLogger("stats").warning(traceback.format_exc())
 
@@ -705,7 +705,7 @@ class CRUD:
                 del results
                 del batch_results
                 offset += batch_size
-                await asyncio.sleep(0.2)
+                await asyncio.sleep(1)
                 gc.collect()
 
         return data
@@ -718,7 +718,7 @@ class CRUD:
         """
         one_gigabyte = 1073741824
         async with async_session() as session:
-            batch_size = 100000
+            batch_size = 10000
             offset = 0
             data = {
                 "timestamp": [],
@@ -744,7 +744,11 @@ class CRUD:
                     .limit(batch_size)
                 )
                 logging.getLogger("stats").debug(f"Get node_data from timestamp: {timestamp}, offset: {offset}")
-                results = await session.execute(statement)
+                try:
+                    results = await session.execute(statement)
+                except aiohttp.client_exceptions.ServerDisconnectedError:
+                    await asyncio.sleep(3)
+                    continue
                 batch_results = results.scalars().all()
 
                 if not batch_results:
@@ -773,7 +777,7 @@ class CRUD:
                 del results
                 del batch_results
                 offset += batch_size
-                await asyncio.sleep(0.2)
+                await asyncio.sleep(1)
                 gc.collect()
 
         return data

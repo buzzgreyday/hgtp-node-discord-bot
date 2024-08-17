@@ -389,7 +389,7 @@ def create_timeslice_data(
     return sliced_snapshot_df, sliced_node_data_df
 
 
-async def get_data(session, timestamp):
+async def get_data(timestamp):
     """
     This function requests the necessary data.
     We can get IP and ID from:
@@ -401,29 +401,44 @@ async def get_data(session, timestamp):
     :param timestamp: epoch timestamp
     :return: [pd.DataFrame, pd.DataFrame]
     """
-    while True:
-        try:
-            snapshot_data = await Request(session).database(
-                f"http://127.0.0.1:8000/ordinal/from/{timestamp}"
+    async with ClientSession(
+            connector=TCPConnector(
+                # You need to obtain a real (non-self-signed certificate) to run in production
+                # ssl=db.ssl_context.load_cert_chain(certfile=ssl_cert_file, keyfile=ssl_key_file)
+                # Not intended for production:
+                ssl=False
             )
-        except Exception:
-            logging.getLogger("stats").error(traceback.format_exc())
-            await asyncio.sleep(3)
-        else:
-            break
-
-    while True:
-        try:
-            node_data = await Request(session).database(
-                f"http://127.0.0.1:8000/data/from/{timestamp}"
+    ) as session:
+        while True:
+            try:
+                snapshot_data = await Request(session).database(
+                    f"http://127.0.0.1:8000/ordinal/from/{timestamp}"
+                )
+            except Exception:
+                logging.getLogger("stats").error(traceback.format_exc())
+                await asyncio.sleep(3)
+            else:
+                break
+    async with ClientSession(
+            connector=TCPConnector(
+                # You need to obtain a real (non-self-signed certificate) to run in production
+                # ssl=db.ssl_context.load_cert_chain(certfile=ssl_cert_file, keyfile=ssl_key_file)
+                # Not intended for production:
+                ssl=False
             )
-        except Exception:
-            logging.getLogger("stats").error(traceback.format_exc())
-            await asyncio.sleep(3)
-        else:
-            break
-    snapshot_data = pd.DataFrame(snapshot_data)
-    node_data = pd.DataFrame(node_data)
+    ) as session:
+        while True:
+            try:
+                node_data = await Request(session).database(
+                    f"http://127.0.0.1:8000/data/from/{timestamp}"
+                )
+            except Exception:
+                logging.getLogger("stats").error(traceback.format_exc())
+                await asyncio.sleep(3)
+            else:
+                break
+        snapshot_data = pd.DataFrame(snapshot_data)
+        node_data = pd.DataFrame(node_data)
 
     return snapshot_data, node_data
 
@@ -437,14 +452,6 @@ async def run():
     times = preliminaries.generate_stats_runtimes()
     logging.getLogger("stats").info(f"Runtimes: {times}")
     while True:
-        async with ClientSession(
-            connector=TCPConnector(
-                # You need to obtain a real (non-self-signed certificate) to run in production
-                # ssl=db.ssl_context.load_cert_chain(certfile=ssl_cert_file, keyfile=ssl_key_file)
-                # Not intended for production:
-                ssl=False
-            )
-        ) as session:
             current_time = datetime.now(timezone.utc).time().strftime("%H:%M:%S")
             try:
                 if current_time in times:
@@ -462,9 +469,7 @@ async def run():
                     # The df "snapshot_data" is the rewards used to calc reward statistics and "node_data" is used to
                     # calc CPU statistics
                     while True:
-                        snapshot_data, node_data = await get_data(session, timestamp)
-                        print(snapshot_data)
-                        exit(0)
+                        snapshot_data, node_data = await get_data(timestamp)
                         if not snapshot_data.empty and not node_data.empty:
                             break
                         else:

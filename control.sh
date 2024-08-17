@@ -70,7 +70,7 @@ function start_bot() {
 
 function stop_bot() {
   if [ -f "$HOME/bot/tmp/pid-store" ]; then
-    pid=$(cat "$HOME/bot/tmp/pid-store") && kill "$pid" &>/dev/null && rm "$HOME/bot/tmp/pid-store" && echo "Bot: Killed process [$pid]"
+    pid=$(cat "$HOME/bot/tmp/pid-store") && kill -9 "$pid" &>/dev/null && rm "$HOME/bot/tmp/pid-store" && echo "Bot: Killed process [$pid]"
   else
     echo "Bot: Could not kill process - no saved process found"
   fi
