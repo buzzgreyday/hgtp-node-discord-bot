@@ -28,10 +28,10 @@ class Request:
         self.session = session
 
     async def database(self, request_url):
+        logging.getLogger("stats").info(
+            f"stats.py - Requesting database {request_url}"
+        )
         while True:
-            logging.getLogger("stats").info(
-                f"stats.py - Requesting database {request_url}"
-            )
             try:
                 async with self.session.get(request_url, timeout=18000) as response:
                     if response.status == 200:

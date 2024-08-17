@@ -290,7 +290,7 @@ def configure_logging():
         ("rewards", "assets/data/logs/rewards.log", logging.INFO),
         ("nextcord", "assets/data/logs/nextcord.log", logging.CRITICAL),
         ("stats", "assets/data/logs/stats.log", logging.DEBUG),
-        ("db_optimization", "assets/data/logs/db_optimization.log", logging.INFO),
+        ("db_optimization", "assets/data/logs/db_optimization.log", logging.DEBUG),
         ("commands", "assets/data/logs/commands.log", logging.INFO)
     ]
 

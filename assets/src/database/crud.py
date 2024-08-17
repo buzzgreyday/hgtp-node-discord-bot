@@ -665,7 +665,7 @@ class CRUD:
             self, timestamp: int, async_session: async_sessionmaker[AsyncSession]
     ):
         async with async_session() as session:
-            batch_size = 10000
+            batch_size = 100000
             offset = 0
             data = {
                 "timestamp": [],
@@ -678,11 +678,7 @@ class CRUD:
                 try:
                     statement = (
                         select(
-                            OrdinalModel.timestamp,
-                            OrdinalModel.ordinal,
-                            OrdinalModel.destination,
-                            OrdinalModel.amount,
-                            OrdinalModel.usd,
+                            OrdinalModel
                         )
                         .filter(OrdinalModel.timestamp >= timestamp)
                         .offset(offset)
@@ -690,7 +686,8 @@ class CRUD:
                     )
                     logging.getLogger("stats").debug(f"Get ordinals from timestamp: {timestamp}, offset: {offset}")
                     results = await session.execute(statement)
-                    batch_results = results.fetchall()
+                    batch_results = results.scalars().all()
+                    print(batch_results)
                 except Exception:
                     logging.getLogger("stats").warning(traceback.format_exc())
 
@@ -721,7 +718,7 @@ class CRUD:
         """
         one_gigabyte = 1073741824
         async with async_session() as session:
-            batch_size = 10000
+            batch_size = 100000
             offset = 0
             data = {
                 "timestamp": [],
@@ -740,17 +737,7 @@ class CRUD:
             while True:
                 statement = (
                     select(
-                        NodeModel.timestamp_index,
-                        NodeModel.wallet_address,
-                        NodeModel.layer,
-                        NodeModel.ip,
-                        NodeModel.id,
-                        NodeModel.public_port,
-                        NodeModel.one_m_system_load_average,
-                        NodeModel.cpu_count,
-                        NodeModel.disk_space_free,
-                        NodeModel.disk_space_total,
-                        NodeModel.last_known_cluster_name,
+                        NodeModel
                     )
                     .filter(NodeModel.timestamp_index >= timestamp_datetime)
                     .offset(offset)
@@ -758,7 +745,7 @@ class CRUD:
                 )
                 logging.getLogger("stats").debug(f"Get node_data from timestamp: {timestamp}, offset: {offset}")
                 results = await session.execute(statement)
-                batch_results = results.fetchall()
+                batch_results = results.scalars().all()
 
                 if not batch_results:
                     logging.getLogger("stats").debug("All node_data batches processed")
