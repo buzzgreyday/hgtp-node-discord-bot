@@ -201,6 +201,12 @@ class CRUD:
             logging.getLogger("stats").error(f"crud.py - Metric stats post: SUCCESS!")
         return jsonable_encoder(metric_data)
 
+    async def delete_rows_not_in_new_data(self, data: list[dict], async_session: async_sessionmaker[AsyncSession]):
+        async with async_session() as session:
+            ids = {record["id"] for record in data}
+            await session.execute(delete(MetricStatsModel).where(MetricStatsModel.id.not_in(ids)))
+            await session.commit()
+
     async def update_metric_stats(
             self, data: MetricStatsSchema, async_session: async_sessionmaker[AsyncSession]
     ):

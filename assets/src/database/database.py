@@ -172,6 +172,10 @@ async def post_metric_stats(data: MetricStatsSchema):
     """insert statistical data into database"""
     return await db.post_metric_stats(data, session)
 
+@app.put("/metric-stat/clean")
+async def delete_rows_not_in_new_data(data: list[dict]):
+    """Delete all records not present in list of dicts"""
+    return await db.delete_rows_not_in_new_data(data, session)
 
 @app.put("/metric-stat/update")
 async def update_metric_stats(data: MetricStatsSchema):

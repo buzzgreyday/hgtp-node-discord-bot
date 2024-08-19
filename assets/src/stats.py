@@ -668,12 +668,14 @@ async def run():
                     # Upload metrics (CPU) data to database. Since every wallet can be associated with multiple node
                     # instances and different server specifications, we'll create a hash to properly update the
                     # database.
+                    new_data = []
                     for i, row in sliced_node_df.iterrows():
+
                         key_str = f"{row.id}-{row.ip}-{row.public_port}"
                         hash_index = hashlib.sha256(key_str.encode()).hexdigest()
                         row['hash_index'] = hash_index
                         metric_data = MetricStatsSchema(**row.to_dict())
-
+                        new_data.append(row.to_dict())
                         try:
                             # Post data if no data exists
                             await post_metric_stats(metric_data)
@@ -682,6 +684,8 @@ async def run():
                             await update_metric_stats(metric_data)
                         except Exception:
                             logging.getLogger("stats").critical(traceback.format_exc())
+                    # Delete entries not present in the sliced_node_df
+                    await delete_rows_not_in_new_data(new_data)
                     # After saving data, give GIL something to do.
                     # del snapshot_data, metric_data
                 else:
