@@ -651,7 +651,6 @@ async def run():
                         try:
                             d = row.to_dict()
                             reward_data = RewardStatsSchema(**d)
-                            print(reward_data)
                         except Exception:
                             logging.getLogger("stats").critical(traceback.format_exc())
 
