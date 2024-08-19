@@ -329,7 +329,8 @@ def main():
     db_optimization_thread.start()
 
     while True:
-        bot.load_extension("assets.src.discord.commands")
+        if not dev_env:
+            bot.load_extension("assets.src.discord.commands")
         bot.load_extension("assets.src.discord.events")
 
         bot.loop.create_task(main_loop(version_manager, _configuration))
