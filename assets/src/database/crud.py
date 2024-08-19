@@ -203,8 +203,8 @@ class CRUD:
 
     async def delete_rows_not_in_new_data(self, data: list[dict], async_session: async_sessionmaker[AsyncSession]):
         async with async_session() as session:
-            ids = {record["id"] for record in data}
-            await session.execute(delete(MetricStatsModel).where(MetricStatsModel.id.not_in(ids)))
+            hashes = {record["hash_index"] for record in data}
+            await session.execute(delete(MetricStatsModel).where(MetricStatsModel.hash_index.not_in(hashes)))
             await session.commit()
 
     async def update_metric_stats(
