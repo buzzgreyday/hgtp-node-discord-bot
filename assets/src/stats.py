@@ -605,8 +605,8 @@ async def run():
                     snapshot_data["percent_earning_more"] = 0.0
                     snapshot_data["dag_address_sum_zscore"] = stats.zscore(snapshot_data.dag_address_sum)
 
-                    # Define a threshold for the Z-score (e.g., 3)
-                    zscore_threshold = -0.1
+                    # Define a threshold for the Z-score (positive numbers only)
+                    zscore_threshold = 0.1
 
                     # Filter out rows where z-score exceeds the threshold by taking the absolute:
                     # treat both positive and negative deviations from the mean in the same manner
