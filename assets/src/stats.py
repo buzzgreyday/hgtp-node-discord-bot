@@ -607,12 +607,12 @@ async def run():
                     snapshot_data["dag_address_sum_zscore"] = stats.zscore(snapshot_data.dag_address_sum)
 
                     # Define a threshold for the Z-score (positive numbers only)
-                    zscore_threshold_top = 0.12
-                    zscore_threshold_bottom = 0.10
+                    zscore_threshold = 0.11
+                    zscore_threshold_tolerance = 0.005
 
                     # Filter out rows where z-score exceeds the threshold by taking the absolute:
                     # treat both positive and negative deviations from the mean in the same manner
-                    filtered_df = snapshot_data[(snapshot_data['dag_address_sum_zscore'].abs() <= zscore_threshold_top) & (snapshot_data['dag_address_sum_zscore'].abs() >= zscore_threshold_bottom)].copy()
+                    filtered_df = snapshot_data[(snapshot_data['dag_address_sum_zscore'].abs() <= zscore_threshold + zscore_threshold_tolerance) & (snapshot_data['dag_address_sum_zscore'].abs() >= zscore_threshold - zscore_threshold_tolerance)].copy()
                     print(filtered_df[["dag_address_sum", "dag_address_daily_sum", "dag_address_sum_zscore"]])
                     # Use .copy() to ensure a new DataFrame is created, preventing chained assignments
 

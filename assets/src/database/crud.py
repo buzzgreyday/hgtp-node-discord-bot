@@ -206,6 +206,7 @@ class CRUD:
             hashes = {record["hash_index"] for record in data}
             await session.execute(delete(MetricStatsModel).where(MetricStatsModel.hash_index.not_in(hashes)))
             await session.commit()
+        print("Delete rows done!")
 
     async def update_metric_stats(
             self, data: MetricStatsSchema, async_session: async_sessionmaker[AsyncSession]
