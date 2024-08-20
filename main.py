@@ -286,12 +286,12 @@ def run_uvicorn_process():
 
 def configure_logging():
     log_configs = [
-        ("app", "assets/data/logs/app.log", logging.INFO),
-        ("rewards", "assets/data/logs/rewards.log", logging.INFO),
-        ("nextcord", "assets/data/logs/nextcord.log", logging.CRITICAL),
-        ("stats", "assets/data/logs/stats.log", logging.DEBUG),
-        ("db_optimization", "assets/data/logs/db_optimization.log", logging.DEBUG),
-        ("commands", "assets/data/logs/commands.log", logging.INFO)
+        ("app", "assets/data/logs/app.log", logging.INFO if not dev_env else logging.DEBUG),
+        ("rewards", "assets/data/logs/rewards.log", logging.INFO if not dev_env else logging.DEBUG),
+        ("nextcord", "assets/data/logs/nextcord.log", logging.CRITICAL if not dev_env else logging.DEBUG),
+        ("stats", "assets/data/logs/stats.log", logging.INFO if not dev_env else logging.DEBUG),
+        ("db_optimization", "assets/data/logs/db_optimization.log", logging.INFO if not dev_env else logging.DEBUG),
+        ("commands", "assets/data/logs/commands.log", logging.INFO if not dev_env else logging.DEBUG)
     ]
 
     for name, file, level in log_configs:
