@@ -206,7 +206,6 @@ class CRUD:
             hashes = {record["hash_index"] for record in data}
             await session.execute(delete(MetricStatsModel).where(MetricStatsModel.hash_index.not_in(hashes)))
             await session.commit()
-        print("Delete rows done!")
 
     async def update_metric_stats(
             self, data: MetricStatsSchema, async_session: async_sessionmaker[AsyncSession]
@@ -459,8 +458,7 @@ class CRUD:
             calculated_mpy_percentage, estimated_apy_percentage = self._calculate_html_stats_yield(reward_results)
 
             # What those addresses earning more is earning (standard deviation)
-            above_dag_address_std_dev_high = reward_results.above_dag_addresses_earnings_mean + reward_results.above_dag_address_earnings_std_dev
-            above_dag_address_std_dev_low = reward_results.above_dag_addresses_earnings_mean - reward_results.above_dag_address_earnings_std_dev
+
             dag_earnings_price_now_dev = float(dag_earnings_price_now - reward_results.usd_address_sum)
             if dag_earnings_price_now_dev > 0:
                 dag_earnings_price_now_dev = f'+{round(dag_earnings_price_now_dev, 2)}'
@@ -494,8 +492,6 @@ class CRUD:
                      # What the address is missing out on (compared to the highest earning address)
                      above_dag_address_deviation_from_highest_earning=round(
                          reward_results.above_dag_address_earnings_from_highest, 2),
-                     above_dag_address_std_dev_high=round(above_dag_address_std_dev_high, 2),
-                     above_dag_address_std_dev_low=round(above_dag_address_std_dev_low, 2),
                      metric_dicts=metric_dicts,
                      calculated_mpy=round(calculated_mpy_percentage, 2),
                      estimated_apy=round(estimated_apy_percentage, 2)

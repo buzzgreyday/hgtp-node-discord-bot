@@ -135,16 +135,8 @@
                     <div class="mb-3">
                         <p class="font-weight-bold ml-3">Node Earnings Metrics</p>
                         <div class="d-flex justify-content-between ml-4 mb-2">
-                            <span>Outperformers<sup>*</sup>:</span>
+                            <span>Outperformers:<sup>*</sup></span>
                             <span>{{ percent_earning_more }}%</span>
-                        </div>
-                        <div class="d-flex justify-content-between ml-4 mb-2">
-                            <span>Outperformers (low)<sup>**</sup>:</span>
-                            <span>{{ above_dag_address_std_dev_low }} DAG</span>
-                        </div>
-                        <div class="d-flex justify-content-between ml-4 mb-2">
-                            <span>Outperformers (high)<sup>**</sup>:</span>
-                            <span>{{ above_dag_address_std_dev_high }} DAG</span>
                         </div>
                         <div class="d-flex justify-content-between ml-4 mb-2">
                             <span>Avg. Potential:</span>
@@ -160,7 +152,7 @@
                     <div class="mb-3">
                         <p class="font-weight-bold ml-3">Network Earnings</p>
                         <div class="d-flex justify-content-between ml-4 mb-2">
-                            <span>Avg. Node Earnings<sup>*</sup>:</span>
+                            <span>Avg. Node Earnings:<sup>*</sup></span>
                             <span>{{ dag_median_sum }} DAG</span>
                         </div>
                         <div class="d-flex justify-content-between ml-4 mb-2">
@@ -186,7 +178,6 @@
                             <span>{{ dag_address_daily_std_dev }} DAG</span>
                         </div>
                         <p class="ml-4 mb-1" style="font-size:0.6em; color: #707374;">(*) Extreme outliers included (e.g. Stardust Collective, etc.)</p>
-                        <p class="ml-4 mb-1" style="font-size:0.6em; color: #707374;">(**) The low and high values are standardized</p>
                     </div>
                 </div>
             </div>
@@ -229,7 +220,7 @@
         </div>
     </div>
     <footer class="text-dark">
-        <p class="m-1 text-center" style="font-size: 0.6em; color: #707374;">v0.0.15 by Buzz Greyday (aka. hgtp_Michael)</p>
+        <p class="m-1 text-center" style="font-size: 0.6em; color: #707374;">v0.0.16 by Buzz Greyday (aka. hgtp_Michael)</p>
     </footer>
     <script>
         var reward_frame = document.getElementById('reward_plot');
