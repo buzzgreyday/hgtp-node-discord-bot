@@ -607,11 +607,12 @@ async def run():
                     snapshot_data["dag_address_sum_zscore"] = stats.zscore(snapshot_data.dag_address_sum)
 
                     # Define a threshold for the Z-score (positive numbers only)
-                    zscore_threshold = 0.11
+                    zscore_threshold_top = 0.12
+                    zscore_threshold_bottom = 0.10
 
                     # Filter out rows where z-score exceeds the threshold by taking the absolute:
                     # treat both positive and negative deviations from the mean in the same manner
-                    filtered_df = snapshot_data[snapshot_data['dag_address_sum_zscore'].abs() == zscore_threshold].copy()
+                    filtered_df = snapshot_data[(snapshot_data['dag_address_sum_zscore'].abs() <= zscore_threshold_top) & (snapshot_data['dag_address_sum_zscore'].abs() >= zscore_threshold_bottom)].copy()
                     print(filtered_df[["dag_address_sum", "dag_address_daily_sum", "dag_address_sum_zscore"]])
                     # Use .copy() to ensure a new DataFrame is created, preventing chained assignments
 
@@ -632,14 +633,6 @@ async def run():
                         snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_dag_address_earnings_deviation_from_mean"] = df.dag_address_sum.mean() - row.dag_address_sum
                         snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_dag_address_earnings_from_highest"] = df.dag_address_sum.max() - row.dag_address_sum
                         snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_dag_address_earnings_std_dev"] = df.dag_address_sum.std()
-                    # Merge zscore calculations with snapshot data here?
-                    """snapshot_data = pd.merge(snapshot_data, filtered_df, on="destinations", how="right", suffixes=("", "_right"))
-                    conflicting_columns = [col for col in snapshot_data.columns if
-                                           col.endswith('_right')]
-                    snapshot_data = snapshot_data.drop(conflicting_columns, axis=1)
-                    snapshot_data = snapshot_data.fillna(0.0)"""
-
-
 
                     # Calculate percentage earning more and then save reward data to database, row-by-row.
                     for i, row in snapshot_data.iterrows():
@@ -654,7 +647,7 @@ async def run():
                             reward_data = RewardStatsSchema(**d)
                         except Exception:
                             logging.getLogger("stats").critical(traceback.format_exc())
-
+                            continue
                         try:
                             # Post data if no data exists
                             await post_reward_stats(reward_data)
