@@ -15,7 +15,8 @@ from scipy import stats
 from aiohttp import ClientSession, TCPConnector
 
 from assets.src import preliminaries
-from assets.src.database.database import post_reward_stats, update_reward_stats, post_metric_stats, update_metric_stats
+from assets.src.database.database import post_reward_stats, update_reward_stats, post_metric_stats, update_metric_stats, \
+    delete_rows_not_in_new_data
 from assets.src.discord import discord
 from assets.src.discord.services import bot
 from assets.src.rewards import normalize_timestamp
@@ -606,11 +607,11 @@ async def run():
                     snapshot_data["dag_address_sum_zscore"] = stats.zscore(snapshot_data.dag_address_sum)
 
                     # Define a threshold for the Z-score (positive numbers only)
-                    zscore_threshold = -0.11
+                    zscore_threshold = 0.11
 
                     # Filter out rows where z-score exceeds the threshold by taking the absolute:
                     # treat both positive and negative deviations from the mean in the same manner
-                    filtered_df = snapshot_data[snapshot_data['dag_address_sum_zscore'] <= zscore_threshold].copy()
+                    filtered_df = snapshot_data[snapshot_data['dag_address_sum_zscore'].abs() == zscore_threshold].copy()
                     print(filtered_df[["dag_address_sum", "dag_address_daily_sum", "dag_address_sum_zscore"]])
                     # Use .copy() to ensure a new DataFrame is created, preventing chained assignments
 
@@ -663,7 +664,6 @@ async def run():
                         except Exception:
                             logging.getLogger("stats").critical(traceback.format_exc())
 
-                    exit(0)
                     # Upload metrics (CPU) data to database. Since every wallet can be associated with multiple node
                     # instances and different server specifications, we'll create a hash to properly update the
                     # database.
