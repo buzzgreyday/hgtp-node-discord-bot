@@ -286,12 +286,12 @@ def run_uvicorn_process():
 
 def configure_logging():
     log_configs = [
-        ("app", "assets/data/logs/app.log", logging.INFO),
-        ("rewards", "assets/data/logs/rewards.log", logging.INFO),
-        ("nextcord", "assets/data/logs/nextcord.log", logging.CRITICAL),
-        ("stats", "assets/data/logs/stats.log", logging.DEBUG),
-        ("db_optimization", "assets/data/logs/db_optimization.log", logging.INFO),
-        ("commands", "assets/data/logs/commands.log", logging.INFO)
+        ("app", "assets/data/logs/app.log", logging.INFO if not dev_env else logging.DEBUG),
+        ("rewards", "assets/data/logs/rewards.log", logging.INFO if not dev_env else logging.DEBUG),
+        ("nextcord", "assets/data/logs/nextcord.log", logging.CRITICAL if not dev_env else logging.DEBUG),
+        ("stats", "assets/data/logs/stats.log", logging.INFO if not dev_env else logging.DEBUG),
+        ("db_optimization", "assets/data/logs/db_optimization.log", logging.INFO if not dev_env else logging.DEBUG),
+        ("commands", "assets/data/logs/commands.log", logging.INFO if not dev_env else logging.DEBUG)
     ]
 
     for name, file, level in log_configs:
@@ -305,17 +305,11 @@ def configure_logging():
 
 
 def main():
-
     _configuration = load_configuration()
 
     configure_logging()
 
     version_manager = preliminaries.VersionManager(_configuration)
-
-    bot.load_extension("assets.src.discord.commands")
-    bot.load_extension("assets.src.discord.events")
-
-    bot.loop.create_task(main_loop(version_manager, _configuration))
 
     # Create a thread for running uvicorn
     uvicorn_thread = threading.Thread(target=run_uvicorn_process)
@@ -335,13 +329,19 @@ def main():
     db_optimization_thread.start()
 
     while True:
+        if not dev_env:
+            bot.load_extension("assets.src.discord.commands")
+        bot.load_extension("assets.src.discord.events")
+
+        bot.loop.create_task(main_loop(version_manager, _configuration))
         try:
             bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))
         except ClientConnectorError:
-            time.sleep(6)
+            bot.close()
+            time.sleep(3)
 
 
 if __name__ == "__main__":
     if dev_env:
-        print("Message: Dev environment enabled!")
+        print("Message: Development environment enabled!")
     main()

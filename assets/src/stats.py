@@ -1,11 +1,12 @@
 import asyncio
+import gc
 import hashlib
 import logging
 import traceback
 import warnings
 from datetime import datetime, timedelta, timezone
 
-from bokeh.models import BoxAnnotation
+from bokeh.models import BoxAnnotation, Range1d, LinearAxis
 from bokeh.plotting import figure, output_file, save
 from bokeh.palettes import Category20c_10
 import pandas as pd
@@ -14,7 +15,8 @@ from scipy import stats
 from aiohttp import ClientSession, TCPConnector
 
 from assets.src import preliminaries
-from assets.src.database.database import post_reward_stats, update_reward_stats, post_metric_stats, update_metric_stats
+from assets.src.database.database import post_reward_stats, update_reward_stats, post_metric_stats, update_metric_stats, \
+    delete_rows_not_in_new_data
 from assets.src.discord import discord
 from assets.src.discord.services import bot
 from assets.src.rewards import normalize_timestamp
@@ -28,10 +30,10 @@ class Request:
         self.session = session
 
     async def database(self, request_url):
+        logging.getLogger("stats").info(
+            f"stats.py - Requesting database {request_url}"
+        )
         while True:
-            logging.getLogger("stats").info(
-                f"stats.py - Requesting database {request_url}"
-            )
             try:
                 async with self.session.get(request_url, timeout=18000) as response:
                     if response.status == 200:
@@ -148,6 +150,20 @@ class Visual:
                 legend_label=f"Node avg.",
             )
 
+            # Add a second y-axis on the right
+            p.extra_y_ranges = {"usd_value": Range1d(start=0, end=destination_df["usd_address_daily_sum"].max())}
+            p.add_layout(LinearAxis(y_range_name="usd_value", axis_label="$USD value"), 'right')
+
+            # Line for the right y-axis
+            p.line(
+                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
+                destination_df["usd_address_daily_sum"],
+                legend_label="$USD value",
+                color="green",
+                line_width=3,
+                y_range_name="usd_value"
+            )
+
             green_box = BoxAnnotation(bottom=self.df["daily_overall_median"].median(), left=0, fill_alpha=0.1,
                                       fill_color='#00b4cd')
             red_box = BoxAnnotation(top=self.df["daily_overall_median"].median(), left=0, fill_alpha=0.1, fill_color='#f64336')
@@ -251,7 +267,7 @@ final_columns = [
 """FUNCTIONS"""
 
 
-def sum_usd(
+def _sum_usd(
     df: pd.DataFrame, new_column_name: str, address_specific_sum_column
 ) -> pd.DataFrame:
     # THE USD VALUE NEEDS TO BE MULTIPLIED SINCE IT'S THE VALUE PER DAG :)
@@ -259,7 +275,7 @@ def sum_usd(
     return df
 
 
-def calculate_address_specific_sum(
+def _calculate_address_specific_sum(
     df: pd.DataFrame, new_column_name: str, address_specific_sum_column: str
 ) -> pd.DataFrame:
     df.loc[:, new_column_name] = df.groupby("destinations")[
@@ -268,7 +284,7 @@ def calculate_address_specific_sum(
     return df
 
 
-def calculate_address_specific_mean(
+def _calculate_address_specific_mean(
     df: pd.DataFrame, new_column_name: str, address_specific_mean_column: str
 ) -> pd.DataFrame:
     df.loc[:, new_column_name] = df.groupby("destinations")[
@@ -277,7 +293,7 @@ def calculate_address_specific_mean(
     return df
 
 
-def calculate_address_specific_deviation(
+def _calculate_address_specific_deviation(
     sliced_snapshot_df: pd.DataFrame,
     new_column_name: str,
     address_specific_sum_column,
@@ -290,7 +306,7 @@ def calculate_address_specific_deviation(
     return sliced_snapshot_df
 
 
-def calculate_address_specific_standard_deviation(
+def _calculate_address_specific_standard_deviation(
     df: pd.DataFrame, new_column_name: str, address_specific_sum_column: str
 ) -> pd.DataFrame:
     df[new_column_name] = df.groupby("destinations")[
@@ -299,97 +315,124 @@ def calculate_address_specific_standard_deviation(
     return df
 
 
-def calculate_general_data_median(
+def _calculate_general_data_median(
     df: pd.DataFrame, new_column_name: str, median_column: str
 ) -> pd.DataFrame:
     df.loc[:, new_column_name] = df[median_column].median()
     return df
 
 
-def create_timeslice_data(
-    data: pd.DataFrame, node_data: pd.DataFrame, start_time: int, travers_seconds: int
-):
-    """
-    COULD USE SOME CLEANING
-    TO: Start time is usually the latest available timestamp
-    FROM: Traverse seconds is for example seven days, one day or 24 hours in seconds (the time you wish to traverse)
-    """
-    list_of_daily_snapshot_df = []
-    list_of_daily_node_df = []
-    while start_time >= data["timestamp"].values.min():
-        # Slice daily data
-        sliced_snapshot_df = data[
-            (data["timestamp"] >= start_time - travers_seconds)
-            & (data["timestamp"] <= start_time)
-        ].copy()
-        sliced_node_data_df = node_data[
-            (node_data["timestamp"] >= start_time - travers_seconds)
-            & (node_data["timestamp"] <= start_time)
+def _traverse_slice_snapshot_data(data: pd.DataFrame, start_time, traverse_seconds):
+    # Slice daily data
+
+    sliced_snapshot_df = data[
+        (data["timestamp"] >= start_time - traverse_seconds)
+        & (data["timestamp"] <= start_time)
         ].copy()
 
-        # Sum together the daily amount of $DAG earned by every individual operator
-        # and create the column "dag_address_daily_sum"
-        sliced_snapshot_df = calculate_address_specific_sum(
-            sliced_snapshot_df, "dag_address_daily_sum", "dag"
-        )
-        # Calculate the daily median of all $DAG earned by all operators
-        sliced_snapshot_df = calculate_general_data_median(
-            sliced_snapshot_df, "daily_overall_median", "dag_address_daily_sum"
-        )
-        # Calculate the average daily CPU for each operator instance
-        sliced_node_data_df["daily_cpu_load"] = sliced_node_data_df.groupby(
-            ["destinations", "layer", "public_port"]
-        )["cpu_load_1m"].transform("mean")
-        # Clean snapshot data rows
-        sliced_snapshot_df = sliced_snapshot_df[sliced_columns].drop_duplicates(
-            "destinations", ignore_index=True
-        )
-        # Clean CPU data rows but keep the last grouped row.
-        # Last row should be used to save most recent free space and in case an operator upgraded disk or CPUs.
-        # This might later look like a duplicated clean-up, but it isn't.
-        sliced_node_data_df = sliced_node_data_df.sort_values(
-            by="timestamp"
-        ).drop_duplicates(
-            [
-                "destinations",
-                "layer",
-                "ip",
-                "public_port",
-            ],
-            keep="last",
-            ignore_index=True,
-        )
-        # Add daily data to the chain of daily data before traversing to the day before
-        list_of_daily_snapshot_df.append(sliced_snapshot_df)
-        list_of_daily_node_df.append(sliced_node_data_df)
-        # Set start_time to the day before and continue loop
-        start_time = start_time - travers_seconds
-    # When timestamp is over 30 days old create a new dfs containing the daily sliced data
-    sliced_snapshot_df = pd.concat(list_of_daily_snapshot_df, ignore_index=True)
-    sliced_node_data_df = pd.concat(list_of_daily_node_df, ignore_index=True)
+    # Sum together the daily amount of $DAG earned by every individual operator
+    # and create the column "dag_address_daily_sum"
+
+    sliced_snapshot_df = _calculate_address_specific_sum(
+        sliced_snapshot_df, "dag_address_daily_sum", "dag"
+    )
+
+    # Calculate the daily median of all $DAG earned by all operators
+
+    sliced_snapshot_df = _calculate_general_data_median(
+        sliced_snapshot_df, "daily_overall_median", "dag_address_daily_sum"
+    )
+    # Clean snapshot data rows
+    sliced_snapshot_df = sliced_snapshot_df[sliced_columns].drop_duplicates(
+        "destinations", ignore_index=True
+    )
+    return sliced_snapshot_df
+
+
+def _traverse_slice_node_data(data: pd.DataFrame, start_time, traverse_seconds):
+    sliced_node_data_df = data[
+        (data["timestamp"] >= start_time - traverse_seconds)
+        & (data["timestamp"] <= start_time)
+        ].copy()
+
+    # Calculate the average daily CPU for each operator instance
+    sliced_node_data_df["daily_cpu_load"] = sliced_node_data_df.groupby(
+        ["destinations", "layer", "public_port"]
+    )["cpu_load_1m"].transform("mean")
+
+    # Clean CPU data rows but keep the last grouped row.
+    # Last row should be used to save most recent free space and in case an operator upgraded disk or CPUs.
+    # This might later look like a duplicated clean-up, but it isn't.
+    sliced_node_data_df = sliced_node_data_df.sort_values(
+        by="timestamp"
+    ).drop_duplicates(
+        [
+            "destinations",
+            "layer",
+            "ip",
+            "public_port",
+        ],
+        keep="last",
+        ignore_index=True,
+    )
+    return sliced_node_data_df
+
+
+def _calculate_generals_post_traverse_slice(sliced_snapshot_df: pd.DataFrame):
     # Calculate the daily rewards standard deviation per wallet
-    sliced_snapshot_df = calculate_address_specific_standard_deviation(
+    sliced_snapshot_df = _calculate_address_specific_standard_deviation(
         sliced_snapshot_df, "dag_daily_std_dev", "dag_address_daily_sum"
     )
+    # set None to 0
+    sliced_snapshot_df["dag_daily_std_dev"].fillna(0, inplace=True)
     # Calculate the daily average rewards received per wallet
-    sliced_snapshot_df = calculate_address_specific_mean(
+    sliced_snapshot_df = _calculate_address_specific_mean(
         sliced_snapshot_df, "dag_address_daily_mean", "dag_address_daily_sum"
     )
     # Calculate how much the daily rewards received per address deviates from the average of all daily rewards received
     # by operators
-    sliced_snapshot_df = calculate_address_specific_deviation(
+    sliced_snapshot_df = _calculate_address_specific_deviation(
         sliced_snapshot_df,
         "dag_address_daily_sum_dev",
         "dag_address_daily_sum",
         "daily_overall_median",
     )
+    return sliced_snapshot_df
+
+
+def _create_timeslice_data(
+    data: pd.DataFrame, node_data: pd.DataFrame, start_time: int, traverse_seconds: int = 86400
+):
+    """
+    COULD USE SOME CLEANING
+    TO: Start time is usually the latest available timestamp
+    FROM: Traverse seconds is for example one day (default) seven days, one day or 24 hours in seconds (the time you wish to traverse)
+    """
+    list_of_daily_snapshot_df = []
+    list_of_daily_node_df = []
+
+    while start_time >= data["timestamp"].values.min():
+
+        # Add daily data to the chain of daily data before traversing to the day before
+        list_of_daily_snapshot_df.append(_traverse_slice_snapshot_data(data, start_time, traverse_seconds))
+        list_of_daily_node_df.append(_traverse_slice_node_data(node_data, start_time, traverse_seconds))
+        # Set start_time to the day before and continue loop
+        start_time = start_time - traverse_seconds
+
+    # When timestamp is over 30 days old create a new dfs containing the daily sliced data
+    sliced_snapshot_df = pd.concat(list_of_daily_snapshot_df, ignore_index=True)
+    sliced_node_data_df = pd.concat(list_of_daily_node_df, ignore_index=True)
+
+    sliced_snapshot_df = _calculate_generals_post_traverse_slice(sliced_snapshot_df)
+
     # Give GIL something to do, if she has time
     del list_of_daily_snapshot_df, list_of_daily_node_df
+    gc.collect()
     # Return the data containing cleaner daily data
     return sliced_snapshot_df, sliced_node_data_df
 
 
-async def get_data(session, timestamp):
+async def _get_data(timestamp):
     """
     This function requests the necessary data.
     We can get IP and ID from:
@@ -401,32 +444,80 @@ async def get_data(session, timestamp):
     :param timestamp: epoch timestamp
     :return: [pd.DataFrame, pd.DataFrame]
     """
-    while True:
-        try:
-            snapshot_data = await Request(session).database(
-                f"http://127.0.0.1:8000/ordinal/from/{timestamp}"
+    async with ClientSession(
+            connector=TCPConnector(
+                # You need to obtain a real (non-self-signed certificate) to run in production
+                # ssl=db.ssl_context.load_cert_chain(certfile=ssl_cert_file, keyfile=ssl_key_file)
+                # Not intended for production:
+                ssl=False
             )
-        except Exception:
-            logging.getLogger("stats").error(traceback.format_exc())
-            await asyncio.sleep(3)
-        else:
-            break
-    await asyncio.sleep(6)
-
-    while True:
-        try:
-            node_data = await Request(session).database(
-                f"http://127.0.0.1:8000/data/from/{timestamp}"
+    ) as session:
+        while True:
+            try:
+                snapshot_data = await Request(session).database(
+                    f"http://127.0.0.1:8000/ordinal/from/{timestamp}"
+                )
+            except Exception:
+                logging.getLogger("stats").error(traceback.format_exc())
+                await asyncio.sleep(3)
+            else:
+                break
+    async with ClientSession(
+            connector=TCPConnector(
+                # You need to obtain a real (non-self-signed certificate) to run in production
+                # ssl=db.ssl_context.load_cert_chain(certfile=ssl_cert_file, keyfile=ssl_key_file)
+                # Not intended for production:
+                ssl=False
             )
-        except Exception:
-            logging.getLogger("stats").error(traceback.format_exc())
-            await asyncio.sleep(3)
-        else:
-            break
-    snapshot_data = pd.DataFrame(snapshot_data)
-    node_data = pd.DataFrame(node_data)
+    ) as session:
+        while True:
+            try:
+                node_data = await Request(session).database(
+                    f"http://127.0.0.1:8000/data/from/{timestamp}"
+                )
+            except Exception:
+                logging.getLogger("stats").error(traceback.format_exc())
+                await asyncio.sleep(3)
+            else:
+                break
+        snapshot_data = pd.DataFrame(snapshot_data)
+        node_data = pd.DataFrame(node_data)
 
     return snapshot_data, node_data
+
+
+def _generate_visuals(sliced_snapshot_df, sliced_node_df):
+    # set None to 0
+    sliced_node_df["daily_cpu_load"].fillna(0, inplace=True)
+    sliced_snapshot_df["dag_address_daily_sum"].fillna(0, inplace=True)
+    # Calculate the USD value of the daily earnings per node wallet
+    sliced_snapshot_df = _sum_usd(
+        sliced_snapshot_df, "usd_address_daily_sum", "dag_address_daily_sum"
+    )
+    # Create visual representations of the daily data
+    Visual(sliced_snapshot_df).reward_plot()
+    Visual(sliced_node_df).cpu_plot()
+
+    """CLEAN"""
+    # This might seem like a duplication from the clean-up in "creat_timeslice_data,
+    # but it isn't. After having created the CPU visuals we don't need all daily CPU data per operator,
+    # we only need the latest daily data (today) for updating the database CPU table, since data is
+    # updated daily.
+    sliced_node_df = sliced_node_df.sort_values(by="timestamp").drop_duplicates(
+        [
+            "destinations",
+            "layer",
+            "ip",
+            "public_port",
+        ],
+        keep="last",
+        ignore_index=True,
+    )
+    # Clean the daily snapshot data columns
+    sliced_snapshot_df = sliced_snapshot_df[final_sliced_columns].drop_duplicates(
+        "destinations"
+    )
+    return sliced_snapshot_df, sliced_node_df
 
 
 async def run():
@@ -438,19 +529,12 @@ async def run():
     times = preliminaries.generate_stats_runtimes()
     logging.getLogger("stats").info(f"Runtimes: {times}")
     while True:
-        async with ClientSession(
-            connector=TCPConnector(
-                # You need to obtain a real (non-self-signed certificate) to run in production
-                # ssl=db.ssl_context.load_cert_chain(certfile=ssl_cert_file, keyfile=ssl_key_file)
-                # Not intended for production:
-                ssl=False
-            )
-        ) as session:
             current_time = datetime.now(timezone.utc).time().strftime("%H:%M:%S")
             try:
                 if current_time in times:
-                    """PANDAS SETTINGS"""
+                    """SETTINGS"""
                     pd.set_option("display.max_rows", None)
+                    warnings.filterwarnings("ignore", category=FutureWarning)
                     pd.options.display.float_format = "{:.2f}".format
                     # Convert timestamp to epoch
                     timestamp = normalize_timestamp(
@@ -463,59 +547,24 @@ async def run():
                     # The df "snapshot_data" is the rewards used to calc reward statistics and "node_data" is used to
                     # calc CPU statistics
                     while True:
-                        snapshot_data, node_data = await get_data(session, timestamp)
+                        snapshot_data, node_data = await _get_data(timestamp)
                         if not snapshot_data.empty and not node_data.empty:
                             break
                         else:
                             await asyncio.sleep(30)
-
-
 
                     """
                     CREATE DAILY DATA
                     TO: Start time is the latest available timestamp
                     FROM: The "timestamp" var is the timestamp from where you wish to retrieve data from
                     """
-                    # Make the most recent available snapshot timestamp the starting point
-                    start_time = snapshot_data["timestamp"].values.max()
-                    # One day in seconds: 86400
-                    traverse_seconds = 86400
 
                     # Slice snapshot and node data into daily data
-                    sliced_snapshot_df, sliced_node_df = create_timeslice_data(
-                        snapshot_data, node_data, start_time, traverse_seconds
+                    sliced_snapshot_df, sliced_node_df = _create_timeslice_data(
+                        snapshot_data, node_data, snapshot_data["timestamp"].values.max()
                     )
 
-                    # Ignore deprecation warning and set None to 0
-                    warnings.filterwarnings("ignore", category=FutureWarning)
-                    sliced_snapshot_df["dag_daily_std_dev"].fillna(0, inplace=True)
-
-                    # Create visual representations of the daily data
-                    Visual(sliced_snapshot_df).reward_plot()
-                    Visual(sliced_node_df).cpu_plot()
-
-                    # This might seem like a duplication from the clean-up in "creat_timeslice_data,
-                    # but it isn't. After having created the CPU visuals we don't need all daily CPU data per operator,
-                    # we only need the latest daily data (today) for updating the database CPU table, since data is
-                    # updated daily.
-                    sliced_node_df = sliced_node_df.sort_values(by="timestamp").drop_duplicates(
-                        [
-                            "destinations",
-                            "layer",
-                            "ip",
-                            "public_port",
-                        ],
-                        keep="last",
-                        ignore_index=True,
-                    )
-                    # Calculate the USD value of the daily earnings per node wallet
-                    sliced_snapshot_df = sum_usd(
-                        sliced_snapshot_df, "usd_address_daily_sum", "dag_address_daily_sum"
-                    )
-                    # Clean the daily snapshot data columns
-                    sliced_snapshot_df = sliced_snapshot_df[final_sliced_columns].drop_duplicates(
-                        "destinations"
-                    )
+                    sliced_snapshot_df, sliced_node_df = _generate_visuals(sliced_snapshot_df, sliced_node_df)
 
                     """CREATE DATA FOR THE ENTIRE PERIOD"""
                     # Use the unsliced data to calculate the sum of all $DAG earned per node wallet
@@ -531,7 +580,7 @@ async def run():
                     )
                     # Calculate USD value of total amount of $DAG earned per node wallet in the period.
                     # If 30 days then 86400
-                    snapshot_data = sum_usd(snapshot_data, "usd_address_sum", "dag_address_sum")
+                    snapshot_data = _sum_usd(snapshot_data, "usd_address_sum", "dag_address_sum")
 
                     # The node is earning more than the average if sum deviation is positive, less if negative
                     snapshot_data["dag_address_sum_dev"] = (
@@ -557,12 +606,13 @@ async def run():
                     snapshot_data["percent_earning_more"] = 0.0
                     snapshot_data["dag_address_sum_zscore"] = stats.zscore(snapshot_data.dag_address_sum)
 
-                    # Define a threshold for the Z-score (e.g., 3)
-                    zscore_threshold = 0.5
+                    # Define a threshold for the Z-score (positive numbers only)
+                    zscore_threshold = 0.11
+                    zscore_threshold_tolerance = 0.005
 
                     # Filter out rows where z-score exceeds the threshold by taking the absolute:
                     # treat both positive and negative deviations from the mean in the same manner
-                    filtered_df = snapshot_data[snapshot_data['dag_address_sum_zscore'].abs() <= zscore_threshold].copy()
+                    filtered_df = snapshot_data[(snapshot_data['dag_address_sum_zscore'].abs() <= zscore_threshold + zscore_threshold_tolerance) & (snapshot_data['dag_address_sum_zscore'].abs() >= zscore_threshold - zscore_threshold_tolerance)].copy()
                     # Use .copy() to ensure a new DataFrame is created, preventing chained assignments
 
                     # Initialize new columns with 0.0
@@ -582,14 +632,6 @@ async def run():
                         snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_dag_address_earnings_deviation_from_mean"] = df.dag_address_sum.mean() - row.dag_address_sum
                         snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_dag_address_earnings_from_highest"] = df.dag_address_sum.max() - row.dag_address_sum
                         snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_dag_address_earnings_std_dev"] = df.dag_address_sum.std()
-                    # Merge zscore calculations with snapshot data here?
-                    """snapshot_data = pd.merge(snapshot_data, filtered_df, on="destinations", how="right", suffixes=("", "_right"))
-                    conflicting_columns = [col for col in snapshot_data.columns if
-                                           col.endswith('_right')]
-                    snapshot_data = snapshot_data.drop(conflicting_columns, axis=1)
-                    snapshot_data = snapshot_data.fillna(0.0)"""
-
-
 
                     # Calculate percentage earning more and then save reward data to database, row-by-row.
                     for i, row in snapshot_data.iterrows():
@@ -604,7 +646,7 @@ async def run():
                             reward_data = RewardStatsSchema(**d)
                         except Exception:
                             logging.getLogger("stats").critical(traceback.format_exc())
-
+                            continue
                         try:
                             # Post data if no data exists
                             await post_reward_stats(reward_data)
@@ -614,16 +656,17 @@ async def run():
                         except Exception:
                             logging.getLogger("stats").critical(traceback.format_exc())
 
-
                     # Upload metrics (CPU) data to database. Since every wallet can be associated with multiple node
                     # instances and different server specifications, we'll create a hash to properly update the
                     # database.
+                    new_data = []
                     for i, row in sliced_node_df.iterrows():
+
                         key_str = f"{row.id}-{row.ip}-{row.public_port}"
                         hash_index = hashlib.sha256(key_str.encode()).hexdigest()
                         row['hash_index'] = hash_index
                         metric_data = MetricStatsSchema(**row.to_dict())
-
+                        new_data.append(row.to_dict())
                         try:
                             # Post data if no data exists
                             await post_metric_stats(metric_data)
@@ -632,6 +675,8 @@ async def run():
                             await update_metric_stats(metric_data)
                         except Exception:
                             logging.getLogger("stats").critical(traceback.format_exc())
+                    # Delete entries not present in the sliced_node_df
+                    await delete_rows_not_in_new_data(new_data)
                     # After saving data, give GIL something to do.
                     # del snapshot_data, metric_data
                 else:

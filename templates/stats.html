@@ -74,10 +74,10 @@
         <div class="row d-flex">
             <div class="box ml-3 mr-3 mt-3 mb-3">
                 <!-- Rewards Section -->
-                <div class="shadow container-sm rounded-top bg-primary" style="min-width:20em; max-width:80em;">
+                <div class="shadow container-sm rounded-top bg-primary p-3" style="min-width:20em; max-width:80em;">
                     <div class="h3 ml-3 mb-0 fw-bold" style="color: #f1f2f2;">Rewards</div>
                 </div>
-                <div class="shadow container-sm rounded-bottom frame" style="color: #f1f2f2;">
+                <div class="shadow container-sm rounded-bottom frame p-3" style="color: #f1f2f2;">
                     <div>
                         <iframe src="../../static/{{ rewards_plot_path }}" class="d-block mx-auto" id="reward_plot" frameborder="0">Reward plot</iframe>
                         <p class="m-1 text-center" style="font-size:0.6em; color: #f1f2f2;">The threshold between red/green equals the network median</p>
@@ -87,10 +87,10 @@
 
             <div class="box ml-3 mr-3 mt-3 mb-3">
                 <!-- Stats Section -->
-                <div class="shadow container-sm rounded-top bg-primary" style="min-width:20em; max-width:80em;">
+                <div class="shadow container-sm rounded-top bg-primary p-3" style="min-width:20em; max-width:80em;">
                     <div class="h3 ml-3 mb-0 fw-bold" style="color: #f1f2f2;">Reward Metrics and Statistics</div>
                 </div>
-                <div class="shadow container-sm rounded-bottom frame" style="color: #f1f2f2;">
+                <div class="shadow container-sm rounded-bottom frame p-3" style="color: #f1f2f2;">
                     <!-- 30D Node Earnings Overview -->
                     <div class="mb-3">
                         <p class="h5 ml-3" style="background-color: #3d3d3d; color: #00b4cd;">30D</p>
@@ -135,16 +135,8 @@
                     <div class="mb-3">
                         <p class="font-weight-bold ml-3">Node Earnings Metrics</p>
                         <div class="d-flex justify-content-between ml-4 mb-2">
-                            <span>Outperformers<sup>*</sup>:</span>
+                            <span>Outperformers:<sup>*</sup></span>
                             <span>{{ percent_earning_more }}%</span>
-                        </div>
-                        <div class="d-flex justify-content-between ml-4 mb-2">
-                            <span>Outperformers (low)<sup>**</sup>:</span>
-                            <span>{{ above_dag_address_std_dev_low }} DAG</span>
-                        </div>
-                        <div class="d-flex justify-content-between ml-4 mb-2">
-                            <span>Outperformers (high)<sup>**</sup>:</span>
-                            <span>{{ above_dag_address_std_dev_high }} DAG</span>
                         </div>
                         <div class="d-flex justify-content-between ml-4 mb-2">
                             <span>Avg. Potential:</span>
@@ -160,7 +152,7 @@
                     <div class="mb-3">
                         <p class="font-weight-bold ml-3">Network Earnings</p>
                         <div class="d-flex justify-content-between ml-4 mb-2">
-                            <span>Avg. Node Earnings<sup>*</sup>:</span>
+                            <span>Avg. Node Earnings:<sup>*</sup></span>
                             <span>{{ dag_median_sum }} DAG</span>
                         </div>
                         <div class="d-flex justify-content-between ml-4 mb-2">
@@ -186,7 +178,6 @@
                             <span>{{ dag_address_daily_std_dev }} DAG</span>
                         </div>
                         <p class="ml-4 mb-1" style="font-size:0.6em; color: #707374;">(*) Extreme outliers included (e.g. Stardust Collective, etc.)</p>
-                        <p class="ml-4 mb-1" style="font-size:0.6em; color: #707374;">(**) The low and high values are standardized</p>
                     </div>
                 </div>
             </div>
@@ -194,20 +185,20 @@
         </div>
         <div class="row d-flex">
             <div class="box ml-3 mr-3 mt-3 mb-3">
-                <div class="shadow container-sm rounded-top bg-primary" style="min-width:20em; max-width:80em;">
+                <div class="shadow container-sm rounded-top bg-primary p-3" style="min-width:20em; max-width:80em;">
                     <div class="h3 ml-3 mb-0 fw-bold" style="width:100%; color: #f1f2f2;">CPU</div>
                 </div>
-                <div class="shadow container-sm rounded-bottom justify-content-center" style="min-width:20em;max-width:80em;background-color: #3d3d3d !important;">
+                <div class="shadow container-sm rounded-bottom justify-content-center p-3" style="min-width:20em;max-width:80em;background-color: #3d3d3d !important;">
                     <div>
                         <iframe src="../../static/{{ cpu_plot_path }}" class="d-block mx-auto" id="cpu_plot" frameborder="0">CPU plot</iframe>
                     </div>
                 </div>
             </div>
             <div class="box ml-3 mr-3 mt-3 mb-3">
-                <div class="shadow container-sm rounded-top bg-primary" style="min-width:20em; max-width:80em;">
+                <div class="shadow container-sm rounded-top bg-primary p-3" style="min-width:20em; max-width:80em;">
                     <div class="h3 ml-3 mb-0 fw-bold" style="color: #f1f2f2;">CPU and Disk Metrics</div>
                 </div>
-                <div class="shadow container-sm rounded-bottom" style="background-color: #3d3d3d; color: #f1f2f2;">
+                <div class="shadow container-sm rounded-bottom p-3" style="background-color: #3d3d3d; color: #f1f2f2;">
                     {% for dict in metric_dicts %}
                     <div class="mb-3">
                         <p class="h5 ml-3" style="background-color: #3d3d3d; color: #00b4cd;">{{ dict.ip }} layer {{ dict.layer }} ({{ dict.public_port }})</p>
@@ -229,7 +220,7 @@
         </div>
     </div>
     <footer class="text-dark">
-        <p class="m-1 text-center" style="font-size: 0.6em; color: #707374;">v0.0.15 by Buzz Greyday (aka. hgtp_Michael)</p>
+        <p class="m-1 text-center" style="font-size: 0.6em; color: #707374;">v0.0.16 by Buzz Greyday (aka. hgtp_Michael)</p>
     </footer>
     <script>
         var reward_frame = document.getElementById('reward_plot');

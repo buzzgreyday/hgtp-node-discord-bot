@@ -1,10 +1,12 @@
 import asyncio
+import gc
 import logging
 import traceback
 from datetime import datetime, timedelta
 import os
 from typing import List, Dict
 
+import aiohttp.client_exceptions
 import numpy as np
 import pandas as pd
 import pydantic
@@ -199,6 +201,12 @@ class CRUD:
             logging.getLogger("stats").error(f"crud.py - Metric stats post: SUCCESS!")
         return jsonable_encoder(metric_data)
 
+    async def delete_rows_not_in_new_data(self, data: list[dict], async_session: async_sessionmaker[AsyncSession]):
+        async with async_session() as session:
+            hashes = {record["hash_index"] for record in data}
+            await session.execute(delete(MetricStatsModel).where(MetricStatsModel.hash_index.not_in(hashes)))
+            await session.commit()
+
     async def update_metric_stats(
             self, data: MetricStatsSchema, async_session: async_sessionmaker[AsyncSession]
     ):
@@ -283,10 +291,9 @@ class CRUD:
         batch_processor = DatabaseBatchProcessor(batch_size)
         offset = 0
 
-        processed_ids = set()
-
         # Query for old data
         while True:
+            processed_ids = set()
             batch_results = await self._get_data_ids(async_session, batch_size=batch_size, offset=offset, cutoff_date=datetime.now() - timedelta(days=int(configuration["general"]["save data (days)"])))
 
             if not batch_results:
@@ -296,10 +303,11 @@ class CRUD:
             processed_ids = await self._migrate_data_ids(batch_results, processed_ids, async_session, batch_processor=batch_processor)
             await self._delete_data_ids(processed_ids, async_session)
 
-            batch_results.clear()
-            processed_ids.clear()
+            del batch_results
+            del processed_ids
             offset += batch_size
-            await asyncio.sleep(3)
+            await asyncio.sleep(1)
+            gc.collect()
 
     async def _get_ordinals_ids(self, async_session, batch_size=10000, offset=None, cutoff_date=datetime.now() - timedelta(days=32)):
         try:
@@ -360,10 +368,9 @@ class CRUD:
         batch_processor = DatabaseBatchProcessor(batch_size)
         offset = 0
 
-        processed_ids = set()
-
         # Query for old data
         while True:
+            processed_ids = set()
             batch_results = await self._get_ordinals_ids(async_session, batch_size=batch_size, offset=offset, cutoff_date=datetime.now() - timedelta(days=int(configuration["general"]["save data (days)"])))
             if not batch_results:
                 logging.getLogger("db_optimization").info(f"No more ordinals to migrate")
@@ -372,10 +379,11 @@ class CRUD:
             processed_ids = await self._migrate_ordinal_ids(batch_results, processed_ids, async_session, batch_processor=batch_processor)
             await self._delete_ordinal_ids(processed_ids, async_session)
 
-            batch_results.clear()
-            processed_ids.clear()
+            del batch_results
+            del processed_ids
             offset += batch_size
-            await asyncio.sleep(3)
+            await asyncio.sleep(1)
+            gc.collect()
 
     async def delete_db_ordinal(
             self, ordinal, async_session: async_sessionmaker[AsyncSession]
@@ -450,8 +458,7 @@ class CRUD:
             calculated_mpy_percentage, estimated_apy_percentage = self._calculate_html_stats_yield(reward_results)
 
             # What those addresses earning more is earning (standard deviation)
-            above_dag_address_std_dev_high = reward_results.above_dag_addresses_earnings_mean + reward_results.above_dag_address_earnings_std_dev
-            above_dag_address_std_dev_low = reward_results.above_dag_addresses_earnings_mean - reward_results.above_dag_address_earnings_std_dev
+
             dag_earnings_price_now_dev = float(dag_earnings_price_now - reward_results.usd_address_sum)
             if dag_earnings_price_now_dev > 0:
                 dag_earnings_price_now_dev = f'+{round(dag_earnings_price_now_dev, 2)}'
@@ -485,8 +492,6 @@ class CRUD:
                      # What the address is missing out on (compared to the highest earning address)
                      above_dag_address_deviation_from_highest_earning=round(
                          reward_results.above_dag_address_earnings_from_highest, 2),
-                     above_dag_address_std_dev_high=round(above_dag_address_std_dev_high, 2),
-                     above_dag_address_std_dev_low=round(above_dag_address_std_dev_low, 2),
                      metric_dicts=metric_dicts,
                      calculated_mpy=round(calculated_mpy_percentage, 2),
                      estimated_apy=round(estimated_apy_percentage, 2)
@@ -586,7 +591,7 @@ class CRUD:
                                               unique_subscribers_count_total=unique_subscribers_count_total))
             return content
         except Exception:
-            print(traceback.format_exc())
+            logging.getLogger("others").error(traceback.format_exc())
 
     async def get_html_page_about(selfself, request, templates):
         content = templates.TemplateResponse(
@@ -664,7 +669,7 @@ class CRUD:
             self, timestamp: int, async_session: async_sessionmaker[AsyncSession]
     ):
         async with async_session() as session:
-            batch_size = 200000
+            batch_size = 10000
             offset = 0
             data = {
                 "timestamp": [],
@@ -677,11 +682,7 @@ class CRUD:
                 try:
                     statement = (
                         select(
-                            OrdinalModel.timestamp,
-                            OrdinalModel.ordinal,
-                            OrdinalModel.destination,
-                            OrdinalModel.amount,
-                            OrdinalModel.usd,
+                            OrdinalModel
                         )
                         .filter(OrdinalModel.timestamp >= timestamp)
                         .offset(offset)
@@ -689,7 +690,7 @@ class CRUD:
                     )
                     logging.getLogger("stats").debug(f"Get ordinals from timestamp: {timestamp}, offset: {offset}")
                     results = await session.execute(statement)
-                    batch_results = results.fetchall()
+                    batch_results = results.scalars().all()
                 except Exception:
                     logging.getLogger("stats").warning(traceback.format_exc())
 
@@ -704,8 +705,11 @@ class CRUD:
                     data["dag"].append(row.amount)
                     data["usd_per_token"].append(row.usd)
 
+                del results
+                del batch_results
                 offset += batch_size
-                # await asyncio.sleep(3)
+                await asyncio.sleep(1)
+                gc.collect()
 
         return data
 
@@ -717,7 +721,7 @@ class CRUD:
         """
         one_gigabyte = 1073741824
         async with async_session() as session:
-            batch_size = 200000
+            batch_size = 10000
             offset = 0
             data = {
                 "timestamp": [],
@@ -736,25 +740,19 @@ class CRUD:
             while True:
                 statement = (
                     select(
-                        NodeModel.timestamp_index,
-                        NodeModel.wallet_address,
-                        NodeModel.layer,
-                        NodeModel.ip,
-                        NodeModel.id,
-                        NodeModel.public_port,
-                        NodeModel.one_m_system_load_average,
-                        NodeModel.cpu_count,
-                        NodeModel.disk_space_free,
-                        NodeModel.disk_space_total,
-                        NodeModel.last_known_cluster_name,
+                        NodeModel
                     )
                     .filter(NodeModel.timestamp_index >= timestamp_datetime)
                     .offset(offset)
                     .limit(batch_size)
                 )
                 logging.getLogger("stats").debug(f"Get node_data from timestamp: {timestamp}, offset: {offset}")
-                results = await session.execute(statement)
-                batch_results = results.fetchall()
+                try:
+                    results = await session.execute(statement)
+                except aiohttp.client_exceptions.ServerDisconnectedError:
+                    await asyncio.sleep(3)
+                    continue
+                batch_results = results.scalars().all()
 
                 if not batch_results:
                     logging.getLogger("stats").debug("All node_data batches processed")
@@ -779,8 +777,11 @@ class CRUD:
                             data["disk_free"].append(0.0)
                             data["disk_total"].append(0.0)
 
+                del results
+                del batch_results
                 offset += batch_size
-                # await asyncio.sleep(3)
+                await asyncio.sleep(1)
+                gc.collect()
 
         return data
 
