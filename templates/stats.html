@@ -74,10 +74,10 @@
         <div class="row d-flex">
             <div class="box ml-3 mr-3 mt-3 mb-3">
                 <!-- Rewards Section -->
-                <div class="shadow container-sm rounded-top bg-primary p-3" style="min-width:20em; max-width:80em;">
-                    <div class="h3 ml-3 mb-0 fw-bold" style="color: #f1f2f2;">Rewards</div>
+                <div class="shadow container-sm rounded-top bg-primary p-1" style="min-width:20em; max-width:80em;">
+                    <div class="h3 mb-0 fw-bold" style="color: #f1f2f2;">Rewards</div>
                 </div>
-                <div class="shadow container-sm rounded-bottom frame p-3" style="color: #f1f2f2;">
+                <div class="shadow container-sm rounded-bottom frame p-1" style="color: #f1f2f2;">
                     <div>
                         <iframe src="../../static/{{ rewards_plot_path }}" class="d-block mx-auto" id="reward_plot" frameborder="0">Reward plot</iframe>
                         <p class="m-1 text-center" style="font-size:0.6em; color: #f1f2f2;">The threshold between red/green equals the network median</p>
@@ -87,31 +87,31 @@
 
             <div class="box ml-3 mr-3 mt-3 mb-3">
                 <!-- Stats Section -->
-                <div class="shadow container-sm rounded-top bg-primary p-3" style="min-width:20em; max-width:80em;">
-                    <div class="h3 ml-3 mb-0 fw-bold" style="color: #f1f2f2;">Reward Metrics and Statistics</div>
+                <div class="shadow container-sm rounded-top bg-primary p-1" style="min-width:20em; max-width:80em;">
+                    <div class="h3 mb-0 fw-bold" style="color: #f1f2f2;">Reward Metrics and Statistics</div>
                 </div>
                 <div class="shadow container-sm rounded-bottom frame p-3" style="color: #f1f2f2;">
                     <!-- 30D Node Earnings Overview -->
                     <div class="mb-3">
-                        <p class="h5 ml-3" style="background-color: #3d3d3d; color: #00b4cd;">30D</p>
-                        <p class="font-weight-bold ml-3"> Node Earnings Overview</p>
-                        <div class="d-flex justify-content-between ml-4 mb-2">
+                        <p class="h5" style="background-color: #3d3d3d; color: #00b4cd;">30D</p>
+                        <p class="font-weight-bold"> Node Earnings Overview</p>
+                        <div class="d-flex justify-content-between ml-1 mb-2">
                             <span>Node Earnings:</span>
                             <span>{{ dag_address_sum }} DAG</span>
                         </div>
-                        <div class="d-flex justify-content-between ml-4 mb-2">
+                        <div class="d-flex justify-content-between ml-1 mb-2">
                             <span>Cost:</span>
                             <span>{{ usd_address_sum }} USD</span>
                         </div>
-                        <div class="d-flex justify-content-between ml-4 mb-2">
+                        <div class="d-flex justify-content-between ml-1 mb-2">
                             <span>Price:</span>
                             <span>{{ dag_earnings_price_now }} USD</span>
                         </div>
-                        <div class="d-flex justify-content-between ml-4 mb-2">
+                        <div class="d-flex justify-content-between ml-1 mb-2">
                             <span></span>
                             <span>${{ dag_price_now }}/DAG</span>
                         </div>
-                        <div class="d-flex justify-content-between ml-4 mb-2">
+                        <div class="d-flex justify-content-between ml-1 mb-2">
                             <span>Gain/Loss:</span>
                             <span>{{ dag_earnings_price_now_dev }} USD</span>
                         </div>
@@ -120,12 +120,12 @@
 
                     <!-- 30D Node Yield Metrics -->
                     <div class="mb-3">
-                        <p class="font-weight-bold ml-3">Node Yield Metrics</p>
-                        <div class="d-flex justify-content-between ml-4 mb-2">
+                        <p class="font-weight-bold">Node Yield Metrics</p>
+                        <div class="d-flex justify-content-between ml-1 mb-2">
                             <span>Monthly Percentage Yield:</span>
                             <span>{{ calculated_mpy }}%</span>
                         </div>
-                        <div class="d-flex justify-content-between ml-4 mb-2">
+                        <div class="d-flex justify-content-between ml-1 mb-2">
                             <span>Est. Annual Percentage Yield:</span>
                             <span>{{ estimated_apy }}%</span>
                         </div>
@@ -133,16 +133,16 @@
 
                     <!-- 30D Node Earnings Metrics -->
                     <div class="mb-3">
-                        <p class="font-weight-bold ml-3">Node Earnings Metrics</p>
-                        <div class="d-flex justify-content-between ml-4 mb-2">
+                        <p class="font-weight-bold">Node Earnings Metrics</p>
+                        <div class="d-flex justify-content-between ml-1 mb-2">
                             <span>Outperformers:<sup>*</sup></span>
                             <span>{{ percent_earning_more }}%</span>
                         </div>
-                        <div class="d-flex justify-content-between ml-4 mb-2">
+                        <div class="d-flex justify-content-between ml-1 mb-2">
                             <span>Avg. Potential:</span>
                             <span>+{{ above_dag_address_deviation_from_mean }} DAG</span>
                         </div>
-                        <div class="d-flex justify-content-between ml-4 mb-2">
+                        <div class="d-flex justify-content-between ml-1 mb-2">
                             <span>High Potential:</span>
                             <span>+{{ above_dag_address_deviation_from_highest_earning }} DAG</span>
                         </div>
@@ -150,16 +150,16 @@
 
                     <!-- 30D Network Earnings -->
                     <div class="mb-3">
-                        <p class="font-weight-bold ml-3">Network Earnings</p>
-                        <div class="d-flex justify-content-between ml-4 mb-2">
+                        <p class="font-weight-bold">Network Earnings</p>
+                        <div class="d-flex justify-content-between ml-1 mb-2">
                             <span>Avg. Node Earnings:<sup>*</sup></span>
                             <span>{{ dag_median_sum }} DAG</span>
                         </div>
-                        <div class="d-flex justify-content-between ml-4 mb-2">
+                        <div class="d-flex justify-content-between ml-1 mb-2">
                             <span>Highest Node Earnings:</span>
                             <span>{{ dag_highest_earner }} DAG</span>
                         </div>
-                        <div class="d-flex justify-content-between ml-4 mb-2">
+                        <div class="d-flex justify-content-between ml-1 mb-2">
                             <span>Minted Total:</span>
                             <span>{{ dag_minted_for_validators }} DAG</span>
                         </div>
@@ -167,17 +167,17 @@
 
                     <!-- 1D Node Earnings -->
                     <div class="mb-3">
-                        <p class="h5 ml-3" style="background-color: #3d3d3d; color: #00b4cd;">1D</p>
-                        <p class="font-weight-bold ml-3">Node Earnings</p>
-                        <div class="d-flex justify-content-between ml-4 mb-2">
+                        <p class="h5" style="background-color: #3d3d3d; color: #00b4cd;">1D</p>
+                        <p class="font-weight-bold">Node Earnings</p>
+                        <div class="d-flex justify-content-between ml-1 mb-2">
                             <span>Average:</span>
                             <span>{{ dag_address_daily_mean }} DAG</span>
                         </div>
-                        <div class="d-flex justify-content-between ml-4 mb-2">
+                        <div class="d-flex justify-content-between ml-1 mb-2">
                             <span>Est. Daily Earnings Variability:</span>
                             <span>{{ dag_address_daily_std_dev }} DAG</span>
                         </div>
-                        <p class="ml-4 mb-1" style="font-size:0.6em; color: #707374;">(*) Extreme outliers included (e.g. Stardust Collective, etc.)</p>
+                        <p class="ml-1 mb-1" style="font-size:0.6em; color: #707374;">(*) Extreme outliers included (e.g. Stardust Collective, etc.)</p>
                     </div>
                 </div>
             </div>
@@ -185,31 +185,31 @@
         </div>
         <div class="row d-flex">
             <div class="box ml-3 mr-3 mt-3 mb-3">
-                <div class="shadow container-sm rounded-top bg-primary p-3" style="min-width:20em; max-width:80em;">
-                    <div class="h3 ml-3 mb-0 fw-bold" style="width:100%; color: #f1f2f2;">CPU</div>
+                <div class="shadow container-sm rounded-top bg-primary p-1" style="min-width:20em; max-width:80em;">
+                    <div class="h3 mb-0 fw-bold" style="width:100%; color: #f1f2f2;">CPU</div>
                 </div>
-                <div class="shadow container-sm rounded-bottom justify-content-center p-3" style="min-width:20em;max-width:80em;background-color: #3d3d3d !important;">
+                <div class="shadow container-sm rounded-bottom justify-content-center p-1" style="min-width:20em;max-width:80em;background-color: #3d3d3d !important;">
                     <div>
                         <iframe src="../../static/{{ cpu_plot_path }}" class="d-block mx-auto" id="cpu_plot" frameborder="0">CPU plot</iframe>
                     </div>
                 </div>
             </div>
             <div class="box ml-3 mr-3 mt-3 mb-3">
-                <div class="shadow container-sm rounded-top bg-primary p-3" style="min-width:20em; max-width:80em;">
-                    <div class="h3 ml-3 mb-0 fw-bold" style="color: #f1f2f2;">CPU and Disk Metrics</div>
+                <div class="shadow container-sm rounded-top bg-primary p-1" style="min-width:20em; max-width:80em;">
+                    <div class="h3 mb-0 fw-bold" style="color: #f1f2f2;">CPU and Disk Metrics</div>
                 </div>
                 <div class="shadow container-sm rounded-bottom p-3" style="background-color: #3d3d3d; color: #f1f2f2;">
                     {% for dict in metric_dicts %}
                     <div class="mb-3">
-                        <p class="h5 ml-3" style="background-color: #3d3d3d; color: #00b4cd;">{{ dict.ip }} layer {{ dict.layer }} ({{ dict.public_port }})</p>
+                        <p class="h5" style="background-color: #3d3d3d; color: #00b4cd;">{{ dict.ip }} layer {{ dict.layer }} ({{ dict.public_port }})</p>
                         <!-- CPU Load -->
-                        <div class="d-flex justify-content-between ml-4 mb-2">
+                        <div class="d-flex justify-content-between ml-1 mb-2">
                             <span>Daily CPU Load:</span>
                             <span>{{ dict.daily_cpu_load | round(2) }} / {{ dict.cpu_count }}</span>
                         </div>
 
                         <!-- Disk Space -->
-                        <div class="d-flex justify-content-between ml-4 mb-3">
+                        <div class="d-flex justify-content-between ml-1 mb-2">
                             <span>Free Disk Space:</span>
                             <span>{{ dict.disk_free | round(2) }} of {{ dict.disk_total | round(2) }} GB</span>
                         </div>
