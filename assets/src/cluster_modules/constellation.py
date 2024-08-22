@@ -11,6 +11,7 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta
+from packaging import version
 
 import nextcord.embeds
 import nextcord
@@ -569,29 +570,29 @@ def build_general_node_state(node_data: schemas.Node) -> tuple[str, bool: red_co
         if node_data.cluster_peer_count in (None, 0):
             if node_data.cluster_connectivity in ("new association", "association"):
                 field_symbol = ":green_square:"
-                field_info = f"`⚠  Node is connected but the load balancer is unstable or the network is undergoing maintenance`"
+                field_info = f"`⚠  Node is connected but the load balancer is unstable or the network is undergoing maintenance.`"
                 node_state = node_data.state.title()
                 return node_state_field(), False, False
-            elif node_data.cluster_connectivity == "forked":
+            elif node_data.cluster_connectivity == "uncertain":
                 field_symbol = ":red_square:"
-                field_info = f"`⚠  Node has forked and the load balancer is unstable or the network is undergoing maintenance`"
+                field_info = f"`⚠  Standby, node connection is uncertain; the load balancer is unstable or the network is undergoing maintenance.`"
                 node_state = node_data.state.title()
                 red_color_trigger = True
                 return node_state_field(), red_color_trigger, False
             elif node_data.cluster_connectivity in ("new dissociation", "dissociation"):
                 field_symbol = ":red_square:"
-                field_info = f"`⚠  Node is disconnected and the load balancer is unstable or the network is undergoing maintenance`"
+                field_info = f"`⚠  Node is disconnected and the load balancer is unstable or the network is undergoing maintenance.`"
                 node_state = node_data.state.title()
                 red_color_trigger = True
                 return node_state_field(), red_color_trigger, False
             else:
                 field_symbol = ":yellow_square:"
-                field_info = f'⚠  Node connection is uncertain and the load balancer is unstable or the network is undergoing maintenance'
+                field_info = f'⚠  Standby, node connection is uncertain and the load balancer is unstable or the network is undergoing maintenance.'
                 node_state = node_data.state.title()
                 yellow_color_trigger = True
                 return node_state_field(), False, yellow_color_trigger
         elif node_data.node_peer_count in (None, 0):
-            field_info = f"`⚠  The node is not connected to any cluster peers`"
+            field_info = f"`⚠  The node is not connected to any cluster peers.`"
             field_symbol = ":red_square:"
             node_state = node_data.state.title()
             red_color_trigger = True
@@ -604,15 +605,15 @@ def build_general_node_state(node_data: schemas.Node) -> tuple[str, bool: red_co
     elif node_data.state in ("waitingfordownload", "downloadinprogress", "readytojoin"):
         field_symbol = ":yellow_square:"
         if node_data.state == "readytojoin":
-            field_info = f"`ⓘ  The node is ready to join a cluster`"
+            field_info = f"`ⓘ  The node is ready to join a cluster.`"
         else:
-            field_info = f"`ⓘ  The node is attempting to establish connection to the cluster`"
+            field_info = f"`ⓘ  The node is attempting to establish connection to the cluster.`"
         node_state = node_data.state.title()
         yellow_color_trigger = True
         return node_state_field(), False, yellow_color_trigger
     else:
         field_symbol = f":red_square:"
-        field_info = f"`⚠  The node is not associated with the previously associated cluster`"
+        field_info = f"`⚠  The node is not associated with the previously associated cluster.`"
         node_state = "Offline"
         red_color_trigger = True
         return node_state_field(), red_color_trigger, False
@@ -663,39 +664,39 @@ def build_general_cluster_state(node_data: schemas.Node, module_name) -> tuple[s
 
     if node_data.cluster_connectivity == "new association":
         field_symbol = ":green_square:"
-        field_info = f"`ⓘ  Association with the cluster was recently established`"
+        field_info = f"`ⓘ  Association with the cluster was recently established.`"
         return general_cluster_state_field(), False, False
     elif node_data.cluster_connectivity == "association":
         field_symbol = ":green_square:"
-        field_info = f"`ⓘ  The node is consecutively associated with the cluster`"
+        field_info = f"`ⓘ  The node is consecutively associated with the cluster.`"
         return general_cluster_state_field(), False, False
     elif node_data.cluster_connectivity == "new dissociation":
         field_symbol = ":red_square:"
-        field_info = f"`⚠  The node was recently dissociated from the cluster`"
+        field_info = f"`⚠  The node was recently dissociated from the cluster.`"
         red_color_trigger = True
         return general_cluster_state_field(), red_color_trigger, False
     elif node_data.cluster_connectivity == "dissociation":
         field_symbol = ":red_square:"
-        field_info = f"`⚠  The node is consecutively dissociated from the cluster`"
+        field_info = f"`⚠  The node is consecutively dissociated from the cluster.`"
         red_color_trigger = True
         return general_cluster_state_field(), red_color_trigger, False
     elif node_data.cluster_connectivity == "connecting":
         field_symbol = ":green_square:"
-        field_info = f"`ⓘ  The node is connecting to a cluster`"
+        field_info = f"`ⓘ  Standby, the node is connecting to a cluster.`"
         return general_cluster_state_field(),False, False
     elif node_data.cluster_connectivity == "forked":
         field_symbol = ":red_square:"
-        field_info = f"`⚠  The node has forked (node session: {node_data.node_cluster_session}, cluster session: {node_data.latest_cluster_session})`"
+        field_info = f"`⚠  The node has forked (node session: {node_data.node_cluster_session}, cluster session: {node_data.latest_cluster_session}).`"
         red_color_trigger = True
         return general_cluster_state_field(), red_color_trigger, False
     elif node_data.cluster_connectivity == "uncertain":
         field_symbol = ":yellow_square:"
-        field_info = f"`⚠  Could not establish connection to the edge node`"
+        field_info = f"`⚠  Could not establish connection to the edge node. Standby, connectivity is uncertain.`"
         yellow_color_trigger = True
         return general_cluster_state_field(), False, yellow_color_trigger
     elif node_data.cluster_connectivity is None:
         field_symbol = ":yellow_square:"
-        field_info = f"`⚠  Please report to Buzz Greyday: connectivity state is None`"
+        field_info = f"`⚠  Please report to Buzz Greyday: connectivity state is None.`"
         yellow_color_trigger = True
         return general_cluster_state_field(), False, yellow_color_trigger
     else:
@@ -703,7 +704,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name) -> tuple[s
             f"constellation.py - {node_data.cluster_connectivity.title()} is not a supported node state ({node_data.name}, {node_data.ip}:{node_data.public_port}, L{node_data.layer})"
         )
         field_symbol = ":yellow_square:"
-        field_info = f"`⚠  Please contact Buzz Greyday: cluster connectivity is {node_data.cluster_connectivity}`"
+        field_info = f"`⚠  Please contact Buzz Greyday: cluster connectivity is {node_data.cluster_connectivity}.`"
         yellow_color_trigger = True
         return general_cluster_state_field(), False, yellow_color_trigger
 
@@ -760,7 +761,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
 
         if module_name == "mainnet" and node_data.wallet_balance <= 250000 * 100000000:
             field_symbol = ":red_square:"
-            field_info = f"`⚠  Doesn't hold sufficient collateral`"
+            field_info = f"`⚠  Doesn't hold sufficient collateral.`"
             red_color_trigger = True
             yellow_color_trigger = False
             return wallet_field(), red_color_trigger, yellow_color_trigger
@@ -771,7 +772,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
             if module_name == "mainnet":
                 field_symbol = ":red_square:"
                 field_info = (
-                    f"`🔴 Recently stopped receiving rewards`"
+                    f"`🔴 Recently stopped receiving rewards.`"
                 )
                 red_color_trigger = True
                 yellow_color_trigger = False
@@ -779,8 +780,8 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
             elif module_name in ("integrationnet", "testnet"):
                 field_symbol = ":green_square:"
                 field_info = (
-                    f"`🔴 Recently stopped receiving ({module_name.title()}) $DAG. "
-                    f"This should not affect your rewards (Lattice registered Mainnet wallet)`"
+                    f"`🔴 Recently stopped receiving ({module_name.title()}) $DAG."
+                    f"This should not affect your rewards (Lattice registered Mainnet wallet).`"
                 )
                 red_color_trigger = False
                 yellow_color_trigger = False
@@ -793,7 +794,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                 field_symbol = ":green_square:"
                 field_info = (
                     f"`ⓘ  L1 doesn't distribute rewards. "
-                    f"Please refer to the L0 report`"
+                    f"Please refer to the L0 report.`"
                 )
                 red_color_trigger = False
                 yellow_color_trigger = False
@@ -801,7 +802,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
             else:
                 if module_name == "mainnet":
                     field_symbol = ":red_square:"
-                    field_info = f"`🔴 Doesn't receive rewards`"
+                    field_info = f"`🔴 Doesn't receive rewards.`"
                     red_color_trigger = True
                     yellow_color_trigger = False
                     return wallet_field(), red_color_trigger, yellow_color_trigger
@@ -809,7 +810,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                     field_symbol = ":green_square:"
                     field_info = (
                         f"`🔴 Doesn't receive ({module_name.title()}) $DAG. "
-                        f"This should not affect your rewards (Lattice registered Mainnet wallet)`"
+                        f"This should not affect your rewards (Lattice registered Mainnet wallet).`"
                     )
                     red_color_trigger = False
                     yellow_color_trigger = False
@@ -819,13 +820,13 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                 None,
         ):
             field_symbol = ":green_square:"
-            field_info = f"`🪙 Recently started receiving rewards`"
+            field_info = f"`🪙 Recently started receiving rewards.`"
             red_color_trigger = False
             yellow_color_trigger = False
             return wallet_field(), red_color_trigger, yellow_color_trigger
         elif node_data.reward_state is True and node_data.former_reward_state is True:
             field_symbol = ":green_square:"
-            field_info = f"`🪙 Receives rewards`"
+            field_info = f"`🪙 Receives rewards.`"
             red_color_trigger = False
             yellow_color_trigger = False
             return wallet_field(), red_color_trigger, yellow_color_trigger
@@ -833,7 +834,7 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
             field_symbol = ":yellow_square:"
             field_info = (
                 f"`ⓘ  Please report to hgtp_michael: the wallet reward state is unknown.`\n"
-                f"`ⓘ  No minimum collateral required`"
+                f"`ⓘ  No minimum collateral required.`"
             )
             red_color_trigger = False
             yellow_color_trigger = True
@@ -847,7 +848,18 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
                 f"" f"`ⓘ  No data available`"), False, False
 
 
+def _compare_versions(target, test):
+
+    if version.parse(target) > version.parse(test):
+        return "higher"
+    elif version.parse(target) < version.parse(test):
+        return "lower"
+    else:
+        return "equal"
+
+
 def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
+
     def version_field() -> str:
         return (
             f"{field_symbol} **TESSELLATION**"
@@ -856,52 +868,52 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
         )
 
     if node_data.version is not None and node_data.cluster_version is not None:
-        if node_data.version == node_data.cluster_version:
+        if _compare_versions(node_data.version, node_data.cluster_version) == "equal":
             field_symbol = ":green_square:"
             if node_data.cluster_version == node_data.latest_version:
                 field_info = "`ⓘ  You are running the latest version of Tessellation`"
             elif node_data.cluster_version < node_data.latest_version:
-                field_info = f"`ⓘ  You are running the latest version but a new Tessellation release ({node_data.latest_version}) should soon be available`"
+                field_info = f"`ⓘ  You are running the latest version but a new Tessellation release (v{node_data.latest_version}) should soon be available`"
             elif node_data.cluster_version > node_data.latest_version:
-                field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is {node_data.latest_version}`"
+                field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is v{node_data.latest_version}.`"
             else:
-                field_info = "`⚠  Please report this issue to hgtp_michael: version clutter`"
+                field_info = "`⚠  Please report this issue to hgtp_michael: version clutter.`"
             return version_field(), False, False
 
-        elif node_data.version < node_data.cluster_version:
+        elif _compare_versions(node_data.version, node_data.cluster_version) == "lower":
             field_symbol = ":red_square:"
-            field_info = f"`⚠  New Tessellation upgrade available (v{node_data.latest_version})`"
+            field_info = f"`⚠  New Tessellation upgrade available (v{node_data.latest_version}).`"
             red_color_trigger = True
             return version_field(), red_color_trigger, False
-        elif node_data.version > node_data.cluster_version:
+        elif _compare_versions(node_data.version, node_data.cluster_version) == "higher":
             field_symbol = ":red_square:"
-            field_info = f"`⚠  Your Tessellation version is higher than the cluster version (v{node_data.cluster_version})`"
+            field_info = f"`⚠  Your Tessellation version is higher than the cluster version (v{node_data.cluster_version}).`"
             red_color_trigger = True
             return version_field(), red_color_trigger, False
         else:
             field_symbol = ":red_square:"
-            field_info = f"`⚠  Please report to hgtp_michael: latest version {node_data.latest_version}, cluster version {node_data.cluster_version}, node version {node_data.version}`"
+            field_info = f"`⚠  Please report to hgtp_michael: latest version {node_data.latest_version}, cluster version {node_data.cluster_version}, node version {node_data.version}.`"
             red_color_trigger = True
             return version_field(), red_color_trigger, False
     elif node_data.version is not None and node_data.latest_version is not None:
-        if node_data.version > node_data.latest_version:
+        if _compare_versions(node_data.version, node_data.latest_version) == "higher":
             field_symbol = ":green_square:"
             if node_data.version == node_data.cluster_version:
-                field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is {node_data.latest_version}`"
+                field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is {node_data.latest_version}.`"
             else:
-                field_info = f"`ⓘ  You seem to be running a test-release. Latest stable version is {node_data.latest_version}`"
+                field_info = f"`ⓘ  You seem to be running a test-release. Latest stable version is {node_data.latest_version}.`"
             return version_field(), False, False
         else:
             field_symbol = ":yellow_square:"
             if node_data.cluster_peer_count in (0, None):
-                field_info = f"`ⓘ  Could not determine the current cluster version due to unstable connection or maintenance but latest Github version is {node_data.latest_version}`"
+                field_info = f"`ⓘ  Could not determine the current cluster version due to unstable connection or maintenance but latest Github version is {node_data.latest_version}.`"
             else:
-                field_info = f"`ⓘ  Latest version is {node_data.latest_version}`"
+                field_info = f"`ⓘ  Latest version is {node_data.latest_version}.`"
             return version_field(), False, False
 
     else:
         return (f":yellow_square: **TESSELLATION**\n"
-                f"" f"`ⓘ  No data available`"), False, True
+                f"" f"`ⓘ  No data available.`"), False, True
 
 
 def build_system_node_load_average(node_data: schemas.Node)  -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
@@ -916,18 +928,18 @@ def build_system_node_load_average(node_data: schemas.Node)  -> tuple[str, bool:
     if (node_data.one_m_system_load_average or node_data.cpu_count) is not None:
         if float(node_data.one_m_system_load_average) / float(node_data.cpu_count) >= 1:
             field_symbol = ":red_square:"
-            field_info = f'`⚠  "CPU load" is high (should be below "CPU count"). You might want to monitor CPU usage`'
+            field_info = f'`⚠  "CPU load" is high. You might want to monitor CPU usage or reboot the server.`'
             yellow_color_trigger = True
             return load_average_field(), red_color_trigger, yellow_color_trigger
         elif (
                 float(node_data.one_m_system_load_average) / float(node_data.cpu_count) < 1
         ):
             field_symbol = ":green_square:"
-            field_info = f'`ⓘ  "CPU load" is ok (should be below "CPU count")`'
+            field_info = f'`ⓘ  "CPU load" is ok.`'
             return load_average_field(), red_color_trigger, False
     else:
         field_symbol = ":yellow_square:"
-        field_info = f"`⚠  Please report to hgtp_michael: None-type is present`"
+        field_info = f"`⚠  Please report to hgtp_michael: None-type is present.`"
         return load_average_field(), red_color_trigger, False
 
 
@@ -949,12 +961,12 @@ def build_system_node_disk_space(node_data: schemas.Node) -> tuple[str, bool: re
                 <= 10
         ):
             field_symbol = ":red_square:"
-            field_info = f"`⚠  Free disk space is low`"
+            field_info = f"`⚠  Free disk space is low.`"
             yellow_color_trigger = True
             return disk_space_field(), red_color_trigger, yellow_color_trigger
         else:
             field_symbol = ":green_square:"
-            field_info = f"`ⓘ  Free disk space is ok`"
+            field_info = f"`ⓘ  Free disk space is ok.`"
             return disk_space_field(), red_color_trigger, False
 
 
