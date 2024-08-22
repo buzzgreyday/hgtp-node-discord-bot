@@ -873,7 +873,7 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
             if node_data.cluster_version == node_data.latest_version:
                 field_info = "`ⓘ  You are running the latest version of Tessellation`"
             elif node_data.cluster_version < node_data.latest_version:
-                field_info = f"`ⓘ  You are running the latest version but a new Tessellation release (v{node_data.latest_version}) should soon be available`"
+                field_info = f"`ⓘ  You are running the latest version but a new Tessellation release (v{node_data.latest_version}) should soon be available.`"
             elif node_data.cluster_version > node_data.latest_version:
                 field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is v{node_data.latest_version}.`"
             else:
