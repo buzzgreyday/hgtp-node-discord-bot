@@ -56,10 +56,7 @@ def start_database_optimization_coroutine(_configuration):
 
 
 async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[List[Dict], List[Dict]]:
-    if not cache:
-        first_run = True
-    else:
-        first_run = False
+    first_run = True if not cache else False
     if not clusters:
         # Since we need the clusters below, if they're not existing, create them
         for cluster_name, layers in _configuration["modules"].items():
