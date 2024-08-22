@@ -40,7 +40,7 @@
         <nav class="navbar navbar-expand-lg navbar-dark w-100" style="max-width: 80em; background-color: #231f20 !important">
             <div class="container">
                 <a class="navbar-brand" href="#home">
-                  <img src="../../static/logo/banner-color.png" style="width: 100%; max-width: 15em; min-width: 10em;" alt="logo">
+                  <img src="../../static/logo/banner-color.png" style="width: 100%; max-width: 15em; min-width: 8em;" href="/" alt="logo">
                 </a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon"></span>
@@ -77,7 +77,7 @@
                 <div class="shadow container-sm rounded-top bg-primary p-1" style="min-width:20em; max-width:80em;">
                     <div class="h3 ml-3 mb-0 fw-bold" style="color: #f1f2f2;">Rewards</div>
                 </div>
-                <div class="shadow container-sm rounded-bottom frame p-1" style="color: #f1f2f2;">
+                <div class="shadow container-sm rounded-bottom frame p-3" style="color: #f1f2f2;">
                     <div>
                         <iframe src="../../static/{{ rewards_plot_path }}" class="d-block mx-auto" id="reward_plot" frameborder="0">Reward plot</iframe>
                         <p class="m-1 text-center" style="font-size:0.6em; color: #f1f2f2;">The threshold between red/green equals the network median</p>
@@ -115,7 +115,7 @@
                             <span>Gain/Loss:</span>
                             <span>{{ dag_earnings_price_now_dev }} USD</span>
                         </div>
-                        <p class="mb-1" style="font-size: 0.6em; color: #707374;">The price of $DAG is calculated based on data from {{ dag_price_now_timestamp }} UTC</p>
+                        <p class="ml-1 mb-1" style="font-size: 0.6em; color: #707374;">The price of $DAG is calculated based on data from {{ dag_price_now_timestamp }} UTC</p>
                     </div>
 
                     <!-- 30D Node Yield Metrics -->
@@ -177,7 +177,7 @@
                             <span>Est. Daily Earnings Variability:</span>
                             <span>{{ dag_address_daily_std_dev }} DAG</span>
                         </div>
-                        <p class="mb-1" style="font-size:0.6em; color: #707374;">(*) Extreme outliers included (e.g. Stardust Collective, etc.)</p>
+                        <p class="ml-1 mb-1" style="font-size:0.6em; color: #707374;">(*) Extreme outliers included (e.g. Stardust Collective, etc.)</p>
                     </div>
                 </div>
             </div>
@@ -188,7 +188,7 @@
                 <div class="shadow container-sm rounded-top bg-primary p-1" style="min-width:20em; max-width:80em;">
                     <div class="h3 ml-3 mb-0 fw-bold" style="width:100%; color: #f1f2f2;">CPU</div>
                 </div>
-                <div class="shadow container-sm rounded-bottom justify-content-center p-1" style="min-width:20em;max-width:80em;background-color: #3d3d3d !important;">
+                <div class="shadow container-sm rounded-bottom justify-content-center p-3" style="min-width:20em;max-width:80em;background-color: #3d3d3d !important;">
                     <div>
                         <iframe src="../../static/{{ cpu_plot_path }}" class="d-block mx-auto" id="cpu_plot" frameborder="0">CPU plot</iframe>
                     </div>
