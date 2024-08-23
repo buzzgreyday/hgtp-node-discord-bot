@@ -17,13 +17,11 @@ async def stripe_webhook(request: Request):
     try:
         payload = await request.body()
         sig_header = request.headers.get('stripe-signature')
-        print(sig_header)
         try:
             # Construct the event to validate the signature
             event = stripe.Webhook.construct_event(
                 payload, sig_header, endpoint_secret
             )
-            print("Event verified:", event)
         except ValueError as e:
             # Invalid payload
             print(f"Invalid payload: {e}")
@@ -48,6 +46,8 @@ async def stripe_webhook(request: Request):
             print("Invoice payment received!")
         elif event.type == 'invoice.payment_failed':
             print("Invoice payment failed!")
+        elif event.type == 'payment_intent.payment_failed':
+            print("Payment failed!")
 
         return {"status": "success"}
     except Exception as e:
