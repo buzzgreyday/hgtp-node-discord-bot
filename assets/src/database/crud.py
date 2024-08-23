@@ -106,14 +106,12 @@ class CRUD:
             raise HTTPException(status_code=500, detail="Internal Server Error")
 
     def handle_payment_succeeded(self, payload):
-        customer_email = payload['customer_email']
         # Update your database with successful payment information
         print(payload)
 
     def handle_subscription_created(self, payload):
-        customer_email = payload['customer_email']
         # Update your database with the new subscription information
-        print(payload)
+        print("Customer ID:", payload["data"]["object"]["customer"])
 
     async def post_user(
             self, data: UserSchema, async_session: async_sessionmaker[AsyncSession]
