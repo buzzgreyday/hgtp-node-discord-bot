@@ -145,10 +145,16 @@ class User(NodeBase):
     async def get_id(session, ip: str, port: str, mode, configuration):
         """Will need refactoring before metagraph release. Some other way to validate node?"""
         if mode == "subscribe":
-            node_data, status_code = await api.safe_request(
-                session, f"http://{ip}:{port}/node/info", configuration
-            )
-            return str(node_data["id"]) if node_data is not None else None
+            print(f"Requesting: {ip}:{port}")
+            try:
+                node_data, status_code = await api.safe_request(
+                    session, f"http://{ip}:{port}/node/info", configuration
+                )
+            except Exception as e:
+                print(e)
+                return
+            else:
+                return str(node_data["id"]) if node_data is not None else None
         else:
             return None
 
@@ -162,49 +168,57 @@ class User(NodeBase):
             discord: int,
             email: str,
             ip: str,
-            ports: List[str]
+            l0_ports: List[str],
+            l1_ports: List[str]
     ):
+        async def _process_ports(port, layer):
+            if port.isdigit():
+                print("Port is valid!")
+                id_ = await User.get_id(
+                    session, ip, port, "subscribe", configuration
+                )
+                print(id_)
+                if id_ is not None:
+                    wallet = id_to_dag_address(id_)
+                    print(f"ID: {id_}\n"
+                          f"Wallet: {wallet}")
+                    try:
+                        valid_user_data.append(
+                            cls(
+                                index=None,
+                                name=name,
+                                mail=email,
+                                date=dt.datetime.now(),
+                                discord=str(discord),
+                                id=id_,
+                                wallet=wallet,
+                                ip=ip,
+                                public_port=int(port),
+                                layer=layer,
+                            )
+                        )
+                    except ValidationError:
+                        print("Subscription failed: ValidationError")
+                        logging.getLogger("app").warning(
+                            f"schemas.py - Pydantic ValidationError - subscription failed with the following traceback: {traceback.format_exc()}"
+                        )
+                else:
+                    print("ID was not retrievable, make sure your node is online!")
+            else:
+                print("Not a valid port!")
+
         if re.match(IP_REGEX, ip):
             valid_user_data = []
             invalid_user_data = []
             print("IP is valid!")
-            for port in ports:
-                if port.isdigit():
-                    print("Port is valid!")
-                    id_ = await User.get_id(
-                        session, ip, port, "subscribe", configuration
-                    )
-                    if id_ is not None:
-                        wallet = id_to_dag_address(id_)
-                        print(f"ID: {id_}\n"
-                              f"Wallet: {wallet}")
-                        try:
-                            valid_user_data.append(
-                                cls(
-                                    index=None,
-                                    name=name,
-                                    mail=email,
-                                    date=dt.datetime.now(),
-                                    discord=str(discord),
-                                    id=id_,
-                                    wallet=wallet,
-                                    ip=ip,
-                                    public_port=int(port),
-                                    layer=0,
-                                )
-                            )
-                        except ValidationError:
-                            print("Subscription failed: ValidationError")
-                            logging.getLogger("app").warning(
-                                f"schemas.py - Pydantic ValidationError - subscription failed with the following traceback: {traceback.format_exc()}"
-                            )
-                    else:
-                        print("ID was not retrievable, make sure your node is online!")
-                else:
-                    print("Not a valid port!")
+            for port in l0_ports:
+                await _process_ports(port, 0)
+            for port in l1_ports:
+                await _process_ports(port, 1)
             return valid_user_data, invalid_user_data
         else:
             print("Not a valid IP!")
+            return [], []
 
 
     @classmethod

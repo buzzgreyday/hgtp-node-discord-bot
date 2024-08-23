@@ -31,19 +31,43 @@ class SelectMenu(Select):
         self.selected_value = self.values[0]
 
 
-# Modal (Form) to capture IP, ports, and email
+# Command to trigger the modal
+# def create_stripe_payment_link(email):
+#     # Placeholder function for creating a Stripe payment link
+#     # You need to implement this using Stripe's API
+#     return "https://your-stripe-payment-link.com"
+#
+#
+
+
+
+def setup(bot):
+    pass
+
+
+# Dictionary to keep track of active views by user ID
+active_views = {}
+
+
+# Modal for input fields
+# Modal for input fields
 class SubscribeModal(nextcord.ui.Modal):
     def __init__(self):
-        super().__init__(
-            title="Subscribe to IP and Ports",
-        )
+        super().__init__(title="Subscribe to IP and Ports")
+
+        # TextInput fields
         self.ip = nextcord.ui.TextInput(
             label="IP Address",
             placeholder="Enter the IP address",
             required=True,
         )
-        self.ports = nextcord.ui.TextInput(
-            label="Ports",
+        self.l0_ports = nextcord.ui.TextInput(
+            label="L0 Ports",
+            placeholder="Enter the ports (comma-separated)",
+            required=True,
+        )
+        self.l1_ports = nextcord.ui.TextInput(
+            label="L1 Ports",
             placeholder="Enter the ports (comma-separated)",
             required=True,
         )
@@ -53,62 +77,61 @@ class SubscribeModal(nextcord.ui.Modal):
             required=True,
         )
 
+        # Add TextInput fields to the modal
         self.add_item(self.ip)
-        self.add_item(self.ports)
+        self.add_item(self.l0_ports)
+        self.add_item(self.l1_ports)
         self.add_item(self.email)
 
-    async def on_button_click(self, interaction: nextcord.Interaction):
-        # When the modal is submitted, show the submit button
-        print("OK")
-        view = SubscribeView(self.ip.value, self.ports.value, self.email.value)
-        await interaction.response.send_message("Review your details and submit:", view=view, ephemeral=True)
-
-
-# Custom View with a Submit Button
-class SubscribeView(nextcord.ui.View):
-    def __init__(self, ip, ports, email):
-        super().__init__(timeout=None)
-        self.ip = ip
-        self.ports = ports
-        self.email = email
-
-    @nextcord.ui.button(label="Submit", style=nextcord.ButtonStyle.primary)
-    async def submit(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-        # Check if DMs are open
-        user = interaction.user
+    async def callback(self, interaction: nextcord.Interaction):
         try:
-            print("OK")
-            await user.send("Checking your subscription status...")
-        except nextcord.Forbidden:
-            await interaction.response.send_message("Please enable DMs from server members to proceed.", ephemeral=True)
-            return
+            # Handle submission of the modal
+            print("Modal submitted!")  # Debugging print statement
+            print(f"IP: {self.ip.value}, L0 Ports: {self.l0_ports.value}, L1 Ports: {self.l1_ports.value}, Email: {self.email.value}")  # Print out the input values
+            name = interaction.user.name
+            discord_id=interaction.user.id
+            ip=self.ip.value
+            l0_ports=str(self.l0_ports.value).strip(" ").split(",")
+            l1_ports=str(self.l1_ports.value).strip(" ").split(",")
+            email=self.email.value
 
-        # Update local database with the information
-        # Assume update_database is a function to handle this
-        await update_database(user.name, user.id, self.ip, self.ports, self.email)
-        await interaction.response.send_message("Your subscription details have been updated.", ephemeral=True)
-        # Create a Stripe payment link and send it to the user
-        stripe_url = create_stripe_payment_link(self.email)
-        await interaction.response.send_message(f"Please complete your subscription [here]({stripe_url}).", ephemeral=True)
+            # Defer the interaction to give you more time to process
+            await interaction.response.defer(ephemeral=True)
+            # Proceed with your update_database function or any other logic
+            await update_database(
+                name=name,
+                discord_id=discord_id,
+                ip=ip,
+                l0_ports=l0_ports,
+                l1_ports=l1_ports,
+                email=email
+            )
 
-        # After payment, update the local database
-        # You may need to handle this via webhook or polling from Stripe
-        # This part of the implementation will depend on how you handle Stripe subscriptions
+            # After processing is done, send a follow-up message to the user
+            await interaction.followup.send(
+                content="Your subscription details have been updated successfully.",
+                ephemeral=True  # Set to True if you want it to be visible only to the user
+            )
+        except Exception as e:
+            # Handle potential errors
+            print(f"An error occurred: {e}")
+            # After processing is done, send a follow-up message to the user
+            await interaction.followup.send(
+                content="An error occurred while processing your request.",
+                ephemeral=True  # Set to True if you want it to be visible only to the user
+            )
 
-# Command to trigger the modal
+# Slash command to initiate the subscription process
 @bot.slash_command(name="subscribe", description="Subscribe to IP and Ports")
-async def subscribe(interaction: Interaction):
+async def subscribe(interaction: nextcord.Interaction):
+    # Directly open the modal when the command is invoked
     modal = SubscribeModal()
     await interaction.response.send_modal(modal)
 
 
-def create_stripe_payment_link(email):
-    # Placeholder function for creating a Stripe payment link
-    # You need to implement this using Stripe's API
-    return "https://your-stripe-payment-link.com"
-
-async def update_database(name, discord_id, ip, ports, email):
+async def update_database(name, discord_id, ip, l0_ports, l1_ports, email):
     # Placeholder function for updating your local database
+
     async with aiohttp.ClientSession() as session:
         with open("config.yml", "r") as file:
             _configuration = yaml.safe_load(file)
@@ -120,23 +143,16 @@ async def update_database(name, discord_id, ip, ports, email):
                 discord_id,
                 email,
                 ip,
-                ports,
+                l0_ports,
+                l1_ports
             )
             # await user.write_db(valid_user_data)
             print(valid_user_data)
 
 
-def setup(bot):
-    pass
-
-
-# Dictionary to keep track of active views by user ID
-active_views = {}
-
-
 @bot.slash_command(
     name="unsubscribe",
-    description="Unsubscribe by IP and Public Port",
+    description="### Unsubscribe by IP and Public Port",
     dm_permission=True,
 )
 async def unsubscibe_menu(interaction):
