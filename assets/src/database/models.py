@@ -27,6 +27,11 @@ class UserModel(SQLBase):
     date: Mapped[datetime.datetime]
     alias: Mapped[Optional[str]] = mapped_column(nullable=True)
     removal_datetime: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
+    customer_id: Mapped[Optional[str]] = mapped_column(nullable=True)
+    subscription_id: Mapped[Optional[str]] = mapped_column(nullable=True)
+    subscription_created: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
+    current_subscription_period_start: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
+    current_subscription_period_end: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
 
 
 # Does need "old data" table

@@ -133,7 +133,11 @@ class User(NodeBase):
     alias: Optional[str | None] = None
     removal_datetime: Optional[dt.datetime | None] = None
     cluster: Optional[str | None] = None
-    # customer_id: str
+    customer_id: Optional[str | None] = None
+    subscription_id: Optional[str | None] = None
+    subscription_created: Optional[dt.datetime | None] = None
+    current_subscription_period_start: Optional[dt.datetime | None] = None
+    current_subscription_period_end: Optional[dt.datetime | None] = None
 
     # VALIDATE ID VALUE, CREATE CUSTOM EXCEPTION!
 
