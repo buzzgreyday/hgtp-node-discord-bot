@@ -63,7 +63,7 @@ async def handle_subscription_created(event):
     # Update your database with the new subscription information
     # REMEMBER TO ADD "customer_id" to database schema and model
 
-    # First, before redirecting to the payment link, we need to create the user in the user table
+    # First, before redirecting to the payment link, we need to create the user in the user table, then check if the email is already subscribed
     # Then update the table with:
     print("customer_id:", event["data"]["object"]["customer"])
     print("created:", event["data"]["object"]["created"])
