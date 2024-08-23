@@ -15,23 +15,39 @@ else:
 @app.post("/webhooks")
 async def stripe_webhook(request: Request):
     try:
-        payload = await request.json()
+        payload = await request.body()
+        sig_header = request.headers.get('stripe-signature')
+        print(sig_header)
+        try:
+            # Construct the event to validate the signature
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, endpoint_secret
+            )
+            print("Event verified:", event)
+        except ValueError as e:
+            # Invalid payload
+            print(f"Invalid payload: {e}")
+            raise HTTPException(status_code=400, detail="Invalid payload")
+        except stripe.error.SignatureVerificationError as e:
+            # Invalid signature
+            print(f"Signature verification failed: {e}")
+            raise HTTPException(status_code=400, detail="Invalid signature")
         # Just log and return a simple success response
-        event_type = payload.get("type")
         # Log the event type for debugging
-        print(f"Received event: {event_type}")
+        print(f"Received event: {event['type']}")
 
-        if event_type == 'payment_intent.succeeded':
-            handle_payment_succeeded(payload)
+
+        if event['type'] == 'payment_intent.succeeded':
+            handle_payment_succeeded(event)
             # Add your logic to handle successful payment
-        elif event_type == 'customer.subscription.created':
+        elif event['type'] == 'customer.subscription.created':
             print("Subscription created!")
-            handle_subscription_created(payload)
+            await handle_subscription_created(event)
             # Add your logic to handle subscription creation
 
         return {"status": "success"}
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"{e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
@@ -40,6 +56,10 @@ def handle_payment_succeeded(payload):
     print(payload)
 
 
-def handle_subscription_created(payload):
+async def handle_subscription_created(payload):
     # Update your database with the new subscription information
-    print("Customer ID:", payload["data"]["object"]["customer"])
+    # We need to insert multiple subscriptions in the local database
+    # REMEMBER TO ADD "customer_id" to database schema and model
+
+
+    print("customer_id", payload["data"]["object"]["customer"])

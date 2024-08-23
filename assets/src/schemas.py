@@ -133,6 +133,7 @@ class User(NodeBase):
     alias: Optional[str | None] = None
     removal_datetime: Optional[dt.datetime | None] = None
     cluster: Optional[str | None] = None
+    # customer_id: str
 
     # VALIDATE ID VALUE, CREATE CUSTOM EXCEPTION!
 
