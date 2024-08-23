@@ -22,7 +22,7 @@ class UserModel(SQLBase):
     cluster: Mapped[Optional[str]] = mapped_column(nullable=True)
     layer: Mapped[int]
     discord: Mapped[Optional[str]] = mapped_column(nullable=True)
-    mail: Mapped[Optional[str]] = mapped_column(nullable=True)
+    mail: Mapped[str]
     phone: Mapped[Optional[str]] = mapped_column(nullable=True)
     date: Mapped[datetime.datetime]
     alias: Mapped[Optional[str]] = mapped_column(nullable=True)

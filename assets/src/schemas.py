@@ -127,7 +127,7 @@ class User(NodeBase):
     date: dt.datetime = dt.datetime.now()
     index: Optional[int]
     discord: Optional[str | int | None] = None
-    mail: Optional[str | None] = None
+    mail: str
     phone: Optional[str | None] = None
     wallet: str
     alias: Optional[str | None] = None
