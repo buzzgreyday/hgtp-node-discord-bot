@@ -42,8 +42,8 @@ async def stripe_webhook(request: Request):
             print("Subscription created!")
             await handle_subscription_created(event)
             # Add your logic to handle subscription creation
-        elif event.type == 'invoice.payment_succeeded':
-            print("Invoice payment received!")
+        # elif event.type == 'invoice.payment_succeeded':
+        #     print("Invoice payment received!")
         elif event.type == 'invoice.payment_failed':
             print("Invoice payment failed!")
         elif event.type == 'payment_intent.payment_failed':
@@ -67,6 +67,6 @@ async def handle_subscription_created(event):
     # Then update the table with:
     print("customer_id:", event["data"]["object"]["customer"])
     print("created:", event["data"]["object"]["created"])
-    print("current_period_end", event["data"]["object"]["current_period_end"])
-    print("current_period_start", event["data"]["object"]["current_period_start"])
-    print("subscription_id", event["data"]["object"]["id"])
+    print("current_period_end:", event["data"]["object"]["current_period_end"])
+    print("current_period_start:", event["data"]["object"]["current_period_start"])
+    print("subscription_id:", event["data"]["object"]["id"])
