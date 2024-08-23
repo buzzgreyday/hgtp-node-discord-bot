@@ -279,6 +279,18 @@ def run_uvicorn_process():
             "assets/data/logs/uvicorn.ini",
         ]
     )
+def run_stripe_uvicorn_process():
+    subprocess.run(
+        [
+            "venv/bin/uvicorn",
+            "assets.src.database.stripe:app",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            "8001",
+
+        ]
+    )
 
 
 def configure_logging():
@@ -310,6 +322,7 @@ def main():
 
     # Create a thread for running uvicorn
     uvicorn_thread = threading.Thread(target=run_uvicorn_process)
+    uvicorn_stripe_thread = threading.Thread(target=run_stripe_uvicorn_process)
     # Create a thread for running version check
     get_tessellation_version_thread = threading.Thread(
         target=version_manager.update_version, daemon=True
@@ -321,6 +334,7 @@ def main():
     db_optimization_thread = threading.Thread(target=start_database_optimization_coroutine, args=(_configuration,))
     get_tessellation_version_thread.start()
     uvicorn_thread.start()
+    uvicorn_stripe_thread.start()
     rewards_thread.start()
     stats_thread.start()
     db_optimization_thread.start()
