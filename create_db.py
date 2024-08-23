@@ -21,17 +21,33 @@ async def create_db():
                 """
                 ALTER TABLE users
                 ADD COLUMN customer_id VARCHAR;
-                ALTER TABLE users
-                ADD COLUMN subscription_id VARCHAR;
-                ALTER TABLE users
-                ADD COLUMN subscription_created TIMESTAMP;
-                ALTER TABLE users
-                ADD COLUMN current_subscription_period_start TIMESTAMP;
-                ALTER TABLE users
-                ADD COLUMN current_subscription_period_end TIMESTAMP;
                 """
             )
         )
+        await conn.execute(
+            sqlalchemy.text(
+                """
+                ALTER TABLE users
+                ADD COLUMN subscription_id VARCHAR;
+                """))
+        await conn.execute(
+            sqlalchemy.text(
+                """
+                ALTER TABLE users
+                ADD COLUMN subscription_created TIMESTAMP;
+                """))
+        await conn.execute(
+            sqlalchemy.text(
+                """
+                ALTER TABLE users
+                ADD COLUMN current_subscription_period_start TIMESTAMP;
+                """))
+        await conn.execute(
+            sqlalchemy.text(
+                """
+                ALTER TABLE users
+                ADD COLUMN current_subscription_period_end TIMESTAMP;
+                """))
         # Temporary
         # await conn.execute(
         #     sqlalchemy.text(
