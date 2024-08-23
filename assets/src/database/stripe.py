@@ -44,6 +44,10 @@ async def stripe_webhook(request: Request):
             print("Subscription created!")
             await handle_subscription_created(event)
             # Add your logic to handle subscription creation
+        elif event.type == 'invoice.payment_succeeded':
+            print("Invoice payment received!")
+        elif event.type == 'invoice.payment_failed':
+            print("Invoice payment failed!")
 
         return {"status": "success"}
     except Exception as e:
@@ -51,15 +55,18 @@ async def stripe_webhook(request: Request):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-def handle_payment_succeeded(payload):
+def handle_payment_succeeded(event):
     # Update your database with successful payment information
-    print(payload)
+    print("Payment received!")
 
-
-async def handle_subscription_created(payload):
+async def handle_subscription_created(event):
     # Update your database with the new subscription information
-    # We need to insert multiple subscriptions in the local database
     # REMEMBER TO ADD "customer_id" to database schema and model
 
-
-    print("customer_id", payload["data"]["object"]["customer"])
+    # First, before redirecting to the payment link, we need to create the user in the user table
+    # Then update the table with:
+    print("customer_id:", event["data"]["object"]["customer"])
+    print("created:", event["data"]["object"]["created"])
+    print("current_period_end", event["data"]["object"]["current_period_end"])
+    print("current_period_start", event["data"]["object"]["current_period_start"])
+    print("subscription_id", event["data"]["object"]["id"])
