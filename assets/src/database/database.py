@@ -217,3 +217,7 @@ async def post_prices(data: PriceSchema):
 async def get_timestamp_db_price(ordinal_timestamp: int):
     """Returns price data that best matches the timestamp"""
     return await db.get_timestamp_db_price(ordinal_timestamp, session)
+
+@app.post("/webhooks")
+async def stripe_webhook(request: Request):
+    return await db.stripe_webhook(request)

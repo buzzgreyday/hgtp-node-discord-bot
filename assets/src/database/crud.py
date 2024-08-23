@@ -1,5 +1,6 @@
 import asyncio
 import gc
+import json
 import logging
 import traceback
 from datetime import datetime, timedelta
@@ -10,6 +11,7 @@ import aiohttp.client_exceptions
 import numpy as np
 import pandas as pd
 import pydantic
+import stripe
 from dotenv import load_dotenv
 from assets.src.database.models import (
     UserModel,
@@ -22,18 +24,26 @@ from assets.src.schemas import (
     User as UserSchema,
     PriceSchema,
     OrdinalSchema,
-    RewardStatsSchema, MetricStatsSchema,
+    RewardStatsSchema, MetricStatsSchema, StripeEvent
 )
 
 from assets.src.schemas import Node as NodeSchema
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
 from sqlalchemy import select, delete, update, desc, and_
 from fastapi.encoders import jsonable_encoder
+from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 
 load_dotenv()
+dev_env = os.getenv("NODEBOT_DEV_ENV")
 
 database_url = os.getenv("DB_URL")
+if dev_env:
+    stripe.api_key = os.getenv("STRIPE_API_TEST_KEY")
+else:
+    stripe.api_key = os.getenv("STRIPE_API_KEY")
+    endpoint_secret = os.getenv("STRIPE_ENDPOINT_SECRET")
+
 
 # Create the database engine
 engine = create_async_engine(
@@ -74,6 +84,37 @@ class DatabaseBatchProcessor:
 
 
 class CRUD:
+    async def stripe_webhook(self, request):
+        try:
+            payload = await request.json()
+            # Just log and return a simple success response
+            event_type = payload.get("type")
+            # Log the event type for debugging
+            print(f"Received event: {event_type}")
+
+            if event_type == 'payment_intent.succeeded':
+                self.handle_payment_succeeded(payload)
+                # Add your logic to handle successful payment
+            elif event_type == 'customer.subscription.created':
+                print("Subscription created!")
+                self.handle_subscription_created(payload)
+                # Add your logic to handle subscription creation
+
+            return {"status": "success"}
+        except Exception as e:
+            print(f"Error: {e}")
+            raise HTTPException(status_code=500, detail="Internal Server Error")
+
+    def handle_payment_succeeded(self, payload):
+        customer_email = payload['customer_email']
+        # Update your database with successful payment information
+        print(payload)
+
+    def handle_subscription_created(self, payload):
+        customer_email = payload['customer_email']
+        # Update your database with the new subscription information
+        print(payload)
+
     async def post_user(
             self, data: UserSchema, async_session: async_sessionmaker[AsyncSession]
     ):
