@@ -66,7 +66,7 @@ async def handle_subscription_created(event):
     # First, before redirecting to the payment link, we need to create the user in the user table, then check if the email is already subscribed
     # Then update the table with:
     print("customer_id:", event["data"]["object"]["customer"])
-    print("created:", event["data"]["object"]["created"])
-    print("current_period_end:", event["data"]["object"]["current_period_end"])
-    print("current_period_start:", event["data"]["object"]["current_period_start"])
+    print("subscription_created:", event["data"]["object"]["created"])
+    print("current_subscription_period_end:", event["data"]["object"]["current_period_end"])
+    print("current_subscription_period_start:", event["data"]["object"]["current_period_start"])
     print("subscription_id:", event["data"]["object"]["id"])

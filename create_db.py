@@ -16,14 +16,22 @@ async def create_db():
         await conn.run_sync(metadata.reflect)
 
         # Temporary
-        # await conn.execute(
-        #     sqlalchemy.text(
-        #         """
-        #         ALTER TABLE users
-        #         ADD COLUMN removal_datetime TIMESTAMP;
-        #         """
-        #     )
-        # )
+        await conn.execute(
+            sqlalchemy.text(
+                """
+                ALTER TABLE users
+                ADD COLUMN customer_id VARCHAR;
+                ALTER TABLE users
+                ADD COLUMN subscription_id VARCHAR;
+                ALTER TABLE users
+                ADD COLUMN subscription_created TIMESTAMP;
+                ALTER TABLE users
+                ADD COLUMN current_subscription_period_start TIMESTAMP;
+                ALTER TABLE users
+                ADD COLUMN current_subscription_period_end TIMESTAMP;
+                """
+            )
+        )
         # Temporary
         # await conn.execute(
         #     sqlalchemy.text(
