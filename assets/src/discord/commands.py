@@ -13,7 +13,7 @@ from assets.src.discord.services import bot
 from assets.src.schemas import User
 
 import nextcord
-from nextcord import SelectOption
+from nextcord import SelectOption, Interaction
 from nextcord.ui import Select
 
 class SelectMenu(Select):
@@ -29,6 +29,101 @@ class SelectMenu(Select):
         # This method is called when the user selects an option
         # You can access the selected option with self.values[0]
         self.selected_value = self.values[0]
+
+
+# Modal (Form) to capture IP, ports, and email
+class SubscribeModal(nextcord.ui.Modal):
+    def __init__(self):
+        super().__init__(
+            title="Subscribe to IP and Ports",
+        )
+        self.ip = nextcord.ui.TextInput(
+            label="IP Address",
+            placeholder="Enter the IP address",
+            required=True,
+        )
+        self.ports = nextcord.ui.TextInput(
+            label="Ports",
+            placeholder="Enter the ports (comma-separated)",
+            required=True,
+        )
+        self.email = nextcord.ui.TextInput(
+            label="Email Address",
+            placeholder="Enter your email address",
+            required=True,
+        )
+
+        self.add_item(self.ip)
+        self.add_item(self.ports)
+        self.add_item(self.email)
+
+    async def on_button_click(self, interaction: nextcord.Interaction):
+        # When the modal is submitted, show the submit button
+        print("OK")
+        view = SubscribeView(self.ip.value, self.ports.value, self.email.value)
+        await interaction.response.send_message("Review your details and submit:", view=view, ephemeral=True)
+
+
+# Custom View with a Submit Button
+class SubscribeView(nextcord.ui.View):
+    def __init__(self, ip, ports, email):
+        super().__init__(timeout=None)
+        self.ip = ip
+        self.ports = ports
+        self.email = email
+
+    @nextcord.ui.button(label="Submit", style=nextcord.ButtonStyle.primary)
+    async def submit(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        # Check if DMs are open
+        user = interaction.user
+        try:
+            print("OK")
+            await user.send("Checking your subscription status...")
+        except nextcord.Forbidden:
+            await interaction.response.send_message("Please enable DMs from server members to proceed.", ephemeral=True)
+            return
+
+        # Update local database with the information
+        # Assume update_database is a function to handle this
+        await update_database(user.name, user.id, self.ip, self.ports, self.email)
+        await interaction.response.send_message("Your subscription details have been updated.", ephemeral=True)
+        # Create a Stripe payment link and send it to the user
+        stripe_url = create_stripe_payment_link(self.email)
+        await interaction.response.send_message(f"Please complete your subscription [here]({stripe_url}).", ephemeral=True)
+
+        # After payment, update the local database
+        # You may need to handle this via webhook or polling from Stripe
+        # This part of the implementation will depend on how you handle Stripe subscriptions
+
+# Command to trigger the modal
+@bot.slash_command(name="subscribe", description="Subscribe to IP and Ports")
+async def subscribe(interaction: Interaction):
+    modal = SubscribeModal()
+    await interaction.response.send_modal(modal)
+
+
+def create_stripe_payment_link(email):
+    # Placeholder function for creating a Stripe payment link
+    # You need to implement this using Stripe's API
+    return "https://your-stripe-payment-link.com"
+
+async def update_database(name, discord_id, ip, ports, email):
+    # Placeholder function for updating your local database
+    async with aiohttp.ClientSession() as session:
+        with open("config.yml", "r") as file:
+            _configuration = yaml.safe_load(file)
+            valid_user_data, invalid_user_data = await User.new_sub_discord(
+                session,
+                _configuration,
+                "subscribe",
+                name,
+                discord_id,
+                email,
+                ip,
+                ports,
+            )
+            # await user.write_db(valid_user_data)
+            print(valid_user_data)
 
 
 def setup(bot):
@@ -180,7 +275,6 @@ async def unsubscibe_menu(interaction):
 @bot.slash_command(
     name="verify",
     description="Verify your server settings to gain access",
-    guild_ids=[974431346850140201],
 )
 async def verify(interaction: nextcord.Interaction):
     try:
@@ -214,6 +308,7 @@ async def verify(interaction: nextcord.Interaction):
                 await interaction.user.send(
                     content=f"{interaction.user.mention}, your settings were verified!"
                 )
+
         return
     except Exception as e:
         logging.getLogger("commands").error(

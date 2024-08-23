@@ -153,6 +153,61 @@ class User(NodeBase):
             return None
 
     @classmethod
+    async def new_sub_discord(
+            cls,
+            session,
+            configuration,
+            mode: str,
+            name: str,
+            discord: int,
+            email: str,
+            ip: str,
+            ports: List[str]
+    ):
+        if re.match(IP_REGEX, ip):
+            valid_user_data = []
+            invalid_user_data = []
+            print("IP is valid!")
+            for port in ports:
+                if port.isdigit():
+                    print("Port is valid!")
+                    id_ = await User.get_id(
+                        session, ip, port, "subscribe", configuration
+                    )
+                    if id_ is not None:
+                        wallet = id_to_dag_address(id_)
+                        print(f"ID: {id_}\n"
+                              f"Wallet: {wallet}")
+                        try:
+                            valid_user_data.append(
+                                cls(
+                                    index=None,
+                                    name=name,
+                                    mail=email,
+                                    date=dt.datetime.now(),
+                                    discord=str(discord),
+                                    id=id_,
+                                    wallet=wallet,
+                                    ip=ip,
+                                    public_port=int(port),
+                                    layer=0,
+                                )
+                            )
+                        except ValidationError:
+                            print("Subscription failed: ValidationError")
+                            logging.getLogger("app").warning(
+                                f"schemas.py - Pydantic ValidationError - subscription failed with the following traceback: {traceback.format_exc()}"
+                            )
+                    else:
+                        print("ID was not retrievable, make sure your node is online!")
+                else:
+                    print("Not a valid port!")
+            return valid_user_data, invalid_user_data
+        else:
+            print("Not a valid IP!")
+
+
+    @classmethod
     async def sub_discord(
         cls,
         session,
