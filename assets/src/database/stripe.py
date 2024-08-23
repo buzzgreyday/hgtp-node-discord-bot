@@ -35,10 +35,10 @@ async def stripe_webhook(request: Request):
         print(f"Received event: {event['type']}")
 
 
-        if event['type'] == 'payment_intent.succeeded':
+        if event.type == 'payment_intent.succeeded':
             handle_payment_succeeded(event)
             # Add your logic to handle successful payment
-        elif event['type'] == 'customer.subscription.created':
+        elif event.type == 'customer.subscription.created':
             print("Subscription created!")
             await handle_subscription_created(event)
             # Add your logic to handle subscription creation
