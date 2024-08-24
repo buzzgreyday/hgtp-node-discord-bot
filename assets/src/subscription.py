@@ -179,9 +179,12 @@ async def discord_subscription(
     if data:
         print("IP is already subscribed")
         # Check if ports differ; subtract pop the subscribed data from the new ports and check these
+        # Extend new valid_user_data with the already subscribed data ("current_period_end" and "customer_id")
     else:
         print("No subscriptions present")
         # Check all ports
+
+
 
     for port in l0_ports:
         await _process_ports(port, 0)

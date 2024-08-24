@@ -63,6 +63,9 @@ async def handle_subscription_created(event):
     # Update your database with the new subscription information
     # REMEMBER TO ADD "customer_id" to database schema and model
 
+    # Get customer from the ID to add email to local subscriber database
+    customer = stripe.Customer.retrieve(event["data"]["object"]["customer"])
+
     # First, before redirecting to the payment link, we need to create the user in the user table, then check if the email is already subscribed
     # Then update the table with:
     print("customer_id:", event["data"]["object"]["customer"])
