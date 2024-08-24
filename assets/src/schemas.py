@@ -5,12 +5,14 @@ import traceback
 from typing import List, Optional
 import datetime as dt
 
+import aiohttp
 from pydantic import BaseModel, ValidationError, validator
 
-from assets.src import api
+from assets.src import api, subscription
 from assets.src.encode_decode import id_to_dag_address
 
 IP_REGEX = r'^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$'
+EMAIL_REGEX = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
 
 
 class NodeBase(BaseModel):
@@ -157,166 +159,6 @@ class User(NodeBase):
                 return str(node_data["id"]) if node_data is not None else None
         else:
             return None
-
-    @classmethod
-    async def new_sub_discord(
-            cls,
-            session,
-            configuration,
-            mode: str,
-            name: str,
-            discord: int,
-            email: str,
-            ip: str,
-            l0_ports: List[str],
-            l1_ports: List[str]
-    ):
-        async def _process_ports(port, layer):
-            if port.isdigit():
-                print("Port is valid!")
-                id_ = await User.get_id(
-                    session, ip, port, "subscribe", configuration
-                )
-                print(id_)
-                if id_ is not None:
-                    wallet = id_to_dag_address(id_)
-                    print(f"ID: {id_}\n"
-                          f"Wallet: {wallet}")
-                    try:
-                        valid_user_data.append(
-                            cls(
-                                index=None,
-                                name=name,
-                                mail=email,
-                                date=dt.datetime.now(),
-                                discord=str(discord),
-                                id=id_,
-                                wallet=wallet,
-                                ip=ip,
-                                public_port=int(port),
-                                layer=layer,
-                            )
-                        )
-                    except ValidationError:
-                        print("Subscription failed: ValidationError")
-                        logging.getLogger("app").warning(
-                            f"schemas.py - Pydantic ValidationError - subscription failed with the following traceback: {traceback.format_exc()}"
-                        )
-                else:
-                    print("ID was not retrievable, make sure your node is online!")
-            else:
-                print("Not a valid port!")
-
-        if re.match(IP_REGEX, ip):
-            valid_user_data = []
-            invalid_user_data = []
-            print("IP is valid!")
-            for port in l0_ports:
-                await _process_ports(port, 0)
-            for port in l1_ports:
-                await _process_ports(port, 1)
-            return valid_user_data, invalid_user_data
-        else:
-            print("Not a valid IP!")
-            return [], []
-
-
-    @classmethod
-    async def sub_discord(
-        cls,
-        session,
-        configuration,
-        process_msg,
-        mode: str,
-        name: str,
-        discord: int,
-        *args,
-    ):
-        """Treats a Discord message as a line of arguments and returns a list of subscribable user objects"""
-        from assets.src.discord.discord import update_subscription_process_msg
-
-        user_data = []
-        invalid_user_data = []
-        wallet = None
-        process_msg = await update_subscription_process_msg(process_msg, 1, None)
-        ips = {ip for ip in args if re.match(IP_REGEX, ip)}
-        ip_idx = [args.index(ip) for ip in ips]
-        for idx in range(0, len(ip_idx)):
-            # Split arguments into lists before each IP
-            arg = (
-                args[ip_idx[idx] : ip_idx[idx + 1]]
-                if idx + 1 < len(ip_idx)
-                else args[ip_idx[idx] :]
-            )
-            for i, val in enumerate(arg):
-                if val.lower() in ("z", "-z", "zero", "--zero", "l0", "-l0"):
-                    for port in arg[i + 1 :]:
-                        if port.isdigit():
-                            process_msg = await update_subscription_process_msg(
-                                process_msg, 2, f"{arg[0]}:{port}"
-                            )
-                            # Check if port is subscribed?
-                            id_ = await User.get_id(
-                                session, arg[0], port, mode, configuration
-                            )
-                            if id_ is not None:
-                                wallet = id_to_dag_address(id_)
-                                try:
-                                    user_data.append(
-                                        cls(
-                                            index=None,
-                                            name=name,
-                                            date=dt.datetime.utcnow(),
-                                            discord=str(discord),
-                                            id=id_,
-                                            wallet=wallet,
-                                            ip=arg[0],
-                                            public_port=port,
-                                            layer=0,
-                                        )
-                                    )
-                                except ValidationError:
-                                    logging.getLogger("app").warning(
-                                        f"schemas.py - Pydantic ValidationError - subscription failed with the following traceback: {traceback.format_exc()}"
-                                    )
-                            else:
-                                invalid_user_data.append((arg[0], port, 0))
-                        else:
-                            break
-                elif val.lower() in ("o", "-o", "one", "--one", "l1", "-l1"):
-                    for port in arg[i + 1 :]:
-                        if port.isdigit():
-                            process_msg = await update_subscription_process_msg(
-                                process_msg, 2, f"{arg[0]}:{port}"
-                            )
-                            id_ = await User.get_id(
-                                session, arg[0], port, mode, configuration
-                            )
-                            if id_ is not None:
-                                wallet = id_to_dag_address(id_)
-                                try:
-                                    user_data.append(
-                                        cls(
-                                            index=None,
-                                            name=name,
-                                            date=dt.datetime.utcnow(),
-                                            discord=str(discord),
-                                            id=id_,
-                                            wallet=wallet,
-                                            ip=arg[0],
-                                            public_port=port,
-                                            layer=1,
-                                        )
-                                    )
-                                except ValidationError:
-                                    logging.getLogger("app").warning(
-                                        f"schemas.py - Pydantic ValidationError - subscription failed with the following traceback: {traceback.format_exc()}"
-                                    )
-                            else:
-                                invalid_user_data.append((arg[0], port, 1))
-                        else:
-                            break
-        return user_data, invalid_user_data
 
 
 class RewardSchema(BaseModel):

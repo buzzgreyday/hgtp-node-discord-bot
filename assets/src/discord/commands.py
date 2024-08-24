@@ -6,7 +6,7 @@ import aiohttp
 import yaml
 
 import assets.src.database.database
-from assets.src import user, check
+from assets.src import user, check, subscription
 from assets.src.database import models
 from assets.src.discord import discord, messages
 from assets.src.discord.services import bot
@@ -49,105 +49,13 @@ def setup(bot):
 active_views = {}
 
 
-# Modal for input fields
-# Modal for input fields
-class SubscribeModal(nextcord.ui.Modal):
-    def __init__(self):
-        super().__init__(title="Subscribe to IP and Ports")
-
-        # TextInput fields
-        self.ip = nextcord.ui.TextInput(
-            label="IP Address",
-            placeholder="Enter the IP address",
-            required=True,
-        )
-        self.l0_ports = nextcord.ui.TextInput(
-            label="L0 Ports",
-            placeholder="Enter the ports (comma-separated)",
-            required=True,
-        )
-        self.l1_ports = nextcord.ui.TextInput(
-            label="L1 Ports",
-            placeholder="Enter the ports (comma-separated)",
-            required=True,
-        )
-        self.email = nextcord.ui.TextInput(
-            label="Email Address",
-            placeholder="Enter your email address",
-            required=True,
-        )
-
-        # Add TextInput fields to the modal
-        self.add_item(self.ip)
-        self.add_item(self.l0_ports)
-        self.add_item(self.l1_ports)
-        self.add_item(self.email)
-
-    async def callback(self, interaction: nextcord.Interaction):
-        try:
-            # Handle submission of the modal
-            print("Modal submitted!")  # Debugging print statement
-            print(f"IP: {self.ip.value}, L0 Ports: {self.l0_ports.value}, L1 Ports: {self.l1_ports.value}, Email: {self.email.value}")  # Print out the input values
-            name = interaction.user.name
-            discord_id=interaction.user.id
-            ip=self.ip.value
-            l0_ports=str(self.l0_ports.value).strip(" ").split(",")
-            l1_ports=str(self.l1_ports.value).strip(" ").split(",")
-            email=self.email.value
-
-            # Defer the interaction to give you more time to process
-            await interaction.response.defer(ephemeral=True)
-            # Proceed with your update_database function or any other logic
-            await update_database(
-                name=name,
-                discord_id=discord_id,
-                ip=ip,
-                l0_ports=l0_ports,
-                l1_ports=l1_ports,
-                email=email
-            )
-
-            # After processing is done, send a follow-up message to the user
-            await interaction.followup.send(
-                content="Your subscription details have been updated successfully.",
-                ephemeral=True  # Set to True if you want it to be visible only to the user
-            )
-        except Exception as e:
-            # Handle potential errors
-            print(f"An error occurred: {e}")
-            # After processing is done, send a follow-up message to the user
-            await interaction.followup.send(
-                content="An error occurred while processing your request.",
-                ephemeral=True  # Set to True if you want it to be visible only to the user
-            )
-
 # Slash command to initiate the subscription process
 @bot.slash_command(name="subscribe", description="Subscribe to IP and Ports")
 async def subscribe(interaction: nextcord.Interaction):
     # Directly open the modal when the command is invoked
-    modal = SubscribeModal()
+    modal = subscription.SubscribeModal()
     await interaction.response.send_modal(modal)
-
-
-async def update_database(name, discord_id, ip, l0_ports, l1_ports, email):
-    # Placeholder function for updating your local database
-
-    async with aiohttp.ClientSession() as session:
-        with open("config.yml", "r") as file:
-            _configuration = yaml.safe_load(file)
-            valid_user_data, invalid_user_data = await User.new_sub_discord(
-                session,
-                _configuration,
-                "subscribe",
-                name,
-                discord_id,
-                email,
-                ip,
-                l0_ports,
-                l1_ports
-            )
-            # await user.write_db(valid_user_data)
-            print(valid_user_data)
+    # After subscription is submitted checks will run in the background
 
 
 @bot.slash_command(
@@ -373,45 +281,3 @@ async def r(ctx):
                 logging.getLogger("app").info(
                     f"discord.py - User {ctx.message.author} does not allow DMs"
                 )
-
-
-@bot.command()
-async def s(ctx, *args):
-    """This function treats a Discord message (context) as a line of arguments and attempts to create a new user subscription"""
-    async with aiohttp.ClientSession() as session:
-        with open("config.yml", "r") as file:
-            _configuration = yaml.safe_load(file)
-            logging.getLogger("app").info(
-                f"main.py - Subscription request received from {ctx.message.author}: {args}"
-            )
-            process_msg = await discord.send_subscription_process_msg(ctx)
-            valid_user_data, invalid_user_data = await User.sub_discord(
-                session,
-                _configuration,
-                process_msg,
-                "subscribe",
-                str(ctx.message.author),
-                int(ctx.message.author.id),
-                *args,
-            )
-            if valid_user_data:
-                process_msg = await discord.update_subscription_process_msg(
-                    process_msg, 3, None
-                )
-                await user.write_db(valid_user_data)
-                guild, member, role = await discord.return_guild_member_role(bot, ctx)
-                await member.add_roles(role)
-                await discord.update_subscription_process_msg(
-                    process_msg, 4, invalid_user_data
-                )
-                logging.getLogger("app").info(
-                    f"main.py - Subscription successful for {ctx.message.author}: {valid_user_data}\n\tDenied for: {invalid_user_data}"
-                )
-            else:
-                await discord.deny_subscription(process_msg)
-                logging.getLogger("app").info(
-                    f"main.py - Subscription denied for {ctx.message.author}: {args}"
-                )
-
-            if not isinstance(ctx.channel, nextcord.DMChannel):
-                await ctx.message.delete(delay=3)

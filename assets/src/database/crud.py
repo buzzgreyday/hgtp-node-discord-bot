@@ -876,3 +876,18 @@ class CRUD:
             results = await session.execute(statement)
         return results.scalar_one_or_none()
 
+class Subscriber:
+    async def from_ip(self, ip: str, async_session: async_sessionmaker[AsyncSession]):
+        """
+        Get subscriber data from IP
+        :param ip:
+        :param async_session:
+        :return:
+        """
+        async with async_session() as session:
+            results = await session.execute(
+                select(UserModel).where(UserModel.ip == ip)
+            )
+            return results.scalars().all()
+
+

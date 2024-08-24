@@ -10,7 +10,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
-from assets.src.database.crud import CRUD, engine
+from assets.src.database.crud import CRUD, Subscriber, engine
 from assets.src.schemas import OrdinalSchema, PriceSchema, RewardStatsSchema, MetricStatsSchema
 
 app = FastAPI(
@@ -25,6 +25,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 session = async_sessionmaker(bind=engine, expire_on_commit=False)
 
 db = CRUD()
+subscriber = Subscriber()
 
 
 async def optimize(configuration, node_data_migration_complete=False, ordinal_data_migration_complete=False):
@@ -217,6 +218,7 @@ async def post_prices(data: PriceSchema):
 async def get_timestamp_db_price(ordinal_timestamp: int):
     """Returns price data that best matches the timestamp"""
     return await db.get_timestamp_db_price(ordinal_timestamp, session)
-
-async def stripe_webhook(request: Request):
-    return await db.stripe_webhook(request)
+@app.get("/get/user/{ip}")
+async def subscriber_from_ip(ip: str):
+    """Get subscriber data from ip"""
+    return await subscriber.from_ip(ip, session)
