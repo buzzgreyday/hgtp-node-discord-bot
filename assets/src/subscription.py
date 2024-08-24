@@ -19,7 +19,7 @@ EMAIL_REGEX = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z
 
 class SubscribeModal(nextcord.ui.Modal):
     def __init__(self):
-        super().__init__(title="Subscribe to IP and Ports")
+        super().__init__(title="Subscribe IP and Ports")
 
         # TextInput fields
         self.ip = nextcord.ui.TextInput(
