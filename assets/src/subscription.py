@@ -184,8 +184,6 @@ async def discord_subscription(
         print("No subscriptions present")
         # Check all ports
 
-
-
     for port in l0_ports:
         await _process_ports(port, 0)
     for port in l1_ports:
