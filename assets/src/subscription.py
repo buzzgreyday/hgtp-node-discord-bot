@@ -60,7 +60,7 @@ class SubscribeModal(nextcord.ui.Modal):
             with (open("config.yml", "r") as file):
                 _configuration = yaml.safe_load(file)
                 try:
-                    valid_user_data, invalid_user_data = await discord_subscription(
+                    await discord_subscription(
                             interaction=interaction,
                             configuration=_configuration,
                             name=interaction.user.name,
@@ -70,16 +70,11 @@ class SubscribeModal(nextcord.ui.Modal):
                             l0_ports=[port for port in str(self.l0_ports.value).split(",")],
                             l1_ports=[port for port in str(self.l1_ports.value).split(",")]
                     )
-                    # await user.write_db(valid_user_data)
-                    print(valid_user_data)
+
                 except ValueError as e:
                     print("IP or email isn't valid")
                 else:
-                    # After processing is done, send a follow-up message to the user
-                    await interaction.followup.send(
-                        content="### **Checks passed!**",
-                        ephemeral=True  # Set to True if you want it to be visible only to the user
-                    )
+                    pass
         except Exception as e:
             # Handle potential errors
             print(f"An error occurred: {e}")
@@ -180,8 +175,24 @@ async def discord_subscription(
             session, f"http://127.0.0.1:8000/get/user/{ip}"
         ).db_json()
 
+    print("Subscribed Data", data)
+    if data:
+        print("IP is already subscribed")
+        # Check if ports differ; subtract pop the subscribed data from the new ports and check these
+    else:
+        print("No subscriptions present")
+        # Check all ports
+
     for port in l0_ports:
         await _process_ports(port, 0)
     for port in l1_ports:
         await _process_ports(port, 1)
-    return valid_user_data, invalid_user_data
+
+    # await user.write_db(valid_user_data)
+    print(valid_user_data)
+
+    # After processing is done, send a follow-up message to the user
+    await interaction.followup.send(
+        content="### **Checks passed!**",
+        ephemeral=True  # Set to True if you want it to be visible only to the user
+    )
