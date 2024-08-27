@@ -649,11 +649,9 @@ async def run():
                             continue
                         try:
                             # Post data if no data exists
-                            print(reward_data)
                             await post_reward_stats(reward_data)
                         except sqlalchemy.exc.IntegrityError:
                             # Update data, if data already exists
-                            print(reward_data)
                             await update_reward_stats(reward_data)
                         except Exception:
                             logging.getLogger("stats").critical(traceback.format_exc())
