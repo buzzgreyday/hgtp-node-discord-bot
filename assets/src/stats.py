@@ -593,7 +593,7 @@ async def run():
 
                     # Order the data by top earners
                     snapshot_data = snapshot_data.sort_values(
-                        by="dag_address_sum_dev", ascending=False
+                        by="dag_address_sum", ascending=False
                     ).reset_index(drop=True)
                     snapshot_data["earner_score"] = snapshot_data.index + 1
                     # Total len is used to count the total number of nodes and calc the percent of node wallets
@@ -649,9 +649,11 @@ async def run():
                             continue
                         try:
                             # Post data if no data exists
+                            print(reward_data)
                             await post_reward_stats(reward_data)
                         except sqlalchemy.exc.IntegrityError:
                             # Update data, if data already exists
+                            print(reward_data)
                             await update_reward_stats(reward_data)
                         except Exception:
                             logging.getLogger("stats").critical(traceback.format_exc())
