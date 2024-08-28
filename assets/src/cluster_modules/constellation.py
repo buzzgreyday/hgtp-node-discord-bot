@@ -877,7 +877,7 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
                 elif node_data.cluster_version > node_data.latest_version:
                     field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is v{node_data.latest_version}.`"
                 else:
-                    field_info = "`⚠  Please report this issue to hgtp_michael: version clutter.`"
+                    field_info = "`⚠  Please report this issue: version clutter.`"
                 return version_field(), False, False
 
             elif _compare_versions(node_data.version, node_data.cluster_version) == "lower":
