@@ -918,7 +918,7 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
                 return version_field(), False, False
         else:
             field_symbol = ":green_square:"
-            field_info = f"`ⓘ  Node version: {node_data.version}, cluster version: {node_data.cluster_version}`"
+            field_info = f"`ⓘ  Node version: {node_data.version}, latest version: {node_data.latest_version}`"
             return version_field(), False, False
     else:
         return (f":yellow_square: **TESSELLATION**\n"
