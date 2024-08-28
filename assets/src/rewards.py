@@ -118,6 +118,7 @@ async def process_ordinal_data(session, url, ordinal, ordinal_data, configuratio
                         data = OrdinalSchema(**ordinal_data)
                         data.usd = db_price_data[1]
                         await post_ordinal(data)
+                        await asyncio.sleep(0.2)
                 break
             elif db_price_data is None and status_code == 200:
                 logging.getLogger("rewards").warning(
