@@ -866,58 +866,53 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
             f"```Version {node_data.version}```"
             f"{field_info}"
         )
-    if node_data.last_known_cluster_name != "testnet":
-        if node_data.version is not None and node_data.cluster_version is not None:
-            if _compare_versions(node_data.version, node_data.cluster_version) == "equal":
-                field_symbol = ":green_square:"
-                if node_data.cluster_version == node_data.latest_version:
-                    field_info = "`ⓘ  You are running the latest version of Tessellation`"
-                elif node_data.cluster_version < node_data.latest_version:
-                    field_info = f"`ⓘ  You are running the latest version but a new Tessellation release (v{node_data.latest_version}) should soon be available.`"
-                elif node_data.cluster_version > node_data.latest_version:
-                    field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is v{node_data.latest_version}.`"
-                else:
-                    field_info = "`⚠  Please report this issue: version clutter.`"
-                return version_field(), False, False
-
-            elif _compare_versions(node_data.version, node_data.cluster_version) == "lower":
-                field_symbol = ":red_square:"
-                field_info = f"`⚠  New Tessellation upgrade available (v{node_data.latest_version}).`"
-                red_color_trigger = True
-                return version_field(), red_color_trigger, False
-            elif _compare_versions(node_data.version, node_data.cluster_version) == "higher":
-                field_symbol = ":red_square:"
-                field_info = f"`⚠  Your Tessellation version is higher than the cluster version (v{node_data.cluster_version}).`"
-                red_color_trigger = True
-                return version_field(), red_color_trigger, False
+    if node_data.version is not None and node_data.cluster_version is not None:
+        if _compare_versions(node_data.version, node_data.cluster_version) == "equal":
+            field_symbol = ":green_square:"
+            if node_data.cluster_version == node_data.latest_version:
+                field_info = "`ⓘ  You are running the latest version of Tessellation`"
+            elif node_data.cluster_version < node_data.latest_version:
+                field_info = f"`ⓘ  You are running the latest version but a new Tessellation release (v{node_data.latest_version}) should soon be available.`"
+            elif node_data.cluster_version > node_data.latest_version:
+                field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is v{node_data.latest_version}.`"
             else:
-                field_symbol = ":red_square:"
-                field_info = f"`⚠  Please report to hgtp_michael: latest version {node_data.latest_version}, cluster version {node_data.cluster_version}, node version {node_data.version}.`"
-                red_color_trigger = True
-                return version_field(), red_color_trigger, False
-        elif node_data.version is not None and node_data.latest_version is not None:
-            if _compare_versions(node_data.version, node_data.latest_version) == "higher":
-                field_symbol = ":green_square:"
-                if node_data.version == node_data.cluster_version:
-                    field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is {node_data.latest_version}.`"
-                else:
-                    field_info = f"`ⓘ  You seem to be running a test-release. Latest stable version is {node_data.latest_version}.`"
-                return version_field(), False, False
-            else:
-                field_symbol = ":yellow_square:"
-                if node_data.cluster_peer_count in (0, None):
-                    field_info = f"`ⓘ  Could not determine the current cluster version due to unstable connection or maintenance but latest Github version is {node_data.latest_version}.`"
-                else:
-                    field_info = f"`ⓘ  Latest version is {node_data.latest_version}.`"
-                return version_field(), False, False
+                field_info = "`⚠  Please report this issue: version clutter.`"
+            return version_field(), False, False
 
+        elif _compare_versions(node_data.version, node_data.cluster_version) == "lower":
+            field_symbol = ":red_square:"
+            field_info = f"`⚠  New Tessellation upgrade available (v{node_data.latest_version}).`"
+            red_color_trigger = True
+            return version_field(), red_color_trigger, False
+        elif _compare_versions(node_data.version, node_data.cluster_version) == "higher":
+            field_symbol = ":red_square:"
+            field_info = f"`⚠  Your Tessellation version is higher than the cluster version (v{node_data.cluster_version}).`"
+            red_color_trigger = True
+            return version_field(), red_color_trigger, False
         else:
-            return (f":yellow_square: **TESSELLATION**\n"
-                    f"" f"`ⓘ  No data available.`"), False, True
+            field_symbol = ":red_square:"
+            field_info = f"`⚠  Please report to hgtp_michael: latest version {node_data.latest_version}, cluster version {node_data.cluster_version}, node version {node_data.version}.`"
+            red_color_trigger = True
+            return version_field(), red_color_trigger, False
+    elif node_data.version is not None and node_data.latest_version is not None:
+        if _compare_versions(node_data.version, node_data.latest_version) == "higher":
+            field_symbol = ":green_square:"
+            if node_data.version == node_data.cluster_version:
+                field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is {node_data.latest_version}.`"
+            else:
+                field_info = f"`ⓘ  You seem to be running a test-release. Latest stable version is {node_data.latest_version}.`"
+            return version_field(), False, False
+        else:
+            field_symbol = ":yellow_square:"
+            if node_data.cluster_peer_count in (0, None):
+                field_info = f"`ⓘ  Could not determine the current cluster version due to unstable connection or maintenance but latest Github version is {node_data.latest_version}.`"
+            else:
+                field_info = f"`ⓘ  Latest version is {node_data.latest_version}.`"
+            return version_field(), False, False
+
     else:
-        field_symbol = ":green_square:"
-        field_info = f"`ⓘ  Node version: {node_data.version}, cluster version: {node_data.cluster_version}`"
-        return version_field(), False, False
+        return (f":yellow_square: **TESSELLATION**\n"
+                f"" f"`ⓘ  No data available.`"), False, True
 
 
 def build_system_node_load_average(node_data: schemas.Node)  -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
@@ -1018,7 +1013,7 @@ def build_embed(node_data: schemas.Node, module_name) -> nextcord.Embed:
                 yellow_color_trigger, red_color_trigger
             )
             embed_created = True
-    if node_data.version is not None:
+    if isinstance(version.parse(node_data.version), version.Version):
         node_version, red_color_trigger, yellow_color_trigger = build_system_node_version(node_data)
         if (
                 red_color_trigger is True or yellow_color_trigger is True
