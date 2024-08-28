@@ -254,6 +254,7 @@ async def main_loop(version_manager, _configuration):
                                 f"main.py - main_loop\n"
                                 f"Error: Could not send traceback via Discord"
                             )
+                        raise RuntimeError(f"Bot experienced a critical error: {e}")
 
                 else:
                     # If uvicorn isn't running
@@ -284,9 +285,9 @@ def run_uvicorn_process():
 def configure_logging():
     log_configs = [
         ("app", "assets/data/logs/app.log", logging.INFO if not dev_env else logging.DEBUG),
-        ("rewards", "assets/data/logs/rewards.log", logging.DEBUG if not dev_env else logging.DEBUG),
+        ("rewards", "assets/data/logs/rewards.log", logging.INFO if not dev_env else logging.DEBUG),
         ("nextcord", "assets/data/logs/nextcord.log", logging.CRITICAL if not dev_env else logging.DEBUG),
-        ("stats", "assets/data/logs/stats.log", logging.DEBUG if not dev_env else logging.DEBUG),
+        ("stats", "assets/data/logs/stats.log", logging.INFO if not dev_env else logging.DEBUG),
         ("db_optimization", "assets/data/logs/db_optimization.log", logging.INFO if not dev_env else logging.DEBUG),
         ("commands", "assets/data/logs/commands.log", logging.INFO if not dev_env else logging.DEBUG)
     ]
