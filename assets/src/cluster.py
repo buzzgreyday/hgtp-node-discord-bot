@@ -99,4 +99,8 @@ async def get_module_data(session, node_data: schemas.Node, configuration):
             f"Warning: No module found, no historic associations\n"
             f"Subscriber: {node_data.name} ({node_data.ip}, {node_data.public_port})\n"
         )
+        if node_data.cluster_name:
+            node_data.last_known_cluster_name = node_data.cluster_name
+        elif node_data.former_cluster_name:
+            node_data.last_known_cluster_name = node_data.former_cluster_name
     return node_data

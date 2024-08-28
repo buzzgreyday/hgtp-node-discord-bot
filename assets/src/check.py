@@ -45,7 +45,7 @@ async def automatic(session, cached_subscriber, cluster_data, cluster_name, laye
         if not node_data.last_known_cluster_name and node_data.layer == layer:
             cached_subscriber["cluster_name"] = None
             if cached_subscriber["removal_datetime"] in (None, 'None'):
-                cached_subscriber["removal_datetime"] = datetime.datetime.now() + datetime.timedelta(days=30)
+                cached_subscriber["removal_datetime"] = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=30)
 
         data = await determine_module.notify(data, _configuration)
 
