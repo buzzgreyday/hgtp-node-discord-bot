@@ -426,14 +426,17 @@ def _create_timeslice_data(
 
 
     # When timestamp is over 30 days old create a new dfs containing the daily sliced data
-    sliced_snapshot_df = pd.concat(list_of_daily_snapshot_df, ignore_index=True)
-    sliced_node_data_df = pd.concat(list_of_daily_node_df, ignore_index=True)
+    try:
+        sliced_snapshot_df = pd.concat(list_of_daily_snapshot_df, ignore_index=True)
+    except ValueError:
+        pass
+    else:
+        sliced_snapshot_df = _calculate_generals_post_traverse_slice(sliced_snapshot_df)
+    try:
+        sliced_node_data_df = pd.concat(list_of_daily_node_df, ignore_index=True)
+    except ValueError:
+        pass
 
-    sliced_snapshot_df = _calculate_generals_post_traverse_slice(sliced_snapshot_df)
-
-    # Give GIL something to do, if she has time
-    del list_of_daily_snapshot_df, list_of_daily_node_df
-    gc.collect()
     # Return the data containing cleaner daily data
     return sliced_snapshot_df, sliced_node_data_df
 
