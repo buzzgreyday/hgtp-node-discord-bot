@@ -866,8 +866,9 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
             f"```Version {node_data.version}```"
             f"{field_info}"
         )
-    if isinstance(version.parse(node_data.cluster_version), version.Version) and isinstance(version.parse(node_data.version), version.Version):
-        if node_data.version is not None and node_data.cluster_version is not None:
+
+    if node_data.version is not None and node_data.cluster_version is not None:
+        if isinstance(version.parse(node_data.cluster_version), version.Version) and isinstance(version.parse(node_data.version), version.Version):
             if _compare_versions(node_data.version, node_data.cluster_version) == "equal":
                 field_symbol = ":green_square:"
                 if node_data.cluster_version == node_data.latest_version:
@@ -895,7 +896,12 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
                 field_info = f"`⚠  Please report to hgtp_michael: latest version {node_data.latest_version}, cluster version {node_data.cluster_version}, node version {node_data.version}.`"
                 red_color_trigger = True
                 return version_field(), red_color_trigger, False
-        elif node_data.version is not None and node_data.latest_version is not None:
+        else:
+            field_symbol = ":green_square:"
+            field_info = f"`ⓘ  Node version: {node_data.version}, cluster version: {node_data.cluster_version}`"
+            return version_field(), False, False
+    elif node_data.version is not None and node_data.latest_version is not None:
+        if isinstance(version.parse(node_data.cluster_version), version.Version) and isinstance(version.parse(node_data.version), version.Version):
             if _compare_versions(node_data.version, node_data.latest_version) == "higher":
                 field_symbol = ":green_square:"
                 if node_data.version == node_data.cluster_version:
@@ -910,14 +916,13 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
                 else:
                     field_info = f"`ⓘ  Latest version is {node_data.latest_version}.`"
                 return version_field(), False, False
-
         else:
-            return (f":yellow_square: **TESSELLATION**\n"
-                    f"" f"`ⓘ  No data available.`"), False, True
+            field_symbol = ":green_square:"
+            field_info = f"`ⓘ  Node version: {node_data.version}, cluster version: {node_data.cluster_version}`"
+            return version_field(), False, False
     else:
-        field_symbol = ":green_square:"
-        field_info = f"`ⓘ  Node version: {node_data.version}, cluster version: {node_data.cluster_version}`"
-        return version_field(), False, False
+        return (f":yellow_square: **TESSELLATION**\n"
+                f"" f"`ⓘ  No data available.`"), False, True
 
 
 def build_system_node_load_average(node_data: schemas.Node)  -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
