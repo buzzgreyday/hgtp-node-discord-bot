@@ -866,7 +866,7 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
             f"```Version {node_data.version}```"
             f"{field_info}"
         )
-    if node_data.cluster_name != "testnet":
+    if node_data.last_known_cluster_name != "testnet":
         if node_data.version is not None and node_data.cluster_version is not None:
             if _compare_versions(node_data.version, node_data.cluster_version) == "equal":
                 field_symbol = ":green_square:"

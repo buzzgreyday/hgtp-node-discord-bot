@@ -422,20 +422,17 @@ def _create_timeslice_data(
         list_of_daily_node_df.append(_traverse_slice_node_data(node_data, start_time, traverse_seconds))
         start_time = start_time - traverse_seconds
 
-
-
-
     # When timestamp is over 30 days old create a new dfs containing the daily sliced data
     try:
         sliced_snapshot_df = pd.concat(list_of_daily_snapshot_df, ignore_index=True)
     except ValueError:
-        pass
+        sliced_snapshot_df = None
     else:
         sliced_snapshot_df = _calculate_generals_post_traverse_slice(sliced_snapshot_df)
     try:
         sliced_node_data_df = pd.concat(list_of_daily_node_df, ignore_index=True)
     except ValueError:
-        pass
+        sliced_node_data_df = None
 
     # Return the data containing cleaner daily data
     return sliced_snapshot_df, sliced_node_data_df
@@ -572,7 +569,9 @@ async def run():
                     sliced_snapshot_df, sliced_node_df = _create_timeslice_data(
                         snapshot_data, node_data, snapshot_data["timestamp"].values.max()
                     )
-
+                    if not sliced_snapshot_df and not sliced_node_df:
+                        logging.getLogger("stats").error("sliced data is None")
+                        await asyncio.sleep(60)
                     sliced_snapshot_df, sliced_node_df = _generate_visuals(sliced_snapshot_df, sliced_node_df)
 
                     """CREATE DATA FOR THE ENTIRE PERIOD"""
