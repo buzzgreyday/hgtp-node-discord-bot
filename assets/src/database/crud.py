@@ -120,9 +120,17 @@ class CRUD:
     async def post_ordinal(
             self, data: OrdinalSchema, async_session: async_sessionmaker[AsyncSession]
     ):
-        """Inserts node data from automatic check into database file"""
-        batch_processor = DatabaseBatchProcessor(batch_size=100)
-        await batch_processor.add_to_batch(OrdinalModel(**data.__dict__), async_session)
+        """Refactor: In database module create Batch. Inserts node data from automatic check into database file"""
+        async with async_session() as session:
+            try:
+                session.add(OrdinalModel(**data.__dict__))
+                await session.commit()
+                logging.getLogger("rewards").debug(
+                    f"posted ordinal {data.ordinal} to database"
+                )
+            except Exception as e:
+                await session.rollback()
+                raise e
         return jsonable_encoder(data)
 
     async def post_prices(
