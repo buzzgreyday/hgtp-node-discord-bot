@@ -334,7 +334,7 @@ def main():
         bot.loop.create_task(main_loop(version_manager, _configuration))
         try:
             bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))
-        except ClientConnectorError:
+        except Exception:
             bot.close()
             time.sleep(3)
 
