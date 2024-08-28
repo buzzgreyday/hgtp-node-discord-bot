@@ -426,13 +426,13 @@ def _create_timeslice_data(
     try:
         sliced_snapshot_df = pd.concat(list_of_daily_snapshot_df, ignore_index=True)
     except ValueError:
-        sliced_snapshot_df = None
+        sliced_snapshot_df = pd.DataFrame()
     else:
         sliced_snapshot_df = _calculate_generals_post_traverse_slice(sliced_snapshot_df)
     try:
         sliced_node_data_df = pd.concat(list_of_daily_node_df, ignore_index=True)
     except ValueError:
-        sliced_node_data_df = None
+        sliced_node_data_df = pd.DataFrame()
 
     # Return the data containing cleaner daily data
     return sliced_snapshot_df, sliced_node_data_df
@@ -569,7 +569,7 @@ async def run():
                     sliced_snapshot_df, sliced_node_df = _create_timeslice_data(
                         snapshot_data, node_data, snapshot_data["timestamp"].values.max()
                     )
-                    if not sliced_snapshot_df and not sliced_node_df:
+                    if sliced_snapshot_df.empty and sliced_node_df.empty:
                         logging.getLogger("stats").error("sliced data is None")
                         await asyncio.sleep(60)
                     sliced_snapshot_df, sliced_node_df = _generate_visuals(sliced_snapshot_df, sliced_node_df)
