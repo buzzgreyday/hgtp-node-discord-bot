@@ -415,11 +415,8 @@ def _create_timeslice_data(
 
         # Add daily data to the chain of daily data before traversing to the day before
         list_of_daily_snapshot_df.append(_traverse_slice_snapshot_data(data, start_time, traverse_seconds))
-        # Set start_time to the day before and continue loop
-        start_time = start_time - traverse_seconds
-
-    while start_time >= node_data["timestamp"].values.min():
         list_of_daily_node_df.append(_traverse_slice_node_data(node_data, start_time, traverse_seconds))
+        # Set start_time to the day before and continue loop
         start_time = start_time - traverse_seconds
 
     # When timestamp is over 30 days old create a new dfs containing the daily sliced data
