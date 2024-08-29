@@ -138,3 +138,19 @@ async def subscriber_role_deny_request(process_msg):
 async def send_traceback(bot, trace_message):
     user = await bot.fetch_user("794353079825727500")
     await user.send(f"**ERROR OCCURRED**\n```{trace_message}```")
+
+
+async def command_error(ctx, bot):
+    embed = nextcord.Embed(
+        title="Not a valid command".upper(), color=nextcord.Color.orange()
+    )
+    embed.add_field(
+        name=f"\U00002328` {ctx.message.content}`",
+        value=f"`ⓘ You didn't input a valid command`",
+        inline=False,
+    )
+    embed.set_author(
+        name=ctx.message.author,
+        icon_url=bot.get_user(ctx.message.author.id).display_avatar.url,
+    )
+    return embed

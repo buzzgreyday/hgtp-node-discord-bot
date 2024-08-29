@@ -6,14 +6,14 @@ import sys
 import threading
 import time
 import traceback
+from datetime import datetime
 from typing import List, Tuple, Dict
 import psutil
 
 import aiohttp
 import yaml
-from aiohttp import ClientConnectorError
 
-from assets.src import preliminaries, check, history, rewards, stats, api, dt
+from assets.src import preliminaries, check, history, rewards, stats, api
 from assets.src.database.database import update_user, optimize
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
@@ -39,6 +39,8 @@ def load_configuration():
         )
         sys.exit(1)
 
+def timing():
+    return datetime.now(), time.perf_counter()
 
 """MAIN LOOP"""
 
@@ -168,7 +170,7 @@ async def main_loop(version_manager, _configuration):
 
                         no_cluster_subscribers = []
                         for cluster in clusters:
-                            dt_start, timer_start = dt.timing()
+                            dt_start, timer_start = timing()
                             if cluster["cluster_name"] not in (None, 'None', False, 'False', '', [], {}, ()):
                                 # Need a check for if cluster is down, skip check
                                 try:
@@ -234,7 +236,7 @@ async def main_loop(version_manager, _configuration):
                                 no_cluster_subscribers = [dict(t) for t in unique_tuples]
 
                                 # Log the completion time
-                                dt_stop, timer_stop = dt.timing()
+                                dt_stop, timer_stop = timing()
 
                                 logging.getLogger("app").info(
                                     f"main.py - main_loop\n"

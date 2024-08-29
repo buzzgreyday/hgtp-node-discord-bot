@@ -1,11 +1,10 @@
-import datetime
 import logging
 import os
+import datetime
 
 import pandas as pd
 
 from assets.src import (
-    dt,
     preliminaries,
     determine_module,
     api,
@@ -94,7 +93,7 @@ async def request(session, process_msg, layer, requester, _configuration):
                 wallet_address=subscriber.wallet.values[0],
                 latest_version=version_manager.get_version(),
                 notify=True,
-                timestamp_index=dt.datetime.now(datetime.UTC),
+                timestamp_index=datetime.datetime.now(datetime.UTC).replace(tzinfo=None),
             )
 
             process_msg = await messages.update_request_process_msg(process_msg, 3)

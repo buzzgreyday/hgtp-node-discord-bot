@@ -1,8 +1,7 @@
 import logging
 import os
 
-from assets.src import exception
-from assets.src.discord import discord
+from assets.src.discord import discord, messages
 from assets.src.discord.services import bot
 
 import nextcord
@@ -58,7 +57,7 @@ async def on_message(message):
                 await message.add_reaction("\U0000274C")
                 if not isinstance(ctx.message.channel, nextcord.DMChannel):
                     await message.delete(delay=3)
-                embed = await exception.command_error(ctx, bot)
+                embed = await messages.command_error(ctx, bot)
 
                 await ctx.message.author.send(embed=embed)
             else:
