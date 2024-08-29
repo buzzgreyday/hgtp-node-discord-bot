@@ -1,10 +1,9 @@
 import asyncio
-import datetime
 from typing import List
 
 import pandas as pd
 
-from assets.src import schemas, database, api, history, cluster, determine_module, check
+from assets.src import schemas, database, api, check
 from assets.src.database import database, models
 
 IP_REGEX = r'^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$'
