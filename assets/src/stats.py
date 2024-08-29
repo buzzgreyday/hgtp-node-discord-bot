@@ -324,7 +324,6 @@ def _calculate_general_data_median(
 
 def _traverse_slice_snapshot_data(data: pd.DataFrame, start_time, traverse_seconds):
     # Slice daily data
-
     sliced_snapshot_df = data[
         (data["timestamp"] >= start_time - traverse_seconds)
         & (data["timestamp"] <= start_time)
@@ -552,6 +551,7 @@ async def run():
                     while True:
                         snapshot_data, node_data = await _get_data(timestamp)
                         if not snapshot_data.empty and not node_data.empty:
+                            # DEBUGGING: Get's data!
                             break
                         else:
                             await asyncio.sleep(30)
@@ -566,6 +566,7 @@ async def run():
                     sliced_snapshot_df, sliced_node_df = _create_timeslice_data(
                         snapshot_data, node_data, snapshot_data["timestamp"].values.max()
                     )
+                    # Only data until Friday 9. August 2024 11:41:27
                     if sliced_snapshot_df.empty or sliced_node_df.empty:
 
                         logging.getLogger("stats").error(f"sliced data is None:\n"

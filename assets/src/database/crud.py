@@ -67,10 +67,13 @@ class DatabaseBatchProcessor:
                 finally:
                     self.batch_data = []
 
-    async def add_to_batch(self, data: NodeModel | OldNodeModel | OrdinalModel, async_session: async_sessionmaker[AsyncSession]):
+    async def add_to_batch(self, data: NodeModel | OldNodeModel | OrdinalModel | OldOrdinalModel, async_session: async_sessionmaker[AsyncSession]):
         self.batch_data.append(data)
         if len(self.batch_data) >= self.batch_size:
             await self.process_batch(async_session)
+
+
+batch_processor = DatabaseBatchProcessor(batch_size=100)
 
 
 class CRUD:
@@ -121,16 +124,7 @@ class CRUD:
             self, data: OrdinalSchema, async_session: async_sessionmaker[AsyncSession]
     ):
         """Refactor: In database module create Batch. Inserts node data from automatic check into database file"""
-        async with async_session() as session:
-            try:
-                session.add(OrdinalModel(**data.__dict__))
-                await session.commit()
-                logging.getLogger("rewards").debug(
-                    f"posted ordinal {data.ordinal} to database"
-                )
-            except Exception as e:
-                await session.rollback()
-                raise e
+        await batch_processor.add_to_batch(OrdinalModel(**data.__dict__), async_session)
         return jsonable_encoder(data)
 
     async def post_prices(
@@ -260,7 +254,7 @@ class CRUD:
             results = results.scalars().all()
         return results
 
-    async def _migrate_data_ids(self, batch_results, processed_ids, async_session, batch_processor=None):
+    async def _migrate_data_ids(self, batch_results, processed_ids, async_session, batch_processor=batch_processor):
         # Batch processing
         for data in batch_results:
             data = NodeSchema(**data.__dict__)
@@ -298,7 +292,7 @@ class CRUD:
         """
         logging.getLogger("db_optimization").info(f"Node data migration initiated.")
         batch_size = 10000
-        batch_processor = DatabaseBatchProcessor(batch_size)
+        bp = DatabaseBatchProcessor(batch_size)
         offset = 0
 
         # Query for old data
@@ -310,7 +304,7 @@ class CRUD:
                 logging.getLogger("db_optimization").info(f"No more node data to migrate")
                 break  # No more data
 
-            processed_ids = await self._migrate_data_ids(batch_results, processed_ids, async_session, batch_processor=batch_processor)
+            processed_ids = await self._migrate_data_ids(batch_results, processed_ids, async_session, batch_processor=bp)
             await self._delete_data_ids(processed_ids, async_session)
 
             del batch_results
@@ -333,7 +327,7 @@ class CRUD:
                 f"Type: {e}\n"
                 f"Details: {traceback.format_exc()}")
 
-    async def _migrate_ordinal_ids(self, batch_results, processed_ids, async_session, batch_processor=None):
+    async def _migrate_ordinal_ids(self, batch_results, processed_ids, async_session, batch_processor=batch_processor):
         # Batch processing
         for ordinal in batch_results:
             ordinal_dict = {key: value for key, value in ordinal.__dict__.items() if key != "_sa_instance_state"}
@@ -375,7 +369,7 @@ class CRUD:
     async def migrate_old_ordinals(self, async_session: async_sessionmaker[AsyncSession], configuration):
         logging.getLogger("db_optimization").info(f"Ordinal data migration initiated.")
         batch_size = 10000
-        batch_processor = DatabaseBatchProcessor(batch_size)
+        bp = DatabaseBatchProcessor(batch_size)
         offset = 0
 
         # Query for old data
@@ -386,7 +380,7 @@ class CRUD:
                 logging.getLogger("db_optimization").info(f"No more ordinals to migrate")
                 break  # No more data
 
-            processed_ids = await self._migrate_ordinal_ids(batch_results, processed_ids, async_session, batch_processor=batch_processor)
+            processed_ids = await self._migrate_ordinal_ids(batch_results, processed_ids, async_session, batch_processor=bp)
             await self._delete_ordinal_ids(processed_ids, async_session)
 
             del batch_results
