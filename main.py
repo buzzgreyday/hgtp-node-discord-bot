@@ -39,8 +39,10 @@ def load_configuration():
         )
         sys.exit(1)
 
+
 def timing():
     return datetime.now(), time.perf_counter()
+
 
 """MAIN LOOP"""
 
@@ -117,7 +119,7 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
                             "ip": subscriber[1],
                             "public_port": subscriber[2],
                             "layer": layer,
-                            "cluster_name": "mainnet",
+                            "cluster_name": subscriber[4],
                             "located": False,
                             "new_subscriber": False,
                             "removal_datetime": subscriber[3]
