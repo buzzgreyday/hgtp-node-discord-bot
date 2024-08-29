@@ -19,6 +19,7 @@ from assets.src.user import node_status_check
 
 dev_env = os.getenv("NODEBOT_DEV_ENV")
 
+
 async def automatic(session, cached_subscriber, cluster_data, cluster_name, layer, version_manager, _configuration):
     logger = logging.getLogger("app")
 

@@ -243,14 +243,10 @@ async def main_loop(version_manager, _configuration):
                                 )
 
                     except Exception as e:
-                        logging.getLogger("app").error(
-                            f"main.py - main_loop\n"
-                            f"Error: {traceback.format_exc()}"
-                        )
                         try:
-                            await discord.messages.send_traceback(bot, f"Bot experienced a critical error: {traceback.format_exc()}")
-                            raise RuntimeError(f"Bot experienced a critical error: {e}")
-                        except Exception:
+                            await discord.messages.send_traceback(bot, f"Bot experienced a critical error: {e}")
+                            raise RuntimeError(f"Bot experienced a critical error: {traceback.format_exc()}")
+                        except Exception as e:
                             logging.getLogger("app").error(
                                 f"main.py - main_loop\n"
                                 f"Error: Could not send traceback via Discord"

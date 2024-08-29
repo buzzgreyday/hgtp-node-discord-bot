@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 from typing import List
 
 import pandas as pd
@@ -28,7 +29,7 @@ async def node_status_check(
         wallet_address=subscriber.wallet.values[0],
         latest_version=version_manager.get_version(),
         notify=False,
-        timestamp_index=dt.datetime.now(),
+        timestamp_index=dt.datetime.now(datetime.timezone.utc),
     )
     node_data = await history.node_data(session, None, node_data, configuration)
     found_in_cluster, cluster_data = cluster.locate_node(node_data, cluster_data)
