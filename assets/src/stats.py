@@ -569,9 +569,13 @@ async def run():
                     sliced_snapshot_df, sliced_node_df = _create_timeslice_data(
                         snapshot_data, node_data, snapshot_data["timestamp"].values.max()
                     )
-                    if sliced_snapshot_df.empty and sliced_node_df.empty:
-                        logging.getLogger("stats").error("sliced data is None")
+                    if sliced_snapshot_df.empty or sliced_node_df.empty:
+
+                        logging.getLogger("stats").error(f"sliced data is None:\n"
+                                                         f"\t{sliced_snapshot_df}\n"
+                                                         f"\t{sliced_node_df}")
                         await asyncio.sleep(60)
+                        continue
                     sliced_snapshot_df, sliced_node_df = _generate_visuals(sliced_snapshot_df, sliced_node_df)
 
                     """CREATE DATA FOR THE ENTIRE PERIOD"""

@@ -868,7 +868,7 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
         )
 
     if node_data.version is not None and node_data.cluster_version is not None:
-        if isinstance(version.parse(node_data.cluster_version), version.Version) and isinstance(version.parse(node_data.version), version.Version):
+        if isinstance(version.parse(node_data.cluster_version), version.Version) or isinstance(version.parse(node_data.version), version.Version):
             if _compare_versions(node_data.version, node_data.cluster_version) == "equal":
                 field_symbol = ":green_square:"
                 if node_data.cluster_version == node_data.latest_version:
@@ -901,7 +901,7 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
             field_info = f"`ⓘ  Node version: {node_data.version}, cluster version: {node_data.cluster_version}`"
             return version_field(), False, False
     elif node_data.version is not None and node_data.latest_version is not None:
-        if isinstance(version.parse(node_data.latest_version), version.Version) and isinstance(version.parse(node_data.version), version.Version):
+        if isinstance(version.parse(node_data.latest_version), version.Version) or isinstance(version.parse(node_data.version), version.Version):
             if _compare_versions(node_data.version, node_data.latest_version) == "higher":
                 field_symbol = ":green_square:"
                 if node_data.version == node_data.cluster_version:
