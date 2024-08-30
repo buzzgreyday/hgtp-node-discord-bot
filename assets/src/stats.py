@@ -324,7 +324,6 @@ def _calculate_general_data_median(
 
 def _traverse_slice_snapshot_data(data: pd.DataFrame, start_time, traverse_seconds):
     # Slice daily data
-
     sliced_snapshot_df = data[
         (data["timestamp"] >= start_time - traverse_seconds)
         & (data["timestamp"] <= start_time)
@@ -420,14 +419,17 @@ def _create_timeslice_data(
         start_time = start_time - traverse_seconds
 
     # When timestamp is over 30 days old create a new dfs containing the daily sliced data
-    sliced_snapshot_df = pd.concat(list_of_daily_snapshot_df, ignore_index=True)
-    sliced_node_data_df = pd.concat(list_of_daily_node_df, ignore_index=True)
+    try:
+        sliced_snapshot_df = pd.concat(list_of_daily_snapshot_df, ignore_index=True)
+    except ValueError:
+        sliced_snapshot_df = pd.DataFrame()
+    else:
+        sliced_snapshot_df = _calculate_generals_post_traverse_slice(sliced_snapshot_df)
+    try:
+        sliced_node_data_df = pd.concat(list_of_daily_node_df, ignore_index=True)
+    except ValueError:
+        sliced_node_data_df = pd.DataFrame()
 
-    sliced_snapshot_df = _calculate_generals_post_traverse_slice(sliced_snapshot_df)
-
-    # Give GIL something to do, if she has time
-    del list_of_daily_snapshot_df, list_of_daily_node_df
-    gc.collect()
     # Return the data containing cleaner daily data
     return sliced_snapshot_df, sliced_node_data_df
 
@@ -480,8 +482,8 @@ async def _get_data(timestamp):
                 await asyncio.sleep(3)
             else:
                 break
-        snapshot_data = pd.DataFrame(snapshot_data)
-        node_data = pd.DataFrame(node_data)
+    snapshot_data = pd.DataFrame(snapshot_data)
+    node_data = pd.DataFrame(node_data)
 
     return snapshot_data, node_data
 
@@ -549,6 +551,7 @@ async def run():
                     while True:
                         snapshot_data, node_data = await _get_data(timestamp)
                         if not snapshot_data.empty and not node_data.empty:
+                            # DEBUGGING: Get's data!
                             break
                         else:
                             await asyncio.sleep(30)
@@ -563,7 +566,14 @@ async def run():
                     sliced_snapshot_df, sliced_node_df = _create_timeslice_data(
                         snapshot_data, node_data, snapshot_data["timestamp"].values.max()
                     )
+                    # Only data until Friday 9. August 2024 11:41:27
+                    if sliced_snapshot_df.empty or sliced_node_df.empty:
 
+                        logging.getLogger("stats").error(f"sliced data is None:\n"
+                                                         f"\t{sliced_snapshot_df}\n"
+                                                         f"\t{sliced_node_df}")
+                        await asyncio.sleep(60)
+                        continue
                     sliced_snapshot_df, sliced_node_df = _generate_visuals(sliced_snapshot_df, sliced_node_df)
 
                     """CREATE DATA FOR THE ENTIRE PERIOD"""
@@ -593,7 +603,7 @@ async def run():
 
                     # Order the data by top earners
                     snapshot_data = snapshot_data.sort_values(
-                        by="dag_address_sum_dev", ascending=False
+                        by="dag_address_sum", ascending=False
                     ).reset_index(drop=True)
                     snapshot_data["earner_score"] = snapshot_data.index + 1
                     # Total len is used to count the total number of nodes and calc the percent of node wallets

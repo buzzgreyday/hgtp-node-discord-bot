@@ -154,7 +154,7 @@ async def get_user_ids(session, layer, requester, _configuration) -> List:
                 await asyncio.sleep(3)
 
 
-async def locate_node(session, _configuration, requester, id_, ip, port):
+async def locate_node(session, node_id, ip, port):
     """Locate every subscription where ID is id_
     return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])
     """
@@ -162,7 +162,7 @@ async def locate_node(session, _configuration, requester, id_, ip, port):
     while True:
         try:
             data, resp_status = await Request(
-                session, f"http://127.0.0.1:8000/user/ids/{id_}/{ip}/{port}"
+                session, f"http://127.0.0.1:8000/user/ids/{node_id}/{ip}/{port}"
             ).db_json(timeout=30)
         except (
             asyncio.exceptions.TimeoutError,

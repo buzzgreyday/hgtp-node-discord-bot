@@ -6,14 +6,14 @@ import sys
 import threading
 import time
 import traceback
+from datetime import datetime
 from typing import List, Tuple, Dict
 import psutil
 
 import aiohttp
 import yaml
-from aiohttp import ClientConnectorError
 
-from assets.src import preliminaries, check, history, rewards, stats, api, dt
+from assets.src import preliminaries, check, history, rewards, stats, api
 from assets.src.database.database import update_user, optimize
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
@@ -38,6 +38,10 @@ def load_configuration():
             f"main.py - Invalid configuration file 'config.yml'"
         )
         sys.exit(1)
+
+
+def timing():
+    return datetime.now(), time.perf_counter()
 
 
 """MAIN LOOP"""
@@ -115,7 +119,7 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
                             "ip": subscriber[1],
                             "public_port": subscriber[2],
                             "layer": layer,
-                            "cluster_name": "mainnet",
+                            "cluster_name": subscriber[4],
                             "located": False,
                             "new_subscriber": False,
                             "removal_datetime": subscriber[3]
@@ -168,7 +172,7 @@ async def main_loop(version_manager, _configuration):
 
                         no_cluster_subscribers = []
                         for cluster in clusters:
-                            dt_start, timer_start = dt.timing()
+                            dt_start, timer_start = timing()
                             if cluster["cluster_name"] not in (None, 'None', False, 'False', '', [], {}, ()):
                                 # Need a check for if cluster is down, skip check
                                 try:
@@ -234,7 +238,7 @@ async def main_loop(version_manager, _configuration):
                                 no_cluster_subscribers = [dict(t) for t in unique_tuples]
 
                                 # Log the completion time
-                                dt_stop, timer_stop = dt.timing()
+                                dt_stop, timer_stop = timing()
 
                                 logging.getLogger("app").info(
                                     f"main.py - main_loop\n"
@@ -243,17 +247,15 @@ async def main_loop(version_manager, _configuration):
                                 )
 
                     except Exception as e:
-                        logging.getLogger("app").error(
-                            f"main.py - main_loop\n"
-                            f"Error: {traceback.format_exc()}"
-                        )
                         try:
-                            await discord.messages.send_traceback(bot, traceback.format_exc())
-                        except Exception:
+                            await discord.messages.send_traceback(bot, f"Bot experienced a critical error: {e}")
+                            raise RuntimeError(f"Bot experienced a critical error: {traceback.format_exc()}")
+                        except Exception as e:
                             logging.getLogger("app").error(
                                 f"main.py - main_loop\n"
                                 f"Error: Could not send traceback via Discord"
                             )
+                            raise RuntimeError(f"Bot experienced a critical error: {e}")
 
                 else:
                     # If uvicorn isn't running
@@ -347,7 +349,7 @@ def main():
         bot.loop.create_task(main_loop(version_manager, _configuration))
         try:
             bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))
-        except ClientConnectorError:
+        except Exception:
             bot.close()
             time.sleep(3)
 
