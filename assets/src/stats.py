@@ -1,12 +1,11 @@
 import asyncio
-import gc
 import hashlib
 import logging
 import traceback
 import warnings
 from datetime import datetime, timedelta, timezone
 
-from bokeh.models import BoxAnnotation, Range1d, LinearAxis
+from bokeh.models import BoxAnnotation, Range1d, LinearAxis, HoverTool, Legend
 from bokeh.plotting import figure, output_file, save
 from bokeh.palettes import Category20c_10
 import pandas as pd
@@ -117,6 +116,10 @@ class Visual:
             logging.getLogger("stats").debug(f"Creating reward visualization for {destination}")
             output_file(f"{path}/rewards_{destination}.html")
             destination_df = self.df[self.df["destinations"] == destination]
+            # Get the closest timestamp for zoom
+            start_x_zoom = pd.to_datetime(destination_df["timestamp"].values.max() - 604800, unit="s")
+            end_x_zoom = pd.to_datetime(destination_df["timestamp"].values.max(), unit="s")
+
             p = figure(
                 title=f"",
                 x_axis_label="Time",
@@ -124,53 +127,74 @@ class Visual:
                 x_axis_type="datetime",
                 width=600,
                 height=400,
+                x_range=[start_x_zoom, end_x_zoom],
             )
-            p.sizing_mode = ('scale_width')
+            p.sizing_mode = 'scale_width'
+            p.xaxis.major_label_orientation = 0.785
+            p.toolbar.logo = None
 
-            p.line(
-                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
-                destination_df["dag_address_daily_sum"],
+            x = pd.to_datetime(destination_df["timestamp"], unit="s")
+            legend_items = []
+
+            # Plot DAG Earnings (Node)
+            line_node = p.line(
+                x, destination_df["dag_address_daily_sum"],
                 legend_label="Node",
                 color=palette[0],
                 line_width=3,
             )
-            p.line(
-                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
+            legend_items.append(("Node", [line_node]))
+
+            # Plot Network Median
+            line_network = p.line(
+                x,
                 destination_df["daily_overall_median"],
                 legend_label="Network",
                 color="silver",
                 line_dash="dotted",
                 line_width=3,
             )
-            p.line(
-                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
+            legend_items.append(("Network", [line_network]))
+
+            # Plot Node Average
+            line_node_avg = p.line(
+                x,
                 destination_df["dag_address_daily_mean"].median(),
                 line_color=palette[0],
                 line_dash="dashed",
-                legend_label=f"Node avg.",
+                legend_label="Node avg.",
             )
+            legend_items.append(("Node avg.", [line_node_avg]))
 
-            # Add a second y-axis on the right
+            # Add a second y-axis for USD Value
             p.extra_y_ranges = {"usd_value": Range1d(start=0, end=destination_df["usd_address_daily_sum"].max())}
             p.add_layout(LinearAxis(y_range_name="usd_value", axis_label="$USD value"), 'right')
 
             # Line for the right y-axis
-            p.line(
-                pd.to_datetime(destination_df["timestamp"] * 1000, unit="ms"),
-                destination_df["usd_address_daily_sum"],
+            line_usd = p.line(
+                x, destination_df["usd_address_daily_sum"],
                 legend_label="$USD value",
                 color="green",
                 line_width=3,
                 y_range_name="usd_value"
             )
+            legend_items.append(("$USD value", [line_usd]))
 
-            green_box = BoxAnnotation(bottom=self.df["daily_overall_median"].median(), left=0, fill_alpha=0.1,
-                                      fill_color='#00b4cd')
-            red_box = BoxAnnotation(top=self.df["daily_overall_median"].median(), left=0, fill_alpha=0.1, fill_color='#f64336')
-            p.add_layout(green_box)
-            p.add_layout(red_box)
+            # Create and add the legend below the plot
+            legend = Legend(items=legend_items, orientation="horizontal", location="center")
+            p.add_layout(legend, 'below')
 
-            p = self.add_legend(p)
+            hover = HoverTool(
+                tooltips=[
+                    ("Date", "@x{%Y-%m-%d %H:%M:%S}"),
+                    ("$DAG Earnings", "@dag_address_daily_sum"),
+                    ("$USD Value", "@usd_address_daily_sum"),
+                ],
+                formatters={"@x": "datetime"}
+            )
+            p.add_tools(hover)
+
+            # p = self.add_legend(p)
             p = self.add_color(p)
 
             save(p)
