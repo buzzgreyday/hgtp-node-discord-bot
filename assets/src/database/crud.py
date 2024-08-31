@@ -673,7 +673,7 @@ class CRUD:
             self, timestamp: int, async_session: async_sessionmaker[AsyncSession]
     ):
         async with async_session() as session:
-            batch_size = 10000
+            batch_size = 30000
             offset = 0
             data = {
                 "timestamp": [],
@@ -692,9 +692,12 @@ class CRUD:
                         .offset(offset)
                         .limit(batch_size)
                     )
+                    print(f"Get ordinals from timestamp: {datetime.fromtimestamp(timestamp)}, offset: {offset}")
                     logging.getLogger("stats").debug(f"Get ordinals from timestamp: {timestamp}, offset: {offset}")
                     results = await session.execute(statement)
                     batch_results = results.scalars().all()
+                    print(f"Got data from datetime: {datetime.fromtimestamp(batch_results[0].timestamp)}\n"
+                          f"---")
                 except Exception:
                     logging.getLogger("stats").warning(traceback.format_exc())
 
@@ -712,8 +715,8 @@ class CRUD:
                 del results
                 del batch_results
                 offset += batch_size
-                await asyncio.sleep(1)
-                gc.collect()
+                await asyncio.sleep(0.1)
+                # gc.collect()
 
         return data
 
@@ -725,7 +728,7 @@ class CRUD:
         """
         one_gigabyte = 1073741824
         async with async_session() as session:
-            batch_size = 10000
+            batch_size = 30000
             offset = 0
             data = {
                 "timestamp": [],
@@ -784,8 +787,8 @@ class CRUD:
                 del results
                 del batch_results
                 offset += batch_size
-                await asyncio.sleep(1)
-                gc.collect()
+                await asyncio.sleep(0.1)
+                # gc.collect()
 
         return data
 
