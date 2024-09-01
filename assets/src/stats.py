@@ -128,7 +128,7 @@ class Visual:
                     width=600,
                     height=400,
                     x_range=[start_x_zoom, end_x_zoom],
-                    toolbar_location='below'
+                    toolbar_location='above'
                 )
                 p.sizing_mode = 'scale_width'
                 p.xaxis.major_label_orientation = 0.785
@@ -173,22 +173,32 @@ class Visual:
                 )
 
                 # Create and add the legend below the plot
-                legend = Legend(items=[
+                legend1 = Legend(items=[
                     ("Node Earnings ($DAG)", [line_node]),
-                    ("Node Earnings Value ($USD)", [line_usd]),
+                    ("Node Earnings Value ($USD)", [line_usd])
+
+                ], orientation="horizontal", location="center")
+                legend2 = Legend(items=[
                     ("Network Earnings ($DAG)", [line_network]),
                     ("Node Avg. Earnings ($DAG)", [line_node_avg])
 
                 ], orientation="horizontal", location="center")
-                legend.label_text_color = self.dark_theme_text_color
-                legend.background_fill_color = self.dark_theme_highlight_inactive_color
-                legend.border_line_color = self.dark_theme_bg_color
-                legend.inactive_fill_color = self.dark_theme_bg_color
-                legend.padding = 0  # Set the padding inside the legend box to 0
-                legend.margin = 0  # Set the margin around the legend box to 0
-                legend.click_policy = "hide"
-                p.add_layout(legend, 'below')
-
+                legend1.label_text_color = self.dark_theme_text_color
+                legend2.label_text_color = self.dark_theme_text_color
+                legend1.background_fill_color = self.dark_theme_highlight_inactive_color
+                legend2.background_fill_color = self.dark_theme_highlight_inactive_color
+                legend1.border_line_color = self.dark_theme_bg_color
+                legend2.border_line_color = self.dark_theme_bg_color
+                legend1.inactive_fill_color = self.dark_theme_bg_color
+                legend2.inactive_fill_color = self.dark_theme_bg_color
+                legend1.padding = 0  # Set the padding inside the legend box to 0
+                legend1.margin = 0  # Set the margin around the legend box to 0
+                legend2.padding = 0  # Set the padding inside the legend box to 0
+                legend2.margin = 0  # Set the margin around the legend box to 0
+                legend1.click_policy = "hide"
+                legend2.click_policy = "hide"
+                p.add_layout(legend1, 'below')
+                p.add_layout(legend2, 'below')
                 # Create the invisible renderer
                 invisible_line = p.line(
                     'datetime', 'daily_network_average',
