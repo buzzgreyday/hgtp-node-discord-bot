@@ -97,6 +97,7 @@ class Visual:
 
     def reward_plot(self):
         try:
+            daily_network_average = self.df["daily_overall_median"].mean()
             unique_destinations = self.df["destinations"].unique()
             path = "static"
             palette = Category20c_10
@@ -104,10 +105,11 @@ class Visual:
             for destination in unique_destinations:
                 logging.getLogger("stats").debug(f"Creating reward visualization for {destination}")
                 output_file(f"{path}/rewards_{destination}.html")
-                destination_df = self.df[self.df["destinations"] == destination]
+                destination_df = self.df[self.df["destinations"] == destination].copy()
 
                 # Convert timestamp to datetime for plotting
                 destination_df['datetime'] = pd.to_datetime(destination_df["timestamp"], unit="s")
+                destination_df['daily_network_average'] = daily_network_average
 
                 # Prepare data for plotting using ColumnDataSource
                 source = ColumnDataSource(destination_df)
@@ -178,23 +180,35 @@ class Visual:
                     ("Node avg.", [line_node_avg]),
                     ("$USD value", [line_usd])
                 ], orientation="horizontal", location="center")
+                legend.xaxis.axis_label_text_color = self.dark_theme_text_color
+                legend.yaxis.axis_label_text_color = self.dark_theme_text_color
+                legend.xaxis.major_label_text_color = self.dark_theme_text_color
+                legend.yaxis.major_label_text_color = self.dark_theme_text_color
                 legend.background_fill_color = self.dark_theme_bg_color
                 p.add_layout(legend, 'below')
 
                 # Setup the hover tool
                 hover = HoverTool(
-                    renderers=[line_node, line_usd],
+                    renderers=[line_node, line_usd, line_network, line_node_avg],
                     tooltips=[
                         ("Date", "@datetime{%Y-%m-%d %H:%M:%S}"),
-                        ("$DAG Earnings", "@dag_address_daily_sum"),
-                        ("$USD Value", "@usd_address_daily_sum{0.2f}"),
+                        ("Node $DAG Earnings", "@dag_address_daily_sum{0.2f}"),
+                        ("Node $USD Value", "@usd_address_daily_sum{0.2f}"),
+                        ("Network $DAG Earnings", "@daily_overall_median{0.2f}"),
+                        ("")
                     ],
                     formatters={"@datetime": "datetime"}
                 )
                 p.add_tools(hover)
 
                 # Apply custom color modifications (if any)
-                p = self.add_color(p)
+                p.legend.visible = False
+                green_box = BoxAnnotation(bottom=daily_network_average, left=0, fill_alpha=0.1,
+                                          fill_color='#00b4cd')
+                red_box = BoxAnnotation(top=daily_network_average, left=0, fill_alpha=0.1,
+                                        fill_color='#f64336')
+                p.add_layout(green_box)
+                p.add_layout(red_box)
 
                 # Save the plot to a file
                 save(p)
@@ -565,7 +579,7 @@ async def run():
                     pd.options.display.float_format = "{:.2f}".format
                     # Convert timestamp to epoch
                     timestamp = normalize_timestamp(
-                        datetime.now(timezone.utc).timestamp() - timedelta(days=30).total_seconds()
+                        datetime.now(timezone.utc).timestamp() - timedelta(days=10).total_seconds()
                     )
                     """GET DATA"""
                     # Important: The original data requested below is used after creation of daily data.

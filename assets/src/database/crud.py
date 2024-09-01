@@ -2,7 +2,7 @@ import asyncio
 import gc
 import logging
 import traceback
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 from typing import List, Dict
 
@@ -673,7 +673,7 @@ class CRUD:
             self, timestamp: int, async_session: async_sessionmaker[AsyncSession]
     ):
         async with async_session() as session:
-            batch_size = 30000
+            batch_size = 100000
             offset = 0
             data = {
                 "timestamp": [],
@@ -696,13 +696,15 @@ class CRUD:
                     logging.getLogger("stats").debug(f"Get ordinals from timestamp: {timestamp}, offset: {offset}")
                     results = await session.execute(statement)
                     batch_results = results.scalars().all()
-                    print(f"Got data from datetime: {datetime.fromtimestamp(batch_results[0].timestamp)}\n"
+                    print(f"[{datetime.now()}] Got data from datetime: {datetime.fromtimestamp(batch_results[0].timestamp)}\n"
                           f"---")
                 except Exception:
                     logging.getLogger("stats").warning(traceback.format_exc())
 
                 if not batch_results:
                     logging.getLogger("stats").debug(f"Got all ordinals!")
+                    print(f"[{datetime.now()}] Done! No more ordinals\n"
+                          f"---")
                     break  # No more data
 
                 for row in batch_results:
@@ -715,7 +717,7 @@ class CRUD:
                 del results
                 del batch_results
                 offset += batch_size
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0)
                 # gc.collect()
 
         return data
@@ -728,7 +730,7 @@ class CRUD:
         """
         one_gigabyte = 1073741824
         async with async_session() as session:
-            batch_size = 30000
+            batch_size = 100000
             offset = 0
             data = {
                 "timestamp": [],
@@ -787,7 +789,7 @@ class CRUD:
                 del results
                 del batch_results
                 offset += batch_size
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0)
                 # gc.collect()
 
         return data
