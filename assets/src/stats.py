@@ -180,9 +180,11 @@ class Visual:
                     ("Node Earning ($USD Value)", [line_usd])
                 ], orientation="horizontal", location="center")
                 legend.label_text_color = self.dark_theme_text_color
-                legend.background_fill_color = self.dark_theme_highlight_active_color
+                legend.background_fill_color = self.dark_theme_highlight_inactive_color
                 legend.border_line_color = self.dark_theme_bg_color
-                legend.inactive_fill_color = self.dark_theme_highlight_inactive_color
+                legend.inactive_fill_color = self.dark_theme_bg_color
+                legend.padding = 0  # Set the padding inside the legend box to 0
+                legend.margin = 0  # Set the margin around the legend box to 0
                 legend.click_policy = "hide"
                 p.add_layout(legend, 'below')
 
