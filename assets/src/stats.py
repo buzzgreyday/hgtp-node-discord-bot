@@ -80,6 +80,8 @@ class Visual:
     def __init__(self, data: pd.DataFrame):
         self.dark_theme_bg_color = "#3d3d3d"
         self.dark_theme_text_color = "#f1f2f2"
+        self.dark_theme_highlight_active_color = "#00b4cd"
+        self.dark_theme_highlight_inactive_color = "#007484"
         self.df = data
 
     def add_color(self, p):
@@ -126,6 +128,7 @@ class Visual:
                     width=600,
                     height=400,
                     x_range=[start_x_zoom, end_x_zoom],
+                    toolbar_location='below'
                 )
                 p.sizing_mode = 'scale_width'
                 p.xaxis.major_label_orientation = 0.785
@@ -135,7 +138,6 @@ class Visual:
                 line_node = p.line(
                     'datetime', 'dag_address_daily_sum',
                     source=source,
-                    legend_label="Node",
                     color=palette[0],
                     line_width=3,
                 )
@@ -144,7 +146,6 @@ class Visual:
                 line_network = p.line(
                     'datetime', 'daily_overall_median',
                     source=source,
-                    legend_label="Network",
                     color="silver",
                     line_dash="dotted",
                     line_width=3,
@@ -156,18 +157,16 @@ class Visual:
                     source=source,
                     line_color=palette[0],
                     line_dash="dashed",
-                    legend_label="Node avg.",
                 )
 
                 # Add a second y-axis for USD Value
                 p.extra_y_ranges = {"usd_value": Range1d(start=0, end=destination_df["usd_address_daily_sum"].max())}
-                p.add_layout(LinearAxis(y_range_name="usd_value", axis_label="$USD value"), 'right')
+                p.add_layout(LinearAxis(y_range_name="usd_value", axis_label="$USD Value"), 'right')
 
                 # Line for the right y-axis
                 line_usd = p.line(
                     'datetime', 'usd_address_daily_sum',
                     source=source,
-                    legend_label="$USD value",
                     color="green",
                     line_width=3,
                     y_range_name="usd_value"
@@ -175,40 +174,53 @@ class Visual:
 
                 # Create and add the legend below the plot
                 legend = Legend(items=[
-                    ("Node", [line_node]),
-                    ("Network", [line_network]),
-                    ("Node avg.", [line_node_avg]),
-                    ("$USD value", [line_usd])
+                    ("Node Earnings", [line_node]),
+                    ("Network Earnings", [line_network]),
+                    ("Node Avg. Earnings", [line_node_avg]),
+                    ("Node Earning ($USD Value)", [line_usd])
                 ], orientation="horizontal", location="center")
-                legend.xaxis.axis_label_text_color = self.dark_theme_text_color
-                legend.yaxis.axis_label_text_color = self.dark_theme_text_color
-                legend.xaxis.major_label_text_color = self.dark_theme_text_color
-                legend.yaxis.major_label_text_color = self.dark_theme_text_color
-                legend.background_fill_color = self.dark_theme_bg_color
+                legend.label_text_color = self.dark_theme_text_color
+                legend.background_fill_color = self.dark_theme_highlight_active_color
+                legend.border_line_color = self.dark_theme_bg_color
+                legend.inactive_fill_color = self.dark_theme_highlight_inactive_color
+                legend.click_policy = "hide"
                 p.add_layout(legend, 'below')
+
+                # Create the invisible renderer
+                invisible_line = p.line(
+                    'datetime', 'daily_network_average',
+                    source=source,
+                    line_color="white",  # Set color to blend in with the background
+                    line_alpha=0,  # Make it completely transparent
+                    line_width=0,  # Set width to 0
+                    visible=False  # Ensure it's not visible
+                )
 
                 # Setup the hover tool
                 hover = HoverTool(
-                    renderers=[line_node, line_usd, line_network, line_node_avg],
+                    renderers=[invisible_line],
                     tooltips=[
                         ("Date", "@datetime{%Y-%m-%d %H:%M:%S}"),
-                        ("Node $DAG Earnings", "@dag_address_daily_sum{0.2f}"),
-                        ("Node $USD Value", "@usd_address_daily_sum{0.2f}"),
-                        ("Network $DAG Earnings", "@daily_overall_median{0.2f}"),
-                        ("")
+                        ("Node Earnings ($DAG)", "@dag_address_daily_sum{0.2f}"),
+                        ("Node Value ($)", "@usd_address_daily_sum{0.2f}"),
+                        ("Node Average ($DAG)", "@dag_address_daily_mean{0.2f}"),
+                        ("Network Earnings ($DAG)", "@daily_overall_median{0.2f}"),
+                        ("Network Average ($DAG)", "@daily_network_average{0.2f}")
                     ],
-                    formatters={"@datetime": "datetime"}
+                    formatters={"@datetime": "datetime"},
+                    mode="vline"
                 )
                 p.add_tools(hover)
 
                 # Apply custom color modifications (if any)
-                p.legend.visible = False
                 green_box = BoxAnnotation(bottom=daily_network_average, left=0, fill_alpha=0.1,
                                           fill_color='#00b4cd')
                 red_box = BoxAnnotation(top=daily_network_average, left=0, fill_alpha=0.1,
                                         fill_color='#f64336')
                 p.add_layout(green_box)
                 p.add_layout(red_box)
+
+                p = self.add_color(p)
 
                 # Save the plot to a file
                 save(p)
