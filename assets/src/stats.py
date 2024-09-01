@@ -174,10 +174,11 @@ class Visual:
 
                 # Create and add the legend below the plot
                 legend = Legend(items=[
-                    ("Node Earnings", [line_node]),
-                    ("Network Earnings", [line_network]),
-                    ("Node Avg. Earnings", [line_node_avg]),
-                    ("Node Earning ($USD Value)", [line_usd])
+                    ("Node Earnings ($DAG)", [line_node]),
+                    ("Node Earnings Value ($USD)", [line_usd]),
+                    ("Network Earnings ($DAG)", [line_network]),
+                    ("Node Avg. Earnings ($DAG)", [line_node_avg])
+
                 ], orientation="horizontal", location="center")
                 legend.label_text_color = self.dark_theme_text_color
                 legend.background_fill_color = self.dark_theme_highlight_inactive_color
@@ -195,7 +196,6 @@ class Visual:
                     line_color="white",  # Set color to blend in with the background
                     line_alpha=0,  # Make it completely transparent
                     line_width=0,  # Set width to 0
-                    visible=False  # Ensure it's not visible
                 )
 
                 # Setup the hover tool
