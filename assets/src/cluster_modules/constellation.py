@@ -598,7 +598,10 @@ def build_general_node_state(node_data: schemas.Node) -> tuple[str, bool: red_co
             red_color_trigger = True
             return node_state_field(), red_color_trigger, False
         else:
-            field_info = f"`ⓘ  Connected to {round(float(node_data.node_peer_count * 100 / node_data.cluster_peer_count), 2)}% of the cluster peers`"
+            p = round(float(node_data.node_peer_count * 100 / node_data.cluster_peer_count), 2)
+            if p > 100:
+                p = 100
+            field_info = f"`ⓘ  Connected to {p}% of the cluster peers`"
             field_symbol = ":green_square:"
             node_state = node_data.state.title()
             return node_state_field(), False, False

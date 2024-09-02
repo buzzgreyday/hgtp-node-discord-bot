@@ -603,7 +603,7 @@ async def run():
                     pd.options.display.float_format = "{:.2f}".format
                     # Convert timestamp to epoch
                     timestamp = normalize_timestamp(
-                        datetime.now(timezone.utc).timestamp() - timedelta(days=300).total_seconds()
+                        datetime.now(timezone.utc).timestamp() - timedelta(days=30).total_seconds()
                     )
                     """GET DATA"""
                     # Important: The original data requested below is used after creation of daily data.
@@ -629,7 +629,6 @@ async def run():
                     sliced_snapshot_df, sliced_node_df = _create_timeslice_data(
                         snapshot_data, node_data, snapshot_data["timestamp"].values.max()
                     )
-                    # Only data until Friday 9. August 2024 11:41:27
                     if sliced_snapshot_df.empty or sliced_node_df.empty:
 
                         logging.getLogger("stats").error(f"sliced data is None:\n"
@@ -655,14 +654,16 @@ async def run():
                     # If 30 days then 86400
                     snapshot_data = _sum_usd(snapshot_data, "usd_address_sum", "dag_address_sum")
 
+                    # Calculate the overall average. Since there's possibly some extreme unwanted outliers,
+                    # we'll find the median.
+                    snapshot_data["dag_median_sum"] = snapshot_data["dag_address_sum"].median()
+
                     # The node is earning more than the average if sum deviation is positive, less if negative
                     snapshot_data["dag_address_sum_dev"] = (
                         snapshot_data["dag_address_sum"]
-                        - snapshot_data["dag_address_sum"].median()
+                        - snapshot_data["dag_median_sum"]
                     )
-                    # Calculate the overall average. Since there's possibly some extreme unwanted outliers,
-                    # we'll find the median. (Should be moved up to speed a little bit).
-                    snapshot_data["dag_median_sum"] = snapshot_data["dag_address_sum"].median()
+
 
                     # Order the data by top earners
                     snapshot_data = snapshot_data.sort_values(
