@@ -391,24 +391,24 @@ def _traverse_slice_snapshot_data(data: pd.DataFrame, start_time, traverse_secon
         (data["timestamp"] >= start_time - traverse_seconds)
         & (data["timestamp"] <= start_time)
         ].copy()
+    if not sliced_snapshot_df.empty:
+        # Sum together the daily amount of $DAG earned by every individual operator
+        # and create the column "dag_address_daily_sum"
 
-    # Sum together the daily amount of $DAG earned by every individual operator
-    # and create the column "dag_address_daily_sum"
+        sliced_snapshot_df = _calculate_address_specific_sum(
+            sliced_snapshot_df, "dag_address_daily_sum", "dag"
+        )
 
-    sliced_snapshot_df = _calculate_address_specific_sum(
-        sliced_snapshot_df, "dag_address_daily_sum", "dag"
-    )
+        # Calculate the daily median of all $DAG earned by all operators
 
-    # Calculate the daily median of all $DAG earned by all operators
-
-    sliced_snapshot_df = _calculate_general_data_median(
-        sliced_snapshot_df, "daily_overall_median", "dag_address_daily_sum"
-    )
-    # Clean snapshot data rows
-    sliced_snapshot_df = sliced_snapshot_df[sliced_columns].drop_duplicates(
-        "destinations", ignore_index=True
-    )
-    return sliced_snapshot_df
+        sliced_snapshot_df = _calculate_general_data_median(
+            sliced_snapshot_df, "daily_overall_median", "dag_address_daily_sum"
+        )
+        # Clean snapshot data rows
+        sliced_snapshot_df = sliced_snapshot_df[sliced_columns].drop_duplicates(
+            "destinations", ignore_index=True
+        )
+        return sliced_snapshot_df
 
 
 def _traverse_slice_node_data(data: pd.DataFrame, start_time, traverse_seconds):
@@ -603,7 +603,7 @@ async def run():
                     pd.options.display.float_format = "{:.2f}".format
                     # Convert timestamp to epoch
                     timestamp = normalize_timestamp(
-                        datetime.now(timezone.utc).timestamp() - timedelta(days=10).total_seconds()
+                        datetime.now(timezone.utc).timestamp() - timedelta(days=300).total_seconds()
                     )
                     """GET DATA"""
                     # Important: The original data requested below is used after creation of daily data.

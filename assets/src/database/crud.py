@@ -696,8 +696,6 @@ class CRUD:
                     logging.getLogger("stats").debug(f"Get ordinals from timestamp: {timestamp}, offset: {offset}")
                     results = await session.execute(statement)
                     batch_results = results.scalars().all()
-                    print(f"[{datetime.now()}] Got data from datetime: {datetime.fromtimestamp(batch_results[0].timestamp)}\n"
-                          f"---")
                 except Exception:
                     logging.getLogger("stats").warning(traceback.format_exc())
 
