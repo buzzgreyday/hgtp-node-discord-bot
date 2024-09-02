@@ -208,9 +208,9 @@ async def node_cluster_data(
             if cluster_data:
                 node_data.node_peer_count = len(cluster_data)
             if metrics_data:
-                node_data.cluster_association_time = (
-                    metrics_data.cluster_association_time
-                )
+                # node_data.cluster_association_time = (
+                #     metrics_data.cluster_association_time
+                # )
                 node_data.cpu_count = metrics_data.cpu_count
                 node_data.one_m_system_load_average = (
                     metrics_data.one_m_system_load_average
