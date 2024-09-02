@@ -633,6 +633,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name) -> tuple[s
                 f"{field_info}"
             )
         else:
+
             return (
                 f"{field_symbol} **{module_name.upper()} CLUSTER**"
                 f"```Peers   {node_data.node_peer_count}```"
