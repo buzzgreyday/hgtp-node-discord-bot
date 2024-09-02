@@ -585,6 +585,20 @@ def _generate_visuals(sliced_snapshot_df, sliced_node_df):
     return sliced_snapshot_df, sliced_node_df
 
 
+def _remove_extreme_outliers(snapshot_data: pd.DataFrame):
+    # Define a threshold for the Z-score (positive numbers only)
+    zscore_threshold = 0.11
+    zscore_threshold_tolerance = 0.005
+
+    # Filter out rows where z-score exceeds the threshold by taking the absolute:
+    # treat both positive and negative deviations from the mean in the same manner
+    filtered_df = snapshot_data[(snapshot_data[
+                                     'dag_address_sum_zscore'].abs() <= zscore_threshold + zscore_threshold_tolerance) & (
+                                        snapshot_data[
+                                            'dag_address_sum_zscore'].abs() >= zscore_threshold - zscore_threshold_tolerance)].copy()
+    # Use .copy() to ensure a new DataFrame is created, preventing chained assignments
+    return filtered_df
+
 async def run():
     """
     Initiate the statistics process
@@ -654,9 +668,12 @@ async def run():
                     # If 30 days then 86400
                     snapshot_data = _sum_usd(snapshot_data, "usd_address_sum", "dag_address_sum")
 
+                    filtered_df = _remove_extreme_outliers(snapshot_data)
+
+                    # THIS WILL NEED TO BE RENAMED. NOT USING THE MEDIAN ANYMORE:
                     # Calculate the overall average. Since there's possibly some extreme unwanted outliers,
                     # we'll find the median.
-                    snapshot_data["dag_median_sum"] = snapshot_data["dag_address_sum"].median()
+                    snapshot_data["dag_median_sum"] = filtered_df["dag_address_sum"].mean()
 
                     # The node is earning more than the average if sum deviation is positive, less if negative
                     snapshot_data["dag_address_sum_dev"] = (
@@ -679,15 +696,6 @@ async def run():
                     # Start by preparing the new data column
                     snapshot_data["percent_earning_more"] = 0.0
                     snapshot_data["dag_address_sum_zscore"] = stats.zscore(snapshot_data.dag_address_sum)
-
-                    # Define a threshold for the Z-score (positive numbers only)
-                    zscore_threshold = 0.11
-                    zscore_threshold_tolerance = 0.005
-
-                    # Filter out rows where z-score exceeds the threshold by taking the absolute:
-                    # treat both positive and negative deviations from the mean in the same manner
-                    filtered_df = snapshot_data[(snapshot_data['dag_address_sum_zscore'].abs() <= zscore_threshold + zscore_threshold_tolerance) & (snapshot_data['dag_address_sum_zscore'].abs() >= zscore_threshold - zscore_threshold_tolerance)].copy()
-                    # Use .copy() to ensure a new DataFrame is created, preventing chained assignments
 
                     # Initialize new columns with 0.0
                     snapshot_data.loc[:, "above_dag_address_earner_highest"] = 0.0

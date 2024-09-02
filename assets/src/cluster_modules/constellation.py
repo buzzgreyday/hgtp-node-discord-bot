@@ -876,7 +876,7 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
                 if _compare_versions(node_data.version, node_data.cluster_version) == "equal":
                     field_symbol = ":green_square:"
                     if node_data.cluster_version == node_data.latest_version:
-                        field_info = "`ⓘ  You are running the latest version of Tessellation`"
+                        field_info = "`ⓘ  You are running the latest version of Tessellation.`"
                     elif node_data.cluster_version < node_data.latest_version:
                         field_info = f"`ⓘ  You are running the latest version but a new Tessellation release (v{node_data.latest_version}) should soon be available.`"
                     elif node_data.cluster_version > node_data.latest_version:
@@ -902,7 +902,7 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
                     return version_field(), red_color_trigger, False
         except version.InvalidVersion:
             field_symbol = ":green_square:"
-            field_info = f"`ⓘ  Node version: {node_data.version}, cluster version: {node_data.cluster_version}`"
+            field_info = f"`ⓘ  Node version: {node_data.version}, cluster version: {node_data.cluster_version}.`"
             return version_field(), False, False
     elif node_data.version is not None and node_data.latest_version is not None:
         try:
@@ -913,6 +913,14 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
                         field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is {node_data.latest_version}.`"
                     else:
                         field_info = f"`ⓘ  You seem to be running a test-release. Latest stable version is {node_data.latest_version}.`"
+                    return version_field(), False, False
+                elif _compare_versions(node_data.version, node_data.latest_version) == "equal":
+                    field_symbol = ":green_square:"
+                    field_info = "`ⓘ  You are running the latest version of Tessellation.`"
+                    return version_field(), False, False
+                elif _compare_versions(node_data.version, node_data.latest_version) == "lower":
+                    field_symbol = ":green_square:"
+                    field_info = f"`ⓘ  New Tessellation upgrade might be available soon (v{node_data.latest_version}).`"
                     return version_field(), False, False
                 else:
                     field_symbol = ":yellow_square:"
