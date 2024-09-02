@@ -950,7 +950,7 @@ def build_system_node_load_average(node_data: schemas.Node)  -> tuple[str, bool:
     if (node_data.one_m_system_load_average or node_data.cpu_count) is not None:
         if float(node_data.one_m_system_load_average) / float(node_data.cpu_count) >= 1:
             field_symbol = ":red_square:"
-            field_info = f'`⚠  "CPU load" is high. You might want to monitor CPU usage or reboot the server.`'
+            field_info = f'`⚠  CPU load is high. You might want to monitor CPU usage or reboot the server.`'
             yellow_color_trigger = True
             return load_average_field(), red_color_trigger, yellow_color_trigger
         elif (
