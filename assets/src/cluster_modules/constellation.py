@@ -534,7 +534,7 @@ def build_title(node_data: schemas.Node) -> str:
     elif node_data.reward_state is False:
         title_ending = f"MISSING REWARDS"
     elif node_data.cluster_connectivity == "uncertain":
-        title_ending = f"UNSTABLE CONNECTION"
+        title_ending = f"INDETERMINABLE CONNECTION"
     else:
         title_ending = f"REPORT"
     if cluster_name not in (None, "None"):
