@@ -42,7 +42,7 @@ active_views = {}
 @bot.slash_command(
     name="unsubscribe",
     description="Unsubscribe by IP and Public Port",
-    dm_permission=True,
+    dm_permission=True
 )
 async def unsubscibe_menu(interaction):
     """This is a slash_command that sends a View() that contains a SelectMenu and a button to confirm user selection"""
@@ -180,7 +180,7 @@ async def unsubscibe_menu(interaction):
 @bot.slash_command(
     name="verify",
     description="Verify your server settings to gain access",
-    guild_ids=[974431346850140201],
+    guild_ids=[974431346850140201]
 )
 async def verify(interaction: nextcord.Interaction):
     try:

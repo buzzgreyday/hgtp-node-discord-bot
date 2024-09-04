@@ -303,6 +303,51 @@ def configure_logging():
         logger.addHandler(handler)
 
 
+def start_threads(configuration, version_manager):
+    uvicorn_thread = threading.Thread(target=run_uvicorn_process)
+    get_tessellation_version_thread = threading.Thread(
+        target=version_manager.update_version, daemon=True
+    )
+    rewards_thread = threading.Thread(target=start_rewards_coroutine, args=(configuration,))
+    stats_thread = threading.Thread(
+        target=start_stats_coroutine, args=(configuration,)
+    )
+    db_optimization_thread = threading.Thread(target=start_database_optimization_coroutine, args=(configuration,))
+
+    get_tessellation_version_thread.start()
+    uvicorn_thread.start()
+    rewards_thread.start()
+    stats_thread.start()
+    db_optimization_thread.start()
+
+
+async def run_bot(version_manager, configuration):
+    if not dev_env:
+        bot.load_extension("assets.src.discord.commands")
+    bot.load_extension("assets.src.discord.events")
+
+    # Start the main loop as a background task
+    bot.loop.create_task(main_loop(version_manager, configuration))
+
+    try:
+        await bot.start(discord_token, reconnect=True)
+    except Exception as e:
+        logging.getLogger("bot").error(f"Bot encountered an exception: {str(e)}")
+        await bot.close()
+
+
+async def restart_bot(version_manager, configuration):
+    while True:
+        try:
+            await run_bot(version_manager, configuration)
+        except Exception as e:
+            logging.getLogger("bot").error(f"Restarting bot after error: {str(e)}")
+            await bot.close()
+            time.sleep(5)  # Optional: delay before restarting
+        else:
+            break  # Exit the loop if the bot exits cleanly
+
+
 def main():
     _configuration = load_configuration()
 
@@ -310,34 +355,12 @@ def main():
 
     version_manager = preliminaries.VersionManager(_configuration)
 
-    # Create a thread for running uvicorn
-    uvicorn_thread = threading.Thread(target=run_uvicorn_process)
-    # Create a thread for running version check
-    get_tessellation_version_thread = threading.Thread(
-        target=version_manager.update_version, daemon=True
-    )
-    rewards_thread = threading.Thread(target=start_rewards_coroutine, args=(_configuration,))
-    stats_thread = threading.Thread(
-        target=start_stats_coroutine, args=(_configuration,)
-    )
-    db_optimization_thread = threading.Thread(target=start_database_optimization_coroutine, args=(_configuration,))
-    get_tessellation_version_thread.start()
-    uvicorn_thread.start()
-    rewards_thread.start()
-    stats_thread.start()
-    db_optimization_thread.start()
+    # Start your threads (if necessary)
+    start_threads(_configuration, version_manager)
 
-    while True:
-        if not dev_env:
-            bot.load_extension("assets.src.discord.commands")
-        bot.load_extension("assets.src.discord.events")
-
-        bot.loop.create_task(main_loop(version_manager, _configuration))
-        try:
-            bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))
-        except Exception:
-            bot.close()
-            time.sleep(3)
+    # Run the bot with automatic restart on failure
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(restart_bot(version_manager, _configuration))
 
 
 if __name__ == "__main__":
