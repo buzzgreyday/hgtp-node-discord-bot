@@ -589,7 +589,7 @@ def _remove_extreme_outliers(snapshot_data: pd.DataFrame):
     # Define a threshold for the Z-score (positive numbers only)
     zscore_threshold = 0.11
     zscore_threshold_tolerance = 0.005
-
+    snapshot_data["dag_address_sum_zscore"] = stats.zscore(snapshot_data.dag_address_sum)
     # Filter out rows where z-score exceeds the threshold by taking the absolute:
     # treat both positive and negative deviations from the mean in the same manner
     filtered_df = snapshot_data[(snapshot_data[
@@ -695,7 +695,7 @@ async def run():
                     # Calculate the percentage of node wallets earning more than each individual node wallet.
                     # Start by preparing the new data column
                     snapshot_data["percent_earning_more"] = 0.0
-                    snapshot_data["dag_address_sum_zscore"] = stats.zscore(snapshot_data.dag_address_sum)
+
 
                     # Initialize new columns with 0.0
                     snapshot_data.loc[:, "above_dag_address_earner_highest"] = 0.0
