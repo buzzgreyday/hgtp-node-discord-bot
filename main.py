@@ -15,9 +15,9 @@ import aiohttp
 import yaml
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
-from logging.config import dictConfig
 
 from assets.src import preliminaries, check, history, rewards, stats, api
+from assets.src.config import configure_logging
 from assets.src.database.database import update_user, optimize
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
@@ -271,45 +271,6 @@ async def main_loop(version_manager, _configuration):
         await asyncio.sleep(3)
 
 
-# Configure logging
-def configure_hypercorn_logging():
-    logging_config = {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "formatters": {
-            "default": {
-                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            },
-        },
-        "handlers": {
-            "file": {
-                "level": "INFO",
-                "class": "logging.FileHandler",
-                "filename": "assets/data/logs/unhandled.log",
-                "formatter": "default",
-            },
-        },
-        "loggers": {
-            "hypercorn.error": {
-                "handlers": ["file"],
-                "level": "INFO",
-                "propagate": False,
-            },
-            "hypercorn.access": {
-                "handlers": ["file"],
-                "level": "INFO",
-                "propagate": False,
-            },
-        },
-        "root": {
-            "level": "INFO",
-            "handlers": ["file"],
-        },
-    }
-
-    dictConfig(logging_config)
-
-
 hypercorn_running = False
 async def run_hypercorn_process(app):
     global hypercorn_running
@@ -320,132 +281,6 @@ async def run_hypercorn_process(app):
         await serve(app, config)
     finally:
         hypercorn_running = False  # Ensure flag is reset on stop
-
-
-def configure_logging():
-    # Application-specific log configurations
-    log_configs = [
-        ("app", "assets/data/logs/app.log", logging.INFO if not dev_env else logging.DEBUG),
-        ("rewards", "assets/data/logs/rewards.log", logging.INFO if not dev_env else logging.DEBUG),
-        ("nextcord", "assets/data/logs/nextcord.log", logging.CRITICAL if not dev_env else logging.DEBUG),
-        ("stats", "assets/data/logs/stats.log", logging.INFO if not dev_env else logging.DEBUG),
-        ("db_optimization", "assets/data/logs/db_optimization.log", logging.INFO if not dev_env else logging.DEBUG),
-        ("commands", "assets/data/logs/commands.log", logging.INFO if not dev_env else logging.DEBUG)
-    ]
-
-    # Configure application loggers manually
-    for name, file, level in log_configs:
-        logger = logging.getLogger(name)
-        logger.setLevel(level)
-
-        # Ensure no duplicate handlers get added if configure_logging is called multiple times
-        if not logger.hasHandlers():
-            handler = logging.FileHandler(filename=file, encoding="utf-8", mode="w")
-            handler.setFormatter(
-                logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s")
-            )
-            logger.addHandler(handler)
-
-    # Hypercorn loggers configuration
-    hypercorn_logging_config = {
-        "version": 1,
-        "disable_existing_loggers": False,  # Ensure we don't disable app's existing loggers
-        "formatters": {
-            "default": {
-                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            },
-        },
-        "handlers": {
-            "hypercorn_file": {
-                "level": "INFO",
-                "class": "logging.FileHandler",
-                "filename": "assets/data/logs/hypercorn.log",
-                "formatter": "default",
-            },
-            "app": {
-                "level": "INFO",
-                "class": "logging.FileHandler",
-                "filename": "assets/data/logs/app.log",
-                "formatter": "default",
-            },
-            "commands": {
-                "level": "INFO",
-                "class": "logging.FileHandler",
-                "filename": "assets/data/logs/commands.log",
-                "formatter": "default",
-            },
-            "rewards": {
-                "level": "INFO",
-                "class": "logging.FileHandler",
-                "filename": "assets/data/logs/rewards.log",
-                "formatter": "default",
-            },
-            "db_optimization": {
-                "level": "INFO",
-                "class": "logging.FileHandler",
-                "filename": "assets/data/logs/db_optimization.log",
-                "formatter": "default",
-            },
-            "stats": {
-                "level": "INFO",
-                "class": "logging.FileHandler",
-                "filename": "assets/data/logs/stats.log",
-                "formatter": "default",
-            },
-            "nextcord": {
-                "level": "INFO",
-                "class": "logging.FileHandler",
-                "filename": "assets/data/logs/nextcord.log",
-                "formatter": "default",
-            },
-        },
-        "loggers": {
-            "hypercorn.error": {  # Hypercorn error log
-                "handlers": ["hypercorn_file"],
-                "level": "INFO",
-                "propagate": False,  # Ensure it doesn't propagate into other logs
-            },
-            "hypercorn.access": {  # Hypercorn access log
-                "handlers": ["hypercorn_file"],
-                "level": "INFO",
-                "propagate": False,  # Same as above
-            },
-            "app": {  # Hypercorn access log
-                "handlers": ["app"],
-                "level": "INFO",
-                "propagate": False,  # Same as above
-            },
-            "commands": {  # Hypercorn access log
-                "handlers": ["commands"],
-                "level": "INFO",
-                "propagate": False,  # Same as above
-            },
-            "rewards": {  # Hypercorn access log
-                "handlers": ["rewards"],
-                "level": "INFO",
-                "propagate": False,  # Same as above
-            },
-            "db_optimization": {  # Hypercorn access log
-                "handlers": ["db_optimization"],
-                "level": "INFO",
-                "propagate": False,  # Same as above
-            },
-            "stats": {  # Hypercorn access log
-                "handlers": ["stats"],
-                "level": "INFO",
-                "propagate": False,  # Same as above
-            },
-            "nextcord": {  # Hypercorn access log
-                "handlers": ["nextcord"],
-                "level": "INFO",
-                "propagate": False,  # Same as above
-            },
-        },
-    }
-
-    # Apply Hypercorn-specific log configurations
-    dictConfig(hypercorn_logging_config)
-
 
 def start_services(configuration, version_manager):
     from assets.src.database.database import app
@@ -497,7 +332,6 @@ def main():
     _configuration = load_configuration()
 
     configure_logging()
-    configure_hypercorn_logging()
 
     version_manager = preliminaries.VersionManager(_configuration)
 
