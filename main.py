@@ -285,7 +285,7 @@ def configure_hypercorn_logging():
             "file": {
                 "level": "INFO",
                 "class": "logging.FileHandler",
-                "filename": "assets/data/logs/others.log",
+                "filename": "assets/data/logs/unhandled.log",
                 "formatter": "default",
             },
         },
@@ -323,6 +323,7 @@ async def run_hypercorn_process(app):
 
 
 def configure_logging():
+    # Application-specific log configurations
     log_configs = [
         ("app", "assets/data/logs/app.log", logging.INFO if not dev_env else logging.DEBUG),
         ("rewards", "assets/data/logs/rewards.log", logging.INFO if not dev_env else logging.DEBUG),
@@ -332,14 +333,107 @@ def configure_logging():
         ("commands", "assets/data/logs/commands.log", logging.INFO if not dev_env else logging.DEBUG)
     ]
 
+    # Configure application loggers manually
     for name, file, level in log_configs:
         logger = logging.getLogger(name)
         logger.setLevel(level)
-        handler = logging.FileHandler(filename=file, encoding="utf-8", mode="w")
-        handler.setFormatter(
-            logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s")
-        )
-        logger.addHandler(handler)
+
+        # Ensure no duplicate handlers get added if configure_logging is called multiple times
+        if not logger.hasHandlers():
+            handler = logging.FileHandler(filename=file, encoding="utf-8", mode="w")
+            handler.setFormatter(
+                logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s")
+            )
+            logger.addHandler(handler)
+
+    # Hypercorn loggers configuration
+    hypercorn_logging_config = {
+        "version": 1,
+        "disable_existing_loggers": False,  # Ensure we don't disable app's existing loggers
+        "formatters": {
+            "default": {
+                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            },
+        },
+        "handlers": {
+            "hypercorn_file": {
+                "level": "INFO",
+                "class": "logging.FileHandler",
+                "filename": "assets/data/logs/hypercorn.log",
+                "formatter": "default",
+            },
+            "app": {
+                "level": "INFO",
+                "class": "logging.FileHandler",
+                "filename": "assets/data/logs/app.log",
+                "formatter": "default",
+            },
+            "commands": {
+                "level": "INFO",
+                "class": "logging.FileHandler",
+                "filename": "assets/data/logs/commands.log",
+                "formatter": "default",
+            },
+            "rewards": {
+                "level": "INFO",
+                "class": "logging.FileHandler",
+                "filename": "assets/data/logs/rewards.log",
+                "formatter": "default",
+            },
+            "db_optimization": {
+                "level": "INFO",
+                "class": "logging.FileHandler",
+                "filename": "assets/data/logs/db_optimization.log",
+                "formatter": "default",
+            },
+            "stats": {
+                "level": "INFO",
+                "class": "logging.FileHandler",
+                "filename": "assets/data/logs/stats.log",
+                "formatter": "default",
+            },
+        },
+        "loggers": {
+            "hypercorn.error": {  # Hypercorn error log
+                "handlers": ["hypercorn_file"],
+                "level": "INFO",
+                "propagate": False,  # Ensure it doesn't propagate into other logs
+            },
+            "hypercorn.access": {  # Hypercorn access log
+                "handlers": ["hypercorn_file"],
+                "level": "INFO",
+                "propagate": False,  # Same as above
+            },
+            "app": {  # Hypercorn access log
+                "handlers": ["app"],
+                "level": "INFO",
+                "propagate": False,  # Same as above
+            },
+            "commands": {  # Hypercorn access log
+                "handlers": ["commands"],
+                "level": "INFO",
+                "propagate": False,  # Same as above
+            },
+            "rewards": {  # Hypercorn access log
+                "handlers": ["rewards"],
+                "level": "INFO",
+                "propagate": False,  # Same as above
+            },
+            "db_optimization": {  # Hypercorn access log
+                "handlers": ["db_optimization"],
+                "level": "INFO",
+                "propagate": False,  # Same as above
+            },
+            "stats": {  # Hypercorn access log
+                "handlers": ["stats"],
+                "level": "INFO",
+                "propagate": False,  # Same as above
+            },
+        },
+    }
+
+    # Apply Hypercorn-specific log configurations
+    dictConfig(hypercorn_logging_config)
 
 
 def start_services(configuration, version_manager):
