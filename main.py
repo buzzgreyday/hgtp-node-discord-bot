@@ -1,8 +1,8 @@
 import asyncio
 import logging
 import os
-import subprocess
 import sys
+
 import threading
 import time
 import traceback
@@ -10,8 +10,12 @@ from datetime import datetime
 from typing import List, Tuple, Dict
 import psutil
 
+import hypercorn
 import aiohttp
 import yaml
+from hypercorn.asyncio import serve
+from hypercorn.config import Config
+from logging.config import dictConfig
 
 from assets.src import preliminaries, check, history, rewards, stats, api
 from assets.src.database.database import update_user, optimize
@@ -40,6 +44,9 @@ def load_configuration():
         sys.exit(1)
 
 
+
+
+
 def timing():
     return datetime.now(), time.perf_counter()
 
@@ -57,6 +64,12 @@ def start_stats_coroutine(_configuration):
 
 def start_database_optimization_coroutine(_configuration):
     asyncio.run_coroutine_threadsafe(optimize(_configuration), bot.loop)
+
+
+def start_hypercorn_coroutine(app):
+    asyncio.run_coroutine_threadsafe(run_hypercorn_process(app), bot.loop)
+
+
 
 
 async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[List[Dict], List[Dict]]:
@@ -139,16 +152,6 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
     return sorted_cache, sorted_clusters
 
 
-def is_uvicorn_running():
-    for process in psutil.process_iter(['pid', 'name']):
-        try:
-            if 'uvicorn' in process.name():
-                return True
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            pass
-    return False
-
-
 async def main_loop(version_manager, _configuration):
 
     cache = []
@@ -157,7 +160,7 @@ async def main_loop(version_manager, _configuration):
         async with semaphore:
             async with aiohttp.ClientSession() as session:
 
-                if is_uvicorn_running():
+                if hypercorn_running:
                     await bot.wait_until_ready()
                     try:
                         tasks = []
@@ -268,19 +271,55 @@ async def main_loop(version_manager, _configuration):
         await asyncio.sleep(3)
 
 
-def run_uvicorn_process():
-    subprocess.run(
-        [
-            "venv/bin/uvicorn",
-            "assets.src.database.database:app",
-            "--host",
-            "127.0.0.1",
-            "--port",
-            "8000",
-            "--log-config",
-            "assets/data/logs/uvicorn.ini",
-        ]
-    )
+# Configure logging
+def configure_hypercorn_logging():
+    logging_config = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "default": {
+                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            },
+        },
+        "handlers": {
+            "file": {
+                "level": "INFO",
+                "class": "logging.FileHandler",
+                "filename": "assets/data/logs/others.log",
+                "formatter": "default",
+            },
+        },
+        "loggers": {
+            "hypercorn.error": {
+                "handlers": ["file"],
+                "level": "INFO",
+                "propagate": False,
+            },
+            "hypercorn.access": {
+                "handlers": ["file"],
+                "level": "INFO",
+                "propagate": False,
+            },
+        },
+        "root": {
+            "level": "INFO",
+            "handlers": ["file"],
+        },
+    }
+
+    dictConfig(logging_config)
+
+
+hypercorn_running = False
+async def run_hypercorn_process(app):
+    global hypercorn_running
+    hypercorn_running = True
+    try:
+        config = Config()
+        config.bind = ["localhost:8000"]
+        await serve(app, config)
+    finally:
+        hypercorn_running = False  # Ensure flag is reset on stop
 
 
 def configure_logging():
@@ -303,8 +342,9 @@ def configure_logging():
         logger.addHandler(handler)
 
 
-def start_threads(configuration, version_manager):
-    uvicorn_thread = threading.Thread(target=run_uvicorn_process)
+def start_services(configuration, version_manager):
+    from assets.src.database.database import app
+    hypercorn_thread = threading.Thread(target=start_hypercorn_coroutine, args=(app,))
     get_tessellation_version_thread = threading.Thread(
         target=version_manager.update_version, daemon=True
     )
@@ -315,7 +355,7 @@ def start_threads(configuration, version_manager):
     db_optimization_thread = threading.Thread(target=start_database_optimization_coroutine, args=(configuration,))
 
     get_tessellation_version_thread.start()
-    uvicorn_thread.start()
+    hypercorn_thread.start()
     rewards_thread.start()
     stats_thread.start()
     db_optimization_thread.start()
@@ -352,11 +392,12 @@ def main():
     _configuration = load_configuration()
 
     configure_logging()
+    configure_hypercorn_logging()
 
     version_manager = preliminaries.VersionManager(_configuration)
 
     # Start your threads (if necessary)
-    start_threads(_configuration, version_manager)
+    start_services(_configuration, version_manager)
 
     # Run the bot with automatic restart on failure
     loop = asyncio.get_event_loop()
