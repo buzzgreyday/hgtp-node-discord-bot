@@ -44,9 +44,6 @@ def load_configuration():
         sys.exit(1)
 
 
-
-
-
 def timing():
     return datetime.now(), time.perf_counter()
 
