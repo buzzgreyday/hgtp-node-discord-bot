@@ -392,6 +392,12 @@ def configure_logging():
                 "filename": "assets/data/logs/stats.log",
                 "formatter": "default",
             },
+            "nextcord": {
+                "level": "INFO",
+                "class": "logging.FileHandler",
+                "filename": "assets/data/logs/nextcord.log",
+                "formatter": "default",
+            },
         },
         "loggers": {
             "hypercorn.error": {  # Hypercorn error log
@@ -426,6 +432,11 @@ def configure_logging():
             },
             "stats": {  # Hypercorn access log
                 "handlers": ["stats"],
+                "level": "INFO",
+                "propagate": False,  # Same as above
+            },
+            "nextcord": {  # Hypercorn access log
+                "handlers": ["nextcord"],
                 "level": "INFO",
                 "propagate": False,  # Same as above
             },

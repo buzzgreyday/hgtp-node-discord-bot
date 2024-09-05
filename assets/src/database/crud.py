@@ -692,7 +692,6 @@ class CRUD:
                         .offset(offset)
                         .limit(batch_size)
                     )
-                    print(f"Get ordinals from timestamp: {datetime.fromtimestamp(timestamp)}, offset: {offset}")
                     logging.getLogger("stats").debug(f"Get ordinals from timestamp: {timestamp}, offset: {offset}")
                     results = await session.execute(statement)
                     batch_results = results.scalars().all()
@@ -701,8 +700,6 @@ class CRUD:
 
                 if not batch_results:
                     logging.getLogger("stats").debug(f"Got all ordinals!")
-                    print(f"[{datetime.now()}] Done! No more ordinals\n"
-                          f"---")
                     break  # No more data
 
                 for row in batch_results:

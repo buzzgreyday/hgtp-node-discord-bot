@@ -237,7 +237,7 @@ class Visual:
                 # Save the plot to a file
                 save(p)
         except Exception:
-            print(traceback.format_exc())
+            logging.getLogger("stats").critical(traceback.format_exc())
 
     def cpu_plot(self):
         unique_destinations = self.df["destinations"].unique()
