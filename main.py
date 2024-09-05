@@ -1,8 +1,8 @@
 import asyncio
 import logging
 import os
-import subprocess
 import sys
+
 import threading
 import time
 import traceback
@@ -10,10 +10,14 @@ from datetime import datetime
 from typing import List, Tuple, Dict
 import psutil
 
+import hypercorn
 import aiohttp
 import yaml
+from hypercorn.asyncio import serve
+from hypercorn.config import Config
 
 from assets.src import preliminaries, check, history, rewards, stats, api
+from assets.src.config import configure_logging
 from assets.src.database.database import update_user, optimize
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token
@@ -57,6 +61,12 @@ def start_stats_coroutine(_configuration):
 
 def start_database_optimization_coroutine(_configuration):
     asyncio.run_coroutine_threadsafe(optimize(_configuration), bot.loop)
+
+
+def start_hypercorn_coroutine(app):
+    asyncio.run_coroutine_threadsafe(run_hypercorn_process(app), bot.loop)
+
+
 
 
 async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[List[Dict], List[Dict]]:
@@ -139,16 +149,6 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
     return sorted_cache, sorted_clusters
 
 
-def is_uvicorn_running():
-    for process in psutil.process_iter(['pid', 'name']):
-        try:
-            if 'uvicorn' in process.name():
-                return True
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            pass
-    return False
-
-
 async def main_loop(version_manager, _configuration):
 
     cache = []
@@ -157,7 +157,7 @@ async def main_loop(version_manager, _configuration):
         async with semaphore:
             async with aiohttp.ClientSession() as session:
 
-                if is_uvicorn_running():
+                if hypercorn_running:
                     await bot.wait_until_ready()
                     try:
                         tasks = []
@@ -268,51 +268,61 @@ async def main_loop(version_manager, _configuration):
         await asyncio.sleep(3)
 
 
-def run_uvicorn_process():
-    subprocess.run(
-        [
-            "venv/bin/uvicorn",
-            "assets.src.database.database:app",
-            "--host",
-            "127.0.0.1",
-            "--port",
-            "8000",
-            "--log-config",
-            "assets/data/logs/uvicorn.ini",
-        ]
+hypercorn_running = False
+async def run_hypercorn_process(app):
+    global hypercorn_running
+    hypercorn_running = True
+    try:
+        config = Config()
+        config.bind = ["localhost:8000"]
+        await serve(app, config)
+    finally:
+        hypercorn_running = False  # Ensure flag is reset on stop
+
+def start_services(configuration, version_manager):
+    from assets.src.database.database import app
+    hypercorn_thread = threading.Thread(target=start_hypercorn_coroutine, args=(app,))
+    get_tessellation_version_thread = threading.Thread(
+        target=version_manager.update_version, daemon=True
     )
-def run_stripe_uvicorn_process():
-    subprocess.run(
-        [
-            "venv/bin/uvicorn",
-            "assets.src.database.stripe:app",
-            "--host",
-            "127.0.0.1",
-            "--port",
-            "8001",
-
-        ]
+    rewards_thread = threading.Thread(target=start_rewards_coroutine, args=(configuration,))
+    stats_thread = threading.Thread(
+        target=start_stats_coroutine, args=(configuration,)
     )
+    db_optimization_thread = threading.Thread(target=start_database_optimization_coroutine, args=(configuration,))
+
+    get_tessellation_version_thread.start()
+    hypercorn_thread.start()
+    rewards_thread.start()
+    stats_thread.start()
+    db_optimization_thread.start()
 
 
-def configure_logging():
-    log_configs = [
-        ("app", "assets/data/logs/app.log", logging.INFO if not dev_env else logging.DEBUG),
-        ("rewards", "assets/data/logs/rewards.log", logging.INFO if not dev_env else logging.DEBUG),
-        ("nextcord", "assets/data/logs/nextcord.log", logging.CRITICAL if not dev_env else logging.DEBUG),
-        ("stats", "assets/data/logs/stats.log", logging.INFO if not dev_env else logging.DEBUG),
-        ("db_optimization", "assets/data/logs/db_optimization.log", logging.INFO if not dev_env else logging.DEBUG),
-        ("commands", "assets/data/logs/commands.log", logging.INFO if not dev_env else logging.DEBUG)
-    ]
+async def run_bot(version_manager, configuration):
+    if not dev_env:
+        bot.load_extension("assets.src.discord.commands")
+    bot.load_extension("assets.src.discord.events")
 
-    for name, file, level in log_configs:
-        logger = logging.getLogger(name)
-        logger.setLevel(level)
-        handler = logging.FileHandler(filename=file, encoding="utf-8", mode="w")
-        handler.setFormatter(
-            logging.Formatter("[%(asctime)s] %(name)s - %(levelname)s - %(message)s")
-        )
-        logger.addHandler(handler)
+    # Start the main loop as a background task
+    bot.loop.create_task(main_loop(version_manager, configuration))
+
+    try:
+        await bot.start(discord_token, reconnect=True)
+    except Exception as e:
+        logging.getLogger("bot").error(f"Bot encountered an exception: {str(e)}")
+        await bot.close()
+
+
+async def restart_bot(version_manager, configuration):
+    while True:
+        try:
+            await run_bot(version_manager, configuration)
+        except Exception as e:
+            logging.getLogger("bot").error(f"Restarting bot after error: {str(e)}")
+            await bot.close()
+            time.sleep(5)  # Optional: delay before restarting
+        else:
+            break  # Exit the loop if the bot exits cleanly
 
 
 def main():
@@ -322,36 +332,12 @@ def main():
 
     version_manager = preliminaries.VersionManager(_configuration)
 
-    # Create a thread for running uvicorn
-    uvicorn_thread = threading.Thread(target=run_uvicorn_process)
-    uvicorn_stripe_thread = threading.Thread(target=run_stripe_uvicorn_process)
-    # Create a thread for running version check
-    get_tessellation_version_thread = threading.Thread(
-        target=version_manager.update_version, daemon=True
-    )
-    rewards_thread = threading.Thread(target=start_rewards_coroutine, args=(_configuration,))
-    stats_thread = threading.Thread(
-        target=start_stats_coroutine, args=(_configuration,)
-    )
-    db_optimization_thread = threading.Thread(target=start_database_optimization_coroutine, args=(_configuration,))
-    get_tessellation_version_thread.start()
-    uvicorn_thread.start()
-    uvicorn_stripe_thread.start()
-    rewards_thread.start()
-    stats_thread.start()
-    db_optimization_thread.start()
+    # Start your threads (if necessary)
+    start_services(_configuration, version_manager)
 
-    while True:
-        # if not dev_env:
-        bot.load_extension("assets.src.discord.commands")
-        bot.load_extension("assets.src.discord.events")
-
-        bot.loop.create_task(main_loop(version_manager, _configuration))
-        try:
-            bot.loop.run_until_complete(bot.start(discord_token, reconnect=True))
-        except Exception:
-            bot.close()
-            time.sleep(3)
+    # Run the bot with automatic restart on failure
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(restart_bot(version_manager, _configuration))
 
 
 if __name__ == "__main__":

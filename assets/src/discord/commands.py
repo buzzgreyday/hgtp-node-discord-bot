@@ -6,14 +6,14 @@ import aiohttp
 import yaml
 
 import assets.src.database.database
-from assets.src import user, check, subscription
+from assets.src import user, check
 from assets.src.database import models
 from assets.src.discord import discord, messages
 from assets.src.discord.services import bot
 from assets.src.schemas import User
 
 import nextcord
-from nextcord import SelectOption, Interaction
+from nextcord import SelectOption
 from nextcord.ui import Select
 
 class SelectMenu(Select):
@@ -31,16 +31,6 @@ class SelectMenu(Select):
         self.selected_value = self.values[0]
 
 
-# Command to trigger the modal
-# def create_stripe_payment_link(email):
-#     # Placeholder function for creating a Stripe payment link
-#     # You need to implement this using Stripe's API
-#     return "https://your-stripe-payment-link.com"
-#
-#
-
-
-
 def setup(bot):
     pass
 
@@ -49,19 +39,10 @@ def setup(bot):
 active_views = {}
 
 
-# Slash command to initiate the subscription process
-@bot.slash_command(name="subscribe", description="Subscribe to IP and Ports")
-async def subscribe(interaction: nextcord.Interaction):
-    # Directly open the modal when the command is invoked
-    modal = subscription.SubscribeModal()
-    await interaction.response.send_modal(modal)
-    # After subscription is submitted checks will run in the background
-
-
 @bot.slash_command(
     name="unsubscribe",
-    description="### Unsubscribe by IP and Public Port",
-    dm_permission=True,
+    description="Unsubscribe by IP and Public Port",
+    dm_permission=True
 )
 async def unsubscibe_menu(interaction):
     """This is a slash_command that sends a View() that contains a SelectMenu and a button to confirm user selection"""
@@ -199,6 +180,7 @@ async def unsubscibe_menu(interaction):
 @bot.slash_command(
     name="verify",
     description="Verify your server settings to gain access",
+    guild_ids=[974431346850140201]
 )
 async def verify(interaction: nextcord.Interaction):
     try:
@@ -232,7 +214,6 @@ async def verify(interaction: nextcord.Interaction):
                 await interaction.user.send(
                     content=f"{interaction.user.mention}, your settings were verified!"
                 )
-
         return
     except Exception as e:
         logging.getLogger("commands").error(
@@ -281,3 +262,45 @@ async def r(ctx):
                 logging.getLogger("app").info(
                     f"discord.py - User {ctx.message.author} does not allow DMs"
                 )
+
+
+@bot.command()
+async def s(ctx, *args):
+    """This function treats a Discord message (context) as a line of arguments and attempts to create a new user subscription"""
+    async with aiohttp.ClientSession() as session:
+        with open("config.yml", "r") as file:
+            _configuration = yaml.safe_load(file)
+            logging.getLogger("app").info(
+                f"main.py - Subscription request received from {ctx.message.author}: {args}"
+            )
+            process_msg = await discord.send_subscription_process_msg(ctx)
+            valid_user_data, invalid_user_data = await User.sub_discord(
+                session,
+                _configuration,
+                process_msg,
+                "subscribe",
+                str(ctx.message.author),
+                int(ctx.message.author.id),
+                *args,
+            )
+            if valid_user_data:
+                process_msg = await discord.update_subscription_process_msg(
+                    process_msg, 3, None
+                )
+                await user.write_db(valid_user_data)
+                guild, member, role = await discord.return_guild_member_role(bot, ctx)
+                await member.add_roles(role)
+                await discord.update_subscription_process_msg(
+                    process_msg, 4, invalid_user_data
+                )
+                logging.getLogger("app").info(
+                    f"main.py - Subscription successful for {ctx.message.author}: {valid_user_data}\n\tDenied for: {invalid_user_data}"
+                )
+            else:
+                await discord.deny_subscription(process_msg)
+                logging.getLogger("app").info(
+                    f"main.py - Subscription denied for {ctx.message.author}: {args}"
+                )
+
+            if not isinstance(ctx.channel, nextcord.DMChannel):
+                await ctx.message.delete(delay=3)

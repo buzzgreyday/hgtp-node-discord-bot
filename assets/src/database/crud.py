@@ -2,7 +2,7 @@ import asyncio
 import gc
 import logging
 import traceback
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 from typing import List, Dict
 
@@ -674,7 +674,7 @@ class CRUD:
             self, timestamp: int, async_session: async_sessionmaker[AsyncSession]
     ):
         async with async_session() as session:
-            batch_size = 10000
+            batch_size = 100000
             offset = 0
             data = {
                 "timestamp": [],
@@ -713,8 +713,8 @@ class CRUD:
                 del results
                 del batch_results
                 offset += batch_size
-                await asyncio.sleep(1)
-                gc.collect()
+                await asyncio.sleep(0)
+                # gc.collect()
 
         return data
 
@@ -726,7 +726,7 @@ class CRUD:
         """
         one_gigabyte = 1073741824
         async with async_session() as session:
-            batch_size = 10000
+            batch_size = 100000
             offset = 0
             data = {
                 "timestamp": [],
@@ -785,8 +785,8 @@ class CRUD:
                 del results
                 del batch_results
                 offset += batch_size
-                await asyncio.sleep(1)
-                gc.collect()
+                await asyncio.sleep(0)
+                # gc.collect()
 
         return data
 

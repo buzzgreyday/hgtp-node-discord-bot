@@ -208,9 +208,9 @@ async def node_cluster_data(
             if cluster_data:
                 node_data.node_peer_count = len(cluster_data)
             if metrics_data:
-                node_data.cluster_association_time = (
-                    metrics_data.cluster_association_time
-                )
+                # node_data.cluster_association_time = (
+                #     metrics_data.cluster_association_time
+                # )
                 node_data.cpu_count = metrics_data.cpu_count
                 node_data.one_m_system_load_average = (
                     metrics_data.one_m_system_load_average
@@ -534,7 +534,7 @@ def build_title(node_data: schemas.Node) -> str:
     elif node_data.reward_state is False:
         title_ending = f"MISSING REWARDS"
     elif node_data.cluster_connectivity == "uncertain":
-        title_ending = f"UNSTABLE CONNECTION"
+        title_ending = f"INDETERMINABLE CONNECTION"
     else:
         title_ending = f"REPORT"
     if cluster_name not in (None, "None"):
@@ -598,7 +598,10 @@ def build_general_node_state(node_data: schemas.Node) -> tuple[str, bool: red_co
             red_color_trigger = True
             return node_state_field(), red_color_trigger, False
         else:
-            field_info = f"`ⓘ  Connected to {round(float(node_data.node_peer_count * 100 / node_data.cluster_peer_count), 2)}% of the cluster peers`"
+            p = round(float(node_data.node_peer_count * 100 / node_data.cluster_peer_count), 2)
+            if p > 100:
+                p = 100
+            field_info = f"`ⓘ  Connected to {p}% of the cluster peers`"
             field_symbol = ":green_square:"
             node_state = node_data.state.title()
             return node_state_field(), False, False
@@ -630,6 +633,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name) -> tuple[s
                 f"{field_info}"
             )
         else:
+
             return (
                 f"{field_symbol} **{module_name.upper()} CLUSTER**"
                 f"```Peers   {node_data.node_peer_count}```"
@@ -873,7 +877,7 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
                 if _compare_versions(node_data.version, node_data.cluster_version) == "equal":
                     field_symbol = ":green_square:"
                     if node_data.cluster_version == node_data.latest_version:
-                        field_info = "`ⓘ  You are running the latest version of Tessellation`"
+                        field_info = "`ⓘ  You are running the latest version of Tessellation.`"
                     elif node_data.cluster_version < node_data.latest_version:
                         field_info = f"`ⓘ  You are running the latest version but a new Tessellation release (v{node_data.latest_version}) should soon be available.`"
                     elif node_data.cluster_version > node_data.latest_version:
@@ -899,7 +903,7 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
                     return version_field(), red_color_trigger, False
         except version.InvalidVersion:
             field_symbol = ":green_square:"
-            field_info = f"`ⓘ  Node version: {node_data.version}, cluster version: {node_data.cluster_version}`"
+            field_info = f"`ⓘ  Node version: {node_data.version}, cluster version: {node_data.cluster_version}.`"
             return version_field(), False, False
     elif node_data.version is not None and node_data.latest_version is not None:
         try:
@@ -910,6 +914,14 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
                         field_info = f"`ⓘ  You seem to be associated with a cluster running a test-release. Latest stable version is {node_data.latest_version}.`"
                     else:
                         field_info = f"`ⓘ  You seem to be running a test-release. Latest stable version is {node_data.latest_version}.`"
+                    return version_field(), False, False
+                elif _compare_versions(node_data.version, node_data.latest_version) == "equal":
+                    field_symbol = ":green_square:"
+                    field_info = "`ⓘ  You are running the latest version of Tessellation.`"
+                    return version_field(), False, False
+                elif _compare_versions(node_data.version, node_data.latest_version) == "lower":
+                    field_symbol = ":green_square:"
+                    field_info = f"`ⓘ  New Tessellation upgrade might be available soon (v{node_data.latest_version}).`"
                     return version_field(), False, False
                 else:
                     field_symbol = ":yellow_square:"
@@ -939,7 +951,7 @@ def build_system_node_load_average(node_data: schemas.Node)  -> tuple[str, bool:
     if (node_data.one_m_system_load_average or node_data.cpu_count) is not None:
         if float(node_data.one_m_system_load_average) / float(node_data.cpu_count) >= 1:
             field_symbol = ":red_square:"
-            field_info = f'`⚠  "CPU load" is high. You might want to monitor CPU usage or reboot the server.`'
+            field_info = f'`⚠  CPU load is high. You might want to monitor CPU usage or reboot the server.`'
             yellow_color_trigger = True
             return load_average_field(), red_color_trigger, yellow_color_trigger
         elif (
