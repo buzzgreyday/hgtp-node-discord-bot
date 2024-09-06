@@ -67,10 +67,10 @@ async def on_ready():
     logging.getLogger("app").info(f"events.py - Discord connection established")
     # Register slash commands for the production bot
     bot.register_application_commands(
-        guild_ids=[NODEBOT_GUILD] if not dev_env else None
+        guild_id=NODEBOT_GUILD
     )
 
     # Register slash commands for the development bot
     bot.register_application_commands(
-        guild_ids=[NODEBOT_DEV_GUILD] if dev_env else None
+        guild_id=NODEBOT_DEV_GUILD
     )

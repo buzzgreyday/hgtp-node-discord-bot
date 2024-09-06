@@ -205,7 +205,7 @@ async def verify(interaction: nextcord.Interaction):
                 ephemeral=True,
             )
         else:
-            guild = await bot.fetch_guild(guild_id)
+            guild = await bot.fetch_guild(NODEBOT_DEV_GUILD if dev_env else NODEBOT_GUILD)
             role = nextcord.utils.get(guild.roles, name="verified")
             if role:
                 await interaction.user.add_roles(role)
