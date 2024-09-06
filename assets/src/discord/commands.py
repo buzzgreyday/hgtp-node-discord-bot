@@ -48,7 +48,7 @@ active_views = {}
     name="unsubscribe",
     description="Unsubscribe by IP and Public Port",
     dm_permission=True,
-    guild_ids=[int(NODEBOT_DEV_GUILD)] if dev_env else None,
+    guild_ids=[int(NODEBOT_DEV_GUILD) if dev_env else int(NODEBOT_GUILD)],
 )
 async def unsubscibe_menu(interaction):
     """This is a slash_command that sends a View() that contains a SelectMenu and a button to confirm user selection"""
@@ -136,7 +136,7 @@ async def unsubscibe_menu(interaction):
 
                 # Define a timeout handler
                 async def on_timeout():
-                    logging.warning(f"View timeout for user {interaction.user}")
+                    logging.getLogger("commands").warning(f"View timeout for user {interaction.user}")
                     await interaction.followup.send(
                         content="The view has timed out, please try again.", ephemeral=True
                     )
@@ -186,7 +186,7 @@ async def unsubscibe_menu(interaction):
 @bot.slash_command(
     name="verify",
     description="Verify your server settings to gain access",
-    guild_ids=[int(NODEBOT_DEV_GUILD)] if dev_env else [int(NODEBOT_GUILD)]
+    guild_ids=[int(NODEBOT_DEV_GUILD) if dev_env else int(NODEBOT_GUILD)]
 )
 async def verify(interaction: nextcord.Interaction):
     try:

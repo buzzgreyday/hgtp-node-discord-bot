@@ -9,6 +9,9 @@ import nextcord
 dev_env = os.getenv("NODEBOT_DEV_ENV")
 NON_COMMAND_CHANNELS = (977357753947402281, 974431346850140204, 1030007676257710080, 1134396471639277648)
 VERIFY_CHANNEL = 1136386732628115636
+NODEBOT_GUILD = 974431346850140201
+NODEBOT_DEV_GUILD = 1281616185170853960
+
 def setup(bot):
     pass
 
@@ -64,3 +67,13 @@ async def on_message(message):
 async def on_ready():
     """Prints a message to the logs when a connection to Discord is established (bot is running)"""
     logging.getLogger("app").info(f"events.py - Discord connection established")
+    logging.getLogger("app").info(f"Logged in as {bot.user}")
+    if dev_env:
+        guild = bot.get_guild(NODEBOT_DEV_GUILD)
+        if guild:
+            logging.getLogger("app").info(f"Syncing slash commands to guild {guild.name} ({guild.id})")
+            # Slash commands should be loaded automatically when the bot is run
+        else:
+            logging.getLogger("app").info(f"Guild {NODEBOT_DEV_GUILD} not found!")
+    else:
+        logging.getLogger("app").info("Bot running with global commands")
