@@ -79,18 +79,10 @@ async def deny_verified(ctx):
 # REQUEST HANDLING
 async def send_request_process_msg(bot, ctx):
     try:
-        if not dev_env:
-            msg = await ctx.message.author.send(
-                "### **`REPORT REQUEST: ADDED TO QUEUE`**\n"
-            )
-            return msg
-        else:
-            guild = await bot.fetch_guild(974431346850140201)
-            member = await guild.fetch_member(794353079825727500)
-            msg = await member.send(
-                "### **`REPORT REQUEST: ADDED TO QUEUE`**\n"
-            )
-            return msg
+        msg = await ctx.message.author.send(
+            "### **`REPORT REQUEST: ADDED TO QUEUE`**\n"
+        )
+        return msg
     except nextcord.Forbidden:
         return None
 

@@ -10,9 +10,11 @@ from os import getenv
 import nextcord
 
 from assets.src import schemas, determine_module
-from assets.src.discord import defaults, messages
+from assets.src.discord import defaults
 
 dev_env = getenv("NODEBOT_DEV_ENV")
+NODEBOT_GUILD = 974431346850140201
+NODEBOT_DEV_GUILD = 1281616185170853960
 
 
 async def send_subscription_process_msg(ctx):
@@ -78,7 +80,10 @@ async def update_subscription_process_msg(process_msg, process_num, foo):
 
 
 async def return_guild_member_role(bot, ctx):
-    guild = await bot.fetch_guild(974431346850140201)
+    if dev_env:
+        guild = await bot.fetch_guild(NODEBOT_DEV_GUILD)
+    else:
+        guild = await bot.fetch_guild(NODEBOT_GUILD)
     member = await guild.fetch_member(ctx.author.id)
     role = nextcord.utils.get(guild.roles, name="tester")
     return guild, member, role
@@ -130,7 +135,10 @@ async def send(bot, node_data: schemas.Node, configuration):
             )
     while True:
         try:
-            guild = await bot.fetch_guild(974431346850140201)
+            if dev_env:
+                guild = await bot.fetch_guild(NODEBOT_DEV_GUILD)
+            else:
+                guild = await bot.fetch_guild(NODEBOT_GUILD)
         except Exception:
             logging.getLogger("nextcord").error(f"discord.py - error: {traceback.format_exc()}")
             await asyncio.sleep(3)

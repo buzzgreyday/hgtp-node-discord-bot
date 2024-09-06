@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import traceback
+from os import getenv
 
 import aiohttp
 import yaml
@@ -15,6 +16,10 @@ from assets.src.schemas import User
 import nextcord
 from nextcord import SelectOption
 from nextcord.ui import Select
+
+dev_env = getenv("NODEBOT_DEV_ENV")
+NODEBOT_GUILD = 974431346850140201
+NODEBOT_DEV_GUILD = 1281616185170853960
 
 class SelectMenu(Select):
     def __init__(self, msg, values):
@@ -42,7 +47,8 @@ active_views = {}
 @bot.slash_command(
     name="unsubscribe",
     description="Unsubscribe by IP and Public Port",
-    dm_permission=True
+    dm_permission=True,
+    guild_ids=[int(NODEBOT_DEV_GUILD)] if dev_env else None,
 )
 async def unsubscibe_menu(interaction):
     """This is a slash_command that sends a View() that contains a SelectMenu and a button to confirm user selection"""
@@ -180,7 +186,7 @@ async def unsubscibe_menu(interaction):
 @bot.slash_command(
     name="verify",
     description="Verify your server settings to gain access",
-    guild_ids=[974431346850140201]
+    guild_ids=[int(NODEBOT_DEV_GUILD)] if dev_env else [int(NODEBOT_GUILD)]
 )
 async def verify(interaction: nextcord.Interaction):
     try:
@@ -203,7 +209,10 @@ async def verify(interaction: nextcord.Interaction):
                 ephemeral=True,
             )
         else:
-            guild = await bot.fetch_guild(974431346850140201)
+            if dev_env:
+                guild = await bot.fetch_guild(NODEBOT_DEV_GUILD)
+            else:
+                guild = await bot.fetch_guild(NODEBOT_GUILD)
             role = nextcord.utils.get(guild.roles, name="verified")
             if role:
                 await interaction.user.add_roles(role)
@@ -255,7 +264,7 @@ async def r(ctx):
                     logging.getLogger("app").info(
                         f"discord.py - User {ctx.message.author} does not have the appropriate role"
                     )
-                    await discord.messages.subscriber_role_deny_request(process_msg)
+                    await messages.subscriber_role_deny_request(process_msg)
             else:
                 if not isinstance(ctx.channel, nextcord.DMChannel):
                     await ctx.message.delete(delay=3)
