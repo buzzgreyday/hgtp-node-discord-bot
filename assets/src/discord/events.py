@@ -67,11 +67,10 @@ async def on_ready():
     logging.getLogger("app").info(f"events.py - Discord connection established")
 
     # Register slash commands only for the production or development bot
-    guild = nextcord.Object(id=NODEBOT_GUILD if not dev_env else NODEBOT_DEV_GUILD)
 
     if dev_env:
-        await bot.register_application_commands(guild=guild)  # Register for dev guild
+        await bot.register_application_commands(guild_id=int(NODEBOT_DEV_GUILD))  # Register for dev guild
         logging.getLogger("commands").info(f"Registered slash commands for dev guild {NODEBOT_DEV_GUILD}")
     else:
-        await bot.register_application_commands(guild=guild)  # Register for production guild
+        await bot.register_application_commands(guild_id=int(NODEBOT_GUILD))  # Register for production guild
         logging.getLogger("commands").info(f"Registered slash commands for prod guild {NODEBOT_GUILD}")
