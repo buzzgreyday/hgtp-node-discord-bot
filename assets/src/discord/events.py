@@ -2,7 +2,7 @@ import logging
 import os
 
 from assets.src.discord import discord, messages
-from assets.src.discord.services import bot, guild_id
+from assets.src.discord.services import bot, NODEBOT_GUILD, NODEBOT_DEV_GUILD
 
 import nextcord
 
@@ -65,13 +65,12 @@ async def on_message(message):
 async def on_ready():
     """Prints a message to the logs when a connection to Discord is established (bot is running)"""
     logging.getLogger("app").info(f"events.py - Discord connection established")
-    logging.getLogger("app").info(f"Logged in as {bot.user}")
-    if dev_env:
-        guild = bot.get_guild(guild_id)
-        if guild:
-            logging.getLogger("app").info(f"Syncing slash commands to guild {guild.name} ({guild.id})")
-            # Slash commands should be loaded automatically when the bot is run
-        else:
-            logging.getLogger("app").info(f"Guild {guild} not found!")
-    else:
-        logging.getLogger("app").info("Bot running with global commands")
+    # Register slash commands for the production bot
+    bot.register_application_commands(
+        guild_ids=[NODEBOT_GUILD] if not dev_env else None
+    )
+
+    # Register slash commands for the development bot
+    bot.register_application_commands(
+        guild_ids=[NODEBOT_DEV_GUILD] if dev_env else None
+    )

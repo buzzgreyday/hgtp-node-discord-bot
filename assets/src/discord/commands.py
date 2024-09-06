@@ -10,7 +10,7 @@ import assets.src.database.database
 from assets.src import user, check
 from assets.src.database import models
 from assets.src.discord import discord, messages
-from assets.src.discord.services import bot, slash_commands_guild_id, guild_id
+from assets.src.discord.services import bot, NODEBOT_DEV_GUILD, NODEBOT_GUILD
 from assets.src.schemas import User
 
 import nextcord
@@ -46,7 +46,6 @@ active_views = {}
     name="unsubscribe",
     description="Unsubscribe by IP and Public Port",
     dm_permission=True,
-    guild_ids=slash_commands_guild_id,
 )
 async def unsubscibe_menu(interaction):
     """This is a slash_command that sends a View() that contains a SelectMenu and a button to confirm user selection"""
@@ -184,7 +183,6 @@ async def unsubscibe_menu(interaction):
 @bot.slash_command(
     name="verify",
     description="Verify your server settings to gain access",
-    guild_ids=slash_commands_guild_id
 )
 async def verify(interaction: nextcord.Interaction):
     try:
