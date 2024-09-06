@@ -122,8 +122,8 @@ class Visual:
 
                 p = figure(
                     title="",
-                    x_axis_label="Time",
-                    y_axis_label="$DAG Earnings",
+                    x_axis_label="Time (UTC)",
+                    y_axis_label="$DAG Earnings (daily)",
                     x_axis_type="datetime",
                     width=600,
                     height=400,
@@ -161,7 +161,7 @@ class Visual:
 
                 # Add a second y-axis for USD Value
                 p.extra_y_ranges = {"usd_value": Range1d(start=0, end=destination_df["usd_address_daily_sum"].max())}
-                p.add_layout(LinearAxis(y_range_name="usd_value", axis_label="$USD Value"), 'right')
+                p.add_layout(LinearAxis(y_range_name="usd_value", axis_label="$USD Value (daily)"), 'right')
 
                 # Line for the right y-axis
                 line_usd = p.line(
@@ -214,9 +214,9 @@ class Visual:
                     tooltips=[
                         ("Date", "@datetime{%Y-%m-%d %H:%M:%S}"),
                         ("Node Earnings ($DAG)", "@dag_address_daily_sum{0.2f}"),
-                        ("Node Value ($)", "@usd_address_daily_sum{0.2f}"),
-                        ("Node Average ($DAG)", "@dag_address_daily_mean{0.2f}"),
+                        ("Node Earnings ($)", "@usd_address_daily_sum{0.2f}"),
                         ("Network Earnings ($DAG)", "@daily_overall_median{0.2f}"),
+                        ("Node Average ($DAG)", "@dag_address_daily_mean{0.2f}"),
                         ("Network Average ($DAG)", "@daily_network_average{0.2f}")
                     ],
                     formatters={"@datetime": "datetime"},
@@ -248,8 +248,8 @@ class Visual:
             destination_df = self.df[self.df["destinations"] == destination]
             p = figure(
                 title=f"",
-                x_axis_label="Time",
-                y_axis_label="CPU Load Percentage",
+                x_axis_label="Time (UTC)",
+                y_axis_label="CPU Load Percentage (daily)",
                 x_axis_type="datetime",
                 width=600,
                 height=400,

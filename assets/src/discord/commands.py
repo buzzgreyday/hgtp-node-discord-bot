@@ -10,7 +10,7 @@ import assets.src.database.database
 from assets.src import user, check
 from assets.src.database import models
 from assets.src.discord import discord, messages
-from assets.src.discord.services import bot
+from assets.src.discord.services import bot, slash_commands_guild_id, guild_id
 from assets.src.schemas import User
 
 import nextcord
@@ -18,8 +18,6 @@ from nextcord import SelectOption
 from nextcord.ui import Select
 
 dev_env = getenv("NODEBOT_DEV_ENV")
-NODEBOT_GUILD = 974431346850140201
-NODEBOT_DEV_GUILD = 1281616185170853960
 
 class SelectMenu(Select):
     def __init__(self, msg, values):
@@ -48,7 +46,7 @@ active_views = {}
     name="unsubscribe",
     description="Unsubscribe by IP and Public Port",
     dm_permission=True,
-    guild_ids=[int(NODEBOT_DEV_GUILD) if dev_env else int(NODEBOT_GUILD)],
+    guild_ids=slash_commands_guild_id,
 )
 async def unsubscibe_menu(interaction):
     """This is a slash_command that sends a View() that contains a SelectMenu and a button to confirm user selection"""
@@ -186,7 +184,7 @@ async def unsubscibe_menu(interaction):
 @bot.slash_command(
     name="verify",
     description="Verify your server settings to gain access",
-    guild_ids=[int(NODEBOT_DEV_GUILD) if dev_env else int(NODEBOT_GUILD)]
+    guild_ids=slash_commands_guild_id
 )
 async def verify(interaction: nextcord.Interaction):
     try:
@@ -209,10 +207,7 @@ async def verify(interaction: nextcord.Interaction):
                 ephemeral=True,
             )
         else:
-            if dev_env:
-                guild = await bot.fetch_guild(NODEBOT_DEV_GUILD)
-            else:
-                guild = await bot.fetch_guild(NODEBOT_GUILD)
+            guild = await bot.fetch_guild(guild_id)
             role = nextcord.utils.get(guild.roles, name="verified")
             if role:
                 await interaction.user.add_roles(role)
