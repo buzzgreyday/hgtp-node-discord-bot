@@ -21,4 +21,4 @@ intents = nextcord.Intents.all()
 intents.reactions = True
 intents.members = True
 
-bot = commands.Bot(command_prefix="!", description=description, intents=intents)
+bot = commands.Bot(command_prefix="!", description=description, intents=intents, default_guild_ids=[int(NODEBOT_DEV_GUILD)])

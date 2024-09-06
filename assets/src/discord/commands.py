@@ -46,6 +46,7 @@ active_views = {}
     name="unsubscribe",
     description="Unsubscribe by IP and Public Port",
     dm_permission=True,
+    guild_ids=None
 )
 async def unsubscibe_menu(interaction):
     """This is a slash_command that sends a View() that contains a SelectMenu and a button to confirm user selection"""
@@ -183,6 +184,7 @@ async def unsubscibe_menu(interaction):
 @bot.slash_command(
     name="verify",
     description="Verify your server settings to gain access",
+    guild_ids=None
 )
 async def verify(interaction: nextcord.Interaction):
     try:
@@ -216,6 +218,33 @@ async def verify(interaction: nextcord.Interaction):
                 await interaction.user.send(
                     content=f"{interaction.user.mention}, your settings were verified!"
                 )
+        return
+    except Exception as e:
+        logging.getLogger("commands").error(
+            f"Error: {e}\n"
+            f"Message: Something went wrong during verfication of {str(interaction.user)}\n"
+            f"Module: assets/src/discord/commands.py\n"
+            f"Details: {traceback.format_exc()}"
+        )
+
+# This should be a development server command as guild is not explicitly None
+@bot.slash_command(
+    name="test",
+    description="Test"
+)
+async def test(interaction: nextcord.Interaction):
+    try:
+        global active_views  # Ensure we're using the global active_views dictionary
+
+        # Check if there is an existing active view for this user and stop it
+        if interaction.user.id in active_views:
+            active_views[interaction.user.id].stop()
+            del active_views[interaction.user.id]
+
+        await interaction.response.send_message(
+            content=f"{interaction.user.mention}, test was completed!",
+            ephemeral=True,
+        )
         return
     except Exception as e:
         logging.getLogger("commands").error(

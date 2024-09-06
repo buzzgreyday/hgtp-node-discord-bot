@@ -65,12 +65,3 @@ async def on_message(message):
 async def on_ready():
     """Prints a message to the logs when a connection to Discord is established (bot is running)"""
     logging.getLogger("app").info(f"events.py - Discord connection established")
-
-    # Register slash commands only for the production or development bot
-
-    if dev_env:
-        await bot.register_application_commands(guild_id=int(NODEBOT_DEV_GUILD))  # Register for dev guild
-        logging.getLogger("commands").info(f"Registered slash commands for dev guild {NODEBOT_DEV_GUILD}")
-    else:
-        await bot.register_application_commands(guild_id=int(NODEBOT_GUILD))  # Register for production guild
-        logging.getLogger("commands").info(f"Registered slash commands for prod guild {NODEBOT_GUILD}")
