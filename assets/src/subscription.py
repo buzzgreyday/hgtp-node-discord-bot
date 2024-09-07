@@ -8,7 +8,6 @@ from typing import List
 import aiohttp
 import nextcord
 import yaml
-from pydantic import ValidationError
 
 from assets.src import api
 from assets.src.encode_decode import id_to_dag_address
@@ -16,6 +15,7 @@ from assets.src.schemas import User
 
 IP_REGEX = r'^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$'
 EMAIL_REGEX = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
+
 
 class SubscribeModal(nextcord.ui.Modal):
     def __init__(self):
@@ -85,8 +85,11 @@ class SubscribeModal(nextcord.ui.Modal):
             )
 
 
+async def attempt_discord_dm(message: str, discord_id: int):
+    pass
+
+
 async def discord_subscription(
-        cls,
         interaction,
         configuration,
         name: str,
@@ -96,65 +99,77 @@ async def discord_subscription(
         l0_ports: List[str],
         l1_ports: List[str]
 ):
-    async def _process_ports(processed_port, layer):
-        if port.isdigit():
-            id_ = await User.get_id(
-                session=session, ip=ip, port=processed_port, mode="subscribe", configuration=configuration
-            )
-            if id_ is not None:
-                wallet = id_to_dag_address(id_)
-                try:
-                    valid_user_data.append(
-                        cls(
-                            index=None, name=name, mail=email, date=datetime.now(datetime.UTC), discord=str(discord),
-                            id=id_, wallet=wallet, ip=ip, public_port=int(processed_port), layer=layer,
-                        )
-                    )
-                except ValidationError:
-                    print("Subscription failed: ValidationError")
-                    logging.getLogger("app").warning(
-                        f"schemas.py - Pydantic ValidationError - subscription failed with the following traceback: {traceback.format_exc()}"
-                    )
-                    invalid_user_data.append(
+    async def validate_ports(l0_ports, l1_ports):
+        async def _process_ports(processed_port, layer) -> List[dict]:
+            user_data = []
+            if port.isdigit():
+                id_ = await User.get_id(
+                    session=session, ip=ip, port=processed_port, mode="subscribe", configuration=configuration
+                )
+                if id_ is None:
+                    print("ID was not retrievable, make sure your node is online!")
+                    user_data.extend(
                         {
+                            "datetime": datetime.now(datetime.UTC),
+                            "index": None,
                             "ip": ip,
+                            "id": None,
+                            "wallet": None,
                             "public_port": processed_port,
                             "layer": layer,
                             "email": email,
+                            "customer_id": None,
+                            "discord_dm_allowed": None,
                             "discord_id": discord,
                             "discord_handle": name,
-                            "reason_invalid": "validation error"
+                            "custom": "offline"
+                        }
+                    )
+                else:
+                    wallet = id_to_dag_address(id_)
+                    user_data.extend(
+                        {
+                            "datetime": datetime.now(datetime.UTC),
+                            "index": None,
+                            "ip": ip,
+                            "id": id_,
+                            "wallet": wallet,
+                            "public_port": processed_port,
+                            "layer": layer,
+                            "email": email,
+                            "customer_id": None,
+                            "discord_dm_allowed": None,
+                            "discord_id": discord,
+                            "discord_handle": name,
+                            "custom": "online"
                         }
                     )
             else:
-                print("ID was not retrievable, make sure your node is online!")
-                invalid_user_data.append(
+                print("Not a valid port!")
+                user_data.extend(
                     {
+                        "datetime": datetime.now(datetime.UTC),
+                        "index": None,
                         "ip": ip,
+                        "id": None,
+                        "wallet": None,
                         "public_port": processed_port,
                         "layer": layer,
                         "email": email,
+                        "customer_id": None,
+                        "discord_dm_allowed": None,
                         "discord_id": discord,
                         "discord_handle": name,
-                        "reason_invalid": "id not retrievable"
+                        "custom": "invalid port"
                     }
                 )
-        else:
-            print("Not a valid port!")
-            invalid_user_data.append(
-                {
-                    "ip": ip,
-                    "public_port": processed_port,
-                    "layer": layer,
-                    "email": email,
-                    "discord_id": discord,
-                    "discord_handle": name,
-                    "reason_invalid": "port not a digit"
-                }
-            )
-
-    valid_user_data = []
-    invalid_user_data = []
+            return user_data
+        data = []
+        for port in l0_ports:
+            data.extend(await _process_ports(port, 0))
+        for port in l1_ports:
+            data.extend(await _process_ports(port, 1))
+        return data
 
     if not re.fullmatch(EMAIL_REGEX, email):
         await interaction.followup.send(
@@ -169,28 +184,29 @@ async def discord_subscription(
         )
         raise ValueError("Not a valid IP")
 
+    data = await validate_ports(l0_ports=l0_ports, l1_ports=l1_ports)
+
     # Check if IP is subscribed
     async with aiohttp.ClientSession() as session:
-        data, resp_status = await api.Request(
+        subscription_data, resp_status = await api.Request(
             session, f"http://127.0.0.1:8000/get/user/{ip}"
         ).db_json()
 
-    print("Subscribed Data", data)
-    if data:
-        print("IP is already subscribed")
+    print("Subscribed Data:", subscription_data)
+    print("New Data:", data)
+    if subscription_data:
+        print("IP is already subscribed: discard existing subscribed valid ports")
         # Check if ports differ; subtract pop the subscribed data from the new ports and check these
         # Extend new valid_user_data with the already subscribed data ("current_period_end" and "customer_id")
     else:
-        print("No subscriptions present")
+        print("No subscriptions present: subscribe all")
+        # For dev purposes
+
         # Check all ports
 
-    for port in l0_ports:
-        await _process_ports(port, 0)
-    for port in l1_ports:
-        await _process_ports(port, 1)
+
 
     # await user.write_db(valid_user_data)
-    print(valid_user_data)
 
     # After processing is done, send a follow-up message to the user
     await interaction.followup.send(
