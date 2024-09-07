@@ -2,7 +2,7 @@ import datetime
 import logging
 import re
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
 
 import aiohttp
@@ -124,9 +124,9 @@ async def discord_subscription(
                     )
                 if id_ is None:
                     print("ID was not retrievable, make sure your node is online!")
-                    user_data.extend(
+                    user_data.append(
                         {
-                            "datetime": datetime.now(datetime.timezone.utc),
+                            "datetime": datetime.now(timezone.utc),
                             "index": None,
                             "ip": ip,
                             "id": None,
@@ -143,9 +143,9 @@ async def discord_subscription(
                     )
                 else:
                     wallet = id_to_dag_address(id_)
-                    user_data.extend(
+                    user_data.append(
                         {
-                            "datetime": datetime.now(datetime.timezone.utc),
+                            "datetime": datetime.now(timezone.utc),
                             "index": None,
                             "ip": ip,
                             "id": id_,
@@ -162,9 +162,9 @@ async def discord_subscription(
                     )
             else:
                 print("Not a valid port!")
-                user_data.extend(
+                user_data.append(
                     {
-                        "datetime": datetime.now(datetime.timezone.utc),
+                        "datetime": datetime.now(timezone.utc),
                         "index": None,
                         "ip": ip,
                         "id": None,

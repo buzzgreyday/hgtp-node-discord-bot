@@ -1,6 +1,7 @@
 import asyncio
 import traceback
 
+import sqlalchemy
 from hypercorn import Config
 from hypercorn.asyncio import serve
 
@@ -48,6 +49,14 @@ async def create_db():
                 ALTER TABLE users
                 ADD COLUMN current_subscription_period_end TIMESTAMP;
                 """))
+        await conn.execute(
+            sqlalchemy.text(
+                """
+                ALTER TABLE users
+                ADD COLUMN discord_dm_allowed BOOLEAN;
+                """
+            )
+        )
         # Temporary
         # await conn.execute(
         #     sqlalchemy.text(
