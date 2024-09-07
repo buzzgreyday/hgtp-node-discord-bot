@@ -13,7 +13,7 @@ discord_token = getenv("DISCORD_TOKEN") if not dev_env else getenv("DISCORD_DEV_
 """GUILD CONFIG"""
 NODEBOT_GUILD = 974431346850140201
 NODEBOT_DEV_GUILD = 1281616185170853960
-guild_id = [int(NODEBOT_DEV_GUILD)] if dev_env else [int(NODEBOT_GUILD)]
+guild_id = [int(NODEBOT_DEV_GUILD)] if dev_env else None
 
 description = """Discord app by Buzz Greyday"""
 intents = nextcord.Intents.all()

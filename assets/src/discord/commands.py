@@ -45,6 +45,7 @@ active_views = {}
 @bot.slash_command(
     name="unsubscribe",
     description="Unsubscribe by IP and Public Port",
+    dm_permission=True,
     guild_ids=guild_id
 )
 async def unsubscibe_menu(interaction):
