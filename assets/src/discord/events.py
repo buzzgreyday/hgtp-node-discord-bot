@@ -7,6 +7,8 @@ from assets.src.discord.services import bot
 import nextcord
 
 dev_env = os.getenv("NODEBOT_DEV_ENV")
+NON_COMMAND_CHANNELS = (977357753947402281, 974431346850140204, 1030007676257710080, 1134396471639277648)
+VERIFY_CHANNEL = 1136386732628115636
 
 def setup(bot):
     pass
@@ -25,19 +27,14 @@ async def on_message(message):
         )
         await bot.process_commands(message)
     else:
-        if ctx.message.channel.id in (
-            977357753947402281,
-            974431346850140204,
-            1030007676257710080,
-            1134396471639277648,
-        ):
+        if ctx.message.channel.id in NON_COMMAND_CHANNELS:
             # IGNORE INTERPRETING MESSAGES IN THESE CHANNELS AS COMMANDS
             logging.getLogger("commands").info(
                 f"Module: assets/src/discord/events.py\n"
                 f"Message: \"{ctx.message.content}\"\n"
                 f"Channel: Non-command"
             )
-        elif ctx.message.channel.id == 1136386732628115636:
+        elif ctx.message.channel.id == VERIFY_CHANNEL:
             if not dev_env:
                 logging.getLogger("commands").info(
                     f"Module: assets/src/discord/events.py\n"

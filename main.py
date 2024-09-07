@@ -299,8 +299,7 @@ def start_services(configuration, version_manager):
 
 
 async def run_bot(version_manager, configuration):
-    if not dev_env:
-        bot.load_extension("assets.src.discord.commands")
+    bot.load_extension("assets.src.discord.commands")
     bot.load_extension("assets.src.discord.events")
 
     # Start the main loop as a background task

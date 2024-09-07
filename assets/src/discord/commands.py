@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import traceback
+from os import getenv
 
 import aiohttp
 import yaml
@@ -9,12 +10,14 @@ import assets.src.database.database
 from assets.src import user, check
 from assets.src.database import models
 from assets.src.discord import discord, messages
-from assets.src.discord.services import bot
+from assets.src.discord.services import bot, NODEBOT_DEV_GUILD, NODEBOT_GUILD, guild_id
 from assets.src.schemas import User
 
 import nextcord
 from nextcord import SelectOption
 from nextcord.ui import Select
+
+dev_env = getenv("NODEBOT_DEV_ENV")
 
 class SelectMenu(Select):
     def __init__(self, msg, values):
@@ -42,7 +45,8 @@ active_views = {}
 @bot.slash_command(
     name="unsubscribe",
     description="Unsubscribe by IP and Public Port",
-    dm_permission=True
+    dm_permission=True,
+    guild_ids=guild_id
 )
 async def unsubscibe_menu(interaction):
     """This is a slash_command that sends a View() that contains a SelectMenu and a button to confirm user selection"""
@@ -130,7 +134,7 @@ async def unsubscibe_menu(interaction):
 
                 # Define a timeout handler
                 async def on_timeout():
-                    logging.warning(f"View timeout for user {interaction.user}")
+                    logging.getLogger("commands").warning(f"View timeout for user {interaction.user}")
                     await interaction.followup.send(
                         content="The view has timed out, please try again.", ephemeral=True
                     )
@@ -180,7 +184,7 @@ async def unsubscibe_menu(interaction):
 @bot.slash_command(
     name="verify",
     description="Verify your server settings to gain access",
-    guild_ids=[974431346850140201]
+    guild_ids=guild_id
 )
 async def verify(interaction: nextcord.Interaction):
     try:
@@ -203,7 +207,7 @@ async def verify(interaction: nextcord.Interaction):
                 ephemeral=True,
             )
         else:
-            guild = await bot.fetch_guild(974431346850140201)
+            guild = await bot.fetch_guild(NODEBOT_DEV_GUILD if dev_env else NODEBOT_GUILD)
             role = nextcord.utils.get(guild.roles, name="verified")
             if role:
                 await interaction.user.add_roles(role)
@@ -255,9 +259,16 @@ async def r(ctx):
                     logging.getLogger("app").info(
                         f"discord.py - User {ctx.message.author} does not have the appropriate role"
                     )
-                    await discord.messages.subscriber_role_deny_request(process_msg)
+                    await messages.subscriber_role_deny_request(process_msg)
             else:
                 if not isinstance(ctx.channel, nextcord.DMChannel):
+                    await ctx.channel.send(
+                        content=f"**{ctx.message.author.mention}, please allow DMs from server members.**\n"
+                                f"This will allow the Nodebot to message you privately:\n"
+                                f"1. Click the server title at the top of the left menu\n"
+                                f"2. Navigate to `Privacy Settings`\n"
+                                f"3. Enable `Direct Messages`"
+                    )
                     await ctx.message.delete(delay=3)
                 logging.getLogger("app").info(
                     f"discord.py - User {ctx.message.author} does not allow DMs"
