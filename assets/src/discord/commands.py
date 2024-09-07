@@ -10,14 +10,12 @@ import assets.src.database.database
 from assets.src import user, check
 from assets.src.database import models
 from assets.src.discord import discord, messages
-from assets.src.discord.services import bot, NODEBOT_DEV_GUILD, NODEBOT_GUILD, guild_id
+from assets.src.discord.services import bot, NODEBOT_DEV_GUILD, NODEBOT_GUILD, guild_id, dev_env
 from assets.src.schemas import User
 
 import nextcord
 from nextcord import SelectOption
 from nextcord.ui import Select
-
-dev_env = getenv("NODEBOT_DEV_ENV")
 
 class SelectMenu(Select):
     def __init__(self, msg, values):

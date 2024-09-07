@@ -1,10 +1,8 @@
 import random
-import os
 
 import nextcord
 
 greeting = ["Hi", "Hallo", "Greetings", "Hey"]
-dev_env = os.getenv("NODEBOT_DEV_ENV")
 TIMEOUT = 60
 
 

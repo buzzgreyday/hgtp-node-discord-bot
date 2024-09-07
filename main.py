@@ -8,9 +8,7 @@ import time
 import traceback
 from datetime import datetime
 from typing import List, Tuple, Dict
-import psutil
 
-import hypercorn
 import aiohttp
 import yaml
 from hypercorn.asyncio import serve
@@ -20,9 +18,7 @@ from assets.src import preliminaries, check, history, rewards, stats, api
 from assets.src.config import configure_logging
 from assets.src.database.database import update_user, optimize
 from assets.src.discord import discord
-from assets.src.discord.services import bot, discord_token
-
-dev_env = os.getenv("NODEBOT_DEV_ENV")
+from assets.src.discord.services import bot, discord_token, dev_env
 
 MAX_CONCURRENT_REQUESTS = 10
 semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
@@ -261,7 +257,7 @@ async def main_loop(version_manager, _configuration):
                     # If uvicorn isn't running
                     logging.getLogger("app").error(
                         f"main.py - main_loop\n"
-                        f"Error: Uvicorn isn't running"
+                        f"Error: Hypercorn isn't running"
                     )
 
         # After checks, give GIL something to do

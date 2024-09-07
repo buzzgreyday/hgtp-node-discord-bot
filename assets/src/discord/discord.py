@@ -6,15 +6,11 @@ from typing import List
 import logging
 
 from aiofiles import os
-from os import getenv
 import nextcord
 
 from assets.src import schemas, determine_module
 from assets.src.discord import defaults
-from assets.src.discord.services import guild_id, NODEBOT_DEV_GUILD, NODEBOT_GUILD
-
-dev_env = getenv("NODEBOT_DEV_ENV")
-
+from assets.src.discord.services import dev_env, guild_id, NODEBOT_DEV_GUILD, NODEBOT_GUILD
 
 async def return_guild_member_role(bot, ctx):
     guild = await bot.fetch_guild(NODEBOT_DEV_GUILD if dev_env else NODEBOT_GUILD)
