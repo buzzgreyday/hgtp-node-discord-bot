@@ -16,68 +16,6 @@ from assets.src.discord.services import guild_id, NODEBOT_DEV_GUILD, NODEBOT_GUI
 dev_env = getenv("NODEBOT_DEV_ENV")
 
 
-async def send_subscription_process_msg(ctx):
-    msg = await ctx.message.author.send(
-        "**`➭ 1. Add subscription request to queue`**\n"
-        "`  2. Gather information`\n"
-        "`  3. Subscribe`"
-    )
-    return msg
-
-
-async def deny_subscription(process_msg):
-    return await process_msg.edit(
-        "**`✓  1. Add subscription request to queue`**\n"
-        "**`✓  2. Gather information`**\n"
-        "**`➭  3. Subscribe`**\n"
-        "`   X  Subscription denied`\n"
-        "**:warning:` We could not verify the IP as belonging to a node or the port(s) are not open or not correct`**"
-    )
-
-
-async def update_subscription_process_msg(process_msg, process_num, foo):
-    if process_num == 1:
-        return await process_msg.edit(
-            "**`✓  1. Add subscription request to queue`**\n"
-            "**`➭  2. Gather information`**\n"
-            "`   *  Process data`\n"
-            "`   3. Subscribe`\n"
-            "`   *  Write to database and assign role`\n"
-        )
-    elif process_num == 2:
-        return await process_msg.edit(
-            "**`✓  1. Add subscription request to queue`**\n"
-            "**`➭  2. Gather information`**\n"
-            f"`   >  Now processing {foo}`\n"
-            "`   3. Subscribe`\n"
-            "`   *  Write to database and assign role`\n"
-        )
-    elif process_num == 3:
-        return await process_msg.edit(
-            "**`✓  1. Add subscription request to queue`**\n"
-            "**`✓  2. Gather information`**\n"
-            "**`➭  3. Subscribe`**\n"
-            "`    >  Write to database and assign role`\n"
-        )
-    elif process_num == 4:
-        invalid = list(f"IP: {val[0]} Port: {val[1]}" for val in foo)
-        if foo:
-            return await process_msg.edit(
-                "**`✓  1. Add subscription request to queue`**\n"
-                "**`✓  2. Gather information`**\n"
-                "**`✓  3. Subscribe`**\n"
-                "**:warning:` The following could not be subscribed:`**"
-                f"```{invalid}````Please make sure the IP and port is correct and the node is online. You can "
-                f"subscribe the correct IP(s) and port(s) when the node services are online`"
-            )
-        else:
-            return await process_msg.edit(
-                "**`✓  1. Add subscription request to queue`**\n"
-                "**`✓  2. Gather information`**\n"
-                "**`✓  3. Subscribe`**"
-            )
-
-
 async def return_guild_member_role(bot, ctx):
     guild = await bot.fetch_guild(NODEBOT_DEV_GUILD if dev_env else NODEBOT_GUILD)
     member = await guild.fetch_member(ctx.author.id)

@@ -64,12 +64,11 @@ async def confirm_verified(ctx):
 
 async def deny_verified(ctx):
     deny_msg = await ctx.channel.send(
-        f"Hi, {ctx.message.author.mention},\n"
-        f"Please allow me to DM you. Otherwise, I can't grant you the `verified` member privileges:\n"
-        "> * Click the server title at the top of the left menu\n"
-        "> * Go to `Privacy Settings`\n"
-        "> * Enable/allow `Direct Messages`\n"
-        "> * Come back here and write me an message\n"
+        f"**{ctx.message.author.mention}, please allow DMs from server members.**\n"
+        f"This will allow the Nodebot to message you privately:\n"
+        "1. Click the server title at the top of the left menu\n"
+        "2. Navigate to `Privacy Settings`\n"
+        "3. Enable `Direct Messages`\n"
         "If you're having trouble please contact <@794353079825727500>.\n\n"
         "`This message will burn in 60 seconds`"
     )
@@ -119,10 +118,7 @@ async def update_request_process_msg(process_msg, process_num):
 
 async def subscriber_role_deny_request(process_msg):
     return await process_msg.edit(
-        "**`➭ 1. Add report request to queue`**\n"
-        "**`  X  You're not a subscriber`**\n"
-        "`  2. Process data`\n"
-        "`  3. Report`"
+        "### **`NO SUBSCRIPTION EXISTS`**\n"
     )
 
 
@@ -134,11 +130,11 @@ async def send_traceback(bot, trace_message):
 
 async def command_error(ctx, bot):
     embed = nextcord.Embed(
-        title="Not a valid command".upper(), color=nextcord.Color.orange()
+        title="There's a problem here".upper(), color=nextcord.Color.orange()
     )
     embed.add_field(
         name=f"\U00002328` {ctx.message.content}`",
-        value=f"`ⓘ You didn't input a valid command`",
+        value=f"`ⓘ The above command is invalid`",
         inline=False,
     )
     embed.set_author(

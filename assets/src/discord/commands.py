@@ -265,8 +265,9 @@ async def r(ctx):
                     await ctx.channel.send(
                         content=f"**{ctx.message.author.mention}, please allow DMs from server members.**\n"
                                 f"This will allow the Nodebot to message you privately:\n"
-                                f"1. Navigate to `Privacy Settings`\n"
-                                f"2. Enable `Direct Messages`"
+                                f"1. Click the server title at the top of the left menu\n"
+                                f"2. Navigate to `Privacy Settings`\n"
+                                f"3. Enable `Direct Messages`"
                     )
                     await ctx.message.delete(delay=3)
                 logging.getLogger("app").info(
