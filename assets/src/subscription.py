@@ -76,10 +76,11 @@ class SubscribeModal(nextcord.ui.Modal):
                     pass
         except Exception as e:
             # Handle potential errors
-            print(f"An error occurred: {e}")
+            print(f"An error occurred: {traceback.format_exc()}")
             # After processing is done, send a follow-up message to the user
             await interaction.followup.send(
-                content="### **An unknown error occurred while processing your request - please contact an admin!**",
+                content="### **An unknown error occurred while processing your request - please contact an admin!**\n"
+                        f"```Error: {e}```",
                 ephemeral=True  # Set to True if you want it to be visible only to the user
             )
 
@@ -96,7 +97,7 @@ async def get_id(session, ip: str, port: str, mode, configuration):
                 session, f"http://{ip}:{port}/node/info", configuration
             )
         except Exception as e:
-            print(e)
+            print(traceback.format_exc())
             return
         else:
             return str(node_data["id"]) if node_data is not None else None
