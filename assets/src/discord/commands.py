@@ -290,6 +290,12 @@ async def r(ctx):
                     await messages.subscriber_role_deny_request(process_msg)
             else:
                 if not isinstance(ctx.channel, nextcord.DMChannel):
+                    await ctx.channel.send(
+                        content=f"**{ctx.message.author.mention}, please allow DMs from server members.**\n"
+                                f"This will allow the Nodebot to message you privately:\n"
+                                f"1. Go to Privacy Settings\n"
+                                f"2. Enable Direct Messages"
+                    )
                     await ctx.message.delete(delay=3)
                 logging.getLogger("app").info(
                     f"discord.py - User {ctx.message.author} does not allow DMs"
