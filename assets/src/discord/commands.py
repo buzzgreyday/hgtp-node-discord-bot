@@ -1,13 +1,12 @@
 import asyncio
 import logging
 import traceback
-from os import getenv
 
 import aiohttp
 import yaml
 
 import assets.src.database.database
-from assets.src import user, check
+from assets.src import user, check, subscription
 from assets.src.database import models
 from assets.src.discord import discord, messages
 from assets.src.discord.services import bot, NODEBOT_DEV_GUILD, NODEBOT_GUILD, guild_id, dev_env
@@ -39,6 +38,13 @@ def setup(bot):
 # Dictionary to keep track of active views by user ID
 active_views = {}
 
+# Slash command to initiate the subscription process
+@bot.slash_command(name="subscribe", description="Subscribe to IP and Ports", guild_ids=guild_id)
+async def subscribe(interaction: nextcord.Interaction):
+    # Directly open the modal when the command is invoked
+    modal = subscription.SubscribeModal()
+    await interaction.response.send_modal(modal)
+    # After subscription is submitted checks will run in the background
 
 @bot.slash_command(
     name="unsubscribe",
