@@ -2,7 +2,7 @@ import logging
 import os
 
 from assets.src.discord import discord, messages
-from assets.src.discord.services import bot, NODEBOT_GUILD, NODEBOT_DEV_GUILD
+from assets.src.discord.services import bot
 
 import nextcord
 

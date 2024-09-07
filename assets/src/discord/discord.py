@@ -11,7 +11,7 @@ import nextcord
 
 from assets.src import schemas, determine_module
 from assets.src.discord import defaults
-from assets.src.discord.services import guild_id
+from assets.src.discord.services import guild_id, NODEBOT_DEV_GUILD, NODEBOT_GUILD
 
 dev_env = getenv("NODEBOT_DEV_ENV")
 
@@ -79,7 +79,7 @@ async def update_subscription_process_msg(process_msg, process_num, foo):
 
 
 async def return_guild_member_role(bot, ctx):
-    guild = await bot.fetch_guild(guild_id)
+    guild = await bot.fetch_guild(NODEBOT_DEV_GUILD if dev_env else NODEBOT_GUILD)
     member = await guild.fetch_member(ctx.author.id)
     role = nextcord.utils.get(guild.roles, name="tester")
     return guild, member, role
