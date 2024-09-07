@@ -1,12 +1,12 @@
 import logging
-import os
 
 from assets.src.discord import discord, messages
 from assets.src.discord.services import bot
 
 import nextcord
 
-dev_env = os.getenv("NODEBOT_DEV_ENV")
+from services import dev_env
+
 NON_COMMAND_CHANNELS = (977357753947402281, 974431346850140204, 1030007676257710080, 1134396471639277648)
 VERIFY_CHANNEL = 1136386732628115636
 

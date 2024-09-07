@@ -1,12 +1,12 @@
 import asyncio
-import os
-import signal
-import subprocess
 import traceback
-import sqlalchemy
+
+from hypercorn import Config
+from hypercorn.asyncio import serve
 
 from assets.src.database.models import SQLBase
 from assets.src.database.crud import engine
+from assets.src.database.database import app
 
 
 async def create_db():
@@ -67,30 +67,21 @@ async def create_db():
         print("Database tables and columns created or updated!")
 
 
-
 print("starting process...")
+
+hypercorn_running = False
+async def start(app):
+    config = Config()
+    config.bind = ["localhost:8000"]
+    await serve(app, config)
+    await create_db()
 
 
 def main():
-    pid = None
     try:
-        uvi_process = subprocess.Popen(
-            [
-                "venv/bin/uvicorn",
-                "assets.src.database.database:app",
-                "--host",
-                "127.0.0.1",
-                "--port",
-                "8000",
-            ]
-        )
-        pid = uvi_process.pid
-        asyncio.run(create_db())
-        os.kill(pid, signal.SIGTERM)
+        asyncio.run(start(app))
     except Exception:
         print(traceback.format_exc())
-        if pid:
-            os.kill(pid, signal.SIGTERM)
         exit(1)
     else:
         exit(0)

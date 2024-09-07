@@ -15,8 +15,6 @@ from assets.src import (
 from assets.src.discord import discord, messages
 from assets.src.discord.services import bot
 
-dev_env = os.getenv("NODEBOT_DEV_ENV")
-
 
 async def node_status(
         session,

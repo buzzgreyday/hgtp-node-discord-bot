@@ -1,11 +1,10 @@
-import os
 from os import getenv
 from dotenv import load_dotenv
 import nextcord
 from nextcord.ext import commands
 
 load_dotenv()
-dev_env = os.getenv("NODEBOT_DEV_ENV")
+dev_env = getenv("NODEBOT_DEV_ENV")
 
 """LOAD DISCORD SERVER TOKEN FROM ENVIRONMENT"""
 discord_token = getenv("DISCORD_TOKEN") if not dev_env else getenv("DISCORD_DEV_TOKEN")
