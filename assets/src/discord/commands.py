@@ -227,34 +227,6 @@ async def verify(interaction: nextcord.Interaction):
             f"Details: {traceback.format_exc()}"
         )
 
-# This should be a development server command as guild is not explicitly None
-@bot.slash_command(
-    name="test",
-    description="Test",
-    guild_ids=guild_id
-)
-async def test(interaction: nextcord.Interaction):
-    try:
-        global active_views  # Ensure we're using the global active_views dictionary
-
-        # Check if there is an existing active view for this user and stop it
-        if interaction.user.id in active_views:
-            active_views[interaction.user.id].stop()
-            del active_views[interaction.user.id]
-
-        await interaction.response.send_message(
-            content=f"{interaction.user.mention}, test was completed!",
-            ephemeral=True,
-        )
-        return
-    except Exception as e:
-        logging.getLogger("commands").error(
-            f"Error: {e}\n"
-            f"Message: Something went wrong during verfication of {str(interaction.user)}\n"
-            f"Module: assets/src/discord/commands.py\n"
-            f"Details: {traceback.format_exc()}"
-        )
-
 
 @bot.command()
 async def r(ctx):
@@ -293,8 +265,8 @@ async def r(ctx):
                     await ctx.channel.send(
                         content=f"**{ctx.message.author.mention}, please allow DMs from server members.**\n"
                                 f"This will allow the Nodebot to message you privately:\n"
-                                f"1. Go to Privacy Settings\n"
-                                f"2. Enable Direct Messages"
+                                f"1. Navigate to `Privacy Settings`\n"
+                                f"2. Enable `Direct Messages`"
                     )
                     await ctx.message.delete(delay=3)
                 logging.getLogger("app").info(
