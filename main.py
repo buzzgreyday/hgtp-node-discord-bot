@@ -63,8 +63,6 @@ def start_hypercorn_coroutine(app):
     asyncio.run_coroutine_threadsafe(run_hypercorn_process(app), bot.loop)
 
 
-
-
 async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[List[Dict], List[Dict]]:
     first_run = True if not cache else False
     if not clusters:
@@ -265,6 +263,8 @@ async def main_loop(version_manager, _configuration):
 
 
 hypercorn_running = False
+
+
 async def run_hypercorn_process(app):
     global hypercorn_running
     hypercorn_running = True
@@ -274,6 +274,7 @@ async def run_hypercorn_process(app):
         await serve(app, config)
     finally:
         hypercorn_running = False  # Ensure flag is reset on stop
+
 
 def start_services(configuration, version_manager):
     from assets.src.database.database import app

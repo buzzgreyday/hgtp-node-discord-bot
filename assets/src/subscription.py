@@ -11,7 +11,6 @@ import yaml
 
 from assets.src import api
 from assets.src.encode_decode import id_to_dag_address
-from assets.src.schemas import User
 
 IP_REGEX = r'^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$'
 EMAIL_REGEX = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
@@ -88,6 +87,21 @@ class SubscribeModal(nextcord.ui.Modal):
 async def attempt_discord_dm(message: str, discord_id: int):
     pass
 
+async def get_id(session, ip: str, port: str, mode, configuration):
+    """Will need refactoring before metagraph release. Some other way to validate node?"""
+    if mode == "subscribe":
+        print(f"Requesting: {ip}:{port}")
+        try:
+            node_data, status_code = await api.safe_request(
+                session, f"http://{ip}:{port}/node/info", configuration
+            )
+        except Exception as e:
+            print(e)
+            return
+        else:
+            return str(node_data["id"]) if node_data is not None else None
+    else:
+        return None
 
 async def discord_subscription(
         interaction,
@@ -103,14 +117,15 @@ async def discord_subscription(
         async def _process_ports(processed_port, layer) -> List[dict]:
             user_data = []
             if port.isdigit():
-                id_ = await User.get_id(
-                    session=session, ip=ip, port=processed_port, mode="subscribe", configuration=configuration
-                )
+                async with aiohttp.ClientSession() as session:
+                    id_ = await get_id(
+                        session=session, ip=ip, port=processed_port, mode="subscribe", configuration=configuration
+                    )
                 if id_ is None:
                     print("ID was not retrievable, make sure your node is online!")
                     user_data.extend(
                         {
-                            "datetime": datetime.now(datetime.UTC),
+                            "datetime": datetime.now(datetime.timezone.utc),
                             "index": None,
                             "ip": ip,
                             "id": None,
@@ -129,7 +144,7 @@ async def discord_subscription(
                     wallet = id_to_dag_address(id_)
                     user_data.extend(
                         {
-                            "datetime": datetime.now(datetime.UTC),
+                            "datetime": datetime.now(datetime.timezone.utc),
                             "index": None,
                             "ip": ip,
                             "id": id_,
@@ -148,7 +163,7 @@ async def discord_subscription(
                 print("Not a valid port!")
                 user_data.extend(
                     {
-                        "datetime": datetime.now(datetime.UTC),
+                        "datetime": datetime.now(datetime.timezone.utc),
                         "index": None,
                         "ip": ip,
                         "id": None,
