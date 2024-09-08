@@ -33,7 +33,10 @@ async def send(bot, node_data: schemas.Node, configuration):
         try:
             await bot.wait_until_ready()
             if not dev_env:
-                member = await guild.fetch_member(int(node_data.discord))
+                try:
+                    member = await guild.fetch_member(int(node_data.discord))
+                except TypeError as e:
+                    logging.getLogger("nextcord").warning(f"No discord_id present: might be due to node being offline for too long")
                 embed.set_footer(
                     text=f"Data: {node_data.timestamp_index.now(datetime.UTC).strftime('%d-%m-%Y %H:%M')} UTC\n"
                          f"Build: {configuration['general']['version']}",
