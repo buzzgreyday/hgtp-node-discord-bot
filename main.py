@@ -286,11 +286,11 @@ def start_services(configuration, version_manager):
     get_tessellation_version_thread = threading.Thread(
         target=version_manager.update_version, daemon=True
     )
-    rewards_thread = threading.Thread(target=start_rewards_coroutine, args=(configuration,))
+    rewards_thread = threading.Thread(target=start_rewards_coroutine, args=(configuration,), daemon=True)
     stats_thread = threading.Thread(
-        target=start_stats_coroutine, args=(configuration,)
+        target=start_stats_coroutine, args=(configuration,), daemon=True
     )
-    db_optimization_thread = threading.Thread(target=start_database_optimization_coroutine, args=(configuration,))
+    db_optimization_thread = threading.Thread(target=start_database_optimization_coroutine, args=(configuration,), daemon=True)
 
     get_tessellation_version_thread.start()
     rewards_thread.start()
@@ -331,23 +331,28 @@ def main():
 
     version_manager = preliminaries.VersionManager(_configuration)
 
-    # Start your threads (if necessary)
+    # Start your services and bot
     start_services(_configuration, version_manager)
 
-    # Run the bot with automatic restart on failure
+    # Get the event loop
     loop = asyncio.get_event_loop()
 
     try:
+        # Run the bot with automatic restart on failure
         loop.run_until_complete(restart_bot(version_manager, _configuration))
     except KeyboardInterrupt:
-        print("Received exit signal, shutting down...")
+        logging.getLogger("app").info("Exit signal received!")
+    except Exception as e:
+        logging.getLogger("app").critical(f"Exception in main: {traceback.format_exc()}")
     finally:
-        # Close the loop cleanly
-        loop.run_until_complete(loop.shutdown_asyncgens())
-        loop.close()
+        try:
+            # Ensure the loop is closed properly after shutdown
+            loop.run_until_complete(loop.shutdown_asyncgens())
+        finally:
+            loop.close()
 
 
 if __name__ == "__main__":
     if dev_env:
-        print("Message: Development environment enabled!")
+        print("DEVELOPMENT ENABLED\n")
     main()
