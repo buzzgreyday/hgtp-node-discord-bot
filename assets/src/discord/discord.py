@@ -10,7 +10,7 @@ import nextcord
 
 from assets.src import schemas, determine_module
 from assets.src.discord import defaults
-from assets.src.discord.services import dev_env, guild_id, NODEBOT_DEV_GUILD, NODEBOT_GUILD
+from assets.src.discord.services import dev_env, NODEBOT_DEV_GUILD, NODEBOT_GUILD
 
 async def return_guild_member_role(bot, ctx):
     guild = await bot.fetch_guild(NODEBOT_DEV_GUILD if dev_env else NODEBOT_GUILD)
