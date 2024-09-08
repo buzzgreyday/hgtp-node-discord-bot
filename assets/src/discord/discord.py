@@ -37,12 +37,18 @@ async def send(bot, node_data: schemas.Node, configuration):
                     member = await guild.fetch_member(int(node_data.discord))
                 except TypeError as e:
                     logging.getLogger("nextcord").warning(f"No discord_id present: might be due to node being offline for too long")
-                embed.set_footer(
-                    text=f"Data: {node_data.timestamp_index.now(datetime.UTC).strftime('%d-%m-%Y %H:%M')} UTC\n"
-                         f"Build: {configuration['general']['version']}",
-                    icon_url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images"
-                             "/logo-encased-color.png",
-                )
+                else:
+                    embed.set_footer(
+                        text=f"Data: {node_data.timestamp_index.now(datetime.UTC).strftime('%d-%m-%Y %H:%M')} UTC\n"
+                             f"Build: {configuration['general']['version']}",
+                        icon_url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images"
+                                 "/logo-encased-color.png",
+                    )
+                    await member.send(embed=embed)
+                    logging.getLogger("nextcord").info(
+                        f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):"
+                        f"\n\t{node_data}"
+                    )
             else:
                 member = await guild.fetch_member(794353079825727500)
                 embed.set_footer(
@@ -51,11 +57,11 @@ async def send(bot, node_data: schemas.Node, configuration):
                     icon_url="https://raw.githubusercontent.com/pypergraph/hgtp-node-discord-bot/master/assets/src/images"
                              "/logo-encased-color.png",
                 )
-            await member.send(embed=embed)
-            logging.getLogger("nextcord").info(
-                f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):"
-                f"\n\t{node_data}"
-            )
+                await member.send(embed=embed)
+                logging.getLogger("nextcord").info(
+                    f"discord.py - Node report successfully sent to {node_data.name} ({node_data.ip}, L{node_data.layer}):"
+                    f"\n\t{node_data}"
+                )
         except nextcord.Forbidden:
             logging.getLogger("nextcord").warning(
                 f"discord.py - Discord message could not be sent to "
