@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import signal
 import sys
 
 import threading
@@ -268,9 +269,15 @@ hypercorn_running = False
 async def run_hypercorn_process(app):
     global hypercorn_running
     hypercorn_running = True
+    config = Config()
+    config.bind = ["localhost:8000"]
+
+    # Add a signal handler for graceful shutdown
+    loop = asyncio.get_event_loop()
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        loop.add_signal_handler(sig, loop.stop)
+
     try:
-        config = Config()
-        config.bind = ["localhost:8000"]
         await serve(app, config)
     finally:
         hypercorn_running = False  # Ensure flag is reset on stop
@@ -278,7 +285,10 @@ async def run_hypercorn_process(app):
 
 def start_services(configuration, version_manager):
     from assets.src.database.database import app
-    hypercorn_thread = threading.Thread(target=start_hypercorn_coroutine, args=(app,))
+
+    # Start the Hypercorn server as a background coroutine within the same event loop
+    bot.loop.create_task(run_hypercorn_process(app))
+
     get_tessellation_version_thread = threading.Thread(
         target=version_manager.update_version, daemon=True
     )
@@ -289,7 +299,6 @@ def start_services(configuration, version_manager):
     db_optimization_thread = threading.Thread(target=start_database_optimization_coroutine, args=(configuration,))
 
     get_tessellation_version_thread.start()
-    hypercorn_thread.start()
     rewards_thread.start()
     stats_thread.start()
     db_optimization_thread.start()
@@ -333,7 +342,15 @@ def main():
 
     # Run the bot with automatic restart on failure
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(restart_bot(version_manager, _configuration))
+
+    try:
+        loop.run_until_complete(restart_bot(version_manager, _configuration))
+    except KeyboardInterrupt:
+        print("Received exit signal, shutting down...")
+    finally:
+        # Close the loop cleanly
+        loop.run_until_complete(loop.shutdown_asyncgens())
+        loop.close()
 
 
 if __name__ == "__main__":

@@ -59,10 +59,10 @@ function start_bot() {
     create_dir_structure
     create_swap_file
     start_venv
-    cd "$HOME/bot" && $PY_VERSION main.py &
+    cd "$HOME/bot" && "${PY_VERSION}" main.py &
     echo "Bot: The app started, waiting $WAIT seconds to fetch process ID"
     sleep $WAIT
-    pid=$(pidof -s $PY_VERSION main.py)
+    pid=$(pidof -s "${PY_VERSION}" main.py)
     echo "Bot: Got process ID $pid"
     echo "$pid" &> "$HOME/bot/tmp/pid-store"
   fi

@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 import logging
 import re
@@ -126,9 +127,10 @@ class Cluster(BaseModel):
 class User(NodeBase):
     """This class can create a user object which can be subscribed using different methods and transformations"""
 
-    date: dt.datetime = dt.datetime.now()
+    date: dt.datetime = dt.datetime.now(datetime.timezone.utc)
     index: Optional[int]
     discord: Optional[str | int | None] = None
+    discord_dm_allowed: bool = True
     mail: str
     phone: Optional[str | None] = None
     wallet: str

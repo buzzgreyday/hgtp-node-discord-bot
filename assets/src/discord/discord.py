@@ -65,7 +65,7 @@ async def send(bot, node_data: schemas.Node, configuration):
             )
     while True:
         try:
-            guild = await bot.fetch_guild(guild_id)
+            guild = await bot.fetch_guild(NODEBOT_DEV_GUILD if dev_env else NODEBOT_GUILD)
         except Exception:
             logging.getLogger("nextcord").error(f"discord.py - error: {traceback.format_exc()}")
             await asyncio.sleep(3)
