@@ -271,12 +271,6 @@ async def run_hypercorn_process(app):
     hypercorn_running = True
     config = Config()
     config.bind = ["localhost:8000"]
-
-    # Add a signal handler for graceful shutdown
-    loop = asyncio.get_event_loop()
-    for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(sig, loop.stop)
-
     try:
         await serve(app, config)
     finally:
