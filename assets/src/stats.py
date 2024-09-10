@@ -706,7 +706,7 @@ async def run():
                     snapshot_data.loc[:, "nonoutlier_dag_addresses_minted_sum"] = filtered_df["dag_address_sum"].sum()
 
                     # Loop through DataFrame rows using iterrows()
-                    for i, row in filtered_df.iterrows():
+                    for i, row in snapshot_data.iterrows():
                         df = filtered_df[filtered_df.dag_address_sum > row.dag_address_sum]
                         # Update each row individually
                         snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_dag_address_earner_highest"] = df.dag_address_sum.max()
