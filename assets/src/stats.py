@@ -118,7 +118,7 @@ class Visual:
 
                 # Get the closest timestamp for zoom
                 start_x_zoom = destination_df['datetime'].max() - pd.Timedelta(days=7)
-                end_x_zoom = destination_df['datetime'].max()
+                end_x_zoom = destination_df['datetime'].max() + pd.Timedelta(days=1)
 
                 p = figure(
                     title="",
@@ -126,11 +126,11 @@ class Visual:
                     y_axis_label="$DAG Earnings (daily)",
                     x_axis_type="datetime",
                     width=600,
-                    height=400,
+                    height=600,
                     x_range=[start_x_zoom, end_x_zoom],
                     toolbar_location='above'
                 )
-                p.sizing_mode = 'scale_width'
+                p.sizing_mode = 'scale_both'
                 p.xaxis.major_label_orientation = 0.785
                 p.toolbar.logo = None
 
@@ -219,8 +219,8 @@ class Visual:
                         ("Node Average ($DAG)", "@dag_address_daily_mean{0.2f}"),
                         ("Network Average ($DAG)", "@daily_network_average{0.2f}")
                     ],
-                    formatters={"@datetime": "datetime"},
-                    mode="vline"
+                    formatters={"@datetime": "datetime"}
+                    #mode="vline"
                 )
                 p.add_tools(hover)
 
@@ -587,7 +587,7 @@ def _generate_visuals(sliced_snapshot_df, sliced_node_df):
 
 def _remove_extreme_outliers(snapshot_data: pd.DataFrame):
     # Define a threshold for the Z-score (positive numbers only)
-    zscore_threshold = 0.11
+    zscore_threshold = 0.50
     zscore_threshold_tolerance = 0.005
     snapshot_data["dag_address_sum_zscore"] = stats.zscore(snapshot_data.dag_address_sum)
     # Filter out rows where z-score exceeds the threshold by taking the absolute:
@@ -595,7 +595,7 @@ def _remove_extreme_outliers(snapshot_data: pd.DataFrame):
     filtered_df = snapshot_data[(snapshot_data[
                                      'dag_address_sum_zscore'].abs() <= zscore_threshold + zscore_threshold_tolerance) & (
                                         snapshot_data[
-                                            'dag_address_sum_zscore'].abs() >= zscore_threshold - zscore_threshold_tolerance)].copy()
+                                            'dag_address_sum_zscore'].abs() >= 0)].copy()
     # Use .copy() to ensure a new DataFrame is created, preventing chained assignments
     return filtered_df
 
@@ -673,7 +673,7 @@ async def run():
                     # THIS WILL NEED TO BE RENAMED. NOT USING THE MEDIAN ANYMORE:
                     # Calculate the overall average. Since there's possibly some extreme unwanted outliers,
                     # we'll find the median.
-                    snapshot_data["dag_median_sum"] = filtered_df["dag_address_sum"].mean()
+                    snapshot_data["dag_median_sum"] = snapshot_data["dag_address_sum"].median()
 
                     # The node is earning more than the average if sum deviation is positive, less if negative
                     snapshot_data["dag_address_sum_dev"] = (
@@ -706,7 +706,8 @@ async def run():
                     snapshot_data.loc[:, "nonoutlier_dag_addresses_minted_sum"] = filtered_df["dag_address_sum"].sum()
 
                     # Loop through DataFrame rows using iterrows()
-                    for i, row in snapshot_data.iterrows():
+
+                    for i, row in filtered_df.iterrows():
                         df = filtered_df[filtered_df.dag_address_sum > row.dag_address_sum]
                         # Update each row individually
                         snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_dag_address_earner_highest"] = df.dag_address_sum.max()
