@@ -211,16 +211,32 @@ class Visual:
                 # Setup the hover tool
                 hover = HoverTool(
                     renderers=[invisible_line],
-                    tooltips=[
-                        ("Date", "@datetime{%Y-%m-%d %H:%M:%S}"),
-                        ("Node Earnings ($DAG)", "@dag_address_daily_sum{0.2f}"),
-                        ("Node Earnings ($)", "@usd_address_daily_sum{0.2f}"),
-                        ("Network Earnings ($DAG)", "@daily_overall_median{0.2f}"),
-                        ("Node Average ($DAG)", "@dag_address_daily_mean{0.2f}"),
-                        ("Network Average ($DAG)", "@daily_network_average{0.2f}")
-                    ],
-                    formatters={"@datetime": "datetime"}
-                    #mode="vline"
+                    tooltips=
+                    """
+                    <div style="background-color: #007484; padding: 10px; border-radius: 5px;">
+                        <span style="font-size: 0.6em; font-weight: bold; color: #f1f2f2;">Date</span>
+                        <span style="color: #00b4cd;">@datetime{%Y-%m-%d %H:%M:%S}</span><br>
+                        <span style="font-size: 0.6em; font-weight: bold; color: #f1f2f2;">Node Earnings (DAG)</span>
+                        <span style="color: #00b4cd;">@dag_address_daily_sum{0.2f}</span><br>
+                        <span style="font-size: 0.6em; font-weight: bold; color: #f1f2f2;">Node Earnings (USD)</span>
+                        <span style="color: #00b4cd;">@usd_address_daily_sum{0.2f}</span><br>
+                        <span style="font-size: 0.6em; font-weight: bold; color: #f1f2f2;">Network Earnings (DAG)</span>
+                        <span style="color: #00b4cd;">@daily_overall_median{0.2f}</span><br>
+                        <span style="font-size: 0.6em; font-weight: bold; color: #f1f2f2;">Node Average (DAG)</span>
+                        <span style="color: #00b4cd;">@dag_address_daily_mean{0.2f}</span><br>
+                        <span style="font-size: 0.6em; font-weight: bold; color: #f1f2f2;">Network Average (DAG)</span>
+                        <span style="color: #00b4cd;">@daily_network_average{0.2f}</span><br>
+                    """,
+                    # [
+                    #     ("Date", "@datetime{%Y-%m-%d %H:%M:%S}"),
+                    #     ("Node Earnings ($DAG)", "@dag_address_daily_sum{0.2f}"),
+                    #     ("Node Earnings ($)", "@usd_address_daily_sum{0.2f}"),
+                    #     ("Network Earnings ($DAG)", "@daily_overall_median{0.2f}"),
+                    #     ("Node Average ($DAG)", "@dag_address_daily_mean{0.2f}"),
+                    #     ("Network Average ($DAG)", "@daily_network_average{0.2f}")
+                    # ],
+                    formatters={"@datetime": "datetime"},
+                    mode="mouse"
                 )
                 p.add_tools(hover)
 
@@ -265,7 +281,7 @@ class Visual:
                 layer_df = destination_df[destination_df["public_port"] == port]
 
                 p.line(
-                    pd.to_datetime(layer_df["timestamp"] * 1000, unit="ms"),
+                    pd.to_datetime(layer_df["timestamp"], unit="s"),
                     layer_df["daily_cpu_load"] / layer_df["cpu_count"] * 100,
                     line_width=3,
                     legend_label=f"{layer_df['ip'].values[0]}:{layer_df['public_port'].values[0]}",
@@ -273,11 +289,11 @@ class Visual:
                 )
 
             p.line(
-                pd.to_datetime(self.df["timestamp"] * 1000, unit="ms"),
+                pd.to_datetime(self.df["timestamp"], unit="s"),
                 self.df["daily_cpu_load"].median() / self.df["cpu_count"].median() * 100,
                 line_color="grey",
                 line_dash="dashed",
-                legend_label="User avg.",
+                legend_label="Nodebot User Avg.",
                 alpha=0.5,
             )
             green_box = BoxAnnotation(bottom=0, top=80, left=0, fill_alpha=0.1, fill_color='#00b4cd')
@@ -317,6 +333,7 @@ final_columns = [
     "dag_address_sum",
     "daily_overall_median",
     "dag_address_sum_dev",
+    # This is now filtered mean, not median
     "dag_median_sum",
     "dag_address_daily_sum_dev",
     "dag_address_daily_mean",
@@ -617,7 +634,7 @@ async def run():
                     pd.options.display.float_format = "{:.2f}".format
                     # Convert timestamp to epoch
                     timestamp = normalize_timestamp(
-                        datetime.now(timezone.utc).timestamp() - timedelta(days=30).total_seconds()
+                        datetime.now(timezone.utc).timestamp() - timedelta(days=7).total_seconds()
                     )
                     """GET DATA"""
                     # Important: The original data requested below is used after creation of daily data.
@@ -628,7 +645,6 @@ async def run():
                     while True:
                         snapshot_data, node_data = await _get_data(timestamp)
                         if not snapshot_data.empty and not node_data.empty:
-                            # DEBUGGING: Get's data!
                             break
                         else:
                             await asyncio.sleep(30)
@@ -670,10 +686,8 @@ async def run():
 
                     filtered_df = _remove_extreme_outliers(snapshot_data)
 
-                    # THIS WILL NEED TO BE RENAMED. NOT USING THE MEDIAN ANYMORE:
-                    # Calculate the overall average. Since there's possibly some extreme unwanted outliers,
-                    # we'll find the median.
-                    snapshot_data["dag_median_sum"] = snapshot_data["dag_address_sum"].median()
+                    # THIS WILL NEED TO BE RENAMED. NOT USING THE MEDIAN ANYMORE, BUT FILTERED MEAN:
+                    snapshot_data.loc[:, "dag_median_sum"] = filtered_df["dag_address_sum"].mean()
 
                     # The node is earning more than the average if sum deviation is positive, less if negative
                     snapshot_data["dag_address_sum_dev"] = (

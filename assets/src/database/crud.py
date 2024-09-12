@@ -477,7 +477,6 @@ class CRUD:
                      dag_address_sum=round(reward_results.dag_address_sum, 2),
                      dag_median_sum=round(reward_results.dag_median_sum, 2),
                      dag_address_daily_mean=round(reward_results.dag_address_daily_mean, 2),
-                     dag_address_daily_std_dev=round(reward_results.dag_address_daily_sum_dev, 2),
                      dag_price_now=round(price_dagusd, 4),
                      dag_earnings_price_now_dev=dag_earnings_price_now_dev,
                      dag_price_now_timestamp=datetime.fromtimestamp(price_timestamp),

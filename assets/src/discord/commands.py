@@ -225,9 +225,9 @@ async def verify(interaction: nextcord.Interaction):
             f"Details: {traceback.format_exc()}"
         )
 
-
 @bot.command()
 async def r(ctx):
+
     async with aiohttp.ClientSession() as session:
         with open("config.yml", "r") as file:
             _configuration = yaml.safe_load(file)
@@ -238,26 +238,15 @@ async def r(ctx):
                     await ctx.message.delete(delay=3)
                 guild, member, role = await discord.return_guild_member_role(bot, ctx)
                 if role:
-                    fut = []
-                    for layer in (0, 1):
-                        fut.append(
-                            asyncio.create_task(
-                                check.request(
-                                    session,
-                                    process_msg,
-                                    layer,
-                                    requester,
-                                    _configuration,
-                                )
-                            )
-                        )
-                    for task in fut:
-                        await task
+                    await _check_request(session, process_msg, requester, _configuration)
                 else:
-                    logging.getLogger("app").info(
-                        f"discord.py - User {ctx.message.author} does not have the appropriate role"
-                    )
-                    await messages.subscriber_role_deny_request(process_msg)
+                    if dev_env:
+                        await _check_request(session, process_msg, requester, _configuration)
+                    else:
+                        logging.getLogger("app").info(
+                            f"discord.py - User {ctx.message.author} does not have the appropriate role"
+                        )
+                        await messages.subscriber_role_deny_request(process_msg)
             else:
                 if not isinstance(ctx.channel, nextcord.DMChannel):
                     await ctx.channel.send(
@@ -272,6 +261,22 @@ async def r(ctx):
                     f"discord.py - User {ctx.message.author} does not allow DMs"
                 )
 
+async def _check_request(session, process_msg, requester, _configuration):
+    fut = []
+    for layer in (0, 1):
+        fut.append(
+            asyncio.create_task(
+                check.request(
+                    session,
+                    process_msg,
+                    layer,
+                    requester,
+                    _configuration,
+                )
+            )
+        )
+    for task in fut:
+        await task
 
 @bot.command()
 async def s(ctx, *args):
