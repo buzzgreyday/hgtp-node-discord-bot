@@ -213,19 +213,19 @@ class Visual:
                     renderers=[invisible_line],
                     tooltips=
                     """
-                    <div style="background-color: #007484; padding: 10px; border-radius: 5px;">
-                        <span style="font-size: 0.6em; font-weight: bold; color: #f1f2f2;">Date</span>
-                        <span style="color: #00b4cd;">@datetime{%Y-%m-%d %H:%M:%S}</span><br>
-                        <span style="font-size: 0.6em; font-weight: bold; color: #f1f2f2;">Node Earnings (DAG)</span>
-                        <span style="color: #00b4cd;">@dag_address_daily_sum{0.2f}</span><br>
-                        <span style="font-size: 0.6em; font-weight: bold; color: #f1f2f2;">Node Earnings (USD)</span>
-                        <span style="color: #00b4cd;">@usd_address_daily_sum{0.2f}</span><br>
-                        <span style="font-size: 0.6em; font-weight: bold; color: #f1f2f2;">Network Earnings (DAG)</span>
-                        <span style="color: #00b4cd;">@daily_overall_median{0.2f}</span><br>
-                        <span style="font-size: 0.6em; font-weight: bold; color: #f1f2f2;">Node Average (DAG)</span>
-                        <span style="color: #00b4cd;">@dag_address_daily_mean{0.2f}</span><br>
-                        <span style="font-size: 0.6em; font-weight: bold; color: #f1f2f2;">Network Average (DAG)</span>
-                        <span style="color: #00b4cd;">@daily_network_average{0.2f}</span><br>
+                    <div style="background-color: #3d3d3d; padding: 3px; border: none;">
+                        <span style="font-size: 0.8em; font-weight: bold; color: #f1f2f2;">Date</span>
+                        <span style="font-size: 0.8em; color: #00b4cd;">@datetime{%Y-%m-%d %H:%M:%S}</span><br>
+                        <span style="font-size: 0.8em; font-weight: bold; color: #f1f2f2;">Node Earnings (DAG)</span>
+                        <span style="font-size: 0.8em; color: #00b4cd;">@dag_address_daily_sum{0.2f}</span><br>
+                        <span style="font-size: 0.8em; font-weight: bold; color: #f1f2f2;">Node Earnings (USD)</span>
+                        <span style="font-size: 0.8em; color: #00b4cd;">@usd_address_daily_sum{0.2f}</span><br>
+                        <span style="font-size: 0.8em; font-weight: bold; color: #f1f2f2;">Network Earnings (DAG)</span>
+                        <span style="font-size: 0.8em; color: #00b4cd;">@daily_overall_median{0.2f}</span><br>
+                        <span style="font-size: 0.8em; font-weight: bold; color: #f1f2f2;">Node Average (DAG)</span>
+                        <span style="font-size: 0.8em; color: #00b4cd;">@dag_address_daily_mean{0.2f}</span><br>
+                        <span style="font-size: 0.8em; font-weight: bold; color: #f1f2f2;">Network Average (DAG)</span>
+                        <span style="font-size: 0.8em; color: #00b4cd;">@daily_network_average{0.2f}</span><br>
                     """,
                     # [
                     #     ("Date", "@datetime{%Y-%m-%d %H:%M:%S}"),
@@ -634,7 +634,7 @@ async def run():
                     pd.options.display.float_format = "{:.2f}".format
                     # Convert timestamp to epoch
                     timestamp = normalize_timestamp(
-                        datetime.now(timezone.utc).timestamp() - timedelta(days=7).total_seconds()
+                        datetime.now(timezone.utc).timestamp() - timedelta(days=30).total_seconds()
                     )
                     """GET DATA"""
                     # Important: The original data requested below is used after creation of daily data.

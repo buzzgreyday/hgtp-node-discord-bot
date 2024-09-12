@@ -45,6 +45,22 @@ async def creation(conn):
             """
         )
     )
+    # await conn.execute(
+    #     sqlalchemy.text(
+    #         """
+    #         ALTER TABLE table_name
+    #         RENAME COLUMN old_column_name TO new_column_name;
+    #         """
+    #     )
+    # )
+    # await conn.execute(
+    #     sqlalchemy.text(
+    #         """
+    #         ALTER TABLE table_name
+    #         DROP COLUMN column_name;
+    #         """
+    #     )
+    # )
 
     # Temporary
     # await conn.execute(

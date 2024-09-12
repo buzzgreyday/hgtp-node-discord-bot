@@ -20,7 +20,7 @@ import pandas as pd
 from assets.src import schemas, cluster, api
 
 CONNECT_STATES = ("waitingfordownload", "downloadinprogress", "observing")
-DISCONNECT_STATES = ("leaving", "offline", "apinotready", "apinotresponding", "sessionignored", "sessionnotfound")
+DISCONNECT_STATES = ("leaving", "offline", "apinotready", "readytojoin", "apinotresponding", "sessionignored", "sessionnotfound")
 
 """
     SECTION 1: PRELIMINARIES
