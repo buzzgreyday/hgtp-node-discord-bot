@@ -125,8 +125,8 @@ class Visual:
                     x_axis_label="Time (UTC)",
                     y_axis_label="$DAG Earnings (daily)",
                     x_axis_type="datetime",
-                    width=600,
-                    height=600,
+                    # width=600,
+                    # height=600,
                     x_range=[start_x_zoom, end_x_zoom],
                     toolbar_location='above'
                 )
@@ -604,7 +604,7 @@ def _generate_visuals(sliced_snapshot_df, sliced_node_df):
 
 def _remove_extreme_outliers(snapshot_data: pd.DataFrame):
     # Define a threshold for the Z-score (positive numbers only)
-    zscore_threshold = 0.50
+    zscore_threshold = 0.30
     zscore_threshold_tolerance = 0.005
     snapshot_data["dag_address_sum_zscore"] = stats.zscore(snapshot_data.dag_address_sum)
     # Filter out rows where z-score exceeds the threshold by taking the absolute:
