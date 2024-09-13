@@ -137,7 +137,7 @@ async def main_loop(version_manager, _configuration):
     cache = []
     clusters = []
     while True:
-        with semaphore:
+        async with semaphore:
             async with aiohttp.ClientSession() as session:
 
                 if hypercorn_running:
