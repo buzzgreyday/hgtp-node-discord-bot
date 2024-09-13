@@ -81,8 +81,8 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
         for cluster_name, layers in _configuration["modules"].items():
             for layer in layers:
                 clusters.append({"cluster_name": cluster_name, "layer": layer, "number_of_subs": 0})
-        clusters.append({"cluster_name": None, "layer": 0, "number_of_subs": 0})
-        clusters.append({"cluster_name": None, "layer": 1, "number_of_subs": 0})
+        clusters.append({"cluster_name": "None", "layer": 0, "number_of_subs": 0})
+        clusters.append({"cluster_name": "None", "layer": 1, "number_of_subs": 0})
 
     # Get subscribers to check with cache: this should follow same logic as above
     for layer in (0, 1):
@@ -138,6 +138,7 @@ async def main_loop(version_manager, _configuration):
     clusters = []
     while True:
         async with semaphore:
+            # Wow, we do not want to use one session across multiples!
             async with aiohttp.ClientSession() as session:
 
                 if hypercorn_running:
