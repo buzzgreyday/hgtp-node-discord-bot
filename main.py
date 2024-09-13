@@ -62,14 +62,14 @@ def start_hypercorn_coroutine(app):
 
 async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[List[Dict], List[Dict]]:
     """Creates or updates the cache used to run automatic checks"""
-    def cache_data(identity: str, ip: str, public_port: str | int, layer: int, removal_datetime,
+    def cache_data(identity, ip, public_port, layer, removal_datetime,
                    located: bool = False, new: bool = False, cluster: str | None = None):
         return {
-            "id": str(identity),
-            "ip": str(ip),
-            "public_port": str(public_port),
-            "layer": str(layer),
-            "cluster_name": str(cluster),
+            "id": identity,
+            "ip": ip,
+            "public_port": public_port,
+            "layer": layer,
+            "cluster_name": cluster,
             "located": located,
             "new_subscriber": new,
             "removal_datetime": removal_datetime
