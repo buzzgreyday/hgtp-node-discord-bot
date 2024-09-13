@@ -25,9 +25,9 @@ from assets.src.cluster_modules import constellation
 # ---------------------------------------------------------------------------------------------------------------------
 
 
-async def request_cluster_data(session, url, layer, name, configuration) -> schemas.Cluster:
+async def request_cluster_data(url, layer, name, configuration) -> schemas.Cluster:
     cluster_data = await constellation.request_cluster_data(
-        session, url, layer, name, configuration
+        url, layer, name, configuration
     )
     return cluster_data
 
@@ -48,11 +48,11 @@ async def request_cluster_data(session, url, layer, name, configuration) -> sche
 
 
 async def node_cluster_data(
-    session, node_data: schemas.Node, module_name, configuration: dict
+    node_data: schemas.Node, module_name, configuration: dict
 ) -> schemas.Node:
     """Get node data. IMPORTANT: Create Pydantic Schema for node data"""
     node_data = await constellation.node_cluster_data(
-        session, node_data, module_name, configuration
+        node_data, module_name, configuration
     )
     return node_data
 

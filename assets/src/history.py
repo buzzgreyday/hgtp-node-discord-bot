@@ -3,13 +3,14 @@ import logging
 import traceback
 from typing import List
 
+import aiohttp
 from aiohttp import client_exceptions
 
 from assets.src import schemas, api, database
 from assets.src.database import database
 
 
-async def node_data(session, requester, node_data: schemas.Node, _configuration):
+async def node_data(node_data: schemas.Node, _configuration, requester: str | None = None):
     """Get historic node data"""
 
     #
@@ -17,45 +18,46 @@ async def node_data(session, requester, node_data: schemas.Node, _configuration)
     # The problem seems to be with requesting sqlite3 async from different tasks. It locks or times out.
     localhost_error_retry = 0
     data = None
-    while True:
-        try:
-            data, resp_status = await api.Request(
-                session,
-                f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}",
-            ).db_json(timeout=6)
-            # resp_status = 500
-        except (
-            asyncio.exceptions.TimeoutError,
-            client_exceptions.ClientOSError,
-            client_exceptions.ServerDisconnectedError,
-        ):
-            logging.getLogger("app").debug(
-                f"history.py - node_data\n"
-                f"Retry: {localhost_error_retry}/{2}\n"
-                f"Warning: data/node/{node_data.ip}/{node_data.public_port} ({localhost_error_retry}/{2}): {traceback.format_exc()}"
-            )
-
-            if localhost_error_retry <= 2:
-                localhost_error_retry += 1
-                await asyncio.sleep(1)
-            else:
-                break
-        else:
-            # This section won't do. We need to get the historic data; the first lines won't work we need loop to ensure we get the data, only if it doesn't exist, we can continue.
-            if resp_status == 200:
-                break
-            else:
+    async with aiohttp.ClientSession() as session:
+        while True:
+            try:
+                data, resp_status = await api.Request(
+                    session,
+                    f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}",
+                ).db_json(timeout=6)
+                # resp_status = 500
+            except (
+                asyncio.exceptions.TimeoutError,
+                client_exceptions.ClientOSError,
+                client_exceptions.ServerDisconnectedError,
+            ):
                 logging.getLogger("app").debug(
                     f"history.py - node_data\n"
                     f"Retry: {localhost_error_retry}/{2}\n"
-                    f"Status {resp_status}"
+                    f"Warning: data/node/{node_data.ip}/{node_data.public_port} ({localhost_error_retry}/{2}): {traceback.format_exc()}"
                 )
+
                 if localhost_error_retry <= 2:
                     localhost_error_retry += 1
                     await asyncio.sleep(1)
                 else:
-                    # Did the user unsubscribe
                     break
+            else:
+                # This section won't do. We need to get the historic data; the first lines won't work we need loop to ensure we get the data, only if it doesn't exist, we can continue.
+                if resp_status == 200:
+                    break
+                else:
+                    logging.getLogger("app").debug(
+                        f"history.py - node_data\n"
+                        f"Retry: {localhost_error_retry}/{2}\n"
+                        f"Status {resp_status}"
+                    )
+                    if localhost_error_retry <= 2:
+                        localhost_error_retry += 1
+                        await asyncio.sleep(1)
+                    else:
+                        # Did the user unsubscribe
+                        break
     if data:
         if requester:
             node_data = node_data.model_validate(data)

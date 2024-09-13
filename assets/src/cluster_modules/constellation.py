@@ -11,6 +11,8 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta
+
+import aiohttp
 from packaging import version
 
 import nextcord.embeds
@@ -38,49 +40,50 @@ DISCONNECT_STATES = ("leaving", "offline", "apinotready", "readytojoin", "apinot
 
 
 async def request_cluster_data(
-        session, url, layer, name, configuration
+        url, layer, name, configuration
 ) -> schemas.Cluster:
-    cluster_resp, status_code = await api.safe_request(
-        session,
-        f"{url}/{configuration['modules'][name][layer]['info']['cluster']}",
-        configuration, cluster=True
-    )
-    node_resp, status_code = await api.safe_request(
-        session,
-        f"{url}/{configuration['modules'][name][layer]['info']['node']}",
-        configuration
-    )
-    latest_ordinal, latest_timestamp, addresses = await locate_rewarded_addresses(
-        session, layer, name, configuration
-    )
+    async with aiohttp.ClientSession() as session:
+        cluster_resp, status_code = await api.safe_request(
+            session,
+            f"{url}/{configuration['modules'][name][layer]['info']['cluster']}",
+            configuration, cluster=True
+        )
+        node_resp, status_code = await api.safe_request(
+            session,
+            f"{url}/{configuration['modules'][name][layer]['info']['node']}",
+            configuration
+        )
+        latest_ordinal, latest_timestamp, addresses = await locate_rewarded_addresses(
+            session, layer, name, configuration
+        )
 
-    if node_resp is None:
-        cluster_data = schemas.Cluster(
-            layer=layer,
-            name=name,
-            id=await cluster.locate_id_offline(layer, name, configuration),
-            peer_count=len(cluster_resp) if cluster_resp is not None else 0,
-            latest_ordinal=latest_ordinal,
-            latest_timestamp=latest_timestamp,
-            recently_rewarded=addresses,
-            peer_data=sorted(cluster_resp, key=lambda d: d["id"]) if cluster_resp else [],
-        )
-    else:
-        cluster_data = schemas.Cluster(
-            layer=layer,
-            name=name,
-            state=node_resp["state"].lower(),
-            id=node_resp["id"],
-            session=str(node_resp["clusterSession"]),
-            version=node_resp["version"],
-            ip=node_resp["host"],
-            public_port=node_resp["publicPort"],
-            peer_count=len(cluster_resp) if cluster_resp is not None else 0,
-            latest_ordinal=latest_ordinal,
-            latest_timestamp=latest_timestamp,
-            recently_rewarded=addresses,
-            peer_data=sorted(cluster_resp, key=lambda d: d["id"]) if cluster_resp else [],
-        )
+        if node_resp is None:
+            cluster_data = schemas.Cluster(
+                layer=layer,
+                name=name,
+                id=await cluster.locate_id_offline(layer, name, configuration),
+                peer_count=len(cluster_resp) if cluster_resp is not None else 0,
+                latest_ordinal=latest_ordinal,
+                latest_timestamp=latest_timestamp,
+                recently_rewarded=addresses,
+                peer_data=sorted(cluster_resp, key=lambda d: d["id"]) if cluster_resp else [],
+            )
+        else:
+            cluster_data = schemas.Cluster(
+                layer=layer,
+                name=name,
+                state=node_resp["state"].lower(),
+                id=node_resp["id"],
+                session=str(node_resp["clusterSession"]),
+                version=node_resp["version"],
+                ip=node_resp["host"],
+                public_port=node_resp["publicPort"],
+                peer_count=len(cluster_resp) if cluster_resp is not None else 0,
+                latest_ordinal=latest_ordinal,
+                latest_timestamp=latest_timestamp,
+                recently_rewarded=addresses,
+                peer_data=sorted(cluster_resp, key=lambda d: d["id"]) if cluster_resp else [],
+            )
     # await config.update_config_with_latest_values(cluster_data, configuration)
     return cluster_data
 
@@ -174,54 +177,54 @@ yellow_color_trigger = False
 red_color_trigger = False
 
 
-async def node_cluster_data(
-        session, node_data: schemas.Node, module_name, configuration: dict
+async def node_cluster_data(node_data: schemas.Node, module_name: str, configuration: dict
 ) -> schemas.Node:
     """Get node data. IMPORTANT: Create Pydantic Schema for node data"""
-    if node_data.public_port:
-        node_info_data, status_code = await api.safe_request(
-            session,
-            f"http://{node_data.ip}:{node_data.public_port}/"
-            f"{configuration['modules'][module_name][node_data.layer]['info']['node']}",
-            configuration,
-        )
-        node_data.state = (
-            "offline" if node_info_data is None else node_info_data["state"].lower()
-        )
-        if node_info_data:
-            node_data.node_cluster_session = str(node_info_data["clusterSession"])
-            node_data.version = node_info_data["version"]
-            node_data.id = node_info_data["id"]
-        if node_data.state != "offline":
-            cluster_data, status_code = await api.safe_request(
+    async with aiohttp.ClientSession() as session:
+        if node_data.public_port:
+            node_info_data, status_code = await api.safe_request(
                 session,
                 f"http://{node_data.ip}:{node_data.public_port}/"
-                f"{configuration['modules'][module_name][node_data.layer]['info']['cluster']}",
+                f"{configuration['modules'][module_name][node_data.layer]['info']['node']}",
                 configuration,
             )
-            metrics_data, status_code = await api.safe_request(
-                session,
-                f"http://{node_data.ip}:{node_data.public_port}/"
-                f"{configuration['modules'][module_name][node_data.layer]['info']['metrics']}",
-                configuration,
+            node_data.state = (
+                "offline" if node_info_data is None else node_info_data["state"].lower()
             )
-            if cluster_data:
-                node_data.node_peer_count = len(cluster_data)
-            if metrics_data:
-                # node_data.cluster_association_time = (
-                #     metrics_data.cluster_association_time
-                # )
-                node_data.cpu_count = metrics_data.cpu_count
-                node_data.one_m_system_load_average = (
-                    metrics_data.one_m_system_load_average
+            if node_info_data:
+                node_data.node_cluster_session = str(node_info_data["clusterSession"])
+                node_data.version = node_info_data["version"]
+                node_data.id = node_info_data["id"]
+            if node_data.state != "offline":
+                cluster_data, status_code = await api.safe_request(
+                    session,
+                    f"http://{node_data.ip}:{node_data.public_port}/"
+                    f"{configuration['modules'][module_name][node_data.layer]['info']['cluster']}",
+                    configuration,
                 )
-                node_data.disk_space_free = metrics_data.disk_space_free
-                node_data.disk_space_total = metrics_data.disk_space_total
-        node_data = await request_wallet_data(
-            session, node_data, module_name, configuration
-        )
-        node_data = set_connectivity_specific_node_data_values(node_data, module_name)
-        node_data = set_association_time(node_data)
+                metrics_data, status_code = await api.safe_request(
+                    session,
+                    f"http://{node_data.ip}:{node_data.public_port}/"
+                    f"{configuration['modules'][module_name][node_data.layer]['info']['metrics']}",
+                    configuration,
+                )
+                if cluster_data:
+                    node_data.node_peer_count = len(cluster_data)
+                if metrics_data:
+                    # node_data.cluster_association_time = (
+                    #     metrics_data.cluster_association_time
+                    # )
+                    node_data.cpu_count = metrics_data.cpu_count
+                    node_data.one_m_system_load_average = (
+                        metrics_data.one_m_system_load_average
+                    )
+                    node_data.disk_space_free = metrics_data.disk_space_free
+                    node_data.disk_space_total = metrics_data.disk_space_total
+            node_data = await request_wallet_data(
+                session, node_data, module_name, configuration
+            )
+            node_data = set_connectivity_specific_node_data_values(node_data, module_name)
+            node_data = set_association_time(node_data)
     return node_data
 
 

@@ -60,7 +60,7 @@ def start_hypercorn_coroutine(app):
     asyncio.run_coroutine_threadsafe(run_hypercorn_process(app), bot.loop)
 
 
-async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[List[Dict], List[Dict]]:
+async def cache_and_clusters(cache, clusters, _configuration) -> Tuple[List[Dict], List[Dict]]:
     first_run = True if not cache else False
     if not clusters:
         # Since we need the clusters below, if they're not existing, create them
@@ -73,8 +73,9 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
     # Get subscribers to check with cache: this should follow same logic as above
     for layer in (0, 1):
         # We need subscriber data to determine if new subscriptions have been made (or first run), add these to cache
-        layer_subscriptions = await api.get_user_ids(session, layer, None, _configuration)
-        # Returns a list of tuples containing (ID, IP, PORT, REMOVAL_DATETIME, CLUSTER)
+        async with aiohttp.ClientSession() as session:
+            layer_subscriptions = await api.get_user_ids(session, layer, None, _configuration)
+            # Returns a list of tuples containing (ID, IP, PORT, REMOVAL_DATETIME, CLUSTER)
 
         for subscriber in layer_subscriptions:
             subscriber_found = False
@@ -139,8 +140,56 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
     sorted_cache = sorted(cache, key=lambda x: priority_dict[x['cluster_name']], reverse=True)
     return sorted_cache, sorted_clusters
 
-
 async def main_loop(version_manager, _configuration):
+    async def run_none_clustered_subscribers(no_cluster_subscribers):
+
+        # These should be checked last: probably make sure these are not new subscribers
+        # (new subscribers are 'integrationnet' by default now, could be "new" or something)
+        # and then check once daily, until removal
+        tuple_of_tuples = [tuple(sorted(d.items())) for d in no_cluster_subscribers]
+
+        # Create a set to remove duplicates
+        unique_tuples = set(tuple_of_tuples)
+
+        # Convert tuples back to dictionaries
+        no_cluster_subscribers = [dict(t) for t in unique_tuples]
+
+        for i, cached_subscriber in enumerate(no_cluster_subscribers):
+            try:
+                tasks.append(
+                    (
+                        i, asyncio.create_task(
+                            check.automatic(
+                                cached_subscriber,
+                                cluster_data,
+                                cluster["cluster_name"],
+                                cluster["layer"],
+                                version_manager,
+                                _configuration
+                            )
+                        )
+                    )
+                )
+            except Exception:
+                logging.getLogger("app").error(
+                    f"main.py - No cluster subscribers - Check failed for {[cluster["cluster_name"], cluster["layer"]]}\n"
+                    f"Subscriber: {cached_subscriber}\n"
+                    f"Details: {traceback.format_exc()}"
+                )
+                continue
+
+        # Wait for all tasks to complete
+        results = await asyncio.gather(*[task for _, task in tasks])
+
+        # Handle the results
+        for (i, _), (data, updated_cache) in zip(tasks, results):
+            if data:
+                await history.write(data)
+                await update_user(updated_cache)
+                cache[i] = updated_cache  # Replace the old cache entry with the updated one
+
+        # Clear to make ready for next check
+        tasks.clear()
 
     cache = []
     clusters = []
@@ -154,7 +203,7 @@ async def main_loop(version_manager, _configuration):
                     try:
                         tasks = []
                         try:
-                            cache, clusters = await cache_and_clusters(session, cache, clusters, _configuration)
+                            cache, clusters = await cache_and_clusters(cache, clusters, _configuration)
                         except Exception:
                             logging.getLogger("app").error(
                                 f"main.py - Unknown error - Cache or cluster error: {traceback.format_exc()}"
@@ -169,7 +218,7 @@ async def main_loop(version_manager, _configuration):
                                 # Need a check for if cluster is down, skip check
                                 try:
                                     cluster_data = await preliminaries.supported_clusters(
-                                        session, cluster["cluster_name"], cluster["layer"], _configuration
+                                        cluster["cluster_name"], cluster["layer"], _configuration
                                     )
                                     if not cluster_data:
                                         raise ValueError
@@ -193,7 +242,6 @@ async def main_loop(version_manager, _configuration):
                                                     (
                                                         i, asyncio.create_task(
                                                             check.automatic(
-                                                                session,
                                                                 cached_subscriber,
                                                                 cluster_data,
                                                                 cluster["cluster_name"],
@@ -211,30 +259,6 @@ async def main_loop(version_manager, _configuration):
                                                     f"Details: {traceback.format_exc()}"
                                                 )
                                                 continue
-                                for i, cached_subscriber in enumerate(no_cluster_subscribers):
-                                    try:
-                                        tasks.append(
-                                            (
-                                                i, asyncio.create_task(
-                                                    check.automatic(
-                                                        session,
-                                                        cached_subscriber,
-                                                        cluster_data,
-                                                        cluster["cluster_name"],
-                                                        cluster["layer"],
-                                                        version_manager,
-                                                        _configuration
-                                                    )
-                                                )
-                                            )
-                                        )
-                                    except Exception:
-                                        logging.getLogger("app").error(
-                                            f"main.py - No cluster subscribers - Check failed for {[cluster["cluster_name"], cluster["layer"]]}\n"
-                                            f"Subscriber: {cached_subscriber}\n"
-                                            f"Details: {traceback.format_exc()}"
-                                        )
-                                        continue
 
                                 # Wait for all tasks to complete
                                 results = await asyncio.gather(*[task for _, task in tasks])
@@ -249,17 +273,6 @@ async def main_loop(version_manager, _configuration):
                                 # Clear to make ready for next check
                                 tasks.clear()
 
-                                # These should be checked last: probably make sure these are not new subscribers
-                                # (new subscribers are 'integrationnet' by default now, could be "new" or something)
-                                # and then check once daily, until removal
-                                tuple_of_tuples = [tuple(sorted(d.items())) for d in no_cluster_subscribers]
-
-                                # Create a set to remove duplicates
-                                unique_tuples = set(tuple_of_tuples)
-
-                                # Convert tuples back to dictionaries
-                                no_cluster_subscribers = [dict(t) for t in unique_tuples]
-
                                 # Log the completion time
                                 dt_stop, timer_stop = timing()
 
@@ -268,6 +281,8 @@ async def main_loop(version_manager, _configuration):
                                     f"Cluster: {cluster["cluster_name"]} l{cluster["layer"]}\n"
                                     f"Automatic check: {round(timer_stop - timer_start, 2)} seconds"
                                 )
+                        await run_none_clustered_subscribers(no_cluster_subscribers)
+
 
                     except Exception as e:
                         try:

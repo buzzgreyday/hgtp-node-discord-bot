@@ -61,12 +61,12 @@ class VersionManager:
             return self.version
 
 
-async def supported_clusters(session, name: str, layer: int, configuration: dict) -> schemas.Cluster:
+async def supported_clusters(name: str, layer: int, configuration: dict) -> schemas.Cluster:
     url = configuration["modules"][name][layer]["url"][0]
     module_path = f"{configuration['file settings']['locations']['cluster modules']}/{name}.py"
     if await os.path.exists(module_path):
         module = determine_module.set_module(name, configuration)
-        cluster = await module.request_cluster_data(session, url, layer, name, configuration)
+        cluster = await module.request_cluster_data(url, layer, name, configuration)
         return cluster
 
 

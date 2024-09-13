@@ -154,53 +154,54 @@ async def get_user_ids(session, layer, requester, _configuration) -> List:
                 await asyncio.sleep(3)
 
 
-async def locate_node(session, node_id, ip, port):
+async def locate_node(node_id: str, ip: str, port: str | int):
     """Locate every subscription where ID is id_
     return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])
     """
     retry = 0
-    while True:
-        try:
-            data, resp_status = await Request(
-                session, f"http://127.0.0.1:8000/user/ids/{node_id}/{ip}/{port}"
-            ).db_json(timeout=30)
-        except (
-            asyncio.exceptions.TimeoutError,
-            aiohttp.client_exceptions.ClientConnectorError,
-            aiohttp.client_exceptions.ClientOSError,
-            aiohttp.client_exceptions.ServerDisconnectedError,
-            aiohttp.client_exceptions.ClientPayloadError,
-        ):
-            logging.getLogger("app").warning(
-                f"api.py - locate_node\n "
-                f"Retry: {retry}/2\n"
-                f"Warning: {traceback.format_exc()}"
-            )
-            if retry <= 2:
-                # Did the user unsubscribe?
-                logging.getLogger("app").debug(
-                    f"api.py - locate_node\n"
+    async with aiohttp.ClientSession() as session:
+        while True:
+            try:
+                data, resp_status = await Request(
+                    session, f"http://127.0.0.1:8000/user/ids/{node_id}/{ip}/{port}"
+                ).db_json(timeout=30)
+            except (
+                asyncio.exceptions.TimeoutError,
+                aiohttp.client_exceptions.ClientConnectorError,
+                aiohttp.client_exceptions.ClientOSError,
+                aiohttp.client_exceptions.ServerDisconnectedError,
+                aiohttp.client_exceptions.ClientPayloadError,
+            ):
+                logging.getLogger("app").warning(
+                    f"api.py - locate_node\n "
                     f"Retry: {retry}/2\n"
-                    f"Note: Did the user unsubscribe?"
+                    f"Warning: {traceback.format_exc()}"
                 )
                 if retry <= 2:
-                    retry += 1
-                    await asyncio.sleep(1)
-                else:
-                    break
-        else:
-            if resp_status == 200:
-                return data
+                    # Did the user unsubscribe?
+                    logging.getLogger("app").debug(
+                        f"api.py - locate_node\n"
+                        f"Retry: {retry}/2\n"
+                        f"Note: Did the user unsubscribe?"
+                    )
+                    if retry <= 2:
+                        retry += 1
+                        await asyncio.sleep(1)
+                    else:
+                        break
             else:
-                # Did the user unsubscribe?
-                logging.getLogger("app").debug(
-                    f"api.py - locate_node\n"
-                    f"Retry: {retry}/2\n"
-                    f"Note: Did the user unsubscribe?"
-                    f"Status: {resp_status}"
-                )
-                if retry <= 2:
-                    retry += 1
-                    await asyncio.sleep(1)
+                if resp_status == 200:
+                    return data
                 else:
-                    break
+                    # Did the user unsubscribe?
+                    logging.getLogger("app").debug(
+                        f"api.py - locate_node\n"
+                        f"Retry: {retry}/2\n"
+                        f"Note: Did the user unsubscribe?"
+                        f"Status: {resp_status}"
+                    )
+                    if retry <= 2:
+                        retry += 1
+                        await asyncio.sleep(1)
+                    else:
+                        break

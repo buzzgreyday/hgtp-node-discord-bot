@@ -28,7 +28,6 @@ async def process_node_data_per_user(
             futures.append(
                 asyncio.create_task(
                     check.node_status(
-                        session,
                         subscriber,
                         cluster_data,
                         version_manager,

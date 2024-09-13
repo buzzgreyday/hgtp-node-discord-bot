@@ -2,6 +2,8 @@ import logging
 
 from typing import List
 
+import aiohttp
+
 from assets.src import schemas, determine_module
 
 
@@ -80,7 +82,7 @@ def locate_node(node_data: schemas.Node, cluster_data: schemas.Cluster):
     # Changed this
 
 
-async def get_module_data(session, node_data: schemas.Node, configuration):
+async def get_module_data(node_data: schemas.Node, configuration):
     # Last known cluster is determined by all recent historic values
     last_known_cluster = await determine_module.get_module_name(
         node_data, configuration
@@ -89,7 +91,7 @@ async def get_module_data(session, node_data: schemas.Node, configuration):
     if last_known_cluster:
         module = determine_module.set_module(last_known_cluster, configuration)
         node_data = await module.node_cluster_data(
-            session, node_data, last_known_cluster, configuration
+            node_data, last_known_cluster, configuration
         )
 
     elif not last_known_cluster:

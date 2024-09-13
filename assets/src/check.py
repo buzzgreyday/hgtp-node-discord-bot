@@ -17,7 +17,6 @@ from assets.src.discord.services import bot
 
 
 async def node_status(
-        session,
         subscriber,
         cluster_data: schemas.Cluster,
         version_manager,
@@ -37,10 +36,10 @@ async def node_status(
         notify=False,
         timestamp_index=datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None),
     )
-    node_data = await history.node_data(session, None, node_data, configuration)
+    node_data = await history.node_data(node_data, configuration)
     found_in_cluster, cluster_data = cluster.locate_node(node_data, cluster_data)
     node_data = cluster.merge_data(node_data, found_in_cluster, cluster_data)
-    node_data = await cluster.get_module_data(session, node_data, configuration)
+    node_data = await cluster.get_module_data(node_data, configuration)
     # You need to check rewards here, if association is made but cluster is down!
     # The way to do this is to check add addresses for cluster, even if cluster is down
     # Think I did this now
@@ -75,17 +74,16 @@ async def node_status(
     return node_data
 
 
-async def automatic(session, cached_subscriber, cluster_data, cluster_name, layer, version_manager, _configuration):
+async def automatic(cached_subscriber, cluster_data, cluster_name, layer, version_manager, _configuration):
     logger = logging.getLogger("app")
 
     data = []
 
-    subscriber = await api.locate_node(session=session, node_id=cached_subscriber["id"],
+    subscriber = await api.locate_node(node_id=cached_subscriber["id"],
                                        ip=cached_subscriber["ip"], port=cached_subscriber["public_port"])
     if subscriber:
         subscriber = pd.DataFrame(subscriber)
         node_data = await node_status(
-            session,
             subscriber,
             cluster_data,
             version_manager,
