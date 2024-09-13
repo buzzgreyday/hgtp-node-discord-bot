@@ -68,7 +68,7 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
             "id": str(identity),
             "ip": str(ip),
             "public_port": str(public_port),
-            "layer": int(layer),
+            "layer": str(layer),
             "cluster_name": str(cluster),
             "located": located,
             "new_subscriber": new,
