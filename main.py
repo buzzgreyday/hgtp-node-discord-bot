@@ -19,7 +19,7 @@ from assets.src.database.database import update_user, optimize
 from assets.src.discord import discord
 from assets.src.discord.services import bot, discord_token, dev_env
 
-semaphore = asyncio.Semaphore(100)
+semaphore = asyncio.Semaphore(30)
 
 def load_configuration():
     try:
