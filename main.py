@@ -61,28 +61,14 @@ def start_hypercorn_coroutine(app):
 
 
 async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[List[Dict], List[Dict]]:
-    """Creates or updates the cache used to run automatic checks"""
-    def cache_data(identity, ip, public_port, layer, removal_datetime,
-                   located: bool = False, new: bool = False, cluster: str | None = None):
-        return {
-            "id": identity,
-            "ip": ip,
-            "public_port": public_port,
-            "layer": layer,
-            "cluster_name": cluster,
-            "located": located,
-            "new_subscriber": new,
-            "removal_datetime": removal_datetime
-        }
-
     first_run = True if not cache else False
     if not clusters:
         # Since we need the clusters below, if they're not existing, create them
         for cluster_name, layers in _configuration["modules"].items():
             for layer in layers:
                 clusters.append({"cluster_name": cluster_name, "layer": layer, "number_of_subs": 0})
-        clusters.append({"cluster_name": "None", "layer": 0, "number_of_subs": 0})
-        clusters.append({"cluster_name": "None", "layer": 1, "number_of_subs": 0})
+        clusters.append({"cluster_name": None, "layer": 0, "number_of_subs": 0})
+        clusters.append({"cluster_name": None, "layer": 1, "number_of_subs": 0})
 
     # Get subscribers to check with cache: this should follow same logic as above
     for layer in (0, 1):
@@ -109,7 +95,18 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
                         break
 
                 if not subscriber_found:
-                    cache.append(cache_data(identity=subscriber[0], ip=subscriber[1], public_port=subscriber[2], layer=layer, new=True, removal_datetime=subscriber[3]))
+                    cache.append(
+                        {
+                            "id": subscriber[0],
+                            "ip": subscriber[1],
+                            "public_port": subscriber[2],
+                            "layer": layer,
+                            "cluster_name": None,
+                            "located": False,
+                            "new_subscriber": True,
+                            "removal_datetime": subscriber[3]
+                        }
+                    )
                     logging.getLogger("app").info(
                         f"main.py - Found new subscriber in cache\n"
                         f"Subscriber: ip {subscriber[1]}, layer {subscriber[2]}\n"
@@ -117,7 +114,18 @@ async def cache_and_clusters(session, cache, clusters, _configuration) -> Tuple[
                     )
 
             else:
-                cache.append(cache_data(identity=subscriber[0], ip=subscriber[1], public_port=subscriber[2], layer=layer, cluster=subscriber[4], removal_datetime=subscriber[3]))
+                cache.append(
+                        {
+                            "id": subscriber[0],
+                            "ip": subscriber[1],
+                            "public_port": subscriber[2],
+                            "layer": layer,
+                            "cluster_name": subscriber[4],
+                            "located": False,
+                            "new_subscriber": False,
+                            "removal_datetime": subscriber[3]
+                        }
+                    )
 
     for cluster in clusters:
         cluster["number_of_subs"] = 0
