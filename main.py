@@ -16,7 +16,7 @@ from hypercorn.config import Config
 from assets.src import preliminaries, check, history, rewards, stats, api, schemas, determine_module
 from assets.src.config import configure_logging
 from assets.src.database.database import update_user, optimize
-from assets.src.discord import discord
+from assets.src import discord
 from assets.src.discord.services import bot, discord_token, dev_env
 
 semaphore = asyncio.Semaphore(30)
@@ -164,7 +164,7 @@ async def main_loop(version_manager, _configuration):
         for cluster in clusters:
             for i, cached_subscriber in enumerate(subscribers):
                 if cached_subscriber.get("removal_datetime"):
-                    print(cached_subscriber.get("removal_datetime"))
+                    pass
                 if cached_subscriber.get("located") in (None, 'None', False, 'False', '', [], {}, ()):
                     try:
                         tasks.append(
@@ -291,7 +291,6 @@ def create_task(task_num: int, subscriber: dict, data: schemas.Cluster, cluster:
     )
 
 
-
 async def gather_results(coroutines: List, cache: List[dict]):
     # Wait for all tasks to complete
     results = await asyncio.gather(*[task for _, task in coroutines])
@@ -358,7 +357,8 @@ async def run_bot(version_manager, configuration):
 async def restart_bot(version_manager, configuration):
     while True:
         try:
-            await run_bot(version_manager, configuration)
+            async with asyncio.Semaphore(30):
+                await run_bot(version_manager, configuration)
         except Exception as e:
             logging.getLogger("bot").error(f"Restarting bot after error: {str(e)}")
             await bot.close()
