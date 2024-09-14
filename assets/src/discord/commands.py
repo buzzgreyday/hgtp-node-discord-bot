@@ -6,7 +6,7 @@ import aiohttp
 import yaml
 
 import assets.src.database.database
-from assets.src import user, check
+from assets.src import check
 from assets.src.database import models, database
 from assets.src.discord import discord, messages
 from assets.src.discord.services import bot, NODEBOT_DEV_GUILD, NODEBOT_GUILD, guild_id, dev_env

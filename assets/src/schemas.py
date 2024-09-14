@@ -6,7 +6,6 @@ import datetime as dt
 
 from pydantic import BaseModel, ValidationError, validator
 
-from assets.src import request
 from assets.src.encode_decode import id_to_dag_address
 
 IP_REGEX = r'^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$'
@@ -137,9 +136,10 @@ class User(NodeBase):
 
     @staticmethod
     async def get_id(session, ip: str, port: str, mode, configuration):
+        from assets.src.request import safe_request
         """Will need refactoring before metagraph release. Some other way to validate node?"""
         if mode == "subscribe":
-            node_data, status_code = await request.safe_request(
+            node_data, status_code = await safe_request(
                 session, f"http://{ip}:{port}/node/info", configuration
             )
             return str(node_data["id"]) if node_data is not None else None

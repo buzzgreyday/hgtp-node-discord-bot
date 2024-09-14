@@ -14,7 +14,7 @@ import yaml
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 
-from assets.src import preliminaries, check, history, rewards, stats, request, schemas, determine_module
+from assets.src import preliminaries, check, rewards, stats, request, schemas, determine_module
 from assets.src.config import configure_logging
 from assets.src.database import database
 from assets.src.database.database import update_user, optimize
