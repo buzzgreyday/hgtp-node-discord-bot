@@ -171,12 +171,12 @@ async def main_loop(version_manager, _configuration):
         for cluster in clusters:
             for i, cached_subscriber in enumerate(subscribers):
                 if cached_subscriber.get("removal_datetime"):
-                    dt = pd.to_datetime(cached_subscriber.get("removal_datetime"))
+                    removal_dt = pd.to_datetime(cached_subscriber.get("removal_datetime"))
                     try:
-                        if dt >= pd.to_datetime(datetime.now(timezone.utc)):
+                        if removal_dt >= pd.to_datetime(datetime.now(timezone.utc)):
                             continue
                     except TypeError:
-                        if dt >= pd.to_datetime(datetime.now()):
+                        if removal_dt >= pd.to_datetime(datetime.now()):
                             continue
 
                 if cached_subscriber.get("located") in (None, 'None', False, 'False', '', [], {}, ()):
