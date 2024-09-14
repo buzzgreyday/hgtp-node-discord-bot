@@ -72,10 +72,10 @@ async def post_data(data):
 
 async def write_data(data: List[schemas.Node]):
     """Write user/subscriber node data from automatic check to database"""
-
     if data:
         for d in data:
             await post_data(data=d)
+
 
 @app.post("/data/migrate_data")
 async def migrate_old_data(configuration):
