@@ -357,8 +357,7 @@ async def run_bot(version_manager, configuration):
 async def restart_bot(version_manager, configuration):
     while True:
         try:
-            async with asyncio.Semaphore(30):
-                await run_bot(version_manager, configuration)
+            await run_bot(version_manager, configuration)
         except Exception as e:
             logging.getLogger("bot").error(f"Restarting bot after error: {str(e)}")
             await bot.close()
