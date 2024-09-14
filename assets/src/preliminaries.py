@@ -4,11 +4,8 @@ import time
 import traceback
 
 import requests
-from aiofiles import os
 from os import getenv
 from dotenv import load_dotenv
-
-from assets.src import determine_module, schemas
 
 load_dotenv()
 
@@ -59,15 +56,6 @@ class VersionManager:
     def get_version(self):
         with self.lock:
             return self.version
-
-
-async def supported_clusters(name: str, layer: int, configuration: dict) -> schemas.Cluster:
-    url = configuration["modules"][name][layer]["url"][0]
-    module_path = f"{configuration['file settings']['locations']['cluster modules']}/{name}.py"
-    if await os.path.exists(module_path):
-        module = determine_module.set_module(name, configuration)
-        cluster = await module.request_cluster_data(url, layer, name, configuration)
-        return cluster
 
 
 def _generate_runtimes(configuration, interval_minutes) -> list:

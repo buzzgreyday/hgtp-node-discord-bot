@@ -122,7 +122,7 @@ async def subscriber_role_deny_request(process_msg):
 
 # ERROR
 async def send_traceback(bot, trace_message):
-    user = await bot.fetch_user("794353079825727500")
+    user = await bot.fetch_user(int(794353079825727500))
     await user.send(f"**ERROR OCCURRED**\n```{trace_message}```")
 
 

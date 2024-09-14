@@ -12,8 +12,8 @@ general:
   public release: false
   request retry (count): 3
   request retry interval (sec): 1
-  request timeout (sec): 15
-  cluster request timeout (sec): 30
+  request timeout (sec): 10
+  cluster request timeout (sec): 20
   migrate node data (day of month): 13
   migrate ordinal data (day of month): 22
   save data (days): 32

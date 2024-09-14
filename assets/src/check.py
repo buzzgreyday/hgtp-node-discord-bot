@@ -1,5 +1,4 @@
 import logging
-import os
 import datetime
 
 import pandas as pd
@@ -10,7 +9,7 @@ from assets.src import (
     api,
     history,
     schemas,
-    cluster,
+    locate,
 )
 from assets.src.discord import discord, messages
 from assets.src.discord.services import bot
@@ -37,9 +36,9 @@ async def node_status(
         timestamp_index=datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None),
     )
     node_data = await history.node_data(node_data, configuration)
-    found_in_cluster, cluster_data = cluster.locate_node(node_data, cluster_data)
-    node_data = cluster.merge_data(node_data, found_in_cluster, cluster_data)
-    node_data = await cluster.get_module_data(node_data, configuration)
+    found_in_cluster, cluster_data = locate.node(node_data, cluster_data)
+    node_data = merge_data(node_data, found_in_cluster, cluster_data)
+    node_data = await determine_module.get_module_data(node_data, configuration)
     # You need to check rewards here, if association is made but cluster is down!
     # The way to do this is to check add addresses for cluster, even if cluster is down
     # Think I did this now
@@ -71,6 +70,27 @@ async def node_status(
         node_data = determine_module.set_module(
             node_data.last_known_cluster_name, configuration
         ).check_rewards(node_data, cluster_data)
+    return node_data
+
+
+def merge_data(node_data: schemas.Node, found: bool, cluster_data: schemas.Cluster):
+    if not found and cluster_data is not None:
+        # Make sure the cluster is right
+        if node_data.layer == cluster_data.layer:
+            node_data.last_known_cluster_name = node_data.last_known_cluster_name
+            node_data.latest_cluster_session = cluster_data.session
+            node_data.cluster_version = cluster_data.version
+            node_data.cluster_peer_count = cluster_data.peer_count
+            node_data.cluster_state = cluster_data.state
+    elif found and cluster_data is not None:
+        if node_data.layer == cluster_data.layer:
+            node_data.cluster_name = cluster_data.name
+            node_data.last_known_cluster_name = cluster_data.name
+            node_data.latest_cluster_session = cluster_data.session
+            node_data.cluster_version = cluster_data.version
+            node_data.cluster_peer_count = cluster_data.peer_count
+            node_data.cluster_state = cluster_data.state
+
     return node_data
 
 
@@ -155,7 +175,7 @@ async def request(session, process_msg, layer, requester, _configuration):
             process_msg = await messages.update_request_process_msg(
                 process_msg, 4
             )
-            node_data = await cluster.get_module_data(session, node_data, _configuration)
+            node_data = await determine_module.get_module_data(session, node_data, _configuration)
             process_msg = await messages.update_request_process_msg(process_msg, 5)
             await discord.send(bot, node_data, _configuration)
             await messages.update_request_process_msg(process_msg, 6)

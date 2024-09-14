@@ -19,7 +19,7 @@ import nextcord.embeds
 import nextcord
 import pandas as pd
 
-from assets.src import schemas, cluster, api
+from assets.src import schemas, api, locate
 
 CONNECT_STATES = ("waitingfordownload", "downloadinprogress", "observing")
 DISCONNECT_STATES = ("leaving", "offline", "apinotready", "readytojoin", "apinotresponding", "sessionignored", "sessionnotfound")
@@ -40,28 +40,28 @@ DISCONNECT_STATES = ("leaving", "offline", "apinotready", "readytojoin", "apinot
 
 
 async def request_cluster_data(
-        url, layer, name, configuration
+        url, layer, module_name, configuration
 ) -> schemas.Cluster:
     async with aiohttp.ClientSession() as session:
         cluster_resp, status_code = await api.safe_request(
             session,
-            f"{url}/{configuration['modules'][name][layer]['info']['cluster']}",
+            f"{url}/{configuration['modules'][module_name][layer]['info']['cluster']}",
             configuration, cluster=True
         )
         node_resp, status_code = await api.safe_request(
             session,
-            f"{url}/{configuration['modules'][name][layer]['info']['node']}",
+            f"{url}/{configuration['modules'][module_name][layer]['info']['node']}",
             configuration
         )
         latest_ordinal, latest_timestamp, addresses = await locate_rewarded_addresses(
-            session, layer, name, configuration
+            session, layer, module_name, configuration
         )
 
         if node_resp is None:
             cluster_data = schemas.Cluster(
                 layer=layer,
-                name=name,
-                id=await cluster.locate_id_offline(layer, name, configuration),
+                name=module_name,
+                id=await locate.id_offline(layer, module_name, configuration),
                 peer_count=len(cluster_resp) if cluster_resp is not None else 0,
                 latest_ordinal=latest_ordinal,
                 latest_timestamp=latest_timestamp,
@@ -71,7 +71,7 @@ async def request_cluster_data(
         else:
             cluster_data = schemas.Cluster(
                 layer=layer,
-                name=name,
+                name=module_name,
                 state=node_resp["state"].lower(),
                 id=node_resp["id"],
                 session=str(node_resp["clusterSession"]),
@@ -978,7 +978,7 @@ def build_system_node_disk_space(node_data: schemas.Node) -> tuple[str, bool: re
             f"{field_info}"
         )
 
-    if node_data.disk_space_free is not None:
+    if node_data.disk_space_free is not None and node_data.disk_space_total:
         if (
                 0
                 <= float(node_data.disk_space_free)
@@ -994,6 +994,11 @@ def build_system_node_disk_space(node_data: schemas.Node) -> tuple[str, bool: re
             field_symbol = ":green_square:"
             field_info = f"`ⓘ  Free disk space is ok.`"
             return disk_space_field(), red_color_trigger, False
+    return (
+            f":yellow_square **DISK**"
+            f"```ERROR```"
+            f"`⚠  Something went wrong.`"
+        ), False, True
 
 
 def build_embed(node_data: schemas.Node, module_name) -> nextcord.Embed:
