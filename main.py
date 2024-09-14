@@ -163,7 +163,9 @@ async def main_loop(version_manager, _configuration):
         subscribers = [dict(t) for t in unique_tuples]
         for cluster in clusters:
             for i, cached_subscriber in enumerate(subscribers):
-                if cached_subscriber["located"] in (None, 'None', False, 'False', '', [], {}, ()):
+                if cached_subscriber.get("removal_datetime"):
+                    print(cached_subscriber.get("removal_datetime"))
+                if cached_subscriber.get("located") in (None, 'None', False, 'False', '', [], {}, ()):
                     try:
                         tasks.append(
                             create_task(task_num=i, subscriber=cached_subscriber, data=cluster, cluster=cluster.name, layer=cluster.layer, version_manager=version_manager, configuration=_configuration)
