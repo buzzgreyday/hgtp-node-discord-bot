@@ -16,6 +16,7 @@ from hypercorn.config import Config
 
 from assets.src import preliminaries, check, history, rewards, stats, request, schemas, determine_module
 from assets.src.config import configure_logging
+from assets.src.database import database
 from assets.src.database.database import update_user, optimize
 from assets.src import discord
 from assets.src.discord.services import bot, discord_token, dev_env
@@ -321,7 +322,7 @@ async def gather_results(coroutines: List, cache: List[dict]):
     # Handle the results
     for (i, _), (data, updated_cache) in zip(coroutines, results):
         if data:
-            await history.write(data)
+            await database.write_data(data)
             await update_user(updated_cache)
             cache[i] = updated_cache  # Replace the old cache entry with the updated one
 

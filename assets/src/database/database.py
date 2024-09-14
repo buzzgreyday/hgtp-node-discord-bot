@@ -10,6 +10,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
+from assets.src import schemas
+from assets.src.database import models
 from assets.src.database.crud import CRUD, engine
 from assets.src.schemas import OrdinalSchema, PriceSchema, RewardStatsSchema, MetricStatsSchema
 
@@ -57,11 +59,23 @@ async def post_user(data):
     return await db.post_user(data, session)
 
 
+async def write_users(data: List[schemas.User]):
+    for d in data:
+        await post_user(data=d)
+
+
 @app.post("/data/create")
 async def post_data(data):
     """Inserts node data from automatic check into database file"""
     return await db.post_data(data, session)
 
+
+async def write_data(data: List[schemas.Node]):
+    """Write user/subscriber node data from automatic check to database"""
+
+    if data:
+        for d in data:
+            await post_data(data=d)
 
 @app.post("/data/migrate_data")
 async def migrate_old_data(configuration):
@@ -140,6 +154,11 @@ async def get_node_data(ip, public_port):
 async def delete_user_entry(data):
     """Delete the user subscription based on name, ip, port"""
     return await db.delete_user_entry(data, session)
+
+
+async def delete_subscriptions(data: List[models.UserModel]):
+    for d in data:
+        await delete_user_entry(d)
 
 
 @app.delete("/ordinal/{ordinal}/delete")

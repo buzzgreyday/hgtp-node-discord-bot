@@ -7,7 +7,7 @@ import yaml
 
 import assets.src.database.database
 from assets.src import user, check
-from assets.src.database import models
+from assets.src.database import models, database
 from assets.src.discord import discord, messages
 from assets.src.discord.services import bot, NODEBOT_DEV_GUILD, NODEBOT_GUILD, guild_id, dev_env
 from assets.src.schemas import User
@@ -92,7 +92,7 @@ async def unsubscibe_menu(interaction):
                 await interaction.response.send_message(
                     content=f"**Unsubscription received**", ephemeral=True
                 )
-                await user.delete_db(entries)
+                await database.delete_subscriptions(entries)
                 # Nothing more to do
                 view.stop()
                 return
@@ -303,7 +303,7 @@ async def s(ctx, *args):
                 process_msg = await discord.update_subscription_process_msg(
                     process_msg, 3, None
                 )
-                await user.write_db(valid_user_data)
+                await database.write_users(valid_user_data)
                 guild, member, role = await discord.return_guild_member_role(bot, ctx)
                 await member.add_roles(role)
                 await discord.update_subscription_process_msg(

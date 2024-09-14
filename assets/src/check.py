@@ -35,7 +35,7 @@ async def node_status(
         notify=False,
         timestamp_index=datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None),
     )
-    node_data = await history.node_data(node_data, configuration)
+    node_data = await req.node_data(node_data, configuration)
     found_in_cluster, cluster_data = locate.node(node_data, cluster_data)
     node_data = merge_data(node_data, found_in_cluster, cluster_data)
     node_data = await determine_module.get_module_data(node_data, configuration)
@@ -171,7 +171,7 @@ async def request(session, process_msg, layer, requester, _configuration):
             )
 
             process_msg = await messages.update_request_process_msg(process_msg, 3)
-            node_data = await history.node_data(node_data, _configuration, requester=requester)
+            node_data = await req.node_data(node_data, _configuration, requester=requester)
             process_msg = await messages.update_request_process_msg(
                 process_msg, 4
             )
