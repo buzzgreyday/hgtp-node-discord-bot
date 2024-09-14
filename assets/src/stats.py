@@ -16,7 +16,7 @@ from aiohttp import ClientSession, TCPConnector
 from assets.src import preliminaries
 from assets.src.database.database import post_reward_stats, update_reward_stats, post_metric_stats, update_metric_stats, \
     delete_rows_not_in_new_data
-from assets.src.discord import discord
+from assets.src.discord import discord, messages
 from assets.src.discord.services import bot
 from assets.src.rewards import normalize_timestamp
 from assets.src.schemas import RewardStatsSchema, MetricStatsSchema
@@ -343,12 +343,11 @@ final_columns = [
     "usd_address_daily_sum",
 ]
 
-
 """FUNCTIONS"""
 
 
 def _sum_usd(
-    df: pd.DataFrame, new_column_name: str, address_specific_sum_column
+        df: pd.DataFrame, new_column_name: str, address_specific_sum_column
 ) -> pd.DataFrame:
     # THE USD VALUE NEEDS TO BE MULTIPLIED SINCE IT'S THE VALUE PER DAG :)
     df[new_column_name] = df["usd_per_token"] * df[address_specific_sum_column]
@@ -356,7 +355,7 @@ def _sum_usd(
 
 
 def _calculate_address_specific_sum(
-    df: pd.DataFrame, new_column_name: str, address_specific_sum_column: str
+        df: pd.DataFrame, new_column_name: str, address_specific_sum_column: str
 ) -> pd.DataFrame:
     df.loc[:, new_column_name] = df.groupby("destinations")[
         address_specific_sum_column
@@ -365,7 +364,7 @@ def _calculate_address_specific_sum(
 
 
 def _calculate_address_specific_mean(
-    df: pd.DataFrame, new_column_name: str, address_specific_mean_column: str
+        df: pd.DataFrame, new_column_name: str, address_specific_mean_column: str
 ) -> pd.DataFrame:
     df.loc[:, new_column_name] = df.groupby("destinations")[
         address_specific_mean_column
@@ -374,20 +373,20 @@ def _calculate_address_specific_mean(
 
 
 def _calculate_address_specific_deviation(
-    sliced_snapshot_df: pd.DataFrame,
-    new_column_name: str,
-    address_specific_sum_column,
-    general_sum_column,
+        sliced_snapshot_df: pd.DataFrame,
+        new_column_name: str,
+        address_specific_sum_column,
+        general_sum_column,
 ) -> pd.DataFrame:
     sliced_snapshot_df[new_column_name] = (
-        sliced_snapshot_df[address_specific_sum_column]
-        - sliced_snapshot_df[general_sum_column]
+            sliced_snapshot_df[address_specific_sum_column]
+            - sliced_snapshot_df[general_sum_column]
     )
     return sliced_snapshot_df
 
 
 def _calculate_address_specific_standard_deviation(
-    df: pd.DataFrame, new_column_name: str, address_specific_sum_column: str
+        df: pd.DataFrame, new_column_name: str, address_specific_sum_column: str
 ) -> pd.DataFrame:
     df[new_column_name] = df.groupby("destinations")[
         address_specific_sum_column
@@ -396,7 +395,7 @@ def _calculate_address_specific_standard_deviation(
 
 
 def _calculate_general_data_median(
-    df: pd.DataFrame, new_column_name: str, median_column: str
+        df: pd.DataFrame, new_column_name: str, median_column: str
 ) -> pd.DataFrame:
     df.loc[:, new_column_name] = df[median_column].median()
     return df
@@ -480,7 +479,7 @@ def _calculate_generals_post_traverse_slice(sliced_snapshot_df: pd.DataFrame):
 
 
 def _create_timeslice_data(
-    data: pd.DataFrame, node_data: pd.DataFrame, start_time: int, traverse_seconds: int = 86400
+        data: pd.DataFrame, node_data: pd.DataFrame, start_time: int, traverse_seconds: int = 86400
 ):
     """
     COULD USE SOME CLEANING
@@ -491,7 +490,6 @@ def _create_timeslice_data(
     list_of_daily_node_df = []
 
     while start_time >= data["timestamp"].values.min():
-
         # Add daily data to the chain of daily data before traversing to the day before
         list_of_daily_snapshot_df.append(_traverse_slice_snapshot_data(data, start_time, traverse_seconds))
         list_of_daily_node_df.append(_traverse_slice_node_data(node_data, start_time, traverse_seconds))
@@ -522,7 +520,6 @@ async def _get_data(timestamp):
     https://dyzt5u1o3ld0z.cloudfront.net/mainnet/validator-nodes
     These should be automatically "updated" via this text:
     https://raw.githubusercontent.com/StardustCollective/dag-explorer-v2/main/.env.base
-    :param session: aiohttp client session
     :param timestamp: epoch timestamp
     :return: [pd.DataFrame, pd.DataFrame]
     """
@@ -616,6 +613,7 @@ def _remove_extreme_outliers(snapshot_data: pd.DataFrame):
     # Use .copy() to ensure a new DataFrame is created, preventing chained assignments
     return filtered_df
 
+
 async def run():
     """
     Initiate the statistics process
@@ -625,163 +623,165 @@ async def run():
     times = preliminaries.generate_stats_runtimes()
     logging.getLogger("stats").info(f"Runtimes: {times}")
     while True:
-            current_time = datetime.now(timezone.utc).time().strftime("%H:%M:%S")
-            try:
-                if current_time in times:
-                    """SETTINGS"""
-                    pd.set_option("display.max_rows", None)
-                    warnings.filterwarnings("ignore", category=FutureWarning)
-                    pd.options.display.float_format = "{:.2f}".format
-                    # Convert timestamp to epoch
-                    timestamp = normalize_timestamp(
-                        datetime.now(timezone.utc).timestamp() - timedelta(days=30).total_seconds()
-                    )
-                    """GET DATA"""
-                    # Important: The original data requested below is used after creation of daily data.
-                    # Therefore, do not delete the data before updating the database.
-                    #
-                    # The df "snapshot_data" is the rewards used to calc reward statistics and "node_data" is used to
-                    # calc CPU statistics
-                    while True:
-                        snapshot_data, node_data = await _get_data(timestamp)
-                        if not snapshot_data.empty and not node_data.empty:
-                            break
-                        else:
-                            await asyncio.sleep(30)
+        current_time = datetime.now(timezone.utc).time().strftime("%H:%M:%S")
+        try:
+            if current_time in times:
+                """SETTINGS"""
+                pd.set_option("display.max_rows", None)
+                warnings.filterwarnings("ignore", category=FutureWarning)
+                pd.options.display.float_format = "{:.2f}".format
+                # Convert timestamp to epoch
+                timestamp = normalize_timestamp(
+                    datetime.now(timezone.utc).timestamp() - timedelta(days=30).total_seconds()
+                )
+                """GET DATA"""
+                # Important: The original data requested below is used after creation of daily data.
+                # Therefore, do not delete the data before updating the database.
+                #
+                # The df "snapshot_data" is the rewards used to calc reward statistics and "node_data" is used to
+                # calc CPU statistics
+                while True:
+                    snapshot_data, node_data = await _get_data(timestamp)
+                    if not snapshot_data.empty and not node_data.empty:
+                        break
+                    else:
+                        await asyncio.sleep(30)
 
-                    """
+                """
                     CREATE DAILY DATA
                     TO: Start time is the latest available timestamp
                     FROM: The "timestamp" var is the timestamp from where you wish to retrieve data from
                     """
 
-                    # Slice snapshot and node data into daily data
-                    sliced_snapshot_df, sliced_node_df = _create_timeslice_data(
-                        snapshot_data, node_data, snapshot_data["timestamp"].values.max()
-                    )
-                    if sliced_snapshot_df.empty or sliced_node_df.empty:
+                # Slice snapshot and node data into daily data
+                sliced_snapshot_df, sliced_node_df = _create_timeslice_data(
+                    snapshot_data, node_data, snapshot_data["timestamp"].values.max()
+                )
+                if sliced_snapshot_df.empty or sliced_node_df.empty:
+                    logging.getLogger("stats").error(f"sliced data is None:\n"
+                                                     f"\t{sliced_snapshot_df}\n"
+                                                     f"\t{sliced_node_df}")
+                    await asyncio.sleep(60)
+                    continue
+                sliced_snapshot_df, sliced_node_df = _generate_visuals(sliced_snapshot_df, sliced_node_df)
 
-                        logging.getLogger("stats").error(f"sliced data is None:\n"
-                                                         f"\t{sliced_snapshot_df}\n"
-                                                         f"\t{sliced_node_df}")
-                        await asyncio.sleep(60)
-                        continue
-                    sliced_snapshot_df, sliced_node_df = _generate_visuals(sliced_snapshot_df, sliced_node_df)
+                """CREATE DATA FOR THE ENTIRE PERIOD"""
+                # Use the unsliced data to calculate the sum of all $DAG earned per node wallet
+                snapshot_data["dag_address_sum"] = snapshot_data.groupby("destinations")[
+                    "dag"
+                ].transform("sum")
 
-                    """CREATE DATA FOR THE ENTIRE PERIOD"""
-                    # Use the unsliced data to calculate the sum of all $DAG earned per node wallet
-                    snapshot_data["dag_address_sum"] = snapshot_data.groupby("destinations")[
-                        "dag"
-                    ].transform("sum")
+                # Merge the daily data into the original unsliced snapshot data
+                snapshot_data = sliced_snapshot_df.merge(
+                    snapshot_data.drop_duplicates("destinations"),
+                    on="destinations",
+                    how="left",
+                )
+                # Calculate USD value of total amount of $DAG earned per node wallet in the period.
+                # If 30 days then 86400
+                snapshot_data = _sum_usd(snapshot_data, "usd_address_sum", "dag_address_sum")
 
-                    # Merge the daily data into the original unsliced snapshot data
-                    snapshot_data = sliced_snapshot_df.merge(
-                        snapshot_data.drop_duplicates("destinations"),
-                        on="destinations",
-                        how="left",
-                    )
-                    # Calculate USD value of total amount of $DAG earned per node wallet in the period.
-                    # If 30 days then 86400
-                    snapshot_data = _sum_usd(snapshot_data, "usd_address_sum", "dag_address_sum")
+                filtered_df = _remove_extreme_outliers(snapshot_data)
 
-                    filtered_df = _remove_extreme_outliers(snapshot_data)
+                # THIS WILL NEED TO BE RENAMED. NOT USING THE MEDIAN ANYMORE, BUT FILTERED MEAN:
+                snapshot_data.loc[:, "dag_median_sum"] = filtered_df["dag_address_sum"].mean()
 
-                    # THIS WILL NEED TO BE RENAMED. NOT USING THE MEDIAN ANYMORE, BUT FILTERED MEAN:
-                    snapshot_data.loc[:, "dag_median_sum"] = filtered_df["dag_address_sum"].mean()
-
-                    # The node is earning more than the average if sum deviation is positive, less if negative
-                    snapshot_data["dag_address_sum_dev"] = (
+                # The node is earning more than the average if sum deviation is positive, less if negative
+                snapshot_data["dag_address_sum_dev"] = (
                         snapshot_data["dag_address_sum"]
                         - snapshot_data["dag_median_sum"]
-                    )
-
-
-                    # Order the data by top earners
-                    snapshot_data = snapshot_data.sort_values(
-                        by="dag_address_sum", ascending=False
-                    ).reset_index(drop=True)
-                    snapshot_data["earner_score"] = snapshot_data.index + 1
-                    # Total len is used to count the total number of nodes and calc the percent of node wallets
-                    # earning more than each individual node wallet
-                    total_len = len(snapshot_data.index)
-                    # Count total number of node wallets earning rewards in the period
-                    snapshot_data["count"] = total_len
-                    # Calculate the percentage of node wallets earning more than each individual node wallet.
-                    # Start by preparing the new data column
-                    snapshot_data["percent_earning_more"] = 0.0
-
-
-                    # Initialize new columns with 0.0
-                    snapshot_data.loc[:, "above_dag_address_earner_highest"] = 0.0
-                    snapshot_data.loc[:, "above_dag_addresses_earnings_mean"] = 0.0
-                    snapshot_data.loc[:, "above_dag_address_earnings_deviation_from_mean"] = 0.0
-                    snapshot_data.loc[:, "above_dag_address_earnings_from_highest"] = 0.0
-                    snapshot_data.loc[:, "above_dag_address_earnings_std_dev"] = 0.0
-                    snapshot_data.loc[:, "nonoutlier_dag_addresses_minted_sum"] = filtered_df["dag_address_sum"].sum()
-
-                    # Loop through DataFrame rows using iterrows()
-
-                    for i, row in filtered_df.iterrows():
-                        df = filtered_df[filtered_df.dag_address_sum > row.dag_address_sum]
-                        # Update each row individually
-                        snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_dag_address_earner_highest"] = df.dag_address_sum.max()
-                        snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_dag_addresses_earnings_mean"] = df.dag_address_sum.mean()
-                        snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_dag_address_earnings_deviation_from_mean"] = df.dag_address_sum.mean() - row.dag_address_sum
-                        snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_dag_address_earnings_from_highest"] = df.dag_address_sum.max() - row.dag_address_sum
-                        snapshot_data.loc[snapshot_data.destinations == row.destinations, "above_dag_address_earnings_std_dev"] = df.dag_address_sum.std()
-
-                    # Calculate percentage earning more and then save reward data to database, row-by-row.
-                    for i, row in snapshot_data.iterrows():
-                        percentage = ((i + 1) / total_len) * 100
-                        # Add the new data to the reward data for the entire period
-                        snapshot_data.at[i, "percent_earning_more"] = percentage
-                        # Add the new data to the reward database entry
-                        row["percent_earning_more"] = percentage
-                        # Validate the data
-                        try:
-                            d = row.to_dict()
-                            reward_data = RewardStatsSchema(**d)
-                        except Exception:
-                            logging.getLogger("stats").critical(traceback.format_exc())
-                            continue
-                        try:
-                            # Post data if no data exists
-                            await post_reward_stats(reward_data)
-                        except sqlalchemy.exc.IntegrityError:
-                            # Update data, if data already exists
-                            await update_reward_stats(reward_data)
-                        except Exception:
-                            logging.getLogger("stats").critical(traceback.format_exc())
-
-                    # Upload metrics (CPU) data to database. Since every wallet can be associated with multiple node
-                    # instances and different server specifications, we'll create a hash to properly update the
-                    # database.
-                    new_data = []
-                    for i, row in sliced_node_df.iterrows():
-
-                        key_str = f"{row.id}-{row.ip}-{row.public_port}"
-                        hash_index = hashlib.sha256(key_str.encode()).hexdigest()
-                        row['hash_index'] = hash_index
-                        metric_data = MetricStatsSchema(**row.to_dict())
-                        new_data.append(row.to_dict())
-                        try:
-                            # Post data if no data exists
-                            await post_metric_stats(metric_data)
-                        except sqlalchemy.exc.IntegrityError:
-                            # Update data, if data already exists
-                            await update_metric_stats(metric_data)
-                        except Exception:
-                            logging.getLogger("stats").critical(traceback.format_exc())
-                    # Delete entries not present in the sliced_node_df
-                    await delete_rows_not_in_new_data(new_data)
-                    # After saving data, give GIL something to do.
-                    # del snapshot_data, metric_data
-                else:
-                    await asyncio.sleep(0.2)
-
-            except Exception as e:
-                # If anything fails, send a traceback to the creator
-                logging.getLogger("app").error(
-                    f"main.py - error: {traceback.format_exc()}"
                 )
-                await discord.messages.send_traceback(bot, traceback.format_exc())
+
+                # Order the data by top earners
+                snapshot_data = snapshot_data.sort_values(
+                    by="dag_address_sum", ascending=False
+                ).reset_index(drop=True)
+                snapshot_data["earner_score"] = snapshot_data.index + 1
+                # Total len is used to count the total number of nodes and calc the percent of node wallets
+                # earning more than each individual node wallet
+                total_len = len(snapshot_data.index)
+                # Count total number of node wallets earning rewards in the period
+                snapshot_data["count"] = total_len
+                # Calculate the percentage of node wallets earning more than each individual node wallet.
+                # Start by preparing the new data column
+                snapshot_data["percent_earning_more"] = 0.0
+
+                # Initialize new columns with 0.0
+                snapshot_data.loc[:, "above_dag_address_earner_highest"] = 0.0
+                snapshot_data.loc[:, "above_dag_addresses_earnings_mean"] = 0.0
+                snapshot_data.loc[:, "above_dag_address_earnings_deviation_from_mean"] = 0.0
+                snapshot_data.loc[:, "above_dag_address_earnings_from_highest"] = 0.0
+                snapshot_data.loc[:, "above_dag_address_earnings_std_dev"] = 0.0
+                snapshot_data.loc[:, "nonoutlier_dag_addresses_minted_sum"] = filtered_df["dag_address_sum"].sum()
+
+                # Loop through DataFrame rows using iterrows()
+
+                for i, row in filtered_df.iterrows():
+                    df = filtered_df[filtered_df.dag_address_sum > row.dag_address_sum]
+                    # Update each row individually
+                    snapshot_data.loc[
+                        snapshot_data.destinations == row.destinations, "above_dag_address_earner_highest"] = df.dag_address_sum.max()
+                    snapshot_data.loc[
+                        snapshot_data.destinations == row.destinations, "above_dag_addresses_earnings_mean"] = df.dag_address_sum.mean()
+                    snapshot_data.loc[
+                        snapshot_data.destinations == row.destinations, "above_dag_address_earnings_deviation_from_mean"] = df.dag_address_sum.mean() - row.dag_address_sum
+                    snapshot_data.loc[
+                        snapshot_data.destinations == row.destinations, "above_dag_address_earnings_from_highest"] = df.dag_address_sum.max() - row.dag_address_sum
+                    snapshot_data.loc[
+                        snapshot_data.destinations == row.destinations, "above_dag_address_earnings_std_dev"] = df.dag_address_sum.std()
+
+                # Calculate percentage earning more and then save reward data to database, row-by-row.
+                for i, row in snapshot_data.iterrows():
+                    percentage = ((i + 1) / total_len) * 100
+                    # Add the new data to the reward data for the entire period
+                    snapshot_data.at[i, "percent_earning_more"] = percentage
+                    # Add the new data to the reward database entry
+                    row["percent_earning_more"] = percentage
+                    # Validate the data
+                    try:
+                        d = row.to_dict()
+                        reward_data = RewardStatsSchema(**d)
+                    except Exception:
+                        logging.getLogger("stats").critical(traceback.format_exc())
+                        continue
+                    try:
+                        # Post data if no data exists
+                        await post_reward_stats(reward_data)
+                    except sqlalchemy.exc.IntegrityError:
+                        # Update data, if data already exists
+                        await update_reward_stats(reward_data)
+                    except Exception:
+                        logging.getLogger("stats").critical(traceback.format_exc())
+
+                # Upload metrics (CPU) data to database. Since every wallet can be associated with multiple node
+                # instances and different server specifications, we'll create a hash to properly update the
+                # database.
+                new_data = []
+                for i, row in sliced_node_df.iterrows():
+
+                    key_str = f"{row.id}-{row.ip}-{row.public_port}"
+                    hash_index = hashlib.sha256(key_str.encode()).hexdigest()
+                    row['hash_index'] = hash_index
+                    metric_data = MetricStatsSchema(**row.to_dict())
+                    new_data.append(row.to_dict())
+                    try:
+                        # Post data if no data exists
+                        await post_metric_stats(metric_data)
+                    except sqlalchemy.exc.IntegrityError:
+                        # Update data, if data already exists
+                        await update_metric_stats(metric_data)
+                    except Exception:
+                        logging.getLogger("stats").critical(traceback.format_exc())
+                # Delete entries not present in the sliced_node_df
+                await delete_rows_not_in_new_data(new_data)
+                # After saving data, give GIL something to do.
+                # del snapshot_data, metric_data
+            else:
+                await asyncio.sleep(0.2)
+
+        except Exception as e:
+            # If anything fails, send a traceback to the creator
+            logging.getLogger("app").error(
+                f"main.py - error: {traceback.format_exc()}"
+            )
+            await messages.send_traceback(bot, traceback.format_exc())

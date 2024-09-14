@@ -19,10 +19,11 @@ import nextcord.embeds
 import nextcord
 import pandas as pd
 
-from assets.src import schemas, api, locate
+from assets.src import schemas, request, locate
 
 CONNECT_STATES = ("waitingfordownload", "downloadinprogress", "observing")
-DISCONNECT_STATES = ("leaving", "offline", "apinotready", "readytojoin", "apinotresponding", "sessionignored", "sessionnotfound")
+DISCONNECT_STATES = (
+    "leaving", "offline", "apinotready", "readytojoin", "apinotresponding", "sessionignored", "sessionnotfound")
 
 """
     SECTION 1: PRELIMINARIES
@@ -43,12 +44,12 @@ async def request_cluster_data(
         url, layer, module_name, configuration
 ) -> schemas.Cluster:
     async with aiohttp.ClientSession() as session:
-        cluster_resp, status_code = await api.safe_request(
+        cluster_resp, status_code = await request.safe_request(
             session,
             f"{url}/{configuration['modules'][module_name][layer]['info']['cluster']}",
             configuration, cluster=True
         )
-        node_resp, status_code = await api.safe_request(
+        node_resp, status_code = await request.safe_request(
             session,
             f"{url}/{configuration['modules'][module_name][layer]['info']['node']}",
             configuration
@@ -135,7 +136,7 @@ async def locate_rewarded_addresses(session, layer, name, configuration):
 
 async def request_snapshot(session, request_url, configuration):
     while True:
-        data, status_code = await api.safe_request(session, request_url, configuration)
+        data, status_code = await request.safe_request(session, request_url, configuration)
         if data:
             ordinal = data["data"]["ordinal"]
             try:
@@ -153,7 +154,7 @@ async def request_snapshot(session, request_url, configuration):
 
 async def request_reward_addresses_per_snapshot(session, request_url, configuration):
     while True:
-        data, status_code = await api.safe_request(session, request_url, configuration)
+        data, status_code = await request.safe_request(session, request_url, configuration)
         if data:
             lst = list(
                 data_dictionary["destination"] for data_dictionary in data["data"]
@@ -178,11 +179,11 @@ red_color_trigger = False
 
 
 async def node_cluster_data(node_data: schemas.Node, module_name: str, configuration: dict
-) -> schemas.Node:
+                            ) -> schemas.Node:
     """Get node data. IMPORTANT: Create Pydantic Schema for node data"""
     async with aiohttp.ClientSession() as session:
         if node_data.public_port:
-            node_info_data, status_code = await api.safe_request(
+            node_info_data, status_code = await request.safe_request(
                 session,
                 f"http://{node_data.ip}:{node_data.public_port}/"
                 f"{configuration['modules'][module_name][node_data.layer]['info']['node']}",
@@ -196,13 +197,13 @@ async def node_cluster_data(node_data: schemas.Node, module_name: str, configura
                 node_data.version = node_info_data["version"]
                 node_data.id = node_info_data["id"]
             if node_data.state != "offline":
-                cluster_data, status_code = await api.safe_request(
+                cluster_data, status_code = await request.safe_request(
                     session,
                     f"http://{node_data.ip}:{node_data.public_port}/"
                     f"{configuration['modules'][module_name][node_data.layer]['info']['cluster']}",
                     configuration,
                 )
-                metrics_data, status_code = await api.safe_request(
+                metrics_data, status_code = await request.safe_request(
                     session,
                     f"http://{node_data.ip}:{node_data.public_port}/"
                     f"{configuration['modules'][module_name][node_data.layer]['info']['metrics']}",
@@ -252,7 +253,7 @@ def check_rewards(node_data: schemas.Node, cluster_data: schemas.Cluster):
 async def request_wallet_data(
         session, node_data: schemas.Node, module_name, configuration
 ) -> schemas.Node:
-    wallet_data, status_code = await api.safe_request(
+    wallet_data, status_code = await request.safe_request(
         session,
         f"{configuration['modules'][module_name.lower()][0]['be']['url'][0]}/addresses/{node_data.wallet_address}/balance",
         configuration,
@@ -281,6 +282,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
     """Determine the connectivity of the node.
     We might need to add some more clarity to how the node has been connected. Like: former_name, latest_name, etc.
     """
+
     def clean_sessions(node_data):
         if node_data.node_cluster_session not in ('None', None):
             session = float(node_data.node_cluster_session)
@@ -410,7 +412,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
         if local_session < latest_session:
             # If node is dissociated from the cluster
             if node_data.former_cluster_connectivity in (
-            "association", "new association", "forked", "connecting", "uncertain"):
+                    "association", "new association", "forked", "connecting", "uncertain"):
                 # If node was recently dissociated from the cluster
                 node_data.cluster_connectivity = "new dissociation"
                 node_data.last_known_cluster_name = node_data.former_cluster_name
@@ -546,7 +548,8 @@ def build_title(node_data: schemas.Node) -> str:
         return f"L{node_data.layer} ({node_data.ip}): {title_ending}"
 
 
-def build_general_node_state(node_data: schemas.Node) -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
+def build_general_node_state(node_data: schemas.Node) -> tuple[str, bool: red_color_trigger,
+                                                         bool: yellow_color_trigger]:
     def node_state_field() -> str:
         if node_data.id is not None:
             return (
@@ -625,7 +628,8 @@ def build_general_node_state(node_data: schemas.Node) -> tuple[str, bool: red_co
         return node_state_field(), red_color_trigger, False
 
 
-def build_general_cluster_state(node_data: schemas.Node, module_name) -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
+def build_general_cluster_state(node_data: schemas.Node, module_name) -> tuple[str, bool: red_color_trigger,
+                                                                         bool: yellow_color_trigger]:
     def general_cluster_state_field() -> str:
         if node_data.cluster_peer_count > 0:
             return (
@@ -690,7 +694,7 @@ def build_general_cluster_state(node_data: schemas.Node, module_name) -> tuple[s
     elif node_data.cluster_connectivity == "connecting":
         field_symbol = ":green_square:"
         field_info = f"`ⓘ  Standby, the node is connecting to a cluster.`"
-        return general_cluster_state_field(),False, False
+        return general_cluster_state_field(), False, False
     elif node_data.cluster_connectivity == "forked":
         field_symbol = ":red_square:"
         field_info = f"`⚠  The node has forked (node session: {node_data.node_cluster_session}, cluster session: {node_data.latest_cluster_session}).`"
@@ -716,7 +720,8 @@ def build_general_cluster_state(node_data: schemas.Node, module_name) -> tuple[s
         return general_cluster_state_field(), False, yellow_color_trigger
 
 
-def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
+def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str, bool: red_color_trigger,
+                                                                       bool: yellow_color_trigger]:
     def generate_field_from_reward_states() -> tuple[str, bool, bool]:
         def wallet_field() -> str:
             if node_data.layer == 1:
@@ -856,7 +861,6 @@ def build_general_node_wallet(node_data: schemas.Node, module_name) -> tuple[str
 
 
 def _compare_versions(target, test):
-
     if version.parse(target) > version.parse(test):
         return "higher"
     elif version.parse(target) < version.parse(test):
@@ -865,8 +869,8 @@ def _compare_versions(target, test):
         return "equal"
 
 
-def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
-
+def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_color_trigger,
+                                                          bool: yellow_color_trigger]:
     def version_field() -> str:
         return (
             f"{field_symbol} **TESSELLATION**"
@@ -876,7 +880,8 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
 
     if node_data.version is not None and node_data.cluster_version is not None:
         try:
-            if isinstance(version.parse(node_data.cluster_version), version.Version) or isinstance(version.parse(node_data.version), version.Version):
+            if isinstance(version.parse(node_data.cluster_version), version.Version) or isinstance(
+                    version.parse(node_data.version), version.Version):
                 if _compare_versions(node_data.version, node_data.cluster_version) == "equal":
                     field_symbol = ":green_square:"
                     if node_data.cluster_version == node_data.latest_version:
@@ -910,7 +915,8 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
             return version_field(), False, False
     elif node_data.version is not None and node_data.latest_version is not None:
         try:
-            if isinstance(version.parse(node_data.latest_version), version.Version) or isinstance(version.parse(node_data.version), version.Version):
+            if isinstance(version.parse(node_data.latest_version), version.Version) or isinstance(
+                    version.parse(node_data.version), version.Version):
                 if _compare_versions(node_data.version, node_data.latest_version) == "higher":
                     field_symbol = ":green_square:"
                     if node_data.version == node_data.cluster_version:
@@ -942,7 +948,8 @@ def build_system_node_version(node_data: schemas.Node) -> tuple[str, bool: red_c
                 f"" f"`ⓘ  No data available.`"), False, True
 
 
-def build_system_node_load_average(node_data: schemas.Node)  -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
+def build_system_node_load_average(node_data: schemas.Node) -> tuple[str, bool: red_color_trigger,
+                                                               bool: yellow_color_trigger]:
     def load_average_field() -> str:
         return (
             f"{field_symbol} **CPU**"
@@ -969,7 +976,8 @@ def build_system_node_load_average(node_data: schemas.Node)  -> tuple[str, bool:
         return load_average_field(), red_color_trigger, False
 
 
-def build_system_node_disk_space(node_data: schemas.Node) -> tuple[str, bool: red_color_trigger, bool: yellow_color_trigger]:
+def build_system_node_disk_space(node_data: schemas.Node) -> tuple[str, bool: red_color_trigger,
+                                                             bool: yellow_color_trigger]:
     def disk_space_field() -> str:
         return (
             f"{field_symbol} **DISK**"
@@ -995,10 +1003,10 @@ def build_system_node_disk_space(node_data: schemas.Node) -> tuple[str, bool: re
             field_info = f"`ⓘ  Free disk space is ok.`"
             return disk_space_field(), red_color_trigger, False
     return (
-            f":yellow_square **DISK**"
-            f"```ERROR```"
-            f"`⚠  Something went wrong.`"
-        ), False, True
+        f":yellow_square **DISK**"
+        f"```ERROR```"
+        f"`⚠  Something went wrong.`"
+    ), False, True
 
 
 def build_embed(node_data: schemas.Node, module_name) -> nextcord.Embed:
@@ -1116,7 +1124,9 @@ def mark_notify(d: schemas.Node, configuration):
         d.last_notified_reason = "connecting"
     elif d.last_notified_timestamp:
         if d.cluster_connectivity in ("forked", "uncertain", "connecting"):
-            if check_time() and d.last_notified_reason in ("disk", "version", "rewards_down", "rewards_up", "new association", "new dissociation", "None", None):
+            if check_time() and d.last_notified_reason in (
+                    "disk", "version", "rewards_down", "rewards_up", "new association", "new dissociation", "None",
+                    None):
                 d.last_notified_timestamp = d.timestamp_index
                 d.notify = True
                 if d.cluster_connectivity == "forked":
@@ -1126,31 +1136,42 @@ def mark_notify(d: schemas.Node, configuration):
                 else:
                     d.last_notified_reason = "uncertain"
         elif d.reward_state is False:
-            if check_time() and d.last_notified_reason in ("disk", "version", "forked", "rewards_up", "uncertain", "connecting", "new association", "new dissociation", "None", None):
+            if check_time() and d.last_notified_reason in (
+                    "disk", "version", "forked", "rewards_up", "uncertain", "connecting", "new association",
+                    "new dissociation",
+                    "None", None):
                 # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
                 d.notify = True
                 d.last_notified_timestamp = d.timestamp_index
                 d.last_notified_reason = "rewards_down"
         elif d.reward_state is True and d.former_reward_state is False:
-            if check_time() and d.last_notified_reason in ("disk", "version", "forked", "rewards_down", "uncertain", "connecting", "new association", "new dissociation", "None", None):
+            if check_time() and d.last_notified_reason in (
+                    "disk", "version", "forked", "rewards_down", "uncertain", "connecting", "new association",
+                    "new dissociation", "None", None):
                 # THIS IS A TEMPORARY FIX SINCE MAINNET LAYER 1 DOESN'T SUPPORT REWARDS
                 d.notify = True
                 d.last_notified_timestamp = d.timestamp_index
                 d.last_notified_reason = "rewards_up"
         elif d.version and d.cluster_version:
             if d.version < d.cluster_version:
-                if check_time() and d.last_notified_reason in ("rewards_down", "disk", "forked", "uncertain", "connecting", "new association", "new dissociation", "None", None):
+                if check_time() and d.last_notified_reason in (
+                        "rewards_down", "disk", "forked", "uncertain", "connecting", "new association",
+                        "new dissociation",
+                        "None", None):
                     d.notify = True
                     d.last_notified_timestamp = d.timestamp_index
                     d.last_notified_reason = "version"
         elif d.disk_space_free and d.disk_space_total:
             if (
                     0
-                    <= float((d.disk_space_free) * 100 / float(d.disk_space_total))
+                    <= float(d.disk_space_free * 100 / float(d.disk_space_total))
                     <= configuration["general"]["notifications"][
-                "free disk space threshold (percentage)"
-            ]
-            ) and d.last_notified_reason in ("rewards_down", "version", "forked", "uncertain", "connecting", "new association", "new dissociation", "None", None):
+                        "free disk space threshold (percentage)"
+                    ]
+            ) and d.last_notified_reason in (
+                    "rewards_down", "version", "forked", "uncertain", "connecting", "new association",
+                    "new dissociation",
+                    "None", None):
                 if check_time():
                     d.notify = True
                     d.last_notified_timestamp = d.timestamp_index

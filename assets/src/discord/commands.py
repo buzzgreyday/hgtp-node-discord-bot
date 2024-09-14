@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import traceback
-from os import getenv
 
 import aiohttp
 import yaml
@@ -16,6 +15,7 @@ from assets.src.schemas import User
 import nextcord
 from nextcord import SelectOption
 from nextcord.ui import Select
+
 
 class SelectMenu(Select):
     def __init__(self, msg, values):
@@ -63,21 +63,21 @@ async def unsubscibe_menu(interaction):
             entries = []
             for data in lst:
                 if (
-                    (str(interaction.user) == data["name"])
-                    and (ip_menu.selected_value == "All")
-                    and (port_menu.selected_value in ("All", None))
+                        (str(interaction.user) == data["name"])
+                        and (ip_menu.selected_value == "All")
+                        and (port_menu.selected_value in ("All", None))
                 ):
                     append_entries(entries, data)
                 elif (
-                    (str(interaction.user) == data["name"])
-                    and (ip_menu.selected_value == data["ip"])
-                    and (port_menu.selected_value == str(data["public_port"]))
+                        (str(interaction.user) == data["name"])
+                        and (ip_menu.selected_value == data["ip"])
+                        and (port_menu.selected_value == str(data["public_port"]))
                 ):
                     append_entries(entries, data)
                 elif (
-                    (str(interaction.user) == data["name"])
-                    and (ip_menu.selected_value == data["ip"])
-                    and (port_menu.selected_value in ("All", None))
+                        (str(interaction.user) == data["name"])
+                        and (ip_menu.selected_value == data["ip"])
+                        and (port_menu.selected_value in ("All", None))
                 ):
                     append_entries(entries, data)
                 logging.getLogger("commands").info(
@@ -111,7 +111,7 @@ async def unsubscibe_menu(interaction):
         global active_views
 
         try:
-            lst, resp_status = await assets.src.api.Request(
+            lst, resp_status = await assets.src.request.Request(
                 session, f"http://127.0.0.1:8000/user/{str(interaction.user)}"
             ).db_json()
             if lst:
@@ -225,9 +225,9 @@ async def verify(interaction: nextcord.Interaction):
             f"Details: {traceback.format_exc()}"
         )
 
+
 @bot.command()
 async def r(ctx):
-
     async with aiohttp.ClientSession() as session:
         with open("config.yml", "r") as file:
             _configuration = yaml.safe_load(file)
@@ -261,6 +261,7 @@ async def r(ctx):
                     f"discord.py - User {ctx.message.author} does not allow DMs"
                 )
 
+
 async def _check_request(session, process_msg, requester, _configuration):
     fut = []
     for layer in (0, 1):
@@ -277,6 +278,7 @@ async def _check_request(session, process_msg, requester, _configuration):
         )
     for task in fut:
         await task
+
 
 @bot.command()
 async def s(ctx, *args):

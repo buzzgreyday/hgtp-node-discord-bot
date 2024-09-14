@@ -9,7 +9,7 @@ from aiohttp import ClientSession, TCPConnector
 from assets.src import preliminaries
 from assets.src.schemas import OrdinalSchema, PriceSchema
 from assets.src.database.database import post_ordinal, post_prices, delete_db_ordinal
-from assets.src.api import Request
+from assets.src.request import Request
 
 
 class RequestSnapshot:

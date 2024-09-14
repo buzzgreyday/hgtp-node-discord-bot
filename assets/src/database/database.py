@@ -29,13 +29,15 @@ db = CRUD()
 
 async def optimize(configuration, node_data_migration_complete=False, ordinal_data_migration_complete=False):
     while True:
-        if int(datetime.datetime.now().strftime("%d")) == configuration["general"]["migrate node data (day of month)"] and not node_data_migration_complete:
+        if int(datetime.datetime.now().strftime("%d")) == configuration["general"][
+            "migrate node data (day of month)"] and not node_data_migration_complete:
             logging.getLogger("db_optimization").info(
                 f"Module: assets/src/database/database.py\n"
                 f"Message: The day is {configuration["general"]["migrate node data (day of month)"]} - initiating node data optimization")
             await migrate_old_data(configuration)
             node_data_migration_complete = True
-        if int(datetime.datetime.now().strftime("%d")) == configuration["general"]["migrate ordinal data (day of month)"] and not ordinal_data_migration_complete:
+        if int(datetime.datetime.now().strftime("%d")) == configuration["general"][
+            "migrate ordinal data (day of month)"] and not ordinal_data_migration_complete:
             logging.getLogger("db_optimization").info(
                 f"Module: assets/src/database/database.py\n"
                 f"Message: The day is {configuration["general"]["migrate ordinal data (day of month)"]} - initiating ordinal data optimization")
@@ -43,9 +45,11 @@ async def optimize(configuration, node_data_migration_complete=False, ordinal_da
             ordinal_data_migration_complete = True
         if int(datetime.datetime.now().strftime("%d")) != configuration["general"]["migrate node data (day of month)"]:
             node_data_migration_complete = False
-        if int(datetime.datetime.now().strftime("%d")) != configuration["general"]["migrate ordinal data (day of month)"]:
+        if int(datetime.datetime.now().strftime("%d")) != configuration["general"][
+            "migrate ordinal data (day of month)"]:
             ordinal_data_migration_complete = False
         await asyncio.sleep(3600)
+
 
 @app.post("/user/create")
 async def post_user(data):
@@ -91,6 +95,7 @@ async def get_html_page_statistics(request: Request):
 async def get_html_page_about(request: Request):
     """Return Nodebot html index"""
     return await db.get_html_page_about(request, templates)
+
 
 @app.get("/user/{name}")
 async def get_user(name: str):
@@ -172,10 +177,12 @@ async def post_metric_stats(data: MetricStatsSchema):
     """insert statistical data into database"""
     return await db.post_metric_stats(data, session)
 
+
 @app.put("/metric-stat/clean")
 async def delete_rows_not_in_new_data(data: list[dict]):
     """Delete all records not present in list of dicts"""
     return await db.delete_rows_not_in_new_data(data, session)
+
 
 @app.put("/metric-stat/update")
 async def update_metric_stats(data: MetricStatsSchema):

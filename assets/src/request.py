@@ -114,16 +114,16 @@ async def safe_request(session, request_url: str, configuration: dict, cluster=F
 
 async def get_user_ids(session, layer, requester, _configuration) -> List:
     """RETURNS A LIST/SET OF TUPLES CONTAINING ID, IP, PORT (PER LAYER)"""
-    type = None
+    _type = None
     while True:
         try:
             if requester is None:
-                type = f"automatic check, l{layer}"
+                _type = f"automatic check, l{layer}"
                 data, resp_status = await Request(
                     session, f"http://127.0.0.1:8000/user/ids/layer/{layer}"
                 ).db_json(timeout=30)
             else:
-                type = f"request report ({requester}, l{layer})"
+                _type = f"request report ({requester}, l{layer})"
                 data, resp_status = await Request(
                     session,
                     f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}",

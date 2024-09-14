@@ -1,9 +1,9 @@
 import asyncio
 import gc
 import logging
-import traceback
-from datetime import datetime, timedelta, timezone
 import os
+import traceback
+from datetime import datetime, timedelta
 from typing import List, Dict
 
 import aiohttp.client_exceptions
@@ -11,6 +11,11 @@ import numpy as np
 import pandas as pd
 import pydantic
 from dotenv import load_dotenv
+from fastapi.encoders import jsonable_encoder
+from sqlalchemy import select, delete, update, desc, and_
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
+
 from assets.src.database.models import (
     UserModel,
     NodeModel,
@@ -18,18 +23,13 @@ from assets.src.database.models import (
     PriceModel,
     RewardStatsModel, MetricStatsModel, OldNodeModel, OldOrdinalModel
 )
+from assets.src.schemas import Node as NodeSchema
 from assets.src.schemas import (
     User as UserSchema,
     PriceSchema,
     OrdinalSchema,
     RewardStatsSchema, MetricStatsSchema,
 )
-
-from assets.src.schemas import Node as NodeSchema
-from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
-from sqlalchemy import select, delete, update, desc, and_
-from fastapi.encoders import jsonable_encoder
-from sqlalchemy.exc import IntegrityError
 
 load_dotenv()
 
@@ -596,7 +596,7 @@ class CRUD:
         except Exception:
             logging.getLogger("others").error(traceback.format_exc())
 
-    async def get_html_page_about(selfself, request, templates):
+    async def get_html_page_about(self, request, templates):
         content = templates.TemplateResponse(
             "pages/about.html", dict(request=request))
         return content

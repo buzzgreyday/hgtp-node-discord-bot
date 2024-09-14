@@ -7,6 +7,7 @@ import datetime
 class SQLBase(DeclarativeBase):
     pass
 
+
 # Does not need "old data" table
 class UserModel(SQLBase):
     """SQL Base for user subscription data"""
@@ -101,7 +102,7 @@ class OldNodeModel(SQLBase):
 
     __tablename__ = "old_data"
 
-    index: Mapped[int] = mapped_column(primary_key=True) #, autoincrement=True)
+    index: Mapped[int] = mapped_column(primary_key=True)  #, autoincrement=True)
     one_m_system_load_average: Mapped[Optional[float]] = mapped_column(nullable=True)
     cluster_association_time: Mapped[Optional[float]] = mapped_column(nullable=True)
     cluster_connectivity: Mapped[Optional[str]] = mapped_column(nullable=True)
@@ -198,6 +199,7 @@ class OldOrdinalModel(SQLBase):
     blocks: Mapped[List[str | None]] = []
     timestamp: Mapped[int] = mapped_column(index=True)
 
+
 # Does need old data model
 class PriceModel(SQLBase):
     """The base for the Coingecko prices"""
@@ -243,7 +245,6 @@ class RewardStatsModel(SQLBase):
     above_dag_address_earnings_deviation_from_mean: Mapped[float]
     above_dag_address_earnings_from_highest: Mapped[float]
     above_dag_address_earnings_std_dev: Mapped[float]
-
 
 
 class MetricStatsModel(SQLBase):

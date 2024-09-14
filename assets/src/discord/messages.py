@@ -140,3 +140,4 @@ async def command_error(ctx, bot):
         icon_url=bot.get_user(ctx.message.author.id).display_avatar.url,
     )
     return embed
+

@@ -6,7 +6,7 @@ import pandas as pd
 from assets.src import (
     preliminaries,
     determine_module,
-    api,
+    request as req,
     history,
     schemas,
     locate,
@@ -99,8 +99,8 @@ async def automatic(cached_subscriber, cluster_data, cluster_name, layer, versio
 
     data = []
 
-    subscriber = await api.locate_node(node_id=cached_subscriber["id"],
-                                       ip=cached_subscriber["ip"], port=cached_subscriber["public_port"])
+    subscriber = await request.locate_node(node_id=cached_subscriber["id"],
+                                           ip=cached_subscriber["ip"], port=cached_subscriber["public_port"])
     if subscriber:
         subscriber = pd.DataFrame(subscriber)
         node_data = await node_status(
@@ -119,7 +119,8 @@ async def automatic(cached_subscriber, cluster_data, cluster_name, layer, versio
         if not node_data.last_known_cluster_name and node_data.layer == layer:
             cached_subscriber["cluster_name"] = None
             if cached_subscriber["removal_datetime"] in (None, 'None'):
-                cached_subscriber["removal_datetime"] = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=30)
+                cached_subscriber["removal_datetime"] = datetime.datetime.now(
+                    datetime.timezone.utc) + datetime.timedelta(days=30)
 
         data = await determine_module.notify(data, _configuration)
 
@@ -139,7 +140,7 @@ async def automatic(cached_subscriber, cluster_data, cluster_name, layer, versio
 
 async def request(session, process_msg, layer, requester, _configuration):
     process_msg = await messages.update_request_process_msg(process_msg, 1)
-    ids = await api.get_user_ids(session, layer, requester, _configuration)
+    ids = await req.get_user_ids(session, layer, requester, _configuration)
     await bot.wait_until_ready()
 
     if ids:
@@ -149,8 +150,8 @@ async def request(session, process_msg, layer, requester, _configuration):
             id_, ip, port = lst[:3]
 
             while True:
-                subscriber = await api.locate_node(
-                    session=session, node_id=id_, ip=ip, port=port
+                subscriber = await req.locate_node(
+                    node_id=id_, ip=ip, port=port
                 )
 
                 if subscriber:
@@ -171,11 +172,11 @@ async def request(session, process_msg, layer, requester, _configuration):
             )
 
             process_msg = await messages.update_request_process_msg(process_msg, 3)
-            node_data = await history.node_data(session, requester, node_data, _configuration)
+            node_data = await history.node_data(requester, node_data, _configuration)
             process_msg = await messages.update_request_process_msg(
                 process_msg, 4
             )
-            node_data = await determine_module.get_module_data(session, node_data, _configuration)
+            node_data = await determine_module.get_module_data(node_data, _configuration)
             process_msg = await messages.update_request_process_msg(process_msg, 5)
             await discord.send(bot, node_data, _configuration)
             await messages.update_request_process_msg(process_msg, 6)

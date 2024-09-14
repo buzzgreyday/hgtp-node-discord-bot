@@ -1,9 +1,8 @@
-import logging
 from logging.config import dictConfig
+from pathlib import Path
 
 import aiofiles
 import yaml
-from pathlib import Path
 
 from assets.src import schemas
 

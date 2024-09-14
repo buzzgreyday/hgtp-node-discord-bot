@@ -5,21 +5,23 @@ import sys
 import threading
 import time
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Tuple, Dict
 
 import aiohttp
+import pandas as pd
 import yaml
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 
-from assets.src import preliminaries, check, history, rewards, stats, api, schemas, determine_module
+from assets.src import preliminaries, check, history, rewards, stats, request, schemas, determine_module
 from assets.src.config import configure_logging
 from assets.src.database.database import update_user, optimize
 from assets.src import discord
 from assets.src.discord.services import bot, discord_token, dev_env
 
 semaphore = asyncio.Semaphore(30)
+
 
 def load_configuration():
     try:
@@ -74,7 +76,7 @@ async def refresh_cache_and_clusters(cache, clusters, _configuration) -> Tuple[L
     for layer in (0, 1):
         # We need subscriber data to determine if new subscriptions have been made (or first run), add these to cache
         async with aiohttp.ClientSession() as session:
-            layer_subscriptions = await api.get_user_ids(session, layer, None, _configuration)
+            layer_subscriptions = await request.get_user_ids(session, layer, None, _configuration)
             # Returns a list of tuples containing (ID, IP, PORT, REMOVAL_DATETIME, CLUSTER)
 
         for subscriber in layer_subscriptions:
@@ -83,9 +85,11 @@ async def refresh_cache_and_clusters(cache, clusters, _configuration) -> Tuple[L
                 for cached_subscriber in cache:
                     # This will skip lookup if already located in a cluster. This needs reset every check.
                     cached_subscriber["located"] = False
-                    if subscriber[0] == cached_subscriber["id"] and subscriber[1] == cached_subscriber["ip"] and subscriber[2] == cached_subscriber["public_port"]:
+                    if subscriber[0] == cached_subscriber["id"] and subscriber[1] == cached_subscriber["ip"] and \
+                            subscriber[2] == cached_subscriber["public_port"]:
                         subscriber_found = True
-                        if cached_subscriber["cluster_name"] in (None, 'None', False, 'False', '', [], {}, ()) and cached_subscriber["new_subscriber"] is True:
+                        if cached_subscriber["cluster_name"] in (None, 'None', False, 'False', '', [], {}, ()) and \
+                                cached_subscriber["new_subscriber"] is True:
                             logging.getLogger("app").info(
                                 f"main.py - Found new subscriber in cache\n"
                                 f"Subscriber: ip {cached_subscriber["ip"]}, layer {cached_subscriber["public_port"]}\n"
@@ -116,23 +120,24 @@ async def refresh_cache_and_clusters(cache, clusters, _configuration) -> Tuple[L
 
             else:
                 cache.append(
-                        {
-                            "id": subscriber[0],
-                            "ip": subscriber[1],
-                            "public_port": subscriber[2],
-                            "layer": layer,
-                            "cluster_name": subscriber[4],
-                            "located": False,
-                            "new_subscriber": False,
-                            "removal_datetime": subscriber[3]
-                        }
-                    )
+                    {
+                        "id": subscriber[0],
+                        "ip": subscriber[1],
+                        "public_port": subscriber[2],
+                        "layer": layer,
+                        "cluster_name": subscriber[4],
+                        "located": False,
+                        "new_subscriber": False,
+                        "removal_datetime": subscriber[3]
+                    }
+                )
 
     for cluster in clusters:
         cluster["number_of_subs"] = 0
         for cached_subscriber in cache:
             if cached_subscriber["cluster_name"]:
-                if cached_subscriber["cluster_name"] == cluster["cluster_name"] and cached_subscriber["layer"] == cluster["layer"]:
+                if cached_subscriber["cluster_name"] == cluster["cluster_name"] and cached_subscriber["layer"] == \
+                        cluster["layer"]:
                     cluster["number_of_subs"] += 1
 
     sorted_clusters = sorted(clusters, key=lambda k: k["number_of_subs"], reverse=True)
@@ -148,8 +153,10 @@ async def runtime_check():
     else:
         return False
 
+
 async def main_loop(version_manager, _configuration):
-    async def run_none_clustered_subscribers(subscribers: List[dict], clusters: List[schemas.Cluster], cache: List[dict]):
+    async def run_none_clustered_subscribers(subscribers: List[dict], clusters: List[schemas.Cluster],
+                                             cache: List[dict]):
         tasks = []
         # These should be checked last: probably make sure these are not new subscribers
         # (new subscribers are 'integrationnet' by default now, could be "new" or something)
@@ -164,11 +171,20 @@ async def main_loop(version_manager, _configuration):
         for cluster in clusters:
             for i, cached_subscriber in enumerate(subscribers):
                 if cached_subscriber.get("removal_datetime"):
-                    pass
+                    dt = pd.to_datetime(cached_subscriber.get("removal_datetime"))
+                    try:
+                        if dt >= pd.to_datetime(datetime.now(timezone.utc)):
+                            continue
+                    except TypeError:
+                        if dt >= pd.to_datetime(datetime.now()):
+                            continue
+
                 if cached_subscriber.get("located") in (None, 'None', False, 'False', '', [], {}, ()):
                     try:
                         tasks.append(
-                            create_task(task_num=i, subscriber=cached_subscriber, data=cluster, cluster=cluster.name, layer=cluster.layer, version_manager=version_manager, configuration=_configuration)
+                            create_task(task_num=i, subscriber=cached_subscriber, data=cluster, cluster=cluster.name,
+                                        layer=cluster.layer, version_manager=version_manager,
+                                        configuration=_configuration)
                         )
                     except Exception:
                         logging.getLogger("app").error(
@@ -208,7 +224,8 @@ async def main_loop(version_manager, _configuration):
                         # Need a check for if cluster is down, skip check
                         try:
                             cluster_data = await determine_module.get_cluster_data_from_module(
-                                module_name=cluster.get("cluster_name"), layer=cluster.get("layer"), configuration=_configuration
+                                module_name=cluster.get("cluster_name"), layer=cluster.get("layer"),
+                                configuration=_configuration
                             )
                             cluster_data_list.append(cluster_data)
                             if not cluster_data:
@@ -224,13 +241,17 @@ async def main_loop(version_manager, _configuration):
                             continue
                         for i, cached_subscriber in enumerate(cache):
                             if cached_subscriber["located"] in (None, 'None', False, 'False', '', [], {}, ()):
-                                if cached_subscriber["cluster_name"] in (None, 'None', False, 'False', '', [], {}, ()) and cached_subscriber["new_subscriber"] is False:
+                                if cached_subscriber["cluster_name"] in (
+                                        None, 'None', False, 'False', '', [], {}, ()) and cached_subscriber[
+                                    "new_subscriber"] is False:
                                     # We need to run these last
                                     no_cluster_subscribers.append(cached_subscriber)
                                 else:
                                     try:
                                         tasks.append(
-                                            create_task(task_num=i, subscriber=cached_subscriber, data=cluster_data, cluster=cluster.get("cluster_name"), layer=cluster.get("layer"), version_manager=version_manager, configuration=_configuration)
+                                            create_task(task_num=i, subscriber=cached_subscriber, data=cluster_data,
+                                                        cluster=cluster.get("cluster_name"), layer=cluster.get("layer"),
+                                                        version_manager=version_manager, configuration=_configuration)
                                         )
                                     except Exception:
                                         logging.getLogger("app").error(
@@ -251,7 +272,8 @@ async def main_loop(version_manager, _configuration):
                             f"Automatic check: {round(timer_stop - timer_start, 2)} seconds"
                         )
                 if cluster_data_list:
-                    cache = await run_none_clustered_subscribers(subscribers=no_cluster_subscribers, clusters=cluster_data_list, cache=cache)
+                    cache = await run_none_clustered_subscribers(subscribers=no_cluster_subscribers,
+                                                                 clusters=cluster_data_list, cache=cache)
 
 
             except Exception as e:
@@ -276,7 +298,8 @@ async def main_loop(version_manager, _configuration):
         await asyncio.sleep(3)
 
 
-def create_task(task_num: int, subscriber: dict, data: schemas.Cluster, cluster: str, layer, version_manager, configuration):
+def create_task(task_num: int, subscriber: dict, data: schemas.Cluster, cluster: str, layer, version_manager,
+                configuration):
     return (
         task_num, asyncio.create_task(
             check.automatic(

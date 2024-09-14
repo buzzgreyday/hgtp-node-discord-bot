@@ -6,7 +6,7 @@ from typing import List
 import aiohttp
 from aiohttp import client_exceptions
 
-from assets.src import schemas, api, database
+from assets.src import schemas, request, database
 from assets.src.database import database
 
 
@@ -21,7 +21,7 @@ async def node_data(node_data: schemas.Node, _configuration, requester: str | No
     async with aiohttp.ClientSession() as session:
         while True:
             try:
-                data, resp_status = await api.Request(
+                data, resp_status = await request.Request(
                     session,
                     f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}",
                 ).db_json(timeout=6)
