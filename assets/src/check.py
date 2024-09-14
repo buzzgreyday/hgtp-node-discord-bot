@@ -144,7 +144,6 @@ async def request(session, process_msg, layer, requester, _configuration):
     await bot.wait_until_ready()
 
     if ids:
-        print("Got ids")
         version_manager = preliminaries.VersionManager(_configuration)
         process_msg = await messages.update_request_process_msg(process_msg, 2)
         for lst in ids:
@@ -154,7 +153,6 @@ async def request(session, process_msg, layer, requester, _configuration):
                 subscriber = await req.locate_node(
                     node_id=id_, ip=ip, port=port
                 )
-                print("Got subscriber")
                 if subscriber:
                     break
 
