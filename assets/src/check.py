@@ -99,8 +99,8 @@ async def automatic(cached_subscriber, cluster_data, cluster_name, layer, versio
 
     data = []
 
-    subscriber = await request.locate_node(node_id=cached_subscriber["id"],
-                                           ip=cached_subscriber["ip"], port=cached_subscriber["public_port"])
+    subscriber = await req.locate_node(node_id=cached_subscriber["id"],
+                                       ip=cached_subscriber["ip"], port=cached_subscriber["public_port"])
     if subscriber:
         subscriber = pd.DataFrame(subscriber)
         node_data = await node_status(
