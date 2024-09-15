@@ -77,7 +77,7 @@ async def refresh_cache_and_clusters(cache, clusters, _configuration) -> Tuple[L
     for layer in (0, 1):
         # We need subscriber data to determine if new subscriptions have been made (or first run), add these to cache
         async with aiohttp.ClientSession() as session:
-            layer_subscriptions = await request.get_user_ids(session, layer, None, _configuration)
+            layer_subscriptions = await request.get_user_ids(session=session, layer=layer)
             # Returns a list of tuples containing (ID, IP, PORT, REMOVAL_DATETIME, CLUSTER)
 
         for subscriber in layer_subscriptions:

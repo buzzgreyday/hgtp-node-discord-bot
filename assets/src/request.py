@@ -109,25 +109,22 @@ async def safe_request(session, request_url: str, configuration: dict, cluster=F
     return None, status_code
 
 
-async def get_user_ids(session, layer, requester, _configuration) -> List:
+async def get_user_ids(session, layer, requester: str | None = None, retry: int = 1, max_retries: int = 3, sleep: int = 1, timeout: int = 60) -> List:
     """RETURNS A LIST/SET OF TUPLES CONTAINING ID, IP, PORT (PER LAYER)"""
     _type = None
-    retry = 0
-    max_retries = 5
-    sleep = 2
     while retry <= max_retries:
         try:
             if requester is None:
                 _type = f"automatic check, l{layer}"
                 data, resp_status = await Request(
                     session, f"http://127.0.0.1:8000/user/ids/layer/{layer}"
-                ).db_json(timeout=60)
+                ).db_json(timeout=timeout)
             else:
                 _type = f"request report ({requester}, l{layer})"
                 data, resp_status = await Request(
                     session,
                     f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}",
-                ).db_json(timeout=60)
+                ).db_json(timeout=timeout)
         except (
             asyncio.exceptions.TimeoutError,
             aiohttp.client_exceptions.ClientConnectorError,
@@ -153,12 +150,9 @@ async def get_user_ids(session, layer, requester, _configuration) -> List:
     return []
 
 
-async def node_data(node_data: schemas.Node, _configuration, requester: str | None = None):
+async def node_data(node_data: schemas.Node, requester: str | None = None, retry: int = 1, max_retries: int = 3, sleep: int = 1, timeout: int = 60):
     """Get historic node data"""
 
-    retry = 1
-    max_retries = 3
-    sleep = 1
     data = None
 
     async with aiohttp.ClientSession() as session:
@@ -167,7 +161,7 @@ async def node_data(node_data: schemas.Node, _configuration, requester: str | No
                 data, resp_status = await Request(
                     session,
                     f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}",
-                ).db_json(timeout=60)
+                ).db_json(timeout=timeout)
             except (
                     asyncio.exceptions.TimeoutError,
                     client_exceptions.ClientOSError,
@@ -232,19 +226,17 @@ async def node_data(node_data: schemas.Node, _configuration, requester: str | No
     return node_data
 
 
-async def locate_node(node_id: str, ip: str, port: str | int):
+async def locate_node(node_id: str, ip: str, port: str | int, retry: int = 1, max_retries: int = 3, sleep: int = 1, timeout: int = 60):
     """Locate every subscription where ID is id_
     return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])
     """
-    retry = 1
-    max_retries = 3
-    sleep = 1
+
     async with aiohttp.ClientSession() as session:
         while retry <= max_retries:
             try:
                 data, resp_status = await Request(
                     session, f"http://127.0.0.1:8000/user/ids/{node_id}/{ip}/{port}"
-                ).db_json(timeout=60)
+                ).db_json(timeout=timeout)
             except (
                 asyncio.exceptions.TimeoutError,
                 aiohttp.client_exceptions.ClientConnectorError,
