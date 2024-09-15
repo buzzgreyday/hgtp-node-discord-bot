@@ -112,6 +112,10 @@ async def update_request_process_msg(process_msg, process_num):
             return await process_msg.edit(
                 "### **`REPORT REQUEST: SENT`**\n"
             )
+        elif process_num == 7:
+            return await process_msg.edit(
+                "### **`REPORT REQUEST: ERROR, PLEASE REPORT!`**\n"
+            )
 
 
 async def subscriber_role_deny_request(process_msg):

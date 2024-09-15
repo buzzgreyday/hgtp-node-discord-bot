@@ -70,19 +70,17 @@ async def _conditional_safe_requests(session, request_url: str, cluster: bool, c
 
 
 async def safe_request(session, request_url: str, configuration: dict, cluster=False):
-    retry_count = 0
+    retry = 0
     status_code = None
-    while True:
+    while retry <= configuration["general"]["request retry (count)"]:
         try:
             data, status_code = await _conditional_safe_requests(session, request_url, cluster, configuration)
-            if retry_count >= configuration["general"]["request retry (count)"]:
-                return None, status_code
-            elif data is not None:
+            if data is not None and status_code == 200:
                 return data, status_code
             else:
-                retry_count += 1
+                retry += 1
                 await asyncio.sleep(
-                    configuration["general"]["request retry interval (sec)"]
+                    configuration["general"]["request retry interval (sec)"] ** retry
                 )
         except (
             asyncio.exceptions.TimeoutError,
@@ -94,40 +92,42 @@ async def safe_request(session, request_url: str, configuration: dict, cluster=F
             logging.getLogger("app").debug(
                 f"api.py - safe request to {request_url}\n"
                 f"Status: {status_code}\n"
-                f"Retry: {retry_count}/{configuration['general']['request retry (count)']}"
+                f"Retry: {retry}/{configuration['general']['request retry (count)']} in {configuration["general"]["request retry interval (sec)"] ** retry} seconds"
             )
-            if retry_count >= configuration["general"]["request retry (count)"]:
-                return None, status_code
-            retry_count += 1
+            retry += 1
             await asyncio.sleep(
-                configuration["general"]["request retry interval (sec)"]
+                configuration["general"]["request retry interval (sec)"] ** retry
             )
 
         except (aiohttp.client_exceptions.InvalidURL,) as e:
             logging.getLogger("app").debug(
                 f"api.py - safe request to {request_url}\n"
                 f"Status: {status_code}\n"
-                f"Retry: {retry_count}/{configuration['general']['request retry (count)']}"
+                f"Retry: {retry}/{configuration['general']['request retry (count)']}"
             )
-            return None, status_code
+            break
+    return None, status_code
 
 
 async def get_user_ids(session, layer, requester, _configuration) -> List:
     """RETURNS A LIST/SET OF TUPLES CONTAINING ID, IP, PORT (PER LAYER)"""
     _type = None
-    while True:
+    retry = 0
+    max_retries = 5
+    sleep = 2
+    while retry <= max_retries:
         try:
             if requester is None:
                 _type = f"automatic check, l{layer}"
                 data, resp_status = await Request(
                     session, f"http://127.0.0.1:8000/user/ids/layer/{layer}"
-                ).db_json(timeout=30)
+                ).db_json(timeout=60)
             else:
                 _type = f"request report ({requester}, l{layer})"
                 data, resp_status = await Request(
                     session,
                     f"http://127.0.0.1:8000/user/ids/contact/{requester}/layer/{layer}",
-                ).db_json(timeout=30)
+                ).db_json(timeout=60)
         except (
             asyncio.exceptions.TimeoutError,
             aiohttp.client_exceptions.ClientConnectorError,
@@ -136,72 +136,75 @@ async def get_user_ids(session, layer, requester, _configuration) -> List:
             aiohttp.client_exceptions.ClientPayloadError,
         ):
             logging.getLogger("app").debug(
-                f"api.py - get_user_ids from localhost\n"
-                f"Type: {type}\n"
+                f"request.py - get_user_ids from localhost\n"
+                f"Type: {_type}\n"
                 f"Error: {traceback.format_exc()}"
             )
-            await asyncio.sleep(1)
+            await asyncio.sleep(sleep ** retry)
         else:
             if resp_status == 200:
                 return data
-            if resp_status == 500:
-                await asyncio.sleep(3)
             else:
                 logging.getLogger("app").warning(
-                    f"api.py - get_user_ids\n"
-                    f"Status: {resp_status}"
+                    f"request.py - get_user_ids\n"
+                    f"Response status: {resp_status}"
                 )
-                await asyncio.sleep(3)
+                await asyncio.sleep(sleep ** retry)
+    return []
+
 
 async def node_data(node_data: schemas.Node, _configuration, requester: str | None = None):
     """Get historic node data"""
 
-    #
-    # This here is the biggest problem it seems
-    # The problem seems to be with requesting sqlite3 async from different tasks. It locks or times out.
-    localhost_error_retry = 0
+    retry = 0
+    max_retries = 5
+    sleep = 2
     data = None
+
     async with aiohttp.ClientSession() as session:
-        while True:
+        while retry <= max_retries:
             try:
                 data, resp_status = await Request(
                     session,
                     f"http://127.0.0.1:8000/data/node/{node_data.ip}/{node_data.public_port}",
-                ).db_json(timeout=6)
-                # resp_status = 500
+                ).db_json(timeout=60)
             except (
-                asyncio.exceptions.TimeoutError,
-                client_exceptions.ClientOSError,
-                client_exceptions.ServerDisconnectedError,
+                    asyncio.exceptions.TimeoutError,
+                    client_exceptions.ClientOSError,
+                    client_exceptions.ServerDisconnectedError,
             ):
-                logging.getLogger("app").debug(
-                    f"history.py - node_data\n"
-                    f"Retry: {localhost_error_retry}/{2}\n"
-                    f"Warning: data/node/{node_data.ip}/{node_data.public_port} ({localhost_error_retry}/{2}): {traceback.format_exc()}"
+                retry += 1
+                logging.getLogger("app").warning(
+                    f"request.py - node_data\n"
+                    f"Retry: {retry}/{max_retries} in {sleep ** retry} seconds\n"
+                    f"Endpoint: data/node/{node_data.ip}/{node_data.public_port}\n"
+                    f"Details: {traceback.format_exc()}"
                 )
-
-                if localhost_error_retry <= 2:
-                    localhost_error_retry += 1
-                    await asyncio.sleep(1)
-                else:
-                    break
+                await asyncio.sleep(sleep ** retry)
+            except Exception:
+                retry += 1
+                logging.getLogger("app").critical(
+                    f"request.py - node_data\n"
+                    f"Retry: {retry}/{max_retries} in {sleep ** retry} seconds\n"
+                    f"Endpoint: data/node/{node_data.ip}/{node_data.public_port}\n"
+                    f"Details: {traceback.format_exc()}"
+                )
+                await asyncio.sleep(sleep ** retry)
             else:
-                # This section won't do. We need to get the historic data; the first lines won't work we need loop to ensure we get the data, only if it doesn't exist, we can continue.
                 if resp_status == 200:
                     break
                 else:
-                    logging.getLogger("app").debug(
+                    retry += 1
+                    logging.getLogger("app").warning(
                         f"history.py - node_data\n"
-                        f"Retry: {localhost_error_retry}/{2}\n"
-                        f"Status {resp_status}"
+                        f"Retry: {retry}/{max_retries} in {sleep ** retry} seconds\n"
+                        f"Response status {resp_status}"
                     )
-                    if localhost_error_retry <= 2:
-                        localhost_error_retry += 1
-                        await asyncio.sleep(1)
-                    else:
-                        # Did the user unsubscribe
-                        break
+                    await asyncio.sleep(sleep)
+
+
     if data:
+        # Populate node_data
         if requester:
             node_data = node_data.model_validate(data)
         else:
@@ -211,14 +214,12 @@ async def node_data(node_data: schemas.Node, _configuration, requester: str | No
             node_data.last_known_cluster_name = data.last_known_cluster_name
             node_data.former_reward_state = data.reward_state
             node_data.former_cluster_connectivity = data.cluster_connectivity
-            node_data.former_node_cluster_session = data.node_cluster_session
             node_data.former_cluster_association_time = data.cluster_association_time
             node_data.former_cluster_dissociation_time = data.cluster_dissociation_time
             node_data.former_timestamp_index = data.timestamp_index
             node_data.last_notified_timestamp = data.last_notified_timestamp
             node_data.former_cluster_peer_count = data.cluster_peer_count
             node_data.former_state = data.state
-            # This used to only if state is offline
             node_data.id = data.id
             node_data.wallet_address = data.wallet_address
             node_data.version = data.version
@@ -237,12 +238,14 @@ async def locate_node(node_id: str, ip: str, port: str | int):
     return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])
     """
     retry = 0
+    max_retries = 5
+    sleep = 2
     async with aiohttp.ClientSession() as session:
-        while True:
+        while retry <= max_retries:
             try:
                 data, resp_status = await Request(
                     session, f"http://127.0.0.1:8000/user/ids/{node_id}/{ip}/{port}"
-                ).db_json(timeout=30)
+                ).db_json(timeout=60)
             except (
                 asyncio.exceptions.TimeoutError,
                 aiohttp.client_exceptions.ClientConnectorError,
@@ -250,36 +253,38 @@ async def locate_node(node_id: str, ip: str, port: str | int):
                 aiohttp.client_exceptions.ServerDisconnectedError,
                 aiohttp.client_exceptions.ClientPayloadError,
             ):
+
+                retry += 1
+                # Did the user unsubscribe?
                 logging.getLogger("app").warning(
                     f"api.py - locate_node\n "
-                    f"Retry: {retry}/2\n"
-                    f"Warning: {traceback.format_exc()}"
+                    f"Retry: {retry}/{max_retries}\n"
+                    f"Endpoint: user/ids/{node_id}/{ip}/{port}\n"
+                    f"Details: {traceback.format_exc()}"
                 )
-                if retry <= 2:
-                    # Did the user unsubscribe?
-                    logging.getLogger("app").debug(
-                        f"api.py - locate_node\n"
-                        f"Retry: {retry}/2\n"
-                        f"Note: Did the user unsubscribe?"
-                    )
-                    if retry <= 2:
-                        retry += 1
-                        await asyncio.sleep(1)
-                    else:
-                        break
+                await asyncio.sleep(sleep ** retry)
+            except Exception:
+                retry += 1
+                # Did the user unsubscribe?
+                logging.getLogger("app").critical(
+                    f"api.py - locate_node\n "
+                    f"Retry: {retry}/{max_retries}\n"
+                    f"Endpoint: user/ids/{node_id}/{ip}/{port}\n"
+                    f"Details: {traceback.format_exc()}"
+                )
+                await asyncio.sleep(sleep ** retry)
             else:
                 if resp_status == 200:
                     return data
                 else:
                     # Did the user unsubscribe?
+
+                    retry += 1
                     logging.getLogger("app").debug(
                         f"api.py - locate_node\n"
-                        f"Retry: {retry}/2\n"
-                        f"Note: Did the user unsubscribe?"
-                        f"Status: {resp_status}"
+                        f"Retry: {retry}/{max_retries} in {sleep ** retry} seconds\n"
+                        f"Response status: {resp_status}"
                     )
-                    if retry <= 2:
-                        retry += 1
-                        await asyncio.sleep(1)
-                    else:
-                        break
+                    await asyncio.sleep(sleep ** retry)
+
+    return

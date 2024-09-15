@@ -41,9 +41,9 @@ engine = create_async_engine(
     future=True,
     pool_size=40,
     max_overflow=0,
-    pool_timeout=None, # Could be 600
-    pool_pre_ping=True,
-    pool_recycle=3600
+    pool_timeout=600 # Could be 600
+    # pool_pre_ping=True,
+    # pool_recycle=3600
     # echo=True,
     # poolclass=NullPool,
 )
@@ -170,6 +170,7 @@ class CRUD:
                 logging.getLogger("stats").debug(f"crud.py - Reward stats update: SUCCESS!")
             except Exception as e:
                 logging.getLogger("stats").error(f"crud.py - Reward stats update: FAIL!\n{traceback.format_exc()}")
+        return jsonable_encoder(data)
 
     async def update_user(
             self, cached_subscriber: Dict, async_session: async_sessionmaker[AsyncSession]
@@ -192,6 +193,7 @@ class CRUD:
                 logging.getLogger("app").debug(f"crud.py - User cache update: SUCCESS!")
             except Exception:
                 logging.getLogger("app").error(f"crud.py - User cache update: FAIL!\n{traceback.format_exc()}")
+        return
 
     async def post_metric_stats(
             self, data: MetricStatsSchema, async_session: async_sessionmaker[AsyncSession]
@@ -210,6 +212,7 @@ class CRUD:
             hashes = {record["hash_index"] for record in data}
             await session.execute(delete(MetricStatsModel).where(MetricStatsModel.hash_index.not_in(hashes)))
             await session.commit()
+        return
 
     async def update_metric_stats(
             self, data: MetricStatsSchema, async_session: async_sessionmaker[AsyncSession]
@@ -234,6 +237,7 @@ class CRUD:
                     f"Module: assets/src/database/crud.py\n"
                     f"Type: {e}\n"
                     f"Details: {traceback.format_exc()}\n")
+        return jsonable_encoder(data)
 
     async def delete_user_entry(
             self, data: UserModel, async_session: async_sessionmaker[AsyncSession]
@@ -246,6 +250,7 @@ class CRUD:
             )
             await session.execute(statement)
             await session.commit()
+        return
 
     async def _get_data_ids(self, async_session, batch_size=10000, offset=None, cutoff_date=datetime.now() - timedelta(days=32)):
         async with async_session() as session:
@@ -272,18 +277,14 @@ class CRUD:
 
     async def _delete_data_ids(self, processed_ids, async_session):
         # Deleting old data after processing current batch
-        try:
-            async with async_session() as session:
-                if processed_ids:
-                    await session.execute(
-                        delete(NodeModel).filter(NodeModel.index.in_(processed_ids))
-                    )
-                    await session.commit()
-        except Exception as e:
-            logging.getLogger("db_optimization").error(f"Message: Something happened during node data deletion.\n"
-                                                       f"Module: assets/src/database/crud.py\n"
-                                                       f"Type: {e}\n"
-                                                       f"Details: {traceback.format_exc()}")
+        async with async_session() as session:
+            if processed_ids:
+                await session.execute(
+                    delete(NodeModel).filter(NodeModel.index.in_(processed_ids))
+                )
+                await session.commit()
+
+        return jsonable_encoder(processed_ids)
 
     async def migrate_old_data(self, async_session: async_sessionmaker[AsyncSession], configuration):
         """
@@ -314,18 +315,11 @@ class CRUD:
             gc.collect()
 
     async def _get_ordinals_ids(self, async_session, batch_size=10000, offset=None, cutoff_date=datetime.now() - timedelta(days=32)):
-        try:
-            async with async_session() as session:
-                results = await session.execute(
-                    select(OrdinalModel).filter(OrdinalModel.timestamp < int(datetime.timestamp(cutoff_date))).offset(offset).limit(batch_size))
-                results = results.scalars().all()
-            return results
-        except Exception as e:
-            logging.getLogger("db_optimization").error(
-                f"Message: Something happened during ordinals request\n"
-                f"Module: assets/src/database/crud.py\n"
-                f"Type: {e}\n"
-                f"Details: {traceback.format_exc()}")
+        async with async_session() as session:
+            results = await session.execute(
+                select(OrdinalModel).filter(OrdinalModel.timestamp < int(datetime.timestamp(cutoff_date))).offset(offset).limit(batch_size))
+            results = results.scalars().all()
+        return results
 
     async def _migrate_ordinal_ids(self, batch_results, processed_ids, async_session, batch_processor=batch_processor):
         # Batch processing
@@ -353,18 +347,13 @@ class CRUD:
 
     async def _delete_ordinal_ids(self, processed_ids: set, async_session: async_sessionmaker[AsyncSession]):
         # Deleting old data after processing current batch
-        try:
-            async with async_session() as session:
-                if processed_ids:
-                    await session.execute(
-                        delete(OrdinalModel).filter(OrdinalModel.id.in_(processed_ids))
-                    )
-                    await session.commit()
-        except Exception as e:
-            logging.getLogger("db_optimization").error(f"Message: Something happened during node data deletion\n"
-                                                       f"Module: assets/src/database/crud.py\n"
-                                                       f"Type: {e}\n"
-                                                       f"Details: {traceback.format_exc()}")
+        async with async_session() as session:
+            if processed_ids:
+                await session.execute(
+                    delete(OrdinalModel).filter(OrdinalModel.id.in_(processed_ids))
+                )
+                await session.commit()
+        return jsonable_encoder(processed_ids)
 
     async def migrate_old_ordinals(self, async_session: async_sessionmaker[AsyncSession], configuration):
         logging.getLogger("db_optimization").info(f"Ordinal data migration initiated.")
@@ -401,7 +390,7 @@ class CRUD:
             logging.getLogger("rewards").warning(
                 f"crud.py - deleted ordinal {ordinal} to avoid duplicates"
             )
-            return
+        return
 
     def _calculate_html_stats_yield(self, reward_results):
         principal = 250000
@@ -449,59 +438,60 @@ class CRUD:
         async with async_session() as session:
             reward_results, metric_results = await self._get_html_stats_rewards_and_metrics(dag_address, session)
 
-            metric_dicts = []
-            for node_metrics in metric_results:
-                metric_dicts.append(node_metrics[0].__dict__)
-            metric_dicts = sorted(metric_dicts, key=lambda d: d["layer"])
+        metric_dicts = []
+        for node_metrics in metric_results:
+            metric_dicts.append(node_metrics[0].__dict__)
+        metric_dicts = sorted(metric_dicts, key=lambda d: d["layer"])
 
-            price_timestamp, price_dagusd = await self._get_html_stats_price_values()
+        price_timestamp, price_dagusd = await self._get_html_stats_price_values()
 
-            if price_dagusd != 0.000000000:
-                dag_earnings_price_now = reward_results.dag_address_sum * price_dagusd
-            # MPY and APY
-            calculated_mpy_percentage, estimated_apy_percentage = self._calculate_html_stats_yield(reward_results)
+        if price_dagusd != 0.000000000:
+            dag_earnings_price_now = reward_results.dag_address_sum * price_dagusd
+        else:
+            dag_earnings_price_now = 0
+        # MPY and APY
+        calculated_mpy_percentage, estimated_apy_percentage = self._calculate_html_stats_yield(reward_results)
 
-            # What those addresses earning more is earning (standard deviation)
+        # What those addresses earning more is earning (standard deviation)
 
-            dag_earnings_price_now_dev = float(dag_earnings_price_now - reward_results.usd_address_sum)
-            if dag_earnings_price_now_dev > 0:
-                dag_earnings_price_now_dev = f'+{round(dag_earnings_price_now_dev, 2)}'
-            else:
-                dag_earnings_price_now_dev = f'{round(dag_earnings_price_now_dev, 2)}'
+        dag_earnings_price_now_dev = float(dag_earnings_price_now - reward_results.usd_address_sum)
+        if dag_earnings_price_now_dev > 0:
+            dag_earnings_price_now_dev = f'+{round(dag_earnings_price_now_dev, 2)}'
+        else:
+            dag_earnings_price_now_dev = f'{round(dag_earnings_price_now_dev, 2)}'
 
-            content = templates.TemplateResponse(
-                "stats.html",
-                dict(request=request,
-                     dag_address=reward_results.destinations,
-                     percent_earning_more=round(reward_results.percent_earning_more, 2),
-                     dag_address_sum=round(reward_results.dag_address_sum, 2),
-                     dag_median_sum=round(reward_results.dag_median_sum, 2),
-                     dag_address_daily_mean=round(reward_results.dag_address_daily_mean, 2),
-                     dag_price_now=round(price_dagusd, 4),
-                     dag_earnings_price_now_dev=dag_earnings_price_now_dev,
-                     dag_price_now_timestamp=datetime.fromtimestamp(price_timestamp),
-                     dag_earnings_price_now=round(dag_earnings_price_now, 2),
-                     usd_address_sum=round(reward_results.usd_address_sum, 2),
-                     usd_address_daily_sum=round(reward_results.usd_address_daily_sum, 2),
-                     rewards_plot_path=f"rewards_{dag_address}.html",
-                     cpu_plot_path=f"cpu_{dag_address}.html",
-                     # Sum of all $DAG minted, minus very high earning wallets (Stardust Collective wallet, etc.)
-                     dag_minted_for_validators=round(reward_results.nonoutlier_dag_addresses_minted_sum, 2),
-                     # Highest earning address, minus very high earning wallets (Stardust Collective wallet, etc.)
-                     dag_highest_earner=round(reward_results.above_dag_address_earner_highest, 2),
-                     # What the address is missing out on (average)
-                     above_dag_address_deviation_from_mean=round(
-                         reward_results.above_dag_address_earnings_deviation_from_mean, 2),
-                     # What the address is missing out on (compared to the highest earning address)
-                     above_dag_address_deviation_from_highest_earning=round(
-                         reward_results.above_dag_address_earnings_from_highest, 2),
-                     metric_dicts=metric_dicts,
-                     calculated_mpy=round(calculated_mpy_percentage, 2),
-                     estimated_apy=round(estimated_apy_percentage, 2)
-                     )
-            )
-            if reward_results:
-                return content
+        content = templates.TemplateResponse(
+            "stats.html",
+            dict(request=request,
+                 dag_address=reward_results.destinations,
+                 percent_earning_more=round(reward_results.percent_earning_more, 2),
+                 dag_address_sum=round(reward_results.dag_address_sum, 2),
+                 dag_median_sum=round(reward_results.dag_median_sum, 2),
+                 dag_address_daily_mean=round(reward_results.dag_address_daily_mean, 2),
+                 dag_price_now=round(price_dagusd, 4),
+                 dag_earnings_price_now_dev=dag_earnings_price_now_dev,
+                 dag_price_now_timestamp=datetime.fromtimestamp(price_timestamp),
+                 dag_earnings_price_now=round(dag_earnings_price_now, 2),
+                 usd_address_sum=round(reward_results.usd_address_sum, 2),
+                 usd_address_daily_sum=round(reward_results.usd_address_daily_sum, 2),
+                 rewards_plot_path=f"rewards_{dag_address}.html",
+                 cpu_plot_path=f"cpu_{dag_address}.html",
+                 # Sum of all $DAG minted, minus very high earning wallets (Stardust Collective wallet, etc.)
+                 dag_minted_for_validators=round(reward_results.nonoutlier_dag_addresses_minted_sum, 2),
+                 # Highest earning address, minus very high earning wallets (Stardust Collective wallet, etc.)
+                 dag_highest_earner=round(reward_results.above_dag_address_earner_highest, 2),
+                 # What the address is missing out on (average)
+                 above_dag_address_deviation_from_mean=round(
+                     reward_results.above_dag_address_earnings_deviation_from_mean, 2),
+                 # What the address is missing out on (compared to the highest earning address)
+                 above_dag_address_deviation_from_highest_earning=round(
+                     reward_results.above_dag_address_earnings_from_highest, 2),
+                 metric_dicts=metric_dicts,
+                 calculated_mpy=round(calculated_mpy_percentage, 2),
+                 estimated_apy=round(estimated_apy_percentage, 2)
+                 )
+        )
+        return content
 
     async def get_html_page_index(self, request, templates):
         content = templates.TemplateResponse(
@@ -509,92 +499,89 @@ class CRUD:
         return content
 
     async def get_html_page_statistics(self, request, templates, async_session: async_sessionmaker[AsyncSession]):
-        try:
-            user_data = []
-            unique_subscribers_l0 = []
-            unique_subscribers_l1 = []
-            integrationnet_node_count_l0 = 0
-            testnet_node_count_l0 = 0
-            mainnet_node_count_l0 = 0
-            integrationnet_node_count_l1 = 0
-            testnet_node_count_l1 = 0
-            mainnet_node_count_l1 = 0
-            marked_removable_node_count_l0 = 0
-            marked_removable_node_count_l1 = 0
+        user_data = []
+        unique_subscribers_l0 = []
+        unique_subscribers_l1 = []
+        integrationnet_node_count_l0 = 0
+        testnet_node_count_l0 = 0
+        mainnet_node_count_l0 = 0
+        integrationnet_node_count_l1 = 0
+        testnet_node_count_l1 = 0
+        mainnet_node_count_l1 = 0
+        marked_removable_node_count_l0 = 0
+        marked_removable_node_count_l1 = 0
 
-            async with async_session() as session:
+        async with async_session() as session:
 
-                # Query to fetch all rows
-                result = await session.execute(select(UserModel))
-                all_rows = result.scalars().all()
-            for node in all_rows:
-                node_dict = node.__dict__
-                if node_dict["cluster"] == "integrationnet":
-                    if node_dict["layer"] == 0:
-                        integrationnet_node_count_l0 += 1
-                    else:
-                        integrationnet_node_count_l1 += 1
-                elif node_dict["cluster"] == "mainnet":
-                    if node_dict["layer"] == 0:
-                        mainnet_node_count_l0 += 1
-                    else:
-                        mainnet_node_count_l1 += 1
-                elif node_dict["cluster"] == "testnet":
-                    if node_dict["layer"] == 0:
-                        testnet_node_count_l0 += 1
-                    else:
-                        testnet_node_count_l1 += 1
-                elif node_dict["removal_datetime"]:
-                    if node_dict["layer"] == 0:
-                        marked_removable_node_count_l0 += 1
-                    else:
-                        marked_removable_node_count_l1 += 1
+            # Query to fetch all rows
+            result = await session.execute(select(UserModel))
+            all_rows = result.scalars().all()
+        for node in all_rows:
+            node_dict = node.__dict__
+            if node_dict["cluster"] == "integrationnet":
                 if node_dict["layer"] == 0:
-                    unique_subscribers_l0.append(node_dict["name"])
+                    integrationnet_node_count_l0 += 1
                 else:
-                    unique_subscribers_l1.append(node_dict["name"])
-                user_data.append(node_dict)
+                    integrationnet_node_count_l1 += 1
+            elif node_dict["cluster"] == "mainnet":
+                if node_dict["layer"] == 0:
+                    mainnet_node_count_l0 += 1
+                else:
+                    mainnet_node_count_l1 += 1
+            elif node_dict["cluster"] == "testnet":
+                if node_dict["layer"] == 0:
+                    testnet_node_count_l0 += 1
+                else:
+                    testnet_node_count_l1 += 1
+            elif node_dict["removal_datetime"]:
+                if node_dict["layer"] == 0:
+                    marked_removable_node_count_l0 += 1
+                else:
+                    marked_removable_node_count_l1 += 1
+            if node_dict["layer"] == 0:
+                unique_subscribers_l0.append(node_dict["name"])
+            else:
+                unique_subscribers_l1.append(node_dict["name"])
+            user_data.append(node_dict)
 
-            active_subscribed_nodes_count = mainnet_node_count_l0 + mainnet_node_count_l1 + testnet_node_count_l0 + testnet_node_count_l1 + integrationnet_node_count_l0 + integrationnet_node_count_l1
-            inactive_subscribed_nodes_count = marked_removable_node_count_l0 + marked_removable_node_count_l1
-            unique_subscribers_l0_count = len(list(set(unique_subscribers_l0)))
-            unique_subscribers_l1_count = len(list(set(unique_subscribers_l1)))
-            unique_subscribers_count_total = len(list(set(unique_subscribers_l0 + unique_subscribers_l1)))
+        active_subscribed_nodes_count = mainnet_node_count_l0 + mainnet_node_count_l1 + testnet_node_count_l0 + testnet_node_count_l1 + integrationnet_node_count_l0 + integrationnet_node_count_l1
+        inactive_subscribed_nodes_count = marked_removable_node_count_l0 + marked_removable_node_count_l1
+        unique_subscribers_l0_count = len(list(set(unique_subscribers_l0)))
+        unique_subscribers_l1_count = len(list(set(unique_subscribers_l1)))
+        unique_subscribers_count_total = len(list(set(unique_subscribers_l0 + unique_subscribers_l1)))
 
-            mainnet_durations_l0 = []
-            mainnet_durations_l1 = []
-            integrationnet_durations_l0 = []
-            integrationnet_durations_l1 = []
-            testnet_durations_l0 = []
-            testnet_durations_l1 = []
+        mainnet_durations_l0 = []
+        mainnet_durations_l1 = []
+        integrationnet_durations_l0 = []
+        integrationnet_durations_l1 = []
+        testnet_durations_l0 = []
+        testnet_durations_l1 = []
 
-            mainnet_durations_l0 = np.average(mainnet_durations_l0) if mainnet_durations_l0 else "Forthcoming"
-            mainnet_durations_l1 = np.average(mainnet_durations_l1) if mainnet_durations_l1 else "Forthcoming"
-            integrationnet_durations_l0 = np.average(integrationnet_durations_l0) if integrationnet_durations_l0 else "Forthcoming"
-            integrationnet_durations_l1 = np.average(integrationnet_durations_l1) if integrationnet_durations_l1 else "Forthcoming"
-            testnet_durations_l0 = np.average(testnet_durations_l0) if testnet_durations_l0 else "Forthcoming"
-            testnet_durations_l1 = np.average(testnet_durations_l1) if testnet_durations_l1 else "Forthcoming"
-            content = templates.TemplateResponse(
-                "pages/statistics.html", dict(request=request,
-                                              node_count_sum=len(user_data),
-                                              mainnet_node_count_l0=mainnet_node_count_l0,
-                                              mainnet_node_count_l1=mainnet_node_count_l1,
-                                              integrationnet_node_count_l0=integrationnet_node_count_l0,
-                                              integrationnet_node_count_l1=integrationnet_node_count_l1,
-                                              testnet_node_count_l0=testnet_node_count_l0,
-                                              testnet_node_count_l1=testnet_node_count_l1,
-                                              active_subscribed_nodes_count=active_subscribed_nodes_count,
-                                              inactive_subscribed_nodes_count=inactive_subscribed_nodes_count,
-                                              mainnet_durations_l0=mainnet_durations_l0,
-                                              mainnet_durations_l1=mainnet_durations_l1,
-                                              integrationnet_durations_l0=integrationnet_durations_l0,
-                                              integrationnet_durations_l1=integrationnet_durations_l1,
-                                              testnet_durations_l0=testnet_durations_l0,
-                                              testnet_durations_l1=testnet_durations_l1,
-                                              unique_subscribers_count_total=unique_subscribers_count_total))
-            return content
-        except Exception:
-            logging.getLogger("others").error(traceback.format_exc())
+        mainnet_durations_l0 = np.average(mainnet_durations_l0) if mainnet_durations_l0 else "Forthcoming"
+        mainnet_durations_l1 = np.average(mainnet_durations_l1) if mainnet_durations_l1 else "Forthcoming"
+        integrationnet_durations_l0 = np.average(integrationnet_durations_l0) if integrationnet_durations_l0 else "Forthcoming"
+        integrationnet_durations_l1 = np.average(integrationnet_durations_l1) if integrationnet_durations_l1 else "Forthcoming"
+        testnet_durations_l0 = np.average(testnet_durations_l0) if testnet_durations_l0 else "Forthcoming"
+        testnet_durations_l1 = np.average(testnet_durations_l1) if testnet_durations_l1 else "Forthcoming"
+        content = templates.TemplateResponse(
+            "pages/statistics.html", dict(request=request,
+                                          node_count_sum=len(user_data),
+                                          mainnet_node_count_l0=mainnet_node_count_l0,
+                                          mainnet_node_count_l1=mainnet_node_count_l1,
+                                          integrationnet_node_count_l0=integrationnet_node_count_l0,
+                                          integrationnet_node_count_l1=integrationnet_node_count_l1,
+                                          testnet_node_count_l0=testnet_node_count_l0,
+                                          testnet_node_count_l1=testnet_node_count_l1,
+                                          active_subscribed_nodes_count=active_subscribed_nodes_count,
+                                          inactive_subscribed_nodes_count=inactive_subscribed_nodes_count,
+                                          mainnet_durations_l0=mainnet_durations_l0,
+                                          mainnet_durations_l1=mainnet_durations_l1,
+                                          integrationnet_durations_l0=integrationnet_durations_l0,
+                                          integrationnet_durations_l1=integrationnet_durations_l1,
+                                          testnet_durations_l0=testnet_durations_l0,
+                                          testnet_durations_l1=testnet_durations_l1,
+                                          unique_subscribers_count_total=unique_subscribers_count_total))
+        return content
 
     async def get_html_page_about(self, request, templates):
         content = templates.TemplateResponse(
@@ -723,68 +710,67 @@ class CRUD:
         Get timeslice data from the node database.
         """
         one_gigabyte = 1073741824
-        async with async_session() as session:
-            batch_size = 100000
-            offset = 0
-            data = {
-                "timestamp": [],
-                "destinations": [],
-                "layer": [],
-                "ip": [],
-                "id": [],
-                "public_port": [],
-                "cpu_load_1m": [],
-                "cpu_count": [],
-                "disk_free": [],
-                "disk_total": [],
-            }
-            timestamp_datetime = datetime.fromtimestamp(timestamp)
+        batch_size = 100000
+        offset = 0
+        data = {
+            "timestamp": [],
+            "destinations": [],
+            "layer": [],
+            "ip": [],
+            "id": [],
+            "public_port": [],
+            "cpu_load_1m": [],
+            "cpu_count": [],
+            "disk_free": [],
+            "disk_total": [],
+        }
+        timestamp_datetime = datetime.fromtimestamp(timestamp)
 
-            while True:
-                statement = (
-                    select(
-                        NodeModel
-                    )
-                    .filter(NodeModel.timestamp_index >= timestamp_datetime)
-                    .offset(offset)
-                    .limit(batch_size)
+        while True:
+            statement = (
+                select(
+                    NodeModel
                 )
-                logging.getLogger("stats").debug(f"Get node_data from timestamp: {timestamp}, offset: {offset}")
-                try:
+                .filter(NodeModel.timestamp_index >= timestamp_datetime)
+                .offset(offset)
+                .limit(batch_size)
+            )
+            logging.getLogger("stats").debug(f"Get node_data from timestamp: {timestamp}, offset: {offset}")
+            try:
+                async with async_session() as session:
                     results = await session.execute(statement)
-                except aiohttp.client_exceptions.ServerDisconnectedError:
-                    await asyncio.sleep(3)
-                    continue
-                batch_results = results.scalars().all()
+            except aiohttp.client_exceptions.ServerDisconnectedError:
+                await asyncio.sleep(3)
+                continue
+            batch_results = results.scalars().all()
 
-                if not batch_results:
-                    logging.getLogger("stats").debug("All node_data batches processed")
-                    break  # No more data
+            if not batch_results:
+                logging.getLogger("stats").debug("All node_data batches processed")
+                break  # No more data
 
-                for row in batch_results:
-                    if row.last_known_cluster_name == "mainnet":
-                        data["timestamp"].append(round(row.timestamp_index.timestamp()))
-                        data["destinations"].append(row.wallet_address)
-                        data["layer"].append(row.layer)
-                        data["ip"].append(row.ip)
-                        data["id"].append(row.id)
-                        data["public_port"].append(row.public_port)
-                        data["cpu_load_1m"].append(row.one_m_system_load_average)
-                        data["cpu_count"].append(row.cpu_count)
-                        try:
-                            data["disk_free"].append(row.disk_space_free / one_gigabyte)
-                            data["disk_total"].append(
-                                row.disk_space_total / one_gigabyte
-                            )
-                        except ZeroDivisionError:
-                            data["disk_free"].append(0.0)
-                            data["disk_total"].append(0.0)
+            for row in batch_results:
+                if row.last_known_cluster_name == "mainnet":
+                    data["timestamp"].append(round(row.timestamp_index.timestamp()))
+                    data["destinations"].append(row.wallet_address)
+                    data["layer"].append(row.layer)
+                    data["ip"].append(row.ip)
+                    data["id"].append(row.id)
+                    data["public_port"].append(row.public_port)
+                    data["cpu_load_1m"].append(row.one_m_system_load_average)
+                    data["cpu_count"].append(row.cpu_count)
+                    try:
+                        data["disk_free"].append(row.disk_space_free / one_gigabyte)
+                        data["disk_total"].append(
+                            row.disk_space_total / one_gigabyte
+                        )
+                    except ZeroDivisionError:
+                        data["disk_free"].append(0.0)
+                        data["disk_total"].append(0.0)
 
-                del results
-                del batch_results
-                offset += batch_size
-                await asyncio.sleep(0)
-                # gc.collect()
+            del results
+            del batch_results
+            offset += batch_size
+            await asyncio.sleep(0)
 
         return data
 

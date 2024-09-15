@@ -59,6 +59,7 @@ function start_bot() {
     create_dir_structure
     create_swap_file
     start_venv
+    ulimit -n 10000
     cd "$HOME/bot" && $PY_VERSION main.py &
     echo "Bot: The app started, waiting $WAIT seconds to fetch process ID"
     sleep $WAIT

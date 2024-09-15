@@ -148,33 +148,43 @@ async def request(session, process_msg, layer, requester, _configuration):
         for lst in ids:
             id_, ip, port = lst[:3]
 
-            while True:
-                subscriber = await req.locate_node(
-                    node_id=id_, ip=ip, port=port
+            subscriber = await req.locate_node(
+                node_id=id_, ip=ip, port=port
+            )
+            if subscriber:
+
+                subscriber = pd.DataFrame(subscriber)
+                node_data = schemas.Node(
+                    name=subscriber.name.values[0],
+                    contact=subscriber.discord.values[0],
+                    ip=subscriber.ip.values[0],
+                    layer=subscriber.layer.values[0],
+                    public_port=subscriber.public_port.values[0],
+                    id=subscriber.id.values[0],
+                    wallet_address=subscriber.wallet.values[0],
+                    latest_version=version_manager.get_version(),
+                    notify=True,
+                    timestamp_index=datetime.datetime.now(datetime.UTC).replace(tzinfo=None),
                 )
-                if subscriber:
-                    break
 
-            subscriber = pd.DataFrame(subscriber)
-            node_data = schemas.Node(
-                name=subscriber.name.values[0],
-                contact=subscriber.discord.values[0],
-                ip=subscriber.ip.values[0],
-                layer=subscriber.layer.values[0],
-                public_port=subscriber.public_port.values[0],
-                id=subscriber.id.values[0],
-                wallet_address=subscriber.wallet.values[0],
-                latest_version=version_manager.get_version(),
-                notify=True,
-                timestamp_index=datetime.datetime.now(datetime.UTC).replace(tzinfo=None),
-            )
+                process_msg = await messages.update_request_process_msg(process_msg, 3)
+                node_data = await req.node_data(node_data, _configuration, requester=requester)
+                process_msg = await messages.update_request_process_msg(
+                    process_msg, 4
+                )
+                node_data = await determine_module.get_module_data(node_data, _configuration)
+                process_msg = await messages.update_request_process_msg(process_msg, 5)
+                await discord.send(bot, node_data, _configuration)
+                await messages.update_request_process_msg(process_msg, 6)
+            else:
+                logging.getLogger("commands").error(
+                    f"check.py - Subscriber is empty.\n"
+                    f"Subscriber: {requester}"
+                )
+                await messages.update_request_process_msg(process_msg, 7)
+    logging.getLogger("commands").error(
+                    f"check.py - No ids returned\n"
+                    f"Subscriber: {requester}"
+                )
+    await messages.update_request_process_msg(process_msg, 7)
 
-            process_msg = await messages.update_request_process_msg(process_msg, 3)
-            node_data = await req.node_data(node_data, _configuration, requester=requester)
-            process_msg = await messages.update_request_process_msg(
-                process_msg, 4
-            )
-            node_data = await determine_module.get_module_data(node_data, _configuration)
-            process_msg = await messages.update_request_process_msg(process_msg, 5)
-            await discord.send(bot, node_data, _configuration)
-            await messages.update_request_process_msg(process_msg, 6)
