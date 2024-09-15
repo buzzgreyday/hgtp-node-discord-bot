@@ -132,17 +132,18 @@ async def process_ordinal_data(session, url, ordinal, ordinal_data, configuratio
 
 async def fetch_and_process_ordinal_data(session, url, ordinal, configuration):
     logging.getLogger("rewards").info(f"rewards.py - Processing ordinal {ordinal}")
-    while True:
-        ordinal_data = await RequestSnapshot(session).explorer(
-            f"{url}/global-snapshots/{ordinal}"
-        )
-        if ordinal_data:
-            await process_ordinal_data(
-                session, url, ordinal, ordinal_data, configuration
+    async with asyncio.Semaphore(5):
+        while True:
+            ordinal_data = await RequestSnapshot(session).explorer(
+                f"{url}/global-snapshots/{ordinal}"
             )
-            break
-        else:
-            await asyncio.sleep(3)
+            if ordinal_data:
+                await process_ordinal_data(
+                    session, url, ordinal, ordinal_data, configuration
+                )
+                break
+            else:
+                await asyncio.sleep(3)
 
 
 async def run(configuration):
@@ -196,14 +197,13 @@ async def run(configuration):
     times = preliminaries.generate_rewards_runtimes()
     logging.getLogger("rewards").info(f"rewards.py - Runtimes: {times}")
     while True:
-        async with asyncio.Semaphore(10):
-            if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
-                try:
-                    logging.getLogger("rewards").info(f"rewards.py - Starting process")
-                    await process()
-                except Exception:
-                    logging.getLogger("rewards").critical(
-                        f"rewards.py - Run process failed:\n"
-                        f"\t{traceback.format_exc()}"
-                    )
-            await asyncio.sleep(1)
+        if datetime.time(datetime.utcnow()).strftime("%H:%M:%S") in times:
+            try:
+                logging.getLogger("rewards").info(f"rewards.py - Starting process")
+                await process()
+            except Exception:
+                logging.getLogger("rewards").critical(
+                    f"rewards.py - Run process failed:\n"
+                    f"\t{traceback.format_exc()}"
+                )
+        await asyncio.sleep(1)

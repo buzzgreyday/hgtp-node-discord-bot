@@ -21,7 +21,7 @@ from assets.src.database.database import update_user, optimize
 from assets.src import discord
 from assets.src.discord.services import bot, discord_token, dev_env
 
-semaphore = asyncio.Semaphore(30)
+semaphore = asyncio.Semaphore(10)
 
 
 def load_configuration():
@@ -185,7 +185,7 @@ async def main_loop(version_manager, _configuration):
                         tasks.append(
                             create_task(task_num=i, subscriber=cached_subscriber, data=cluster, cluster=cluster.name,
                                         layer=cluster.layer, version_manager=version_manager,
-                                        configuration=_configuration)
+                                        configuration=_configuration, semaphore=semaphore)
                         )
                     except Exception:
                         logging.getLogger("app").error(
@@ -252,7 +252,8 @@ async def main_loop(version_manager, _configuration):
                                         tasks.append(
                                             create_task(task_num=i, subscriber=cached_subscriber, data=cluster_data,
                                                         cluster=cluster.get("cluster_name"), layer=cluster.get("layer"),
-                                                        version_manager=version_manager, configuration=_configuration)
+                                                        version_manager=version_manager, configuration=_configuration,
+                                                        semaphore=semaphore)
                                         )
                                     except Exception:
                                         logging.getLogger("app").error(
@@ -300,7 +301,7 @@ async def main_loop(version_manager, _configuration):
 
 
 def create_task(task_num: int, subscriber: dict, data: schemas.Cluster, cluster: str, layer, version_manager,
-                configuration):
+                configuration, semaphore: asyncio.Semaphore):
     return (
         task_num, asyncio.create_task(
             check.automatic(
@@ -309,7 +310,8 @@ def create_task(task_num: int, subscriber: dict, data: schemas.Cluster, cluster:
                 cluster,
                 layer,
                 version_manager,
-                configuration
+                configuration,
+                semaphore
             )
         )
     )

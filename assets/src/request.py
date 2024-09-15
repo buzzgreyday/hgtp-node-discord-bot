@@ -156,9 +156,9 @@ async def get_user_ids(session, layer, requester, _configuration) -> List:
 async def node_data(node_data: schemas.Node, _configuration, requester: str | None = None):
     """Get historic node data"""
 
-    retry = 0
-    max_retries = 5
-    sleep = 2
+    retry = 1
+    max_retries = 3
+    sleep = 1
     data = None
 
     async with aiohttp.ClientSession() as session:
@@ -173,35 +173,34 @@ async def node_data(node_data: schemas.Node, _configuration, requester: str | No
                     client_exceptions.ClientOSError,
                     client_exceptions.ServerDisconnectedError,
             ):
-                retry += 1
                 logging.getLogger("app").warning(
                     f"request.py - node_data\n"
                     f"Retry: {retry}/{max_retries} in {sleep ** retry} seconds\n"
                     f"Endpoint: data/node/{node_data.ip}/{node_data.public_port}\n"
                     f"Details: {traceback.format_exc()}"
                 )
+                retry += 1
                 await asyncio.sleep(sleep ** retry)
             except Exception:
-                retry += 1
                 logging.getLogger("app").critical(
                     f"request.py - node_data\n"
                     f"Retry: {retry}/{max_retries} in {sleep ** retry} seconds\n"
                     f"Endpoint: data/node/{node_data.ip}/{node_data.public_port}\n"
                     f"Details: {traceback.format_exc()}"
                 )
+                retry += 1
                 await asyncio.sleep(sleep ** retry)
             else:
                 if resp_status == 200:
                     break
                 else:
-                    retry += 1
                     logging.getLogger("app").warning(
                         f"history.py - node_data\n"
                         f"Retry: {retry}/{max_retries} in {sleep ** retry} seconds\n"
                         f"Response status {resp_status}"
                     )
+                    retry += 1
                     await asyncio.sleep(sleep)
-
 
     if data:
         # Populate node_data
@@ -237,9 +236,9 @@ async def locate_node(node_id: str, ip: str, port: str | int):
     """Locate every subscription where ID is id_
     return await dask_client.compute(subscriber_dataframe[subscriber_dataframe.id == id_])
     """
-    retry = 0
-    max_retries = 5
-    sleep = 2
+    retry = 1
+    max_retries = 3
+    sleep = 1
     async with aiohttp.ClientSession() as session:
         while retry <= max_retries:
             try:
@@ -254,7 +253,6 @@ async def locate_node(node_id: str, ip: str, port: str | int):
                 aiohttp.client_exceptions.ClientPayloadError,
             ):
 
-                retry += 1
                 # Did the user unsubscribe?
                 logging.getLogger("app").warning(
                     f"api.py - locate_node\n "
@@ -262,9 +260,9 @@ async def locate_node(node_id: str, ip: str, port: str | int):
                     f"Endpoint: user/ids/{node_id}/{ip}/{port}\n"
                     f"Details: {traceback.format_exc()}"
                 )
+                retry += 1
                 await asyncio.sleep(sleep ** retry)
             except Exception:
-                retry += 1
                 # Did the user unsubscribe?
                 logging.getLogger("app").critical(
                     f"api.py - locate_node\n "
@@ -272,6 +270,7 @@ async def locate_node(node_id: str, ip: str, port: str | int):
                     f"Endpoint: user/ids/{node_id}/{ip}/{port}\n"
                     f"Details: {traceback.format_exc()}"
                 )
+                retry += 1
                 await asyncio.sleep(sleep ** retry)
             else:
                 if resp_status == 200:
@@ -279,12 +278,12 @@ async def locate_node(node_id: str, ip: str, port: str | int):
                 else:
                     # Did the user unsubscribe?
 
-                    retry += 1
                     logging.getLogger("app").debug(
                         f"api.py - locate_node\n"
                         f"Retry: {retry}/{max_retries} in {sleep ** retry} seconds\n"
                         f"Response status: {resp_status}"
                     )
+                    retry += 1
                     await asyncio.sleep(sleep ** retry)
 
     return
