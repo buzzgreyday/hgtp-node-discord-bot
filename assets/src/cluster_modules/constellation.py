@@ -332,7 +332,7 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                 node_data.former_cluster_connectivity = "new association"
                 return node_data
             elif node_data.former_cluster_connectivity == "forked":
-                node_data.cluster_connectivity = "forked"
+                node_data.cluster_connectivity = "new association"
                 return node_data
             else:
                 node_data.cluster_connectivity = "association"
@@ -341,7 +341,6 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
             # If node is not in the edge node cluster data, it's dissociated
             if node_data.former_cluster_connectivity in ("association", "new association", "connecting", "uncertain"):
                 node_data.cluster_connectivity = "new dissociation"
-                node_data.last_known_cluster_name = node_data.former_cluster_name
                 return node_data
             elif node_data.former_cluster_connectivity in ("dissociation", "new dissociation"):
                 node_data.cluster_connectivity = "dissociation"
@@ -369,43 +368,39 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                 node_data.cluster_name = node_data.former_cluster_name
                 return node_data
 
-        if local_session == latest_session:
-            # If Node is associated with a cluster
-            if node_data.former_cluster_connectivity in ("association", "new association"):
-                # If node is consecutively associated with a cluster
-                if node_data.state == "ready":
-                    node_data.cluster_connectivity = "association"
-                    return node_data
-                else:
-                    return dissociation_or_uncertain(node_data)
-
-            elif node_data.former_cluster_connectivity in (
-                    "dissociation", "new dissociation", "connecting", "forked"):
-                # If node is recently associated with a cluster
-                if node_data.state == "ready":
-                    node_data.cluster_connectivity = "new association"
-                    node_data.last_known_cluster_name = node_data.cluster_name
-                    return node_data
-                elif node_data.state in CONNECT_STATES:
-                    node_data.cluster_connectivity = "connecting"
-                    return node_data
-                else:
-                    node_data.cluster_connectivity = "uncertain"
-                    node_data.cluster_name = node_data.former_cluster_name
-                    return node_data
-            elif node_data.former_cluster_connectivity == "uncertain":
-                if node_data.former_state == "ready" and node_data.state == "ready":
-                    node_data.cluster_connectivity = "association"
-                    return node_data
-                elif node_data.former_state != "ready" and node_data.state == "ready":
-                    node_data.cluster_connectivity = "new association"
-                    return node_data
-                else:
-                    return dissociation_or_uncertain(node_data)
-            else:
+        # If Node is associated with a cluster
+        if node_data.former_cluster_connectivity in ("association", "new association"):
+            # If node is consecutively associated with a cluster
+            if node_data.state == "ready":
                 node_data.cluster_connectivity = "association"
                 return node_data
+            else:
+                return dissociation_or_uncertain(node_data)
+
+        elif node_data.former_cluster_connectivity in (
+                "dissociation", "new dissociation", "connecting", "forked"):
+            # If node is recently associated with a cluster
+            if node_data.state == "ready":
+                node_data.cluster_connectivity = "new association"
+                return node_data
+            elif node_data.state in CONNECT_STATES:
+                node_data.cluster_connectivity = "connecting"
+                return node_data
+            else:
+                node_data.cluster_connectivity = "uncertain"
+                node_data.cluster_name = node_data.former_cluster_name
+                return node_data
+        elif node_data.former_cluster_connectivity == "uncertain":
+            if node_data.last_known_cluster_name == node_data.cluster_name and node_data.state == "ready":
+                node_data.cluster_connectivity = "association"
+                return node_data
+            elif node_data.last_known_cluster_name != node_data.cluster_name and node_data.state == "ready":
+                node_data.cluster_connectivity = "new association"
+                return node_data
+            else:
+                return dissociation_or_uncertain(node_data)
         else:
+            node_data.cluster_connectivity = "association"
             return node_data
 
     def edge_node_is_up_local_node_session_mismatch(node_data):
@@ -415,10 +410,6 @@ def set_connectivity_specific_node_data_values(node_data: schemas.Node, module_n
                     "association", "new association", "forked", "connecting", "uncertain"):
                 # If node was recently dissociated from the cluster
                 node_data.cluster_connectivity = "new dissociation"
-                node_data.last_known_cluster_name = node_data.former_cluster_name
-                return node_data
-            elif node_data.former_cluster_connectivity in ("dissociation", "new dissociation"):
-                node_data.cluster_connectivity = "dissociation"
                 return node_data
             else:
                 node_data.cluster_connectivity = "dissociation"

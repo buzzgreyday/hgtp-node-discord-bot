@@ -77,7 +77,6 @@ def merge_data(node_data: schemas.Node, found: bool, cluster_data: schemas.Clust
     if not found and cluster_data is not None:
         # Make sure the cluster is right
         if node_data.layer == cluster_data.layer:
-            node_data.last_known_cluster_name = node_data.last_known_cluster_name
             node_data.latest_cluster_session = cluster_data.session
             node_data.cluster_version = cluster_data.version
             node_data.cluster_peer_count = cluster_data.peer_count
