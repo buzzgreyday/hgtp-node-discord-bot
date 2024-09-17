@@ -994,7 +994,7 @@ def build_system_node_disk_space(node_data: schemas.Node) -> tuple[str, bool: re
             field_info = f"`ⓘ  Free disk space is ok.`"
             return disk_space_field(), red_color_trigger, False
     return (
-        f":yellow_square **DISK**"
+        f":yellow_square: **DISK**"
         f"```ERROR```"
         f"`⚠  Something went wrong.`"
     ), False, True
