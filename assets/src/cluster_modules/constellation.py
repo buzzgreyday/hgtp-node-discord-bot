@@ -67,7 +67,8 @@ async def request_cluster_data(
                 latest_ordinal=latest_ordinal,
                 latest_timestamp=latest_timestamp,
                 recently_rewarded=addresses,
-                peer_data=sorted(cluster_resp, key=lambda d: d["id"]) if cluster_resp else [],
+                # Don't do sort and create a set instead, then no binary search sort = O(n log n)
+                peer_data=set(node["id"] for node in cluster_resp) if cluster_resp else set(),
             )
         else:
             cluster_data = schemas.Cluster(
@@ -83,7 +84,7 @@ async def request_cluster_data(
                 latest_ordinal=latest_ordinal,
                 latest_timestamp=latest_timestamp,
                 recently_rewarded=addresses,
-                peer_data=sorted(cluster_resp, key=lambda d: d["id"]) if cluster_resp else [],
+                peer_data=set(node["id"] for node in cluster_resp) if cluster_resp else set(),
             )
     # await config.update_config_with_latest_values(cluster_data, configuration)
     return cluster_data
@@ -1186,16 +1187,17 @@ def mark_notify(d: schemas.Node, configuration):
                 d.notify = True
                 d.last_notified_timestamp = d.timestamp_index
                 d.last_notified_reason = "version"
-        elif (
-                0
-                <= float(d.disk_space_free) * 100 / float(d.disk_space_total)
-                <= configuration["general"]["notifications"][
-                    "free disk space threshold (percentage)"
-                ]
-        ):
-            d.notify = True
-            d.last_notified_timestamp = d.timestamp_index
-            d.last_notified_reason = "disk"
+        elif d.disk_space_free and d.disk_space_total:
+            if (
+                    0
+                    <= float(d.disk_space_free) * 100 / float(d.disk_space_total)
+                    <= configuration["general"]["notifications"][
+                        "free disk space threshold (percentage)"
+                    ]
+            ):
+                d.notify = True
+                d.last_notified_timestamp = d.timestamp_index
+                d.last_notified_reason = "disk"
         else:
             d.last_notified_reason = d.last_notified_reason
             d.last_notified_timestamp = d.last_notified_timestamp

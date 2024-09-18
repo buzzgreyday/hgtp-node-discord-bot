@@ -19,7 +19,8 @@ def node(node_data: schemas.Node, cluster_data: schemas.Cluster):
             else:
                 former_cluster_name = None
         if cluster_data.layer == node_data.layer:
-            if binary_node_search(node_data, cluster_data.peer_data):
+            # if binary_node_search(node_data, cluster_data.peer_data):
+            if search(node_data, cluster_data.peer_data):
                 found = True
                 return found, cluster_data
             elif former_cluster_name == cluster_data.name:
@@ -27,6 +28,13 @@ def node(node_data: schemas.Node, cluster_data: schemas.Cluster):
             else:
                 former_cluster_data = None
     return found, former_cluster_data
+
+
+def search(node_data, cluster_peer_data):
+    for peer_id in cluster_peer_data:
+        if node_data.id == peer_id:
+            return True
+    return False
 
 
 def binary_node_search(node_data: schemas.Node, peer_data: List[dict]):

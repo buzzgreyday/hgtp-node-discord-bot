@@ -177,7 +177,7 @@ class CRUD:
     ):
         """Update user data based on cache"""
         if cached_subscriber["removal_datetime"]:
-            removal_datetime = pd.to_datetime(cached_subscriber["removal_datetime"])
+            removal_datetime = pd.to_datetime(cached_subscriber["removal_datetime"]).tz_localize(None)
         else:
             removal_datetime = None
         async with async_session() as session:
