@@ -175,9 +175,11 @@ async def main_loop(version_manager, _configuration):
                     removal_dt = pd.to_datetime(cached_subscriber.get("removal_datetime"))
                     try:
                         if removal_dt >= pd.to_datetime(datetime.now(timezone.utc)):
+                            print(removal_dt, cached_subscriber.get("name"))
                             continue
                     except TypeError:
                         if removal_dt >= pd.to_datetime(datetime.now()):
+                            print(removal_dt, cached_subscriber.get("name"))
                             continue
 
                 if cached_subscriber.get("located") in (None, 'None', False, 'False', '', [], {}, ()):
@@ -273,10 +275,15 @@ async def main_loop(version_manager, _configuration):
                             f"Cluster: {cluster["cluster_name"]} l{cluster["layer"]}\n"
                             f"Automatic check: {round(timer_stop - timer_start, 2)} seconds"
                         )
-                if cluster_data_list:
-                    cache = await run_none_clustered_subscribers(subscribers=no_cluster_subscribers,
-                                                                 clusters=cluster_data_list, cache=cache)
-
+                dt_start, timer_start = timing()
+                cache = await run_none_clustered_subscribers(subscribers=no_cluster_subscribers,
+                                                             clusters=cluster_data_list, cache=cache)
+                dt_stop, timer_stop = timing()
+                logging.getLogger("app").info(
+                            f"main.py - main_loop\n"
+                            f"Cluster: None\n"
+                            f"Automatic check: {round(timer_stop - timer_start, 2)} seconds"
+                        )
 
             except Exception as e:
                 try:

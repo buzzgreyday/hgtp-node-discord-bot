@@ -763,6 +763,8 @@ async def run():
                     hash_index = hashlib.sha256(key_str.encode()).hexdigest()
                     row['hash_index'] = hash_index
                     metric_data = MetricStatsSchema(**row.to_dict())
+                    if metric_data.cpu_count is None:
+                        metric_data.cpu_count = float(0)
                     new_data.append(row.to_dict())
                     try:
                         # Post data if no data exists

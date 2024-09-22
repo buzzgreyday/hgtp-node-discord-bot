@@ -763,7 +763,7 @@ class CRUD:
                         data["disk_total"].append(
                             row.disk_space_total / one_gigabyte
                         )
-                    except ZeroDivisionError:
+                    except (ZeroDivisionError, TypeError):
                         data["disk_free"].append(0.0)
                         data["disk_total"].append(0.0)
 
