@@ -204,7 +204,7 @@ class CRUD:
             # Create a StatModel instance for each row of data
             session.add(metric_data)
             await session.commit()
-            logging.getLogger("stats").error(f"crud.py - Metric stats post: SUCCESS!")
+            logging.getLogger("stats").debug(f"crud.py - Metric stats post: SUCCESS!")
         return jsonable_encoder(metric_data)
 
     async def delete_rows_not_in_new_data(self, data: list[dict], async_session: async_sessionmaker[AsyncSession]):

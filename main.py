@@ -159,6 +159,7 @@ async def main_loop(version_manager, _configuration):
     async def run_none_clustered_subscribers(subscribers: List[dict], clusters: List[schemas.Cluster],
                                              cache: List[dict]):
         tasks = []
+        subscribers
         # These should be checked last: probably make sure these are not new subscribers
         # (new subscribers are 'integrationnet' by default now, could be "new" or something)
         # and then check once daily, until removal
@@ -169,8 +170,10 @@ async def main_loop(version_manager, _configuration):
 
         # Convert tuples back to dictionaries
         subscribers = [dict(t) for t in unique_tuples]
+        # print(subscribers)
         for cluster in clusters:
             for i, cached_subscriber in enumerate(subscribers):
+                print(i)
                 if cached_subscriber.get("removal_datetime"):
                     removal_dt = pd.to_datetime(cached_subscriber.get("removal_datetime"))
                     try:
@@ -184,6 +187,7 @@ async def main_loop(version_manager, _configuration):
 
                 if cached_subscriber.get("located") in (None, 'None', False, 'False', '', [], {}, ()):
                     try:
+                        print(cached_subscriber.get("name"))
                         tasks.append(
                             create_task(task_num=i, subscriber=cached_subscriber, data=cluster, cluster=cluster.name,
                                         layer=cluster.layer, version_manager=version_manager,
@@ -202,12 +206,13 @@ async def main_loop(version_manager, _configuration):
 
     cache = []
     clusters = []
-    cluster_data_list = []
+
     while True:
         # Wow, we do not want to use one session across multiples!
         if await runtime_check():
             try:
                 tasks = []
+                cluster_data_list = []
                 try:
                     cache, clusters = await refresh_cache_and_clusters(cache, clusters, _configuration)
                 except Exception:
@@ -246,7 +251,8 @@ async def main_loop(version_manager, _configuration):
                             if cached_subscriber["located"] in (None, 'None', False, 'False', '', [], {}, ()):
                                 if cached_subscriber["cluster_name"] in (
                                         None, 'None', False, 'False', '', [], {}, ()) and cached_subscriber[
-                                    "new_subscriber"] is False:
+                                    "new_subscriber"] in (
+                                        None, 'None', False, 'False', '', [], {}, ()):
                                     # We need to run these last
                                     no_cluster_subscribers.append(cached_subscriber)
                                 else:
@@ -392,7 +398,7 @@ async def restart_bot(version_manager, configuration):
         try:
             await run_bot(version_manager, configuration)
         except Exception as e:
-            logging.getLogger("bot").error(f"Restarting bot after error: {str(e)}")
+            logging.getLogger("bot").error(f"Restarting bot after error: {traceback.format_exc()}")
             await bot.close()
             time.sleep(5)  # Optional: delay before restarting
         else:

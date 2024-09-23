@@ -5,6 +5,7 @@ import traceback
 import warnings
 from datetime import datetime, timedelta, timezone
 
+import pydantic
 from bokeh.models import BoxAnnotation, Range1d, LinearAxis, HoverTool, Legend, ColumnDataSource
 from bokeh.plotting import figure, output_file, save
 from bokeh.palettes import Category20c_10
@@ -763,8 +764,6 @@ async def run():
                     hash_index = hashlib.sha256(key_str.encode()).hexdigest()
                     row['hash_index'] = hash_index
                     metric_data = MetricStatsSchema(**row.to_dict())
-                    if metric_data.cpu_count is None:
-                        metric_data.cpu_count = float(0)
                     new_data.append(row.to_dict())
                     try:
                         # Post data if no data exists

@@ -1,10 +1,12 @@
 import logging
+import math
 import re
 import traceback
 from typing import List, Optional
 import datetime as dt
 
-from pydantic import BaseModel, ValidationError, validator
+import pandas as pd
+from pydantic import BaseModel, ValidationError, validator, field_validator
 
 from assets.src.encode_decode import id_to_dag_address
 
@@ -310,3 +312,9 @@ class MetricStatsSchema(BaseModel):
     disk_total: float
     cpu_count: int
     daily_cpu_load: float
+
+    @field_validator('cpu_count', 'disk_free', 'disk_total', 'daily_cpu_load', mode='before')
+    def set_default_float_values(cls, v):
+        if v is None or (isinstance(v, float) and (math.isnan(v) or math.isinf(v))):
+            return 0.0
+        return v
