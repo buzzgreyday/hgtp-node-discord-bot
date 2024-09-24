@@ -82,25 +82,51 @@ async def refresh_cache_and_clusters(cache, clusters, _configuration) -> Tuple[L
 
         for subscriber in layer_subscriptions:
             subscriber_found = False
-            if not first_run:
-                for cached_subscriber in cache:
-                    # This will skip lookup if already located in a cluster. This needs reset every check.
-                    cached_subscriber["located"] = False
-                    if subscriber[0] == cached_subscriber["id"] and subscriber[1] == cached_subscriber["ip"] and \
-                            subscriber[2] == cached_subscriber["public_port"]:
-                        subscriber_found = True
-                        if cached_subscriber["cluster_name"] in (None, 'None', False, 'False', '', [], {}, ()) and \
-                                cached_subscriber["new_subscriber"] is True:
-                            logging.getLogger("app").info(
-                                f"main.py - Found new subscriber in cache\n"
-                                f"Subscriber: ip {cached_subscriber["ip"]}, layer {cached_subscriber["public_port"]}\n"
-                                f"Details: Unidentified cluster name"
-                            )
-                        else:
-                            cached_subscriber["new_subscriber"] = False
-                        break
+            for cached_subscriber in cache:
+                # This will skip lookup if already located in a cluster. This needs reset every check.
+                cached_subscriber["located"] = False
+                if subscriber[0] == cached_subscriber["id"] and subscriber[1] == cached_subscriber["ip"] and \
+                        subscriber[2] == cached_subscriber["public_port"]:
+                    subscriber_found = True
+                    if cached_subscriber["cluster_name"] and \
+                            cached_subscriber["new_subscriber"] is True:
+                        logging.getLogger("app").info(
+                            f"main.py - Found new subscriber in cache\n"
+                            f"Subscriber: ip {cached_subscriber["ip"]}, layer {cached_subscriber["public_port"]}\n"
+                            f"Details: Unidentified cluster name"
+                        )
+                    elif not cached_subscriber.get("cluster_name"):
+                        cached_subscriber["cluster_name"] = None
+                        cached_subscriber["new_subscriber"] = False
+                        logging.getLogger("app").info(
+                            f"main.py - Found old subscriber in cache\n"
+                            f"Subscriber: ip {cached_subscriber["ip"]}, layer {cached_subscriber["public_port"]}\n"
+                            f"Details: Unidentified cluster name"
+                        )
+                    else:
+                        cached_subscriber["cluster_name"] = subscriber[4]
+                        cached_subscriber["new_subscriber"] = False
 
-                if not subscriber_found:
+            if not subscriber_found:
+                if first_run:
+                    cache.append(
+                    {
+                        "id": subscriber[0],
+                        "ip": subscriber[1],
+                        "public_port": subscriber[2],
+                        "layer": layer,
+                        "cluster_name": subscriber[4],
+                        "located": False,
+                        "new_subscriber": False,
+                        "removal_datetime": subscriber[3]
+                    }
+                    )
+                    logging.getLogger("app").info(
+                        f"main.py - refresh_cache_and_clusters\n"
+                        f"Subscriber: ip {subscriber[1]}, layer {subscriber[2]}, cluster: {subscriber[4]}\n"
+                        f"Details: First run"
+                    )
+                else:
                     cache.append(
                         {
                             "id": subscriber[0],
@@ -114,24 +140,10 @@ async def refresh_cache_and_clusters(cache, clusters, _configuration) -> Tuple[L
                         }
                     )
                     logging.getLogger("app").info(
-                        f"main.py - Found new subscriber in cache\n"
+                        f"main.py - refresh_cache_and_clusters\n"
                         f"Subscriber: ip {subscriber[1]}, layer {subscriber[2]}\n"
                         f"Details: New subscriber added to cache"
                     )
-
-            else:
-                cache.append(
-                    {
-                        "id": subscriber[0],
-                        "ip": subscriber[1],
-                        "public_port": subscriber[2],
-                        "layer": layer,
-                        "cluster_name": subscriber[4],
-                        "located": False,
-                        "new_subscriber": False,
-                        "removal_datetime": subscriber[3]
-                    }
-                )
 
     for cluster in clusters:
         cluster["number_of_subs"] = 0
@@ -158,8 +170,8 @@ async def runtime_check():
 async def main_loop(version_manager, _configuration):
     async def run_none_clustered_subscribers(subscribers: List[dict], clusters: List[schemas.Cluster],
                                              cache: List[dict]):
+        # PROBLEM IS CACHE ISN'T UPDATING, STAYS NONE
         tasks = []
-        subscribers
         # These should be checked last: probably make sure these are not new subscribers
         # (new subscribers are 'integrationnet' by default now, could be "new" or something)
         # and then check once daily, until removal
@@ -170,10 +182,13 @@ async def main_loop(version_manager, _configuration):
 
         # Convert tuples back to dictionaries
         subscribers = [dict(t) for t in unique_tuples]
-        # print(subscribers)
+
         for cluster in clusters:
             for i, cached_subscriber in enumerate(subscribers):
-                print(i)
+                logging.getLogger("app").info(
+                    f"main.py - run_none_clustered_subscribers\n"
+                    f"Cluster: None\n"
+                    f"Check: {cached_subscriber.get("name"), cached_subscriber.get("located")} seconds")
                 if cached_subscriber.get("removal_datetime"):
                     removal_dt = pd.to_datetime(cached_subscriber.get("removal_datetime"))
                     try:
@@ -187,7 +202,6 @@ async def main_loop(version_manager, _configuration):
 
                 if cached_subscriber.get("located") in (None, 'None', False, 'False', '', [], {}, ()):
                     try:
-                        print(cached_subscriber.get("name"))
                         tasks.append(
                             create_task(task_num=i, subscriber=cached_subscriber, data=cluster, cluster=cluster.name,
                                         layer=cluster.layer, version_manager=version_manager,
@@ -228,7 +242,7 @@ async def main_loop(version_manager, _configuration):
                     dt_start, timer_start = timing()
                     cluster_data = None
 
-                    if cluster.get("cluster_name") not in (None, 'None', False, 'False', '', [], {}, ()):
+                    if cluster.get("cluster_name"):
                         # Need a check for if cluster is down, skip check
                         try:
                             cluster_data = await determine_module.get_cluster_data_from_module(
@@ -249,10 +263,7 @@ async def main_loop(version_manager, _configuration):
                             continue
                         for i, cached_subscriber in enumerate(cache):
                             if cached_subscriber["located"] in (None, 'None', False, 'False', '', [], {}, ()):
-                                if cached_subscriber["cluster_name"] in (
-                                        None, 'None', False, 'False', '', [], {}, ()) and cached_subscriber[
-                                    "new_subscriber"] in (
-                                        None, 'None', False, 'False', '', [], {}, ()):
+                                if not cached_subscriber.get("cluster_name"):
                                     # We need to run these last
                                     no_cluster_subscribers.append(cached_subscriber)
                                 else:
@@ -273,6 +284,7 @@ async def main_loop(version_manager, _configuration):
 
                         cache = await gather_results(cache=cache, coroutines=tasks)
 
+
                         # Log the completion time
                         dt_stop, timer_stop = timing()
 
@@ -281,6 +293,16 @@ async def main_loop(version_manager, _configuration):
                             f"Cluster: {cluster["cluster_name"]} l{cluster["layer"]}\n"
                             f"Automatic check: {round(timer_stop - timer_start, 2)} seconds"
                         )
+                # These should be checked last: probably make sure these are not new subscribers
+                # (new subscribers are 'integrationnet' by default now, could be "new" or something)
+                # and then check once daily, until removal
+                # tuple_of_tuples = [tuple(sorted(d.items())) for d in cache]
+                #
+                # # Create a set to remove duplicates
+                # unique_tuples = set(tuple_of_tuples)
+                #
+                # # Convert tuples back to dictionaries
+                # subscribers = [dict(t) for t in unique_tuples]
                 dt_start, timer_start = timing()
                 cache = await run_none_clustered_subscribers(subscribers=no_cluster_subscribers,
                                                              clusters=cluster_data_list, cache=cache)
@@ -334,12 +356,18 @@ async def gather_results(coroutines: List, cache: List[dict]):
     # Wait for all tasks to complete
     results = await asyncio.gather(*[task for _, task in coroutines])
 
-    # Handle the results
     for (i, _), (data, updated_cache) in zip(coroutines, results):
-        if data:
-            await database.write_data(data)
-            await update_user(updated_cache)
-            cache[i] = updated_cache  # Replace the old cache entry with the updated one
+        # Make sure the index is valid before updating the cache
+        if i < len(cache):
+            if data:
+                await database.write_data(data)
+                await update_user(updated_cache)
+                cache[i] = updated_cache  # Replace the old cache entry with the updated one
+        else:
+            logging.getLogger("app").error(
+                f"gather_results - Index out of range: {i}, cache size: {len(cache)}"
+            )
+            continue
 
     # Clear to make ready for next check
     coroutines.clear()
