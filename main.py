@@ -98,6 +98,7 @@ async def refresh_cache_and_clusters(cache, clusters, _configuration) -> Tuple[L
                     elif not cached_subscriber.get("cluster_name"):
                         cached_subscriber["cluster_name"] = None
                         cached_subscriber["new_subscriber"] = False
+
                         logging.getLogger("app").info(
                             f"main.py - Found old subscriber in cache\n"
                             f"Subscriber: ip {cached_subscriber["ip"]}, layer {cached_subscriber["public_port"]}\n"
@@ -110,16 +111,16 @@ async def refresh_cache_and_clusters(cache, clusters, _configuration) -> Tuple[L
             if not subscriber_found:
                 if first_run:
                     cache.append(
-                    {
-                        "id": subscriber[0],
-                        "ip": subscriber[1],
-                        "public_port": subscriber[2],
-                        "layer": layer,
-                        "cluster_name": subscriber[4],
-                        "located": False,
-                        "new_subscriber": False,
-                        "removal_datetime": subscriber[3]
-                    }
+                        {
+                            "id": subscriber[0],
+                            "ip": subscriber[1],
+                            "public_port": subscriber[2],
+                            "layer": layer,
+                            "cluster_name": subscriber[4],
+                            "located": False,
+                            "new_subscriber": False,
+                            "removal_datetime": subscriber[3]
+                        }
                     )
                     logging.getLogger("app").info(
                         f"main.py - refresh_cache_and_clusters\n"
