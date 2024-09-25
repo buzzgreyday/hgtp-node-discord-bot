@@ -60,7 +60,7 @@ function start_bot() {
     create_swap_file
     start_venv
     ulimit -n 10000
-    cd "$HOME/bot" && $PY_VERSION main.py &
+    cd "$HOME/bot" && $PY_VERSION main.py >/dev/null &
     echo "Bot: The app started, waiting $WAIT seconds to fetch process ID"
     sleep $WAIT
     pid=$(pidof -s $PY_VERSION main.py)
