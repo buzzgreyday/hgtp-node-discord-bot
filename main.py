@@ -314,14 +314,14 @@ async def main_loop(version_manager, _configuration):
 
             except Exception as e:
                 try:
-                    await discord.messages.send_traceback(bot, f"Bot experienced a critical error: {e.with_traceback()}")
+                    await discord.messages.send_traceback(bot, f"Bot experienced a critical error: {traceback.format_exc()}")
                     raise RuntimeError(f"Bot experienced a critical error: {traceback.format_exc()}")
                 except Exception as e:
                     logging.getLogger("app").error(
                         f"main.py - main_loop\n"
                         f"Error: Could not send traceback via Discord"
                     )
-                    raise RuntimeError(f"Bot experienced a critical error: {e.with_traceback()}")
+                    raise RuntimeError(f"Bot experienced a critical error: {traceback.format_exc()}")
 
         else:
             # If uvicorn isn't running
