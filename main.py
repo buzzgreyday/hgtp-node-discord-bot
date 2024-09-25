@@ -194,11 +194,9 @@ async def main_loop(version_manager, _configuration):
                     removal_dt = pd.to_datetime(cached_subscriber.get("removal_datetime"))
                     try:
                         if removal_dt >= pd.to_datetime(datetime.now(timezone.utc)):
-                            print(removal_dt, cached_subscriber.get("name"))
                             continue
                     except TypeError:
                         if removal_dt >= pd.to_datetime(datetime.now()):
-                            print(removal_dt, cached_subscriber.get("name"))
                             continue
 
                 if cached_subscriber.get("located") in (None, 'None', False, 'False', '', [], {}, ()):
