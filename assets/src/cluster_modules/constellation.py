@@ -68,7 +68,7 @@ async def request_cluster_data(
                 latest_timestamp=latest_timestamp,
                 recently_rewarded=addresses,
                 # Don't do sort and create a set instead, then no binary search sort = O(n log n)
-                peer_data=set(node["id"] for node in cluster_resp) if cluster_resp else set(),
+                peer_data=list(node for node in cluster_resp) if cluster_resp else list(),
             )
         else:
             cluster_data = schemas.Cluster(
@@ -84,7 +84,7 @@ async def request_cluster_data(
                 latest_ordinal=latest_ordinal,
                 latest_timestamp=latest_timestamp,
                 recently_rewarded=addresses,
-                peer_data=set(node["id"] for node in cluster_resp) if cluster_resp else set(),
+                peer_data=list(node for node in cluster_resp) if cluster_resp else list(),
             )
     # await config.update_config_with_latest_values(cluster_data, configuration)
     return cluster_data
