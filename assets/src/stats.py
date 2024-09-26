@@ -5,7 +5,6 @@ import traceback
 import warnings
 from datetime import datetime, timedelta, timezone
 
-import pydantic
 from bokeh.models import BoxAnnotation, Range1d, LinearAxis, HoverTool, Legend, ColumnDataSource
 from bokeh.plotting import figure, output_file, save
 from bokeh.palettes import Category20c_10
@@ -17,7 +16,7 @@ from aiohttp import ClientSession, TCPConnector
 from assets.src import preliminaries
 from assets.src.database.database import post_reward_stats, update_reward_stats, post_metric_stats, update_metric_stats, \
     delete_rows_not_in_new_data
-from assets.src.discord import discord, messages
+from assets.src.discord import messages
 from assets.src.discord.services import bot
 from assets.src.rewards import normalize_timestamp
 from assets.src.schemas import RewardStatsSchema, MetricStatsSchema

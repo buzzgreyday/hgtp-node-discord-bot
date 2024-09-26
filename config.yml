@@ -17,7 +17,7 @@ general:
   migrate node data (day of month): 13
   migrate ordinal data (day of month): 22
   save data (days): 32
-  version: 5.0.beta-7
+  version: 5.0.beta-8
 modules:
   integrationnet:
     0:
