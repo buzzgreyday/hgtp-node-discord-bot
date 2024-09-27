@@ -32,7 +32,7 @@ def node(node_data: schemas.Node, cluster_data: schemas.Cluster):
 
 def search(node_data: schemas.Node, cluster_peer_data: List[dict]):
     for peer in cluster_peer_data:
-        if node_data.id == peer.get("id") and node_data.ip == peer.get("ip") and peer.get("publicPort"):
+        if node_data.id == peer.get("id") and node_data.ip == peer.get("ip") and node_data.public_port == peer.get("publicPort"):
             return True
     return False
 

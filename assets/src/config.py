@@ -67,7 +67,7 @@ def configure_logging():
                 "formatter": "default",
             },
             "stats": {
-                "level": "INFO" if not dev_env else "DEBUG",
+                "level": "DEBUG" if not dev_env else "DEBUG",
                 "class": "logging.FileHandler",
                 "filename": "assets/data/logs/stats.log",
                 "formatter": "default",
@@ -112,7 +112,7 @@ def configure_logging():
             },
             "stats": {  # Hypercorn access log
                 "handlers": ["stats"],
-                "level": "INFO" if not dev_env else "DEBUG",
+                "level": "DEBUG" if not dev_env else "DEBUG",
                 "propagate": False,  # Same as above
             },
             "nextcord": {  # Hypercorn access log
