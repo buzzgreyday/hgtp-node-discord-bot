@@ -42,6 +42,11 @@ function start_venv() {
 }
 
 
+function delete_logs() {
+  rm -rf "$HOME/bot/assets/data/logs/*.log"
+}
+
+
 function start_bot() {
   if [ ! -d "$HOME/bot/" ]; then
     echo "Bot: The bot app doesn't seem to be installed"
@@ -58,6 +63,7 @@ function start_bot() {
   else
     create_dir_structure
     create_swap_file
+    delete_logs
     start_venv
     ulimit -n 10000
     cd "$HOME/bot" && $PY_VERSION main.py >/dev/null &
