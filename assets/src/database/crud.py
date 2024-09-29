@@ -2,6 +2,7 @@ import asyncio
 import gc
 import logging
 import os
+import random
 import traceback
 from datetime import datetime, timedelta
 from typing import List, Dict
@@ -655,12 +656,12 @@ class CRUD:
             )
             return
 
+
     async def get_ordinals_data_from_timestamp(
-            self, timestamp: int, async_session: async_sessionmaker[AsyncSession]
+            self, timestamp: int, async_session: async_sessionmaker[AsyncSession],
+            max_retries:int = 5, batch_size: int = 200000, offset: int = 0
     ):
         async with async_session() as session:
-            batch_size = 100000
-            offset = 0
             data = {
                 "timestamp": [],
                 "ordinals": [],
@@ -668,6 +669,8 @@ class CRUD:
                 "dag": [],
                 "usd_per_token": [],
             }
+            retry_attempts = 0
+
             while True:
                 try:
                     statement = (
@@ -679,39 +682,59 @@ class CRUD:
                         .limit(batch_size)
                     )
                     logging.getLogger("stats").debug(f"Get ordinals from timestamp: {timestamp}, offset: {offset}")
+
                     results = await session.execute(statement)
                     batch_results = results.scalars().all()
-                except Exception:
-                    logging.getLogger("stats").warning(traceback.format_exc())
 
-                if not batch_results:
-                    logging.getLogger("stats").debug(f"Got all ordinals!")
-                    break  # No more data
+                    if not batch_results:
+                        logging.getLogger("stats").debug(f"Got all ordinals!")
+                        break  # No more data
 
-                for row in batch_results:
-                    data["timestamp"].append(row.timestamp)
-                    data["ordinals"].append(row.ordinal)
-                    data["destinations"].append(row.destination)
-                    data["dag"].append(row.amount)
-                    data["usd_per_token"].append(row.usd)
+                    for row in batch_results:
+                        data["timestamp"].append(row.timestamp)
+                        data["ordinals"].append(row.ordinal)
+                        data["destinations"].append(row.destination)
+                        data["dag"].append(row.amount)
+                        data["usd_per_token"].append(row.usd)
 
-                del results
-                del batch_results
-                offset += batch_size
-                await asyncio.sleep(0)
-                # gc.collect()
+                    del results
+                    del batch_results
+                    offset += batch_size
+                    retry_attempts = 0  # Reset retries after successful batch processing
+
+                    await asyncio.sleep(0)  # Yield control to event loop
+
+                except TimeoutError as e:
+                    logging.getLogger("stats").warning(f"TimeoutError: {str(e)}. Retrying session...")
+                    retry_attempts += 1
+                    if retry_attempts > max_retries:
+                        logging.getLogger("stats").error(
+                            f"Max retries exceeded after {retry_attempts} attempts. Exiting.")
+                        break
+
+                    backoff = min(2 ** retry_attempts + random.random(), 60)  # Exponential backoff with jitter
+                    logging.getLogger("stats").info(f"Retrying in {backoff:.2f} seconds...")
+                    await asyncio.sleep(backoff)
+
+                    # Close and create a new session after error
+                    await session.close()
+                    async with async_session() as session:
+                        continue
+
+                finally:
+                    # Manually clean up to avoid memory leaks
+                    gc.collect()
 
         return data
 
     async def get_historic_node_data_from_timestamp(
-            self, timestamp: int, async_session: async_sessionmaker[AsyncSession]
+            self, timestamp: int, async_session: async_sessionmaker[AsyncSession],
+            max_retries:int = 5, batch_size: int = 200000, offset: int = 0
     ):
         """
         Get timeslice data from the node database.
         """
         one_gigabyte = 1073741824
-        batch_size = 100000
-        offset = 0
         data = {
             "timestamp": [],
             "destinations": [],
@@ -725,52 +748,74 @@ class CRUD:
             "disk_total": [],
         }
         timestamp_datetime = datetime.fromtimestamp(timestamp)
+        retry_attempts = 0
 
         while True:
-            statement = (
-                select(
-                    NodeModel
-                )
-                .filter(NodeModel.timestamp_index >= timestamp_datetime)
-                .offset(offset)
-                .limit(batch_size)
-            )
-            logging.getLogger("stats").debug(f"Get node_data from timestamp: {timestamp}, offset: {offset}")
             try:
+                statement = (
+                    select(NodeModel)
+                    .filter(NodeModel.timestamp_index >= timestamp_datetime)
+                    .offset(offset)
+                    .limit(batch_size)
+                )
+                logging.getLogger("stats").debug(f"Get node_data from timestamp: {timestamp}, offset: {offset}")
+
                 async with async_session() as session:
                     results = await session.execute(statement)
+                    batch_results = results.scalars().all()
+
+                if not batch_results:
+                    logging.getLogger("stats").debug("All node_data batches processed")
+                    break  # No more data
+
+                for row in batch_results:
+                    if row.last_known_cluster_name == "mainnet":
+                        data["timestamp"].append(round(row.timestamp_index.timestamp()))
+                        data["destinations"].append(row.wallet_address)
+                        data["layer"].append(row.layer)
+                        data["ip"].append(row.ip)
+                        data["id"].append(row.id)
+                        data["public_port"].append(row.public_port)
+                        data["cpu_load_1m"].append(row.one_m_system_load_average)
+                        data["cpu_count"].append(row.cpu_count)
+                        try:
+                            data["disk_free"].append(row.disk_space_free / one_gigabyte)
+                            data["disk_total"].append(row.disk_space_total / one_gigabyte)
+                        except (ZeroDivisionError, TypeError):
+                            data["disk_free"].append(0.0)
+                            data["disk_total"].append(0.0)
+
+                del results
+                del batch_results
+                offset += batch_size
+                retry_attempts = 0  # Reset retries after successful batch processing
+
+                await asyncio.sleep(0)  # Yield control to event loop
+
             except aiohttp.client_exceptions.ServerDisconnectedError:
+                logging.getLogger("stats").warning("Server disconnected. Retrying in 3 seconds...")
                 await asyncio.sleep(3)
                 continue
-            batch_results = results.scalars().all()
 
-            if not batch_results:
-                logging.getLogger("stats").debug("All node_data batches processed")
-                break  # No more data
+            except TimeoutError as e:
+                logging.getLogger("stats").warning(f"TimeoutError: {str(e)}. Retrying session...")
+                retry_attempts += 1
+                if retry_attempts > max_retries:
+                    logging.getLogger("stats").error(f"Max retries exceeded after {retry_attempts} attempts. Exiting.")
+                    break
 
-            for row in batch_results:
-                if row.last_known_cluster_name == "mainnet":
-                    data["timestamp"].append(round(row.timestamp_index.timestamp()))
-                    data["destinations"].append(row.wallet_address)
-                    data["layer"].append(row.layer)
-                    data["ip"].append(row.ip)
-                    data["id"].append(row.id)
-                    data["public_port"].append(row.public_port)
-                    data["cpu_load_1m"].append(row.one_m_system_load_average)
-                    data["cpu_count"].append(row.cpu_count)
-                    try:
-                        data["disk_free"].append(row.disk_space_free / one_gigabyte)
-                        data["disk_total"].append(
-                            row.disk_space_total / one_gigabyte
-                        )
-                    except (ZeroDivisionError, TypeError):
-                        data["disk_free"].append(0.0)
-                        data["disk_total"].append(0.0)
+                backoff = min(2 ** retry_attempts + random.random(), 60)  # Exponential backoff with jitter
+                logging.getLogger("stats").info(f"Retrying in {backoff:.2f} seconds...")
+                await asyncio.sleep(backoff)
 
-            del results
-            del batch_results
-            offset += batch_size
-            await asyncio.sleep(0)
+                # Close and create a new session after error
+                await session.close()
+                async with async_session() as session:
+                    continue
+
+            finally:
+                # Manually clean up to avoid memory leaks
+                gc.collect()
 
         return data
 
