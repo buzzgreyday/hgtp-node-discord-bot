@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from typing import List, Dict
 
 import aiohttp.client_exceptions
+import asyncpg.exceptions
 import numpy as np
 import pandas as pd
 import pydantic
@@ -266,13 +267,12 @@ class CRUD:
             data = NodeSchema(**data.__dict__)
             try:
                 await batch_processor.add_to_batch(OldNodeModel(**data.__dict__), async_session)
-            except IntegrityError as e:
+            except (pydantic.ValidationError, IntegrityError, asyncpg.exceptions.UniqueViolationError) as e:
                 logging.getLogger("db_optimization").error(
-                    f"Message: Node data already present in the old_data table\n"
+                    f"Message: Validation failed for {OldNodeModel.index}\n"
                     f"Module: assets/src/database/crud.py\n"
-                    f"Type: {e}\n"
-                    f"Details: {traceback.format_exc()}")
-            finally:
+                    f"Type: {e}\n")
+            else:
                 processed_ids.add(data.index)
         return processed_ids
 
@@ -306,7 +306,7 @@ class CRUD:
                 logging.getLogger("db_optimization").info(f"No more node data to migrate")
                 break  # No more data
 
-            processed_ids = await self._migrate_data_ids(batch_results, processed_ids, async_session, batch_processor=bp)
+            processed_ids = await self._migrate_data_ids(batch_results, processed_ids, async_session)
             await self._delete_data_ids(processed_ids, async_session)
 
             del batch_results
@@ -314,6 +314,9 @@ class CRUD:
             offset += batch_size
             await asyncio.sleep(1)
             gc.collect()
+
+        # Ensure any remaining data in the batch processor is committed
+        await bp.process_batch(async_session)
 
     async def _get_ordinals_ids(self, async_session, batch_size=10000, offset=None, cutoff_date=datetime.now() - timedelta(days=32)):
         async with async_session() as session:
@@ -330,19 +333,12 @@ class CRUD:
             try:
                 ordinal = OrdinalSchema(**ordinal_dict)
                 await batch_processor.add_to_batch(OldOrdinalModel(**ordinal.__dict__), async_session)
-            except IntegrityError as e:
-                logging.getLogger("db_optimization").error(
-                    f"Message: Ordinal index {ordinal_dict["id"]} already present in the old_ordinals table\n"     
-                    f"Module: assets/src/database/crud.py\n"
-                    f"Type: {e}\n"
-                    f"Details: {traceback.format_exc()}")
-            except pydantic.ValidationError as e:
+            except (pydantic.ValidationError, IntegrityError, asyncpg.exceptions.UniqueViolationError) as e:
                 logging.getLogger("db_optimization").error(
                     f"Message: Validation for index {ordinal_dict["id"]} failed\n"
                     f"Module: assets/src/database/crud.py\n"
-                    f"Type: {e}\n"
-                    f"Details: {traceback.format_exc()}")
-            finally:
+                    f"Type: {e}\n")
+            else:
                 processed_ids.add(ordinal_dict["id"])
         return processed_ids
 
@@ -370,7 +366,7 @@ class CRUD:
                 logging.getLogger("db_optimization").info(f"No more ordinals to migrate")
                 break  # No more data
 
-            processed_ids = await self._migrate_ordinal_ids(batch_results, processed_ids, async_session, batch_processor=bp)
+            processed_ids = await self._migrate_ordinal_ids(batch_results, processed_ids, async_session)
             await self._delete_ordinal_ids(processed_ids, async_session)
 
             del batch_results
@@ -378,6 +374,9 @@ class CRUD:
             offset += batch_size
             await asyncio.sleep(1)
             gc.collect()
+
+        # Ensure any remaining data in the batch processor is committed
+        await bp.process_batch(async_session)
 
     async def delete_db_ordinal(
             self, ordinal, async_session: async_sessionmaker[AsyncSession]
