@@ -1,4 +1,3 @@
-import os
 from logging.config import dictConfig
 from pathlib import Path
 
@@ -37,43 +36,43 @@ def configure_logging():
         },
         "handlers": {
             "hypercorn_file": {
-                "level": "INFO",
+                "level": "INFO" if not dev_env else "DEBUG",
                 "class": "logging.FileHandler",
                 "filename": "assets/data/logs/hypercorn.log",
                 "formatter": "default",
             },
             "app": {
-                "level": "INFO",
+                "level": "INFO" if not dev_env else "DEBUG",
                 "class": "logging.FileHandler",
                 "filename": "assets/data/logs/app.log",
                 "formatter": "default",
             },
             "commands": {
-                "level": "INFO",
+                "level": "INFO" if not dev_env else "DEBUG",
                 "class": "logging.FileHandler",
                 "filename": "assets/data/logs/commands.log",
                 "formatter": "default",
             },
             "rewards": {
-                "level": "INFO",
+                "level": "INFO" if not dev_env else "DEBUG",
                 "class": "logging.FileHandler",
                 "filename": "assets/data/logs/rewards.log",
                 "formatter": "default",
             },
             "db_optimization": {
-                "level": "INFO",
+                "level": "INFO" if not dev_env else "DEBUG",
                 "class": "logging.FileHandler",
                 "filename": "assets/data/logs/db_optimization.log",
                 "formatter": "default",
             },
             "stats": {
-                "level": "DEBUG" if not dev_env else "DEBUG",
+                "level": "INFO" if not dev_env else "DEBUG",
                 "class": "logging.FileHandler",
                 "filename": "assets/data/logs/stats.log",
                 "formatter": "default",
             },
             "nextcord": {
-                "level": "INFO",
+                "level": "INFO" if not dev_env else "DEBUG",
                 "class": "logging.FileHandler",
                 "filename": "assets/data/logs/nextcord.log",
                 "formatter": "default",
@@ -82,42 +81,42 @@ def configure_logging():
         "loggers": {
             "hypercorn.error": {  # Hypercorn error log
                 "handlers": ["hypercorn_file"],
-                "level": "INFO",
+                "level": "INFO" if not dev_env else "DEBUG",
                 "propagate": False,  # Ensure it doesn't propagate into other logs
             },
             "hypercorn.access": {  # Hypercorn access log
                 "handlers": ["hypercorn_file"],
-                "level": "INFO",
+                "level": "INFO" if not dev_env else "DEBUG",
                 "propagate": False,  # Same as above
             },
             "app": {  # Hypercorn access log
                 "handlers": ["app"],
-                "level": "INFO",
+                "level": "INFO" if not dev_env else "DEBUG",
                 "propagate": False,  # Same as above
             },
             "commands": {  # Hypercorn access log
                 "handlers": ["commands"],
-                "level": "INFO",
+                "level": "INFO" if not dev_env else "DEBUG",
                 "propagate": False,  # Same as above
             },
             "rewards": {  # Hypercorn access log
                 "handlers": ["rewards"],
-                "level": "INFO",
+                "level": "INFO" if not dev_env else "DEBUG",
                 "propagate": False,  # Same as above
             },
             "db_optimization": {  # Hypercorn access log
                 "handlers": ["db_optimization"],
-                "level": "INFO",
+                "level": "INFO" if not dev_env else "DEBUG",
                 "propagate": False,  # Same as above
             },
             "stats": {  # Hypercorn access log
                 "handlers": ["stats"],
-                "level": "DEBUG" if not dev_env else "DEBUG",
+                "level": "INFO" if not dev_env else "DEBUG",
                 "propagate": False,  # Same as above
             },
             "nextcord": {  # Hypercorn access log
                 "handlers": ["nextcord"],
-                "level": "INFO",
+                "level": "INFO" if not dev_env else "DEBUG",
                 "propagate": False,  # Same as above
             },
         },
