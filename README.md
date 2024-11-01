@@ -5,15 +5,15 @@
 This is a community driven project supported by voluntary donations. The aim of the project is to enhance Constellation node operators productivity by making node data, metrics and statistics easily available. 
 Reports are sent instantaneously in the event of **1) automatically detected anomalies** and **2) upon request from the operator**. Node operators can access a **website with vizualitions and metrics**. *As Discord is chosen as the hub for node operator communications, Discord was chosen as the primary application for the Nodebot. More integrations and data sources is planned.*
 
-For more info visit [nodebot.app](https://nodebot.app/).
-
 ## Get started
 
-It's easy to setup. Go to [the Nodebot Discord](https://discord.gg/WHwSdWJED3) server and subscribe your node(s). The Nodebot will then start collecting data used to send updates, alerts and generate visualizations based on your node data. 
+It's easy to setup. Go to [the Nodebot Discord](https://discord.gg/WHwSdWJED3) server and subscribe your node(s). The Nodebot will then start collecting data used to send updates, alerts and generate visualizations based on your node data.
+
+For more info visit [nodebot.app](https://nodebot.app/)
 
 -----
 
-## For developers: Setup
+## For developers: setup
 
 Instructions on how to install the Node Robot.
 
