@@ -2,7 +2,7 @@
 
 # The Nodebot
 
-This is a community driven project supported by voluntary donations, the aim of the project is to make Constellation node operators more productive by making node data and statistics easily available. Reports are sent instantaneously in the event of 1) automatically detected anomalies and 2) upon request from the operator. Node operators can access a website with vizualitions and metrics.
+This is a community driven project supported by voluntary donations. The aim of the project is to make Constellation node operators more productive by making node data, metrics and statistics easily available. Reports are sent instantaneously in the event of 1) automatically detected anomalies and 2) upon request from the operator. Node operators can access a website with vizualitions and metrics.
 
 For more info visit [nodebot.app](https://nodebot.app/).
 
