@@ -11,13 +11,15 @@ For more info visit [nodebot.app](https://nodebot.app/).
 
 It's easy to setup. Go to [the Nodebot Discord](https://discord.gg/WHwSdWJED3) server and subscribe your node(s). The Nodebot will then start collecting data used to send updates, alerts and generate visualizations based on your node data. 
 
+-----
+
 ## For developers: Setup
 
 Instructions on how to install the Node Robot.
 
 ### Prerequisites
 
-Ubuntu Server 22.04 (recommended)
+Ubuntu Server 22.04 **(recommended)**
 
 ### Install
 
@@ -49,7 +51,7 @@ Copy and paste the following lines:
 SET statement_timeout=18000000;
 SET lock_timeout=18000000;
 ```
-Now edit postgresql.conf:
+Now edit `postgresql.conf`:
 ```bash
 sudo -u postgres nano $(sudo -u postgres psql -t -c 'SHOW config_file')
 ```
