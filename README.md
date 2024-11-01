@@ -1,26 +1,28 @@
 ![Logo](https://github.com/buzzgreyday/hgtp-node-discord-bot/blob/master/static/logo/banner-color.png)
 
-## About
+# The Nodebot
 
 This is a community driven project supported by voluntary donations, the aim of the project is to make Constellation node operators more productive by making node data and statistics easily available. Reports are sent instantaneously in the event of 1) automatically detected anomalies and 2) upon request from the operator. Node operators can access a website with vizualitions and metrics.
 
 For more info visit [nodebot.app](https://nodebot.app/).
 
-# Get started
+## Get started
 
 It's easy to setup. Go to [the Nodebot Discord](https://discord.gg/WHwSdWJED3) server and subscribe your node(s). The Nodebot will then start collecting data used to send updates, alerts and generate visualizations based on your node data.
 
-# For developers: Setup
+## For developers: Setup
 
 Instructions on how to install the Node Robot.
 
-## Prerequisites
+### Prerequisites
 
-Ubuntu 22.04
+Ubuntu Server 22.04 (recommended)
 
-## Install
+### Install
 
-You will need a server running Ubuntu linux (22.04 recommended). Log into the project server.
+Log into the project server.
+
+#### Install and configure the Nodebot
 ```bash
 # Example command to install
 cd $HOME && git clone hgtp-node-discord-bot && mv hgtp-node-discord-bot bot && cd bot
@@ -36,7 +38,8 @@ DISCORD_TOKEN=<token_string>
 bash control.sh
 ```
 Choose `Install` to initiate automatic setup on your server.
-### Setup PostgreSQL
+
+#### Configure PostgreSQL
 ```bash
 sudo -u postgres nano ~postgres/.psqlrc
 ```
