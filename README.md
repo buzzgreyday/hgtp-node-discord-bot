@@ -8,7 +8,7 @@ For more info visit [nodebot.app](https://nodebot.app/).
 
 # Get started
 
-It's easy to setup. Go to [the Nodebot Discord](https://discord.gg/WHwSdWJED3) server and subscribe your node(s). The Nodebot will then start to collect data used to send updates, alerts and generate visualizations based on your node data.
+It's easy to setup. Go to [the Nodebot Discord](https://discord.gg/WHwSdWJED3) server and subscribe your node(s). The Nodebot will then start collecting data used to send updates, alerts and generate visualizations based on your node data.
 
 # For developers: Setup
 
