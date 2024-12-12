@@ -1,7 +1,5 @@
 ![Logo](https://github.com/buzzgreyday/hgtp-node-discord-bot/blob/master/static/logo/banner-color.png)
 
-# The Nodebot
-
 This is a community driven project supported by voluntary donations. The aim of the project is to enhance Constellation node operators productivity by making node data, metrics and statistics easily available. 
 Reports are sent instantaneously in the event of **1) automatically detected anomalies** and **2) upon request from the operator**. Node operators can access a **website with vizualitions and metrics**. *As Discord is chosen as the hub for node operator communications, Discord was chosen as the primary application for the Nodebot. More integrations and data sources is planned.*
 
