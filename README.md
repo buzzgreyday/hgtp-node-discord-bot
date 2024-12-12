@@ -5,6 +5,8 @@
 This is a community driven project supported by voluntary donations. The aim of the project is to enhance Constellation node operators productivity by making node data, metrics and statistics easily available. 
 Reports are sent instantaneously in the event of **1) automatically detected anomalies** and **2) upon request from the operator**. Node operators can access a **website with vizualitions and metrics**. *As Discord is chosen as the hub for node operator communications, Discord was chosen as the primary application for the Nodebot. More integrations and data sources is planned.*
 
+<a href="https://www.buymeacoffee.com/buzzgreyday" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+
 ## Get started
 
 It's easy to setup. Go to [the Nodebot Discord](https://discord.gg/WHwSdWJED3) server and subscribe your node(s). The Nodebot will then start collecting data used to send updates, alerts and generate visualizations based on your node data.
